@@ -66,7 +66,7 @@ public class Signer {
     // based on https://gist.github.com/mmuszkow/10288441
     // and https://github.com/fornwall/apksigner/blob/master/src/main/java/net/fornwall/apksigner/ZipSigner.java
     public static void signApk(File apkFile, StateUpdater updater) throws Exception {
-        if (updater != null) updater.update("Singing apk file");
+        if (updater != null) updater.update("Signing apk file");
         File ks = new File(apkFile.getParent(), "ks.keystore");
         if (!ks.exists()) newKeystore(ks);
         char[] password = "password".toCharArray();
