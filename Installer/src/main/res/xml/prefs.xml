@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="clear_cache"
+        android:title="Clear cache after and before install"
+        app:iconSpaceReserved="false" />
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="replace_bg"
+        android:title="Replace icon background with Aliucord's"
+        app:iconSpaceReserved="false" />
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="use_dex_from_storage"
+        android:title="Use Aliucord.dex from storage"
+        app:iconSpaceReserved="false" />
+    <Preference
+        android:key="dex_location"
+        android:dependency="use_dex_from_storage"
+        android:title="Dex location"
+        android:summary=""
+        app:iconSpaceReserved="false" />
+</PreferenceScreen>
