@@ -27,6 +27,7 @@ import com.aliucord.updater.PluginUpdater;
 import com.aliucord.views.Divider;
 import com.discord.app.AppActivity;
 import com.discord.utilities.color.ColorCompat;
+import com.discord.widgets.guilds.invite.WidgetGuildInvite;
 import com.discord.widgets.settings.WidgetSettings;
 import com.google.gson.reflect.TypeToken;
 import com.lytefast.flexinput.R$b;
@@ -154,6 +155,10 @@ public class Main {
 
             TextView version = v.findViewById(Utils.getResId("app_info_header", "id"));
             version.setText(version.getText() + " | Aliucord " + BuildConfig.GIT_REVISION);
+
+            TextView uploadLogs = v.findViewById(Utils.getResId("upload_debug_logs", "id"));
+            uploadLogs.setText("Aliucord Support Server");
+            uploadLogs.setOnClickListener(e -> WidgetGuildInvite.Companion.launch(e.getContext(), Constants.ALIUCORD_SUPPORT, ""));
 
             return res;
         });

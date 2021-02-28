@@ -17,6 +17,8 @@ public class Constants {
         public static int whitney_semibold = base + 3;
     }
 
+    public static String ALIUCORD_SUPPORT = "EsNDvBaHVU";
+
     public static String BASE_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Aliucord";
 
     public static String NAMESPACE_ANDROID = "http://schemas.android.com/apk/res/android";
