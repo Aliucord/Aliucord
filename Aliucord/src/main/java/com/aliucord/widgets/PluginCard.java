@@ -32,6 +32,8 @@ import com.google.android.material.card.MaterialCardView;
 import com.lytefast.flexinput.R$b;
 import com.lytefast.flexinput.R$h;
 
+import java.io.File;
+
 @SuppressLint({"SetTextI18n", "ViewConstructor"})
 public class PluginCard extends MaterialCardView {
     public final TextView titleView;
@@ -42,7 +44,7 @@ public class PluginCard extends MaterialCardView {
         boolean enabled = PluginManager.isPluginEnabled(name);
 
         LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-        params.setMargins(0, padding, 0, 0);
+        params.setMargins(0, padding2, 0, 0);
         setLayoutParams(params);
         setUseCompatPadding(true);
         setCardBackgroundColor(ColorCompat.getThemedColor(context, R$b.primary_630));
@@ -116,6 +118,13 @@ public class PluginCard extends MaterialCardView {
 
         Button uninstall = new Button(context, true);
         uninstall.setText("Uninstall");
+        uninstall.setOnClickListener(e -> {
+            File pluginFile = new File(Constants.BASE_PATH + "/plugins/" + name + ".apk");
+            if (pluginFile.exists() && !pluginFile.delete()) Main.logger.error("Failed to delete plugin", null);
+            PluginManager.stopPlugin(name);
+            PluginManager.plugins.remove(name);
+            setVisibility(GONE);
+        });
         buttons.addView(uninstall, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(3)));
 
         pluginLayout.addView(buttons);
