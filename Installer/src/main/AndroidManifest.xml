@@ -14,7 +14,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Aliucord">
-        <activity android:name=".SettingsActivity"></activity>
+        <activity android:name=".SettingsActivity" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -26,7 +26,7 @@
                 android:resource="@xml/provider_paths" />
         </provider>
 
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity" android:configChanges="orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

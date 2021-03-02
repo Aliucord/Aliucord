@@ -27,6 +27,18 @@ public final class User {
             GuildMember guildMember
     ) {}
 
+    // getDiscriminator
+    public final String c() { return ""; }
+    // getFlags
+    public final Integer e() { return 0; }
     // getId
     public final long f() { return 0; }
+    // getMember
+    public final GuildMember g() { return null; }
+    // getPublicFlags
+    public final Integer l() { return 0; }
+    // getSystem
+    public final Boolean m() { return false; }
+    // getUsername
+    public final String o() { return ""; }
 }

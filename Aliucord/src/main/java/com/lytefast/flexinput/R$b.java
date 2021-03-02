@@ -17,6 +17,9 @@ public class R$b {
     public static int colorInteractiveNormal = 0;
     public static int colorPrimaryDivider = 0;
     public static int textInputStyle = 0;
+    public static int theme_chat_code = 0;
+    public static int theme_chat_codeblock_border = 0;
+    public static int theme_chat_spoiler_bg = 0;
     public static int toolbarColor = 0;
     public static int primary_100 = 0;
     public static int primary_630 = 0;

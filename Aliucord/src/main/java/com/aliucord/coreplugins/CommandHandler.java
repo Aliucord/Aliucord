@@ -165,15 +165,15 @@ public class CommandHandler extends Plugin {
 
             Patcher.addPatch("com.discord.widgets.chat.list.actions.WidgetChatListActions", "configureUI", (_this, args, ret) -> {
                 WidgetChatListActions.Model model = (WidgetChatListActions.Model) args.get(0);
-                if (model == null) return ret;
+                if (model == null || model.getMessage() == null) return ret;
                 boolean local = model.getMessage().isLocal();
                 if (local) try {
                     WidgetChatListActionsBinding binding = (WidgetChatListActionsBinding) getBinding.invoke(_this);
-                    binding.e.setVisibility(View.VISIBLE);
-                } catch (Exception ignored) {}
+                    if (binding != null) binding.e.setVisibility(View.VISIBLE);
+                } catch (Throwable ignored) {}
                 return ret;
             });
-        } catch (Exception e) { logger.error(e); }
+        } catch (Throwable e) { logger.error(e); }
 
         Patcher.addPatch("com.discord.widgets.chat.input.WidgetChatInputCommandsAdapter$Item", "onConfigure", (_this, args, ret) -> {
             WidgetChatInputCommandsModel model = (WidgetChatInputCommandsModel) args.get(1);

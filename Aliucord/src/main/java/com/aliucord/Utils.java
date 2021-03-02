@@ -188,13 +188,23 @@ public class Utils {
         return cs;
     }
 
-    public static Gson gson = new Gson();
+    public final static Gson gson = new Gson();
+    public final static Gson gsonPretty = new Gson();
     public static <T> T fromJson(String json, Type type) { return gson.g(json, type); }
     public static String toJson(Object obj) { return gson.l(obj); }
+    public static String toJsonPretty(Object obj) { return gsonPretty.l(obj); }
 
     public static CharSequence renderMD(CharSequence source) {
         return p.a.b.b.a.P(source, null, 1);
     }
 
     public static void log(String msg) { Main.logger.debug(msg); }
+
+    static {
+        try {
+            Field prettyPrint = Gson.class.getDeclaredField("i");
+            prettyPrint.setAccessible(true);
+            prettyPrint.set(gsonPretty, true);
+        } catch (Throwable e) { Main.logger.error(e); }
+    }
 }

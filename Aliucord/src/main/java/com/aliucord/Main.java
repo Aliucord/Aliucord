@@ -3,10 +3,10 @@ package com.aliucord;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Environment;
-import android.util.Log;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,7 +17,6 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.core.widget.NestedScrollView;
 
 import com.aliucord.coreplugins.*;
-import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.MissingPatchesDialog;
 import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.PrePatchRes;
@@ -36,7 +35,6 @@ import com.lytefast.flexinput.R$h;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 
@@ -130,8 +128,10 @@ public class Main {
             header.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
             v.addView(header, baseIndex + 1);
 
+            Typeface font = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium);
             TextView plugins = new TextView(context, null, 0, R$h.UiKit_Settings_Item_Icon);
             plugins.setText("Plugins");
+            plugins.setTypeface(font);
             int iconColor = ColorCompat.getThemedColor(context, R$b.colorInteractiveNormal);
             Drawable icon = ContextCompat.getDrawable(context, R$d.ic_clear_all_white_24dp);
             if (icon != null) {
@@ -144,6 +144,7 @@ public class Main {
 
             TextView updater = new TextView(context, null, 0, R$h.UiKit_Settings_Item_Icon);
             updater.setText("Updater");
+            updater.setTypeface(font);
             icon = ContextCompat.getDrawable(context, R$d.ic_file_download_white_24dp);
             if (icon != null) {
                 Drawable copy = icon.mutate();

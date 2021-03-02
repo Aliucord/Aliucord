@@ -1,10 +1,12 @@
 package com.discord.models.domain;
 
+import com.discord.api.guildmember.GuildMember;
 import com.discord.api.user.User;
 import com.discord.models.messages.LocalAttachment;
 import com.discord.models.sticker.dto.ModelSticker;
 import com.discord.utilities.time.Clock;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -71,6 +73,23 @@ public class ModelMessage {
     ) {}
 
     public User getAuthor() { return null; }
+    public Call getCall() { return null; }
+    public long getCallDuration() { return 0; }
+    public long getChannelId() { return 0; }
+    public String getContent() { return null; }
+    public long getEditedTimestamp() { return 0; }
+    public Long getEditedTimestampMilliseconds() { return null; }
+    public List<ModelMessageEmbed> getEmbeds() { return new ArrayList<>(); }
+    public Long getFlags() { return null; }
+    public Long getGuildId() { return null; }
+    public long getId() { return 0; }
+    public Long getInitialAttemptTimestamp() { return null; }
+    public Long getLastManualAttemptTimestamp() { return null; }
+    public List<LocalAttachment> getLocalAttachments() { return new ArrayList<>(); }
+    public GuildMember getMember() { return null; }
+    public List<Long> getMentionRoles() { return new ArrayList<>(); }
+    public List<User> getMentions() { return new ArrayList<>(); }
+    public MessageReference getMessageReference() { return null; }
     public int getType() { return 0; }
     public boolean isLocal() { return false; }
 }
