@@ -203,7 +203,10 @@ public class Main {
                     break;
                 }
             }
-            if (missing) new MissingPatchesDialog().show(activity.getSupportFragmentManager(), "MissingPatchesDialog");
+            if (missing) {
+                logger.info("Detected possibly missing patches");
+                new MissingPatchesDialog().show(activity.getSupportFragmentManager(), "MissingPatchesDialog");
+            }
         } catch (Throwable e) { logger.error("Failed to check missing patches", e); }
 
         new Thread(() -> PluginUpdater.checkUpdates(true)).start();
