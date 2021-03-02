@@ -79,7 +79,10 @@ public class PluginUpdater {
         CachedData cached = cache.get(manifest.updateUrl);
         if (cached != null && cached.time > System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(30)) {
             UpdateInfo updateInfo = cached.data.get(name);
-            return updateInfo == null ? cached.data.get("default") : updateInfo;
+            UpdateInfo defaultInfo = cached.data.get("default");
+            if (updateInfo == null) return defaultInfo;
+            addDefaultInfo(updateInfo, defaultInfo);
+            return updateInfo;
         }
 
         Map<String, UpdateInfo> res = Utils.fromJson(HttpUtils.stringRequest(manifest.updateUrl, null), resType);
@@ -87,12 +90,8 @@ public class PluginUpdater {
         cache.put(manifest.updateUrl, new CachedData(res));
         UpdateInfo updateInfo = res.get(name);
         UpdateInfo defaultInfo = res.get("default");
-        if (defaultInfo != null) {
-            if (updateInfo == null) return defaultInfo;
-            if (updateInfo.minimumDiscordVersion == 0) updateInfo.minimumDiscordVersion = defaultInfo.minimumDiscordVersion;
-            if (updateInfo.version == null) updateInfo.version = defaultInfo.version;
-            if (updateInfo.build == null) updateInfo.build = defaultInfo.build;
-        }
+        if (updateInfo == null) return defaultInfo;
+        addDefaultInfo(updateInfo, defaultInfo);
         return updateInfo;
     }
 
@@ -115,5 +114,13 @@ public class PluginUpdater {
             updated.put(plugin, updateInfo.version);
             updates.remove(plugin);
         } catch (Throwable e) { logger.error(e); }
+    }
+
+    private static void addDefaultInfo(UpdateInfo updateInfo, UpdateInfo defaultInfo) {
+        if (defaultInfo != null) {
+            if (updateInfo.minimumDiscordVersion == 0) updateInfo.minimumDiscordVersion = defaultInfo.minimumDiscordVersion;
+            if (updateInfo.version == null) updateInfo.version = defaultInfo.version;
+            if (updateInfo.build == null) updateInfo.build = defaultInfo.build;
+        }
     }
 }

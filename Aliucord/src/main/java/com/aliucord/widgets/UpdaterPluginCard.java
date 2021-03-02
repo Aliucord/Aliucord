@@ -30,7 +30,7 @@ public class UpdaterPluginCard extends MaterialCardView {
         int padding = Utils.getDefaultPadding();
 
         LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-        params.setMargins(0, padding, 0, 0);
+        params.setMargins(0, padding / 2, 0, 0);
         setLayoutParams(params);
         setUseCompatPadding(true);
         setCardBackgroundColor(ColorCompat.getThemedColor(context, R$b.colorBackgroundSecondary));
