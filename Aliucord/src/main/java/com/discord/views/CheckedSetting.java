@@ -24,7 +24,7 @@ public final class CheckedSetting extends RelativeLayout implements Checkable {
         TextView d();
     }
 
-    public b g;
+    public b h;
 
     public boolean isChecked() { return false; }
     public void toggle() {}

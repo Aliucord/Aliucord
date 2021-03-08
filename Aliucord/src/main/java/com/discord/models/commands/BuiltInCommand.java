@@ -15,6 +15,6 @@ public final class BuiltInCommand extends ApplicationCommand {
             List<ApplicationCommandOption> options,
             Function1<? super Map<String, ?>, String> execute
     ) {
-        super(id, appId, name, null, descriptionRes, options, true, 1, execute, null);
+        super(id, appId, name, null, descriptionRes, options, true, null, null, execute, 392, null);
     }
 }

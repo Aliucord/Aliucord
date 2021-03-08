@@ -18,8 +18,10 @@ public abstract class ApplicationCommand {
             Integer descriptionRes,
             List<ApplicationCommandOption> options,
             boolean builtIn,
-            long version,
+            Long guildId,
+            String version,
             Function1<? super Map<String, ?>, String> execute,
+            int flags,
             DefaultConstructorMarker defaultConstructorMarker
     ) {
         this.builtIn = builtIn;

@@ -17,7 +17,8 @@ public final class ApplicationSubCommand extends ApplicationCommand {
             String description,
             Integer descriptionRes,
             List<ApplicationCommandOption> options,
-            long version
+            Long guildId,
+            String version
     ) {
         super(
                 rootCommand.getId() + parentGroupName + name,
@@ -27,8 +28,10 @@ public final class ApplicationSubCommand extends ApplicationCommand {
                 descriptionRes,
                 options,
                 false,
+                guildId,
                 version,
                 null,
+                576,
                 null
         );
         this.rootCommand = rootCommand;

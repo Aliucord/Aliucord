@@ -1,7 +1,7 @@
 # Aliucord
 Discord Android app mod inspired by desktop Discord client mods. Unlike other mods, you don't need to rebuild full apk on PC. You need only to rebuild Aliucord patches after installing plugins that requires patching new classes, which can be done on Android phone using Aliucord Installer.
 
-Supported Discord version: 63.2 (1456)
+**Supported Discord version**: 64.2 (1465)
 
 ### Download
 Download `Installer-release.apk` from `builds` branch.

@@ -1,5 +1,5 @@
-*** a/AndroidManifest.xml	2021-02-25 20:13:18.354222800 +0100
---- b/AndroidManifest.xml	2021-02-26 09:34:35.311000000 +0100
+*** a/AndroidManifest.xml	2021-03-08 09:16:46.741808100 +0100
+--- b/AndroidManifest.xml	2021-03-08 09:38:59.132554000 +0100
 ***************
 *** 1,4 ****
 ! <?xml version="1.0" encoding="utf-8" standalone="no"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" android:compileSdkVersion="30" android:compileSdkVersionCodename="11" android:installLocation="auto" package="com.discord" platformBuildVersionCode="30" platformBuildVersionName="11">
@@ -7,7 +7,7 @@
       <uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
       <uses-feature android:name="android.hardware.faketouch" android:required="false"/>
 --- 1,4 ----
-! <?xml version="1.0" encoding="utf-8" standalone="no"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" android:compileSdkVersion="30" android:compileSdkVersionCodename="11" android:installLocation="auto" package="com.aliucord" platformBuildVersionCode="1456" platformBuildVersionName="63.2">
+! <?xml version="1.0" encoding="utf-8" standalone="no"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" android:compileSdkVersion="30" android:compileSdkVersionCodename="11" android:installLocation="auto" package="com.aliucord" platformBuildVersionCode="1465" platformBuildVersionName="64.2">
       <uses-feature android:name="android.hardware.camera" android:required="false"/>
       <uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
       <uses-feature android:name="android.hardware.faketouch" android:required="false"/>
@@ -84,8 +84,8 @@
           </provider>
 !         <meta-data android:name="firebase_crashlytics_collection_enabled" android:value="true"/>
           <meta-data android:name="com.google.android.nearby.messages.API_KEY" android:value="AIzaSyD-4L6bgKMixqBRtrG2UktVXK6IexXlsog"/>
-          <meta-data android:name="com.google.android.actions" android:resource="@xml/actions"/>
-          <meta-data android:name="libdiscord_version" android:value="3.0.5-media-sink-wants"/>
+          <meta-data android:name="libdiscord_version" android:value="3.0.7-camera_2_feature_flag"/>
+          <service android:exported="false" android:name="com.discord.hardware_analytics.HardwareSurveyService" android:process=":HardwareSurveyService.PrivateRemoteProcess"/>
 --- 155,164 ----
               </intent-filter>
           </receiver>
@@ -95,10 +95,10 @@
           </provider>
 !         <meta-data android:name="firebase_crashlytics_collection_enabled" android:value="false"/>
           <meta-data android:name="com.google.android.nearby.messages.API_KEY" android:value="AIzaSyD-4L6bgKMixqBRtrG2UktVXK6IexXlsog"/>
-          <meta-data android:name="com.google.android.actions" android:resource="@xml/actions"/>
-          <meta-data android:name="libdiscord_version" android:value="3.0.5-media-sink-wants"/>
+          <meta-data android:name="libdiscord_version" android:value="3.0.7-camera_2_feature_flag"/>
+          <service android:exported="false" android:name="com.discord.hardware_analytics.HardwareSurveyService" android:process=":HardwareSurveyService.PrivateRemoteProcess"/>
 ***************
-*** 200,208 ****
+*** 199,207 ****
           <receiver android:enabled="true" android:exported="false" android:name="com.google.android.gms.measurement.AppMeasurementReceiver"/>
           <service android:enabled="true" android:exported="false" android:name="com.google.android.gms.measurement.AppMeasurementService"/>
           <service android:enabled="true" android:exported="false" android:name="com.google.android.gms.measurement.AppMeasurementJobService" android:permission="android.permission.BIND_JOB_SERVICE"/>
@@ -108,7 +108,7 @@
           <service android:directBootAware="false" android:enabled="@bool/enable_system_alarm_service_default" android:exported="false" android:name="androidx.work.impl.background.systemalarm.SystemAlarmService"/>
           <service android:directBootAware="false" android:enabled="@bool/enable_system_job_service_default" android:exported="true" android:name="androidx.work.impl.background.systemjob.SystemJobService" android:permission="android.permission.BIND_JOB_SERVICE"/>
           <service android:directBootAware="false" android:enabled="@bool/enable_system_foreground_service_default" android:exported="false" android:name="androidx.work.impl.foreground.SystemForegroundService"/>
---- 200,208 ----
+--- 199,207 ----
           <receiver android:enabled="true" android:exported="false" android:name="com.google.android.gms.measurement.AppMeasurementReceiver"/>
           <service android:enabled="true" android:exported="false" android:name="com.google.android.gms.measurement.AppMeasurementService"/>
           <service android:enabled="true" android:exported="false" android:name="com.google.android.gms.measurement.AppMeasurementJobService" android:permission="android.permission.BIND_JOB_SERVICE"/>

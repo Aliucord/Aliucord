@@ -6,6 +6,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
+import com.aliucord.CollectionUtils;
 import com.aliucord.Logger;
 import com.aliucord.Utils;
 import com.aliucord.api.CommandsAPI;
@@ -30,14 +31,7 @@ import com.discord.widgets.chat.list.actions.WidgetChatListActions;
 import com.lytefast.flexinput.model.Attachment;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
@@ -102,7 +96,7 @@ public class CommandHandler extends Plugin {
 
         Patcher.addPatch("com.discord.stores.StoreLocalMessagesHolder", "getFlattenedMessages", (_this, args, ret) -> {
             List<ModelMessage> list = (List<ModelMessage>) ret;
-            Utils.removeIf(list, m -> m.getAuthor().f() == -1 || m.getAuthor().f() == 0);
+            CollectionUtils.removeIf(list, m -> m.getAuthor().f() == -1 || m.getAuthor().f() == 0);
             return list;
         });
 

@@ -54,7 +54,7 @@ public class CommandsAPI {
             List<ApplicationCommandOption> options,
             Function1<? super Map<String, ?>, CommandResult> execute
     ) {
-        RemoteApplicationCommand command = new RemoteApplicationCommand(generateIdString(), ALIUCORD_APP_ID, name, description, options, 1, args -> {
+        RemoteApplicationCommand command = new RemoteApplicationCommand(generateIdString(), ALIUCORD_APP_ID, name, description, options, null, null, args -> {
             CommandResult res = execute.invoke(args);
             if (!res.send) {
                 Utils.createClydeMessage(res.content, StoreStream.getChannelsSelected().getId(), res.embeds);

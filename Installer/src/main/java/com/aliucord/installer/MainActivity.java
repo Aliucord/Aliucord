@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
 import dalvik.system.DexClassLoader;
 
 public class MainActivity extends AppCompatActivity {
-    final String SUPPORTED_DISCORD_VERSION = "1456";
+    final String SUPPORTED_DISCORD_VERSION = "1465";
     static final String DEFAULT_DEX_LOCATION = "/storage/emulated/0/Aliucord/Aliucord.dex";
     SharedPreferences prefs;
 
@@ -182,13 +182,12 @@ public class MainActivity extends AppCompatActivity {
 
         new Thread(() -> {
             try {
-                File aliucordDex = new File(getFilesDir(), "classes4.dex");
+                File aliucordDex = new File(getFilesDir(), "classes5.dex");
                 if (prefs.getBoolean("use_dex_from_storage", false)) {
                     File dexFile = new File(prefs.getString("dex_location", DEFAULT_DEX_LOCATION));
                     if (dexFile.exists()) Utils.copyFile(dexFile, aliucordDex);
                     else copyAliucordFromAssets(aliucordDex);
                 } else copyAliucordFromAssets(aliucordDex);
-                Log.d("Aliucord Installer", aliucordDex.exists() + "");
 
                 ClassLoader loader = new DexClassLoader(
                         aliucordDex.getAbsolutePath(),

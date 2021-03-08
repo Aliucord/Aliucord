@@ -70,7 +70,7 @@ public class PluginCard extends MaterialCardView {
         }
         CheckedSetting cs = Utils.createCheckedSetting(context, CheckedSetting.ViewType.SWITCH,
                 spannableTitle, null);
-        titleView = cs.g.a();
+        titleView = cs.h.a();
         titleView.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
         titleView.setMovementMethod(LinkMovementMethod.getInstance());
         cs.setChecked(enabled);

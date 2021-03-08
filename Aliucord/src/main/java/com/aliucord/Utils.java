@@ -18,14 +18,12 @@ import com.discord.utilities.SnowflakeUtils;
 import com.discord.utilities.fcm.NotificationClient;
 import com.discord.utilities.time.ClockFactory;
 import com.discord.utilities.time.TimeUtils;
-import com.discord.utilities.user.UserUtils;
 import com.discord.views.CheckedSetting;
 import com.google.gson.Gson;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -71,7 +69,7 @@ public class Utils {
     }
 
     public static void openPage(Context context, Class<? extends AppComponent> clazz) { Utils.openPage(context, clazz, null); }
-    public static void openPage(Context context, Class<? extends AppComponent> clazz, Intent intent) { f.a.b.m.c(context, clazz, intent); }
+    public static void openPage(Context context, Class<? extends AppComponent> clazz, Intent intent) { f.a.c.m.c(context, clazz, intent); }
     public static void openPageWithProxy(Context context, Fragment fragment) {
         String id = String.valueOf(SnowflakeUtils.fromTimestamp(System.currentTimeMillis() * 100));
         AppFragmentProxy.fragments.put(id, fragment);
@@ -140,6 +138,7 @@ public class Utils {
                 null,
                 null,
                 null,
+                null,
                 0,
                 null
         );
@@ -158,19 +157,10 @@ public class Utils {
         field.set(instance, v);
     }
 
-    // added in api 24, minimum is 21 so needed to reimplement
-    @SuppressWarnings("UnusedReturnValue")
-    public static <E> boolean removeIf(Collection<E> collection, Function1<? super E, Boolean> filter) {
-        Objects.requireNonNull(filter);
-        boolean removed = false;
-        final Iterator<E> each = collection.iterator();
-        while (each.hasNext()) {
-            if (filter.invoke(each.next())) {
-                each.remove();
-                removed = true;
-            }
-        }
-        return removed;
+    /** @deprecated Use CollectionUtils.removeIf instead */
+    @Deprecated
+    public static <E> boolean removeIf(Collection<E> collection, Function1<E, Boolean> filter) {
+        return CollectionUtils.removeIf(collection, filter);
     }
 
     public static CheckedSetting createCheckedSetting(Context context, CheckedSetting.ViewType type, CharSequence text, CharSequence subtext) {
@@ -180,7 +170,7 @@ public class Utils {
             cs.f(type);
         }
 
-        TextView textView = cs.g.a();
+        TextView textView = cs.h.a();
         textView.setTextSize(16.0f);
         textView.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium));
         textView.setText(text);
@@ -202,7 +192,7 @@ public class Utils {
 
     static {
         try {
-            Field prettyPrint = Gson.class.getDeclaredField("i");
+            Field prettyPrint = Gson.class.getDeclaredField("j");
             prettyPrint.setAccessible(true);
             prettyPrint.set(gsonPretty, true);
         } catch (Throwable e) { Main.logger.error(e); }

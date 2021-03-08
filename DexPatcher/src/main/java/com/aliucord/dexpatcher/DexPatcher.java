@@ -61,20 +61,20 @@ public class DexPatcher {
 
         File classesDex = new File(cachePath, "classes2.dex");
         File classesDex2 = new File(cachePath, "classes3.dex");
-//        File classesDex3 = new File(cachePath, "classes4.dex");
+        File classesDex3 = new File(cachePath, "classes4.dex");
         File smaliClasses = new File(cachePath, "classes2");
         File smaliClasses2 = new File(cachePath, "classes3");
-//        File smaliClasses3 = new File(cachePath, "classes4");
+        File smaliClasses3 = new File(cachePath, "classes4");
 
         File[] files = cachePath.listFiles((d, name) -> name.endsWith(".dex"));
-        if (files == null || files.length < 2) {
+        if (files == null || files.length < 3) {
             stateUpdater.update("Unpacking classes from apk");
             Utils.unzipClasses(context, path);
             files = Objects.requireNonNull(cachePath.listFiles((d, name) -> name.endsWith(".dex")));
         }
-//        Log.d("Aliucord DexPatcher", Arrays.toString(files));
-        if (files.length == 2) {
-//            classesDex2.renameTo(classesDex3));
+
+        if (files.length == 3) {
+            classesDex2.renameTo(classesDex3);
             classesDex.renameTo(classesDex2);
             (new File(cachePath, "classes.dex")).renameTo(classesDex);
         }
@@ -84,8 +84,8 @@ public class DexPatcher {
             Utils.baksmaliDex(context, classesDex);
             stateUpdater.update("Baksmaling 2nd classes.dex");
             Utils.baksmaliDex(context, classesDex2);
-//            stateUpdater.update("Baksmaling 3rd classes.dex");
-//            Utils.baksmaliDex(context, classesDex3);
+            stateUpdater.update("Baksmaling 3rd classes.dex");
+            Utils.baksmaliDex(context, classesDex3);
         }
 
         File out = new File(cachePath, "out");
@@ -97,7 +97,7 @@ public class DexPatcher {
             String c = entry.getKey().replaceAll("\\.", "/") + ".smali";
             File src = new File(smaliClasses, c);
             if (!src.exists()) src = new File(smaliClasses2, c);
-//            if (!src.exists()) src = new File(smaliClasses3, c);
+            if (!src.exists()) src = new File(smaliClasses3, c);
             if (!src.exists()) {
                 Log.w("Aliucord DexPatcher", "File not found: " + c);
                 continue;
@@ -120,7 +120,7 @@ public class DexPatcher {
         File outApkFile = new File(outApk);
         Utils.copyFile(new File(path), outApkFile);
 
-        List<File> filesToAdd = new ArrayList<File>(){{ add(outDex); add(classesDex); add(classesDex2); /* add(classesDex3); */ add(aliucordDex); }};
+        List<File> filesToAdd = new ArrayList<File>(){{ add(outDex); add(classesDex); add(classesDex2); add(classesDex3); add(aliucordDex); }};
         if (firstPatch) {
             File manifest = new File(cachePath, "AndroidManifest.xml");
             Utils.copyAsset(context.getAssets().open("AndroidManifest.xml"), manifest);
