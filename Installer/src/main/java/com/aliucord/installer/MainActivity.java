@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
 import dalvik.system.DexClassLoader;
 
 public class MainActivity extends AppCompatActivity {
-    final String SUPPORTED_DISCORD_VERSION = "1465";
+    final String SUPPORTED_DISCORD_VERSION = "1467";
     static final String DEFAULT_DEX_LOCATION = "/storage/emulated/0/Aliucord/Aliucord.dex";
     SharedPreferences prefs;
 
