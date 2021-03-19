@@ -109,7 +109,7 @@ public class PluginManager {
         }
     }
 
-    public static String getPluginPrefKey(String name) { return "AC_PM_" + name.toUpperCase(); }
+    public static String getPluginPrefKey(String name) { return "AC_PM_" + name; }
 
     public static boolean isPluginEnabled(String name) { return SettingsUtils.getBool(getPluginPrefKey(name), true); }
     public static boolean isPluginEnabled(Plugin p) { return isPluginEnabled(Utils.getMapKey(plugins, p)); }
