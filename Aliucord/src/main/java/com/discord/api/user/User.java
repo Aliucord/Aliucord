@@ -8,7 +8,7 @@ public final class User {
     public User(
             long id,
             String username,
-            String avatar,
+            UserAvatar avatar,
             String discriminator,
             Integer publicFlags,
             Integer flags,

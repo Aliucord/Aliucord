@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Aliucord Installer</string>
     <string name="patching_placeholder">Patching apk..</string>
-    <string name="supported_version">Supported Discord version: 65.0 (1467)</string>
+    <string name="supported_version">Supported Discord version: 67.7 (1498)</string>
     <string name="path_to_discord_apk">Path to discord apk</string>
     <string name="from_storage">From storage</string>
     <string name="from_installed">Installed app</string>
@@ -10,19 +10,4 @@
     <string name="grant">Grant permission</string>
     <string name="invalid_path">Invalid path to apk</string>
     <string name="settings">Settings</string>
-    <string name="title_activity_settings">SettingsActivity</string>
-
-    <!-- Preference Titles -->
-    <string name="messages_header">Messages</string>
-    <string name="sync_header">Sync</string>
-
-    <!-- Messages Preferences -->
-    <string name="signature_title">Your signature</string>
-    <string name="reply_title">Default reply action</string>
-
-    <!-- Sync Preferences -->
-    <string name="sync_title">Sync email periodically</string>
-    <string name="attachment_title">Download incoming attachments</string>
-    <string name="attachment_summary_on">Automatically download attachments for incoming emails</string>
-    <string name="attachment_summary_off">Only download attachments when manually requested</string>
 </resources>

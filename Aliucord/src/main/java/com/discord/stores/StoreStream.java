@@ -15,5 +15,5 @@ public final class StoreStream {
 
     public static StoreStream access$getCollector$cp() { return new StoreStream(); }
 
-    public final StoreClientVersion getClientVersion$app_productionDiscordExternalRelease() { return new StoreClientVersion(); }
+    public final StoreClientVersion getClientVersion$app_productionGoogleRelease() { return new StoreClientVersion(); }
 }

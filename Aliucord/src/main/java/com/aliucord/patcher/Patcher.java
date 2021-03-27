@@ -2,6 +2,7 @@ package com.aliucord.patcher;
 
 import com.aliucord.Logger;
 import com.aliucord.Main;
+import com.aliucord.api.PatcherAPI;
 import com.discord.app.AppActivity;
 
 import java.util.ArrayList;
@@ -13,15 +14,22 @@ public class Patcher {
     public static Map<String, Map<String, ArrayList<PrePatchFunction>>> prePatches = new HashMap<>();
     public static Map<String, Map<String, ArrayList<PatchFunction<Object>>>> patches = new HashMap<>();
     public static Logger logger = new Logger("Patcher");
+    private static int i = 0;
 
     static {
-        Patcher.addPatch("com.discord.app.AppActivity$b", "invoke", (_this, args, ret) -> {
-            Main.preInit(((AppActivity.b) _this).this$0);
-            return ret;
-        });
-        Patcher.addPrePatch("com.discord.app.AppActivity$d", "invoke", (_this, args) -> {
-            Main.init(((AppActivity.d) _this).this$0);
-            return new PrePatchRes(args);
+        String className = "com.discord.app.AppActivity$a";
+        String fn = "invoke";
+        Patcher.addPatch(className, fn, new PatchFunction<Object>() {
+            public Object run(Object __this, ArrayList<Object> args, Object ret) {
+                AppActivity.a _this = (AppActivity.a) __this;
+                if (i == 1) Main.preInit((AppActivity) _this.h);
+                else if (i == 2) {
+                    Main.init((AppActivity) _this.h);
+                    PatcherAPI.unpatch(className, fn, this);
+                }
+                i++;
+                return ret;
+            }
         });
     }
 

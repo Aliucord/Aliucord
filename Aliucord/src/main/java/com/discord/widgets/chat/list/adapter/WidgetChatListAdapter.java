@@ -1,10 +1,10 @@
-package com.discord.widgets.chat.list;
+package com.discord.widgets.chat.list.adapter;
 
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 
-import com.discord.models.domain.ModelGuild;
+import com.discord.models.guild.Guild;
 import com.discord.utilities.mg_recycler.MGRecyclerAdapterSimple;
 import com.discord.utilities.mg_recycler.MGRecyclerViewHolder;
 import com.discord.widgets.chat.list.entries.ChatListEntry;
@@ -18,7 +18,7 @@ public final class WidgetChatListAdapter extends MGRecyclerAdapterSimple<ChatLis
     public interface Data {
         long getChannelId();
         Map<Long, String> getChannelNames();
-        ModelGuild getGuild();
+        Guild getGuild();
         long getGuildId();
         List<ChatListEntry> getList();
         Set<Long> getMyRoleIds();

@@ -1,4 +1,4 @@
-package f.a.c;
+package c.a.d;
 
 import android.content.Context;
 import android.content.Intent;
@@ -6,6 +6,6 @@ import android.content.Intent;
 import com.discord.app.AppComponent;
 
 @SuppressWarnings("unused")
-public class m {
+public final class o {
     public static void c(Context context, Class<? extends AppComponent> c, Intent intent) {}
 }

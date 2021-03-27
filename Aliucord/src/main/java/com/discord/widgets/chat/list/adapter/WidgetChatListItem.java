@@ -1,4 +1,4 @@
-package com.discord.widgets.chat.list;
+package com.discord.widgets.chat.list.adapter;
 
 import com.discord.utilities.mg_recycler.MGRecyclerViewHolder;
 import com.discord.widgets.chat.list.entries.ChatListEntry;

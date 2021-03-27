@@ -1,7 +1,8 @@
 package com.discord.stores;
 
-import com.discord.models.domain.ModelChannel;
+import com.discord.api.channel.Channel;
 
+@SuppressWarnings("unused")
 public class StoreChannels {
-    public ModelChannel getChannel$app_productionDiscordExternalRelease(long id) { return null; }
+    public Channel getChannel(long id) { return null; }
 }

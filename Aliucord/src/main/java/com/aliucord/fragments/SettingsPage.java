@@ -12,7 +12,7 @@ import androidx.core.widget.NestedScrollView;
 import com.aliucord.Utils;
 import com.discord.app.AppFragment;
 
-import u.p.c.j;
+import c0.y.d.m;
 
 public class SettingsPage extends AppFragment {
     @SuppressLint("ResourceType")
@@ -28,7 +28,7 @@ public class SettingsPage extends AppFragment {
 
     @Override
     public void onViewBound(View view) {
-        j.checkNotNullParameter(view, "view");
+        m.checkNotNullParameter(view, "view");
         super.onViewBound(view);
 
         // Clear page layout

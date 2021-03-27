@@ -40,7 +40,7 @@ public class CommandsAPI {
 
     public static final long ALIUCORD_APP_ID = generateId();
     public static final String DONT_SEND_RESULT = "{ALIUCORD_COMMAND}";
-    private static final Application aliucordApplication = new Application(ALIUCORD_APP_ID, "Aliucord", null, 0, true);
+    private static final Application aliucordApplication = new Application(ALIUCORD_APP_ID, "Aliucord", null, 0, null, true);
     public static Map<String, RemoteApplicationCommand> commands = new HashMap<>();
     public static Map<String, String> commandsAndPlugins = new HashMap<>();
     public static ApplicationCommandOption messageOption
@@ -82,7 +82,7 @@ public class CommandsAPI {
     }
 
     private static void updateCommandCount() {
-        if (aliucordApplication.b() != commands.size()) {
+        if (aliucordApplication.c() != commands.size()) {
             try {
                 Field commandsField = Application.class.getDeclaredField("commandCount");
                 commandsField.setAccessible(true);

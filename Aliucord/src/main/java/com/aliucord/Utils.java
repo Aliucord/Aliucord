@@ -2,6 +2,7 @@ package com.aliucord;
 
 import android.content.Context;
 import android.content.Intent;
+import android.support.v4.media.MediaDescriptionCompatApi21$Builder;
 import android.widget.TextView;
 
 import androidx.core.content.res.ResourcesCompat;
@@ -10,6 +11,7 @@ import androidx.fragment.app.Fragment;
 import com.aliucord.fragments.AppFragmentProxy;
 import com.discord.api.commands.CommandChoice;
 import com.discord.api.user.User;
+import com.discord.api.user.UserAvatar;
 import com.discord.app.AppComponent;
 import com.discord.models.domain.*;
 import com.discord.stores.StoreMessages;
@@ -28,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import c.a.d.o;
 import kotlin.jvm.functions.Function1;
 
 @SuppressWarnings("unused")
@@ -69,7 +72,7 @@ public class Utils {
     }
 
     public static void openPage(Context context, Class<? extends AppComponent> clazz) { Utils.openPage(context, clazz, null); }
-    public static void openPage(Context context, Class<? extends AppComponent> clazz, Intent intent) { f.a.c.m.c(context, clazz, intent); }
+    public static void openPage(Context context, Class<? extends AppComponent> clazz, Intent intent) { o.c(context, clazz, intent); }
     public static void openPageWithProxy(Context context, Fragment fragment) {
         String id = String.valueOf(SnowflakeUtils.fromTimestamp(System.currentTimeMillis() * 100));
         AppFragmentProxy.fragments.put(id, fragment);
@@ -88,7 +91,7 @@ public class Utils {
     public static User CLYDE = new User(
             -1,
             "Clyde",
-            null,
+            new UserAvatar.Avatar("https://canary.discord.com/assets/f78426a064bc9dd24847519259bc42af.png"),
             "0000",
             0,
             null,
@@ -170,7 +173,7 @@ public class Utils {
             cs.f(type);
         }
 
-        TextView textView = cs.h.a();
+        TextView textView = cs.i.a();
         textView.setTextSize(16.0f);
         textView.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium));
         textView.setText(text);
@@ -185,14 +188,14 @@ public class Utils {
     public static String toJsonPretty(Object obj) { return gsonPretty.l(obj); }
 
     public static CharSequence renderMD(CharSequence source) {
-        return p.a.b.b.a.P(source, null, 1);
+        return MediaDescriptionCompatApi21$Builder.Q(source, null, 1);
     }
 
     public static void log(String msg) { Main.logger.debug(msg); }
 
     static {
         try {
-            Field prettyPrint = Gson.class.getDeclaredField("j");
+            Field prettyPrint = Gson.class.getDeclaredField("k");
             prettyPrint.setAccessible(true);
             prettyPrint.set(gsonPretty, true);
         } catch (Throwable e) { Main.logger.error(e); }

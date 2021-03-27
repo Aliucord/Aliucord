@@ -49,8 +49,7 @@ public class Main {
     public static Map<String, List<String>> getClassesToPatch() {
         Map<String, List<String>> classes = new HashMap<String, List<String>>(){{
             put("com.discord.app.AppActivity", Collections.singletonList("*"));
-            put("com.discord.app.AppActivity$b", Collections.singletonList("*"));
-            put("com.discord.app.AppActivity$d", Collections.singletonList("*"));
+            put("com.discord.app.AppActivity$a", Collections.singletonList("*"));
             put("com.discord.widgets.settings.WidgetSettings", Collections.singletonList("onViewBound"));
             put("com.discord.models.domain.emoji.ModelEmojiUnicode", Collections.singletonList("getImageUri"));
 

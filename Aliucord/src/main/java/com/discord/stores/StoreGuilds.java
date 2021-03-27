@@ -1,12 +1,13 @@
 package com.discord.stores;
 
-import com.discord.models.domain.ModelGuild;
+import com.discord.models.guild.Guild;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@SuppressWarnings("unused")
 public class StoreGuilds {
-    public Map<Long, ModelGuild> getGuildsInternal$app_productionDiscordExternalRelease() {
+    public Map<Long, Guild> getGuilds() {
         return new HashMap<>();
     }
 }
