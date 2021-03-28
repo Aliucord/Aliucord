@@ -75,6 +75,7 @@ public class UpdaterPluginCard extends MaterialCardView {
             update.setText("Updating..");
             new Thread(() -> {
                 PluginUpdater.update(plugin);
+                PluginUpdater.updates.remove(plugin);
                 new Handler(Looper.getMainLooper()).post(forceUpdate);
             }).start();
         });

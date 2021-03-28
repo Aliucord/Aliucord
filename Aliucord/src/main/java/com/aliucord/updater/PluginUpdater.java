@@ -1,7 +1,6 @@
 package com.aliucord.updater;
 
 import android.text.TextUtils;
-import android.util.ArrayMap;
 
 import com.aliucord.Constants;
 import com.aliucord.HttpUtils;
@@ -17,10 +16,7 @@ import java.lang.reflect.Type;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class PluginUpdater {
@@ -97,6 +93,8 @@ public class PluginUpdater {
 
     public static void updateAll() {
         for (String plugin : updates) update(plugin);
+        updates.clear();
+        checkUpdates(false);
     }
 
     public static void update(String plugin) {
@@ -112,7 +110,6 @@ public class PluginUpdater {
             out.close();
 
             updated.put(plugin, updateInfo.version);
-            updates.remove(plugin);
         } catch (Throwable e) { logger.error(e); }
     }
 

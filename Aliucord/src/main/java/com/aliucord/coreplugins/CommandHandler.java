@@ -20,13 +20,7 @@ import com.discord.models.commands.ApplicationSubCommand;
 import com.discord.models.commands.ApplicationCommand;
 import com.discord.models.commands.RemoteApplicationCommand;
 import com.discord.widgets.chat.MessageContent;
-import com.discord.widgets.chat.input.ChatInputViewModel;
-import com.discord.widgets.chat.input.WidgetChatInput;
-import com.discord.widgets.chat.input.WidgetChatInput$configureSendListeners$2;
-import com.discord.widgets.chat.input.ApplicationCommandData;
-import com.discord.widgets.chat.input.ApplicationCommandValue;
-import com.discord.widgets.chat.input.WidgetChatInputCommandsAdapter;
-import com.discord.widgets.chat.input.WidgetChatInputCommandsModel;
+import com.discord.widgets.chat.input.*;
 import com.discord.widgets.chat.list.actions.WidgetChatListActions;
 import com.lytefast.flexinput.model.Attachment;
 
