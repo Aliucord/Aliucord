@@ -5,7 +5,7 @@
     <string name="path_to_discord_apk">Path to discord apk</string>
     <string name="from_storage">From storage</string>
     <string name="from_installed">Installed app</string>
-    <string name="download_at_runtime">Download at runtime</string>
+    <string name="download_at_runtime">Download</string>
     <string name="install">Install</string>
     <string name="needed_permission">You need to grant storage permission to use this app.</string>
     <string name="grant">Grant permission</string>
