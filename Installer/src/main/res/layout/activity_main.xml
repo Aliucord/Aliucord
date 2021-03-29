@@ -69,10 +69,20 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_marginStart="8dp"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:onClick="selectFromInstalledApp"
                 android:text="@string/from_installed"
+                tools:ignore="ButtonStyle" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="16dp"
+                android:layout_weight="1"
+                android:onClick="selectDownloadAtRuntime"
+                android:text="@string/download_at_runtime"
                 tools:ignore="ButtonStyle" />
         </LinearLayout>
 
