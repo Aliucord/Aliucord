@@ -6,8 +6,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 import androidx.preference.PreferenceManager;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
@@ -28,8 +28,15 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.nbsp.materialfilepicker.MaterialFilePicker;
 import com.nbsp.materialfilepicker.ui.FilePickerActivity;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,8 +47,12 @@ import dalvik.system.DexClassLoader;
 
 public class MainActivity extends AppCompatActivity {
     final String SUPPORTED_DISCORD_VERSION = "1498";
+    final URL DISCORD_APK_URL = new URL("https://www.apkmirror.com/wp-content/themes/APKMirror/download.php?id=2096401");
     static final String DEFAULT_DEX_LOCATION = "/storage/emulated/0/Aliucord/Aliucord.dex";
     SharedPreferences prefs;
+
+    public MainActivity() throws MalformedURLException {
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,6 +138,11 @@ public class MainActivity extends AppCompatActivity {
                 ).show();
     }
 
+    @SuppressLint("SetTextI18n")
+    public void selectDownloadAtRuntime(View view) {
+        ((TextInputEditText) findViewById(R.id.pathInput)).setText(getCacheDir() + "/discord.apk");
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
@@ -162,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
         TextInputEditText pathInput = findViewById(R.id.pathInput);
         String text = Objects.requireNonNull(pathInput.getText()).toString();
         boolean invalid = text.equals("");
-        if (!invalid) invalid = !(new File(text).exists());
+        if (!invalid) invalid = (!(new File(text).exists()) && !text.equals(getCacheDir() + "/discord.apk"));
         if (invalid) {
             Toast.makeText(this, R.string.invalid_path, Toast.LENGTH_SHORT).show();
             return;
@@ -182,6 +198,18 @@ public class MainActivity extends AppCompatActivity {
 
         new Thread(() -> {
             try {
+                if (text.equals(getCacheDir() + "/discord.apk")) {
+                    File internalApk = new File(getCacheDir(), "discord.apk");
+                    if (internalApk.exists()) {
+                        PackageManager pm = getPackageManager();
+                        PackageInfo apkInfo = pm.getPackageArchiveInfo(internalApk.getAbsolutePath(), 0);
+
+                        if (apkInfo == null || !String.valueOf(apkInfo.versionCode).startsWith(SUPPORTED_DISCORD_VERSION)) downloadDiscordApk(updater);
+                    } else {
+                        downloadDiscordApk(updater);
+                    }
+                }
+
                 File aliucordDex = new File(getFilesDir(), "classes5.dex");
                 if (prefs.getBoolean("use_dex_from_storage", false)) {
                     File dexFile = new File(prefs.getString("dex_location", DEFAULT_DEX_LOCATION));
@@ -235,5 +263,37 @@ public class MainActivity extends AppCompatActivity {
 
     private void copyAliucordFromAssets(File dest) throws IOException {
         Utils.copyAsset(getAssets().open("Aliucord.dex"), dest);
+    }
+
+    private void downloadDiscordApk(StateUpdater updater) throws Exception {
+        updater.update("Downloading discord apk");
+        HttpURLConnection connection = (HttpURLConnection) DISCORD_APK_URL.openConnection();
+        connection.connect();
+
+        if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+            throw new Exception("Server returned code " + connection.getResponseCode());
+        }
+
+        int lengthOfFile = connection.getContentLength();
+        InputStream input = new BufferedInputStream(connection.getInputStream(), 8192);
+        OutputStream output = new FileOutputStream(getCacheDir() + "/discord.apk");
+
+        byte[] data = new byte[8192];
+
+        int count;
+        long total = 0;
+        int perc = 0;
+        int newPerc;
+        while ((count = input.read(data)) != -1) {
+            total += count;
+            output.write(data, 0, count);
+            newPerc = (int) ((total * 100) / lengthOfFile);
+            if (newPerc > perc) updater.update("Downloading discord apk.. " + newPerc + "%");
+            perc = newPerc;
+        }
+
+        output.flush();
+        output.close();
+        input.close();
     }
 }
