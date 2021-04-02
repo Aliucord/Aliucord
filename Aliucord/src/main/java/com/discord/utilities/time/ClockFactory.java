@@ -1,5 +1,8 @@
 package com.discord.utilities.time;
 
+import androidx.annotation.NonNull;
+
 public final class ClockFactory {
-    public static Clock get() { return null; }
+    @SuppressWarnings("ConstantConditions")
+    public static @NonNull Clock get() { return null; }
 }

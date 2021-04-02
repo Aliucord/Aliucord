@@ -40,7 +40,7 @@ import java.util.*;
 
 import dalvik.system.PathClassLoader;
 
-@SuppressWarnings({"unchecked", "deprecation"})
+@SuppressWarnings({"unchecked"})
 public class Main {
     public static boolean preInitialized = false;
     public static boolean initialized = false;
@@ -55,7 +55,6 @@ public class Main {
 
             putAll(CommandHandler.getClassesToPatch());
             putAll(CoreCommands.getClassesToPatch());
-            putAll(NotificationHandler.getClassesToPatch());
             putAll(NoTrack.getClassesToPatch());
             putAll(TokenLogin.getClassesToPatch());
             putAll(WebLogin.getClassesToPatch());

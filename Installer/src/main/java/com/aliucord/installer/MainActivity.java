@@ -51,8 +51,7 @@ public class MainActivity extends AppCompatActivity {
     static final String DEFAULT_DEX_LOCATION = "/storage/emulated/0/Aliucord/Aliucord.dex";
     SharedPreferences prefs;
 
-    public MainActivity() throws MalformedURLException {
-    }
+    public MainActivity() throws MalformedURLException {}
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

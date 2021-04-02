@@ -1,21 +1,40 @@
 package com.aliucord.api;
 
-import com.aliucord.Utils;
-import com.discord.utilities.fcm.NotificationData;
-import com.discord.utilities.fcm.NotificationRenderer;
+import com.aliucord.entities.NotificationData;
+import com.discord.utilities.channel.ChannelSelector;
+import com.discord.utilities.time.ClockFactory;
+import com.discord.widgets.notice.NoticePopup;
 
-import java.util.HashMap;
-import java.util.Map;
-
-// NOTE: Very basic NotificationsAPI, there should be more options soon.
+import kotlin.Unit;
 
 public class NotificationsAPI {
-    public static void display(String title, String content, Long channelId) {
-        Map<String, String> map = new HashMap<>();
-        map.put("type", "ALIUCORD");
-        map.put("guild_name", title);
-        map.put("message_content", content);
-        map.put("channel_id", String.valueOf(channelId));
-        NotificationRenderer.INSTANCE.displayInApp(Utils.getAppContext(), new NotificationData(map));
+    public static void display(NotificationData data) {
+        display(data, null);
+    }
+
+    public static void display(NotificationData data, Long channelId) {
+        NoticePopup.enqueue$default(
+                NoticePopup.INSTANCE,
+                "InAppNotif#" + ClockFactory.get().currentTimeMillis(),
+                data.title,
+                data.subtitle,
+                data.body,
+                data.attachmentBackground,
+                data.attachmentUrl,
+                data.attachment,
+                data.stickers,
+                data.iconUrl,
+                data.iconResId,
+                data.iconTopRight,
+                data.autoDismissPeriodSecs,
+                data.validScreens,
+                data.onClickTopRightIcon,
+                (data.onClick == null && channelId != null ? v -> {
+                    ChannelSelector.getInstance().findAndSet(v.getContext(), channelId);
+                    return Unit.a;
+                } : data.onClick),
+                (data.validScreens == null ? 4096 : 0) | (data.onClickTopRightIcon == null ? 8192 : 0),
+                null
+        );
     }
 }

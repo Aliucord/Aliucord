@@ -29,6 +29,7 @@ public class PluginManager {
             PathClassLoader loader = new PathClassLoader(f.getAbsolutePath(), context.getClassLoader());
             Class<? extends Plugin> plugin = (Class<? extends Plugin>) loader.loadClass("com.aliucord.plugins." + name);
             Plugin p = plugin.newInstance();
+            //noinspection ConstantConditions
             if (p.getManifest() == null) {
                 logger.error("Invalid manifest for plugin: " + name, null);
                 return;
@@ -81,7 +82,6 @@ public class PluginManager {
     public static void loadCorePlugins(Context context) {
         corePlugins.put("CommandHandler", new CommandHandler());
         corePlugins.put("CoreCommands", new CoreCommands());
-        corePlugins.put("NotificationHandler", new NotificationHandler());
         corePlugins.put("NoTrack", new NoTrack());
         corePlugins.put("TokenLogin", new TokenLogin());
         corePlugins.put("WebLogin", new WebLogin());

@@ -8,6 +8,7 @@ import com.aliucord.Logger;
 import com.aliucord.PluginManager;
 import com.aliucord.Utils;
 import com.aliucord.api.NotificationsAPI;
+import com.aliucord.entities.NotificationData;
 import com.aliucord.entities.Plugin;
 import com.google.gson.reflect.TypeToken;
 
@@ -18,6 +19,8 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+
+import kotlin.Unit;
 
 public class PluginUpdater {
     public static class UpdateInfo {
@@ -47,8 +50,14 @@ public class PluginUpdater {
             if (checkPluginUpdate(plugin.getValue())) updates.add(plugin.getKey());
         }
         if (!notif || updates.size() == 0) return;
-        NotificationsAPI.display("Updater",
-                "Updates for plugins are available: **" + TextUtils.join("**, **", updates.toArray()) + "**", null);
+        NotificationData notificationData = new NotificationData();
+        notificationData.title = "Updater";
+        notificationData.body = Utils.renderMD("Updates for plugins are available: **" + TextUtils.join("**, **", updates.toArray()) + "**");
+        notificationData.onClick = v -> {
+            Utils.openPage(v.getContext(), com.aliucord.settings.Updater.class);
+            return Unit.a;
+        };
+        NotificationsAPI.display(notificationData);
     }
 
     public static boolean checkPluginUpdate(Plugin plugin) {
@@ -100,6 +109,7 @@ public class PluginUpdater {
     public static void update(String plugin) {
         try {
             UpdateInfo updateInfo = getUpdateInfo(PluginManager.plugins.get(plugin));
+            if (updateInfo == null) return;
 
             String url = updateInfo.build;
             if (url.contains("%s")) url = String.format(url, plugin);
