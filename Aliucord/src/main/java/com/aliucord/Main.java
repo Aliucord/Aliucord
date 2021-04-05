@@ -15,6 +15,7 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.widget.NestedScrollView;
+import androidx.fragment.app.Fragment;
 
 import com.aliucord.coreplugins.*;
 import com.aliucord.fragments.MissingPatchesDialog;
@@ -52,6 +53,7 @@ public class Main {
             put("com.discord.app.AppActivity$a", Collections.singletonList("*"));
             put("com.discord.widgets.settings.WidgetSettings", Collections.singletonList("onViewBound"));
             put("com.discord.models.domain.emoji.ModelEmojiUnicode", Collections.singletonList("getImageUri"));
+            put("com.discord.widgets.chat.list.WidgetChatList", Collections.singletonList("onViewBound"));
 
             putAll(CommandHandler.getClassesToPatch());
             putAll(CoreCommands.getClassesToPatch());
@@ -169,6 +171,11 @@ public class Main {
             if (args.size() != 2) return new PrePatchRes(args);
             String name = "emoji_" + args.get(0);
             return new PrePatchRes(args, "res:///" + Utils.getResId(name, "raw"));
+        });
+
+        Patcher.addPatch("com.discord.widgets.chat.list.WidgetChatList", "onViewBound", (_this, args, ret) -> {
+            Utils.chatListFragment = (Fragment) _this;
+            return ret;
         });
 
         PluginManager.startCorePlugins(activity);

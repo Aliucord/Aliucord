@@ -6,5 +6,7 @@ import com.discord.models.domain.ModelMessage;
 public final class StoreMessages {
     public static void access$handleLocalMessageCreate(StoreMessages instance, ModelMessage message) {}
 
+    public final void deleteMessage(ModelMessage message) {}
     public final ModelMessage getMessage(long channelId, long id) { return null; }
+    public final void handleMessageUpdate(ModelMessage message) {}
 }

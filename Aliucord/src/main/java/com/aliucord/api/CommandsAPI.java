@@ -1,26 +1,41 @@
 package com.aliucord.api;
 
+import android.os.Handler;
+import android.os.Looper;
+
 import com.aliucord.Main;
 import com.aliucord.Utils;
+import com.discord.api.commands.ApplicationCommandData;
+import com.discord.models.domain.ModelMessage;
 import com.discord.models.domain.ModelMessageEmbed;
 import com.discord.api.commands.ApplicationCommandType;
 import com.discord.api.commands.Application;
 import com.discord.models.commands.ApplicationCommand;
 import com.discord.models.commands.ApplicationCommandOption;
 import com.discord.models.commands.RemoteApplicationCommand;
+import com.discord.models.domain.NonceGenerator;
+import com.discord.models.user.User;
+import com.discord.stores.StoreApplicationInteractions;
+import com.discord.stores.StoreMessages;
 import com.discord.stores.StoreStream;
 import com.discord.utilities.SnowflakeUtils;
+import com.discord.utilities.time.ClockFactory;
+import com.discord.utilities.user.UserUtils;
+import com.discord.widgets.chat.MessageContent;
+import com.discord.widgets.chat.input.ChatInputViewModel;
+import com.discord.widgets.chat.input.WidgetChatInput;
+import com.discord.widgets.chat.input.WidgetChatInput$configureSendListeners$2;
+import com.discord.widgets.chat.list.sheet.WidgetApplicationCommandBottomSheetViewModel;
 import com.lytefast.flexinput.R$g;
+import com.lytefast.flexinput.model.Attachment;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unchecked", "unused"})
 public class CommandsAPI {
     public static class CommandResult {
         public String content;
@@ -43,6 +58,7 @@ public class CommandsAPI {
     private static final Application aliucordApplication = new Application(ALIUCORD_APP_ID, "Aliucord", null, 0, null, true);
     public static Map<String, RemoteApplicationCommand> commands = new HashMap<>();
     public static Map<String, String> commandsAndPlugins = new HashMap<>();
+    public static Map<Long, WidgetApplicationCommandBottomSheetViewModel.StoreState> interactionsStore = new HashMap<>();
     public static ApplicationCommandOption messageOption
             = new ApplicationCommandOption(ApplicationCommandType.STRING, "message", null, R$g.command_shrug_message_description, false, false, null, null);
     public static ApplicationCommandOption requiredMessageOption
@@ -55,17 +71,64 @@ public class CommandsAPI {
             Function1<? super Map<String, ?>, CommandResult> execute
     ) {
         RemoteApplicationCommand command = new RemoteApplicationCommand(generateIdString(), ALIUCORD_APP_ID, name, description, options, null, null, args -> {
-            CommandResult res = execute.invoke(args);
-            if (!res.send) {
-                Utils.createClydeMessage(res.content, StoreStream.getChannelsSelected().getId(), res.embeds);
-                return DONT_SEND_RESULT;
-            }
-            return res.content == null ? DONT_SEND_RESULT : res.content;
+            long id = NonceGenerator.computeNonce();
+            long channelId = StoreStream.getChannelsSelected().getId();
+            User me = StoreStream.getUsers().getMe();
+            ModelMessage message = ModelMessage.createLocalApplicationCommandMessage(
+                    id, name, channelId, UserUtils.INSTANCE.synthesizeApiUser(me), Utils.CLYDE, false, true, id, ClockFactory.get());
+            Class<ModelMessage> c = ModelMessage.class;
+            try {
+                Utils.setPrivateField(c, message, "flags", 192L);
+                Utils.setPrivateField(c, message, "type", ModelMessage.TYPE_LOCAL);
+            } catch (Throwable ignored) {}
+            StoreMessages storeMessages = StoreStream.getMessages();
+            StoreMessages.access$handleLocalMessageCreate(storeMessages, message);
+
+            WidgetChatInput$configureSendListeners$2 _this = (WidgetChatInput$configureSendListeners$2) args.get("__this");
+            ArrayList<Object> _args = (ArrayList<Object>) args.get("__args");
+            args.remove("__this");
+            args.remove("__args");
+
+            MessageContent content = _this.$chatInput.getMatchedContentWithMetaData();
+            WidgetChatInput.clearInput$default(_this.this$0, false, true, 0, null);
+
+            new Thread(() -> {
+                CommandResult res = execute.invoke(args);
+                if (!res.send) {
+                    // TODO: add arguments
+                    interactionsStore.put(id, new WidgetApplicationCommandBottomSheetViewModel.StoreState(
+                            me,
+                            StoreStream.getGuilds().getMembers().get(StoreStream.getChannels().getChannel(channelId).e()).get(me.getId()),
+                            new StoreApplicationInteractions.State.Loaded(new ApplicationCommandData("", "", "", name, Collections.emptyList())),
+                            CommandsAPI.getAliucordApplication(),
+                            Collections.emptyList(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(),
+                            Collections.emptyMap()
+                    ));
+                    try {
+                        Utils.setPrivateField(c, message, "content", res.content);
+                        Utils.setPrivateField(c, message, "embeds", res.embeds);
+                        Utils.setPrivateField(c, message, "flags", 64L);
+                        Utils.rerenderChat(); // TODO: figure out how to rerender single message
+                    } catch (Throwable ignored) {}
+                } else {
+                    new Handler(Looper.getMainLooper()).post(() -> ChatInputViewModel.sendMessage$default(
+                            WidgetChatInput.access$getViewModel$p(_this.this$0),
+                            _this.$context,
+                            _this.$messageManager,
+                            new MessageContent(res.content, content != null ? content.getMentionedUsers() : Collections.emptyList()),
+                            (List<? extends Attachment<?>>) _args.get(0),
+                            false,
+                            (Function1<? super Boolean, Unit>) _args.get(2),
+                            16,
+                            null
+                    ));
+                    storeMessages.deleteMessage(message);
+                }
+            }).start();
+            return null;
         });
         try {
-            Field builtIn = ApplicationCommand.class.getDeclaredField("builtIn");
-            builtIn.setAccessible(true);
-            builtIn.set(command, true);
+            Utils.setPrivateField(ApplicationCommand.class, command, "builtIn", true);
         } catch (Exception e) { Main.logger.error(e); }
         commands.put(name, command);
         updateCommandCount();

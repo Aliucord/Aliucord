@@ -2,31 +2,30 @@ package com.aliucord;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v4.media.MediaDescriptionCompatApi21$Builder;
 import android.widget.TextView;
 
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.aliucord.fragments.AppFragmentProxy;
 import com.discord.api.commands.CommandChoice;
 import com.discord.api.user.User;
 import com.discord.api.user.UserAvatar;
 import com.discord.app.AppComponent;
-import com.discord.models.domain.*;
-import com.discord.stores.StoreMessages;
-import com.discord.stores.StoreStream;
 import com.discord.utilities.SnowflakeUtils;
 import com.discord.utilities.fcm.NotificationClient;
-import com.discord.utilities.time.ClockFactory;
-import com.discord.utilities.time.TimeUtils;
 import com.discord.views.CheckedSetting;
 import com.google.gson.Gson;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -110,44 +109,6 @@ public class Utils {
             null
     );
 
-    public static void createClydeMessage(String content, long channelId, List<ModelMessageEmbed> embeds) {
-        long nonce = NonceGenerator.computeNonce();
-        ModelMessage message = new ModelMessage(
-                nonce,
-                String.valueOf(nonce),
-                channelId,
-                ModelMessage.TYPE_LOCAL,
-                content,
-                CLYDE,
-                null,
-                TimeUtils.currentTimeUTCDateString(ClockFactory.get()),
-                null,
-                null,
-                embeds,
-                false,
-                null,
-                false,
-                null,
-                null,
-                0L,
-                null,
-                null,
-                false,
-                null,
-                false,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                0,
-                null
-        );
-        StoreMessages.access$handleLocalMessageCreate(StoreStream.getMessages(), message);
-    }
-
     public static Object getPrivateField(Class<?> clazz, Object instance, String fieldName) throws Exception {
         Field field = clazz.getDeclaredField(fieldName);
         field.setAccessible(true);
@@ -179,6 +140,20 @@ public class Utils {
         textView.setText(text);
         cs.setSubtext(subtext);
         return cs;
+    }
+
+    public static Fragment chatListFragment;
+    public static void rerenderChat() {
+        if (chatListFragment == null || chatListFragment.isStateSaved()) return;
+        FragmentManager manager = chatListFragment.getFragmentManager();
+        if (manager == null) return;
+        new Handler(Looper.getMainLooper()).post(() -> {
+            FragmentTransaction ft = manager.beginTransaction();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                ft.detach(chatListFragment).commitNow();
+                manager.beginTransaction().attach(chatListFragment).commitNow();
+            } else ft.detach(chatListFragment).attach(chatListFragment).commit();
+        });
     }
 
     public final static Gson gson = new Gson();

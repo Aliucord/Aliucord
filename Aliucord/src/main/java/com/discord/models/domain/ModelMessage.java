@@ -30,6 +30,8 @@ public class ModelMessage {
     public static final int TYPE_GUILD_DISCOVERY_REQUALIFIED = 15;
     public static final int TYPE_GUILD_STREAM = 13;
     public static final int TYPE_LOCAL = -1;
+    public static final int TYPE_LOCAL_APPLICATION_COMMAND = -5;
+    public static final int TYPE_LOCAL_APPLICATION_COMMAND_SEND_FAILED = -4;
     public static final int TYPE_LOCAL_INVALID_ATTACHMENTS = -3;
     public static final int TYPE_LOCAL_SEND_FAILED = -2;
     public static final int TYPE_RECIPIENT_ADD = 1;
@@ -41,6 +43,18 @@ public class ModelMessage {
     public static final int TYPE_USER_PREMIUM_GUILD_SUBSCRIPTION_TIER_1 = 9;
     public static final int TYPE_USER_PREMIUM_GUILD_SUBSCRIPTION_TIER_2 = 10;
     public static final int TYPE_USER_PREMIUM_GUILD_SUBSCRIPTION_TIER_3 = 11;
+
+    public static ModelMessage createLocalApplicationCommandMessage(
+            long id,
+            String commandName,
+            long channelId,
+            User interactionUser,
+            User author,
+            boolean failed,
+            boolean loading,
+            Long interactionId,
+            Clock clock
+    ) { return new ModelMessage(null); }
 
     public static ModelMessage createLocalMessage(
             String content,
@@ -59,7 +73,7 @@ public class ModelMessage {
             List<ModelSticker> stickers,
             MessageReference messageReference,
             ModelAllowedMentions allowedMentions
-    ) { return null; }
+    ) { return new ModelMessage(null); }
 
     public ModelMessage(
             long id,
@@ -95,6 +109,8 @@ public class ModelMessage {
             List<ModelSticker> stickers
     ) {}
 
+    public ModelMessage(ModelMessage message) {}
+
     public User getAuthor() { return null; }
     public Call getCall() { return null; }
     public long getCallDuration() { return 0; }
@@ -114,7 +130,9 @@ public class ModelMessage {
     public List<User> getMentions() { return new ArrayList<>(); }
     public MessageReference getMessageReference() { return null; }
     public int getType() { return 0; }
+    public boolean isLoading() { return false; }
     public boolean isLocal() { return false; }
+    public boolean isLocalApplicationCommand() { return false; }
     public boolean isSourceDeleted() { return false; }
     public boolean isWebhook() { return false; }
 }

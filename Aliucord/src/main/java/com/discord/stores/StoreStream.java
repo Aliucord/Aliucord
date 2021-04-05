@@ -1,6 +1,8 @@
 package com.discord.stores;
 
-@SuppressWarnings("unused")
+import com.discord.models.domain.ModelMessage;
+
+@SuppressWarnings({"unused", "InstantiationOfUtilityClass"})
 public final class StoreStream {
     public static StoreApplicationCommands getApplicationCommands() { return new StoreApplicationCommands(); }
     public static StoreAuthentication getAuthentication() { return new StoreAuthentication(); }
@@ -14,6 +16,7 @@ public final class StoreStream {
     public static StoreUserSettings getUserSettings() { return new StoreUserSettings(); }
 
     public static StoreStream access$getCollector$cp() { return new StoreStream(); }
+    public static void access$handleMessageUpdate(StoreStream instance, ModelMessage message) {}
 
     public final StoreClientVersion getClientVersion$app_productionGoogleRelease() { return new StoreClientVersion(); }
 }
