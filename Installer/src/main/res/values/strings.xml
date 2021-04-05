@@ -7,8 +7,11 @@
     <string name="from_installed">Installed app</string>
     <string name="download_at_runtime">Download</string>
     <string name="install">Install</string>
+    <string name="update">Update</string>
     <string name="needed_permission">You need to grant storage permission to use this app.</string>
     <string name="grant">Grant permission</string>
     <string name="invalid_path">Invalid path to apk</string>
     <string name="settings">Settings</string>
+    <string name="gh_auth">Login with GitHub</string>
+    <string name="gh_auth_logout">Log out GitHub account</string>
 </resources>

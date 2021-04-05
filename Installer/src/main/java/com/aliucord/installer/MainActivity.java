@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
     final URL DISCORD_APK_URL = new URL("https://www.apkmirror.com/wp-content/themes/APKMirror/download.php?id=2096401");
     static final String DEFAULT_DEX_LOCATION = "/storage/emulated/0/Aliucord/Aliucord.dex";
     SharedPreferences prefs;
+    GithubAuth authHandler;
 
     public MainActivity() throws MalformedURLException {}
 
@@ -60,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
 
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
         checkPermissions(null);
+
+        authHandler = new GithubAuth(prefs, this);
     }
 
     public void checkPermissions(View view) {
@@ -149,9 +152,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        if (authHandler.isAuthed()) {
+            menu.findItem(R.id.action_github).setTitle(R.string.gh_auth_logout);
+        } else {
+            menu.findItem(R.id.action_github).setTitle(R.string.gh_auth);
+        }
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.action_settings) {
             startActivity(new Intent(this, SettingsActivity.class));
+            return true;
+        }
+        if (item.getItemId() == R.id.action_github) {
+            authHandler.startAuthFlow(this);
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -294,5 +311,16 @@ public class MainActivity extends AppCompatActivity {
         output.flush();
         output.close();
         input.close();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        String code = intent.getData().getQueryParameter("code");
+        if (code != null) {
+            authHandler.intentCallback(code);
+        } else {
+            return;
+        }
     }
 }
