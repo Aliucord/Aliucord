@@ -139,8 +139,8 @@ public class GitHubAPI {
             new Handler(Looper.getMainLooper()).post(() -> {
                 (new AlertDialog.Builder(main))
                 .setTitle("Update available")
-                .setMessage("latest commit is \n" + commit + "\n with message \n" + message + "\n currently running commit " + BuildConfig.GIT_REVISION + "\n\nUpdate now?")
-                .setPositiveButton("Ok", new DialogInterface.OnClickListener()     {
+                .setMessage("A new version is available: " + commit + " - " + message + "\ncurrently running version" + BuildConfig.GIT_REVISION)
+                .setPositiveButton("Update", new DialogInterface.OnClickListener()     {
                     public void onClick(DialogInterface dialog, int id) {
                         dialog.cancel();
                         try {
