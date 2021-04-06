@@ -83,7 +83,7 @@ public class GithubAuth {
         try {
             HttpURLConnection con = (HttpURLConnection)new URL("https://api.github.com/repos/aliucord/Aliucord/commits").openConnection();
             con.setRequestProperty("Accept", "application/vnd.github.v3+json");
-            con.setRequestProperty("Authorization", auth_token);
+            con.setRequestProperty("Authorization", "token " + auth_token);
             con.setRequestProperty("User-Agent", "Aliucord/" + BuildConfig.GIT_REVISION);
             con.connect();
             String res = httpToText(con);
