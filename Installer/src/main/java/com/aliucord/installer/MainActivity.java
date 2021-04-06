@@ -183,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setTitle("Error")
                 .setMessage("Exception while patching apk: " + e.toString() + "\n\nStacktrace: " + stacktrace)
-                .setPositiveButton("ok", (dialog, i) -> {})
+                .setPositiveButton(android.R.string.ok, null)
                 .show();
         findViewById(R.id.patchingLayout).setVisibility(View.GONE);
         findViewById(R.id.mainLayout).setVisibility(View.VISIBLE);
@@ -314,11 +314,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void update(URL downloadURL) {
-        StateUpdater updater;
         findViewById(R.id.mainLayout).setVisibility(View.GONE);
         findViewById(R.id.patchingLayout).setVisibility(View.VISIBLE);
         TextView patchingState = findViewById(R.id.patchingState);
-        updater = state -> {
+        StateUpdater updater = state -> {
             Log.d("Aliucord Installer", state);
             new Handler(Looper.getMainLooper()).post(() -> patchingState.setText(state));
         };
@@ -382,8 +381,8 @@ public class MainActivity extends AppCompatActivity {
             
                     new AlertDialog.Builder(this)
                             .setTitle("Error")
-                            .setMessage("Exception while patching apk: " + e.toString() + "\n\nStacktrace: " + stacktrace)
-                            .setPositiveButton("ok", (dialog, i) -> {})
+                            .setMessage("Exception while updating: " + e.toString() + "\n\nStacktrace: " + stacktrace)
+                            .setPositiveButton(android.R.string.ok, null)
                             .show();
                 });
             }
@@ -394,10 +393,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         String code = intent.getData().getQueryParameter("code");
-        if (code != null) {
-            authHandler.intentCallback(code);
-        } else {
-            return;
-        }
+        if (code != null) authHandler.intentCallback(code);
     }
 }

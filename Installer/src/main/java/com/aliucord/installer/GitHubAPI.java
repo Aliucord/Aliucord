@@ -1,15 +1,13 @@
 package com.aliucord.installer;
 
 import android.app.AlertDialog;
-import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.content.ComponentName;
-import android.content.DialogInterface.OnClickListener;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.*;
 
+import androidx.annotation.NonNull;
 import androidx.browser.customtabs.CustomTabsClient;
 import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.browser.customtabs.CustomTabsServiceConnection;
@@ -17,13 +15,10 @@ import androidx.browser.customtabs.CustomTabsServiceConnection;
 import java.net.HttpURLConnection;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.Thread;
 import java.nio.charset.StandardCharsets;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.stream.Collectors;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -43,13 +38,11 @@ public class GitHubAPI {
         try {
             commits_url = new URL("https://api.github.com/repos/aliucord/Aliucord/commits");
             contents_url = new URL("https://api.github.com/repos/Aliucord/Aliucord/contents?ref=builds");
-        } catch (MalformedURLException ignored) {}
+        } catch (Throwable ignored) {}
         prefs = _prefs;
         main = _main;
         auth_token = prefs.getString("github_token", "");
-        if (isAuthenticated()) {
-            new Thread(() -> checkForUpdates()).start();
-        }
+        if (isAuthenticated()) new Thread(this::checkForUpdates).start();
     }
 
     public void startAuthFlow(Context context) {
@@ -60,7 +53,7 @@ public class GitHubAPI {
         }
         CustomTabsServiceConnection tabConnection = new CustomTabsServiceConnection() {
             @Override
-            public void onCustomTabsServiceConnected(ComponentName componentName, CustomTabsClient tabClient) {
+            public void onCustomTabsServiceConnected(@NonNull ComponentName componentName, CustomTabsClient tabClient) {
                 CustomTabsIntent.Builder tabBuilder = new CustomTabsIntent.Builder();
                 CustomTabsIntent intent = tabBuilder.build();
                 tabClient.warmup(0L);
@@ -68,9 +61,7 @@ public class GitHubAPI {
             }
         
             @Override
-            public void onServiceDisconnected(ComponentName name) {
-                
-            }
+            public void onServiceDisconnected(ComponentName name) {}
         };
         CustomTabsClient.bindCustomTabsService(context, "com.android.chrome", tabConnection);
     }
@@ -87,12 +78,10 @@ public class GitHubAPI {
             commitsConnection.connect();
             String res = httpToText(commitsConnection);
             if (res == null) {
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    (new AlertDialog.Builder(main))
+                new Handler(Looper.getMainLooper()).post(() -> (new AlertDialog.Builder(main))
                         .setTitle("Update Error")
                         .setMessage("Unauthorized")
-                        .show();
-                });
+                        .show());
                 return;
             }
             JSONArray json = new JSONArray(res);
@@ -124,39 +113,32 @@ public class GitHubAPI {
                 }
                 if (downloadURL == null) throw new Exception("what");
             }
-        } catch (Exception e) {
-            new Handler(Looper.getMainLooper()).post(() -> {
-                (new AlertDialog.Builder(main))
-                .setTitle("Update Error")
-                .setMessage("An error occurred checking for updates\n" + e.toString())
-                .show();
-            });
+        } catch (Throwable e) {
+            new Handler(Looper.getMainLooper()).post(() -> (new AlertDialog.Builder(main))
+                    .setTitle("Update Error")
+                    .setMessage("An error occurred checking for updates\n" + e.toString())
+                    .show());
             return;
         }
 
         if (!commit.equals(BuildConfig.GIT_REVISION)) {
             final URL _downloadURL = downloadURL;
-            new Handler(Looper.getMainLooper()).post(() -> {
-                (new AlertDialog.Builder(main))
-                .setTitle("Update available")
-                .setMessage("A new version is available: " + commit + " - " + message + "\ncurrently running version: " + BuildConfig.GIT_REVISION)
-                .setPositiveButton("Update", new DialogInterface.OnClickListener()     {
-                    public void onClick(DialogInterface dialog, int id) {
+            new Handler(Looper.getMainLooper()).post(() -> (new AlertDialog.Builder(main))
+                    .setTitle("Update available")
+                    .setMessage("A new version is available: " + commit + " - " + message + "\ncurrently running version: " + BuildConfig.GIT_REVISION)
+                    .setPositiveButton("Update", (dialog, id) -> {
                         dialog.cancel();
                         try {
                             main.update(_downloadURL);
-                        } catch (Exception e) {
+                        } catch (Throwable e) {
                             (new AlertDialog.Builder(main))
-                            .setTitle("Update Error")
-                            .setMessage("An error occurred downloading updates\n" + e.toString())
-                            .show();
-                            return;
+                                    .setTitle("Update Error")
+                                    .setMessage("An error occurred downloading updates\n" + e.toString())
+                                    .show();
                         }
-                    }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-            });
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show());
         }
     }
 
@@ -164,12 +146,12 @@ public class GitHubAPI {
         new Thread(() -> {
             String token;
             try {
-                HttpURLConnection con = (HttpURLConnection)new URL("https://github.com/login/oauth/access_token").openConnection();
+                HttpURLConnection con = (HttpURLConnection) new URL("https://github.com/login/oauth/access_token").openConnection();
                 con.setRequestMethod("POST");
                 con.setRequestProperty("Accept", "application/json");
                 con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
                 con.setRequestProperty("User-Agent", "Aliucord/" + BuildConfig.GIT_REVISION);
-                con.getOutputStream().write(("code=" + code + "&client_id=" + client_id + "&client_secret=" + client_secret).getBytes("UTF8"));
+                con.getOutputStream().write(("code=" + code + "&client_id=" + client_id + "&client_secret=" + client_secret).getBytes(StandardCharsets.UTF_8));
                 con.connect();
                 String res = httpToText(con);
                 JSONObject json;
@@ -179,12 +161,10 @@ public class GitHubAPI {
                 return;
             }
 
-            if (token == null || token == "") return;
+            if (token == null || token.equals("")) return;
 
             prefs.edit().putString("github_token", token).apply();
-
             auth_token = token;
-
             checkForUpdates();
         }).start();
     }
@@ -194,15 +174,13 @@ public class GitHubAPI {
     }
 
     private String httpToText(HttpURLConnection con) {
-        String responseText;
-        try{
-            InputStream input = con.getInputStream();
-            responseText = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))
-                .lines()
-                .collect(Collectors.joining("\n"));
-        } catch (IOException ignored) {
-            return null;
-        }
-        return responseText;
+        String ln;
+        StringBuilder res = new StringBuilder();
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8));
+            while ((ln = reader.readLine()) != null) res.append(ln);
+            reader.close();
+        } catch (Throwable ignored) { return null; }
+        return res.toString();
     }
 }
