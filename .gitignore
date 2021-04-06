@@ -8,3 +8,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+*.classpath
+*.project
+*org.eclipse.buildship.core.prefs
+.vscode

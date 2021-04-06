@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
     final URL DISCORD_APK_URL = new URL("https://www.apkmirror.com/wp-content/themes/APKMirror/download.php?id=2096401");
     static final String DEFAULT_DEX_LOCATION = "/storage/emulated/0/Aliucord/Aliucord.dex";
     SharedPreferences prefs;
-    GithubAuth authHandler;
+    GitHubAPI authHandler;
 
     public MainActivity() throws MalformedURLException {}
 
@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
         checkPermissions(null);
 
-        authHandler = new GithubAuth(prefs, this);
+        authHandler = new GitHubAPI(prefs, this);
     }
 
     public void checkPermissions(View view) {
@@ -153,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        if (authHandler.isAuthed()) {
+        if (authHandler.isAuthenticated()) {
             menu.findItem(R.id.action_github).setTitle(R.string.gh_auth_logout);
         } else {
             menu.findItem(R.id.action_github).setTitle(R.string.gh_auth);
@@ -311,6 +311,83 @@ public class MainActivity extends AppCompatActivity {
         output.flush();
         output.close();
         input.close();
+    }
+
+    public void update(URL downloadURL) {
+        StateUpdater updater;
+        findViewById(R.id.mainLayout).setVisibility(View.GONE);
+        findViewById(R.id.patchingLayout).setVisibility(View.VISIBLE);
+        TextView patchingState = findViewById(R.id.patchingState);
+        updater = state -> {
+            Log.d("Aliucord Installer", state);
+            new Handler(Looper.getMainLooper()).post(() -> patchingState.setText(state));
+        };
+
+        updater.update("Updating... 0%");
+
+        new Thread(() -> {
+            try {
+                File outApkDir = new File(Environment.getExternalStorageDirectory(), "Aliucord");
+                HttpURLConnection connection = (HttpURLConnection) downloadURL.openConnection();
+                connection.connect();
+
+                if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                    throw new Exception("Server returned code " + connection.getResponseCode());
+                }
+
+                int lengthOfFile = connection.getContentLength();
+                InputStream input = new BufferedInputStream(connection.getInputStream(), 8192);
+                OutputStream output = new FileOutputStream(outApkDir.getAbsolutePath() + "/installer.apk");
+
+                byte[] data = new byte[8192];
+
+                int count;
+                long total = 0;
+                int perc = 0;
+                int newPerc;
+                while ((count = input.read(data)) != -1) {
+                    total += count;
+                    output.write(data, 0, count);
+                    newPerc = (int) ((total * 100) / lengthOfFile);
+                    if (newPerc > perc) updater.update("Updating... " + newPerc + "%");
+                    perc = newPerc;
+                }
+
+                output.flush();
+                output.close();
+                input.close();
+
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                Uri apkUri = FileProvider.getUriForFile(
+                        this,
+                        getApplicationContext().getPackageName() + ".provider",
+                        new File(outApkDir.getAbsolutePath(), "installer.apk")
+                );
+                intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                startActivity(intent);
+
+                try {
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        findViewById(R.id.patchingLayout).setVisibility(View.GONE);
+                        findViewById(R.id.mainLayout).setVisibility(View.VISIBLE);
+                        ((TextView) findViewById(R.id.patchingState)).setText(R.string.patching_placeholder);
+                    });
+                } catch (Exception e) { new Handler(Looper.getMainLooper()).post(() -> showError(e)); }
+            } catch (Exception e) {
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    StringBuilder stacktrace = new StringBuilder();
+                    for (StackTraceElement el : e.getStackTrace()) stacktrace.append("\n   at ").append(el.toString());
+            
+                    new AlertDialog.Builder(this)
+                            .setTitle("Error")
+                            .setMessage("Exception while patching apk: " + e.toString() + "\n\nStacktrace: " + stacktrace)
+                            .setPositiveButton("ok", (dialog, i) -> {})
+                            .show();
+                });
+            }
+        }).start();
     }
 
     @Override
