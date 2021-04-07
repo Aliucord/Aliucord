@@ -6,4 +6,8 @@
         android:id="@+id/action_settings"
         android:title="@string/settings"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_github"
+        android:title="@string/gh_auth"
+        app:showAsAction="never" />
 </menu>
