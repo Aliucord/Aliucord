@@ -168,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         if (item.getItemId() == R.id.action_github) {
-            authHandler.startAuthFlow(this);
+            authHandler.startAuthFlow();
             return true;
         }
         return super.onOptionsItemSelected(item);

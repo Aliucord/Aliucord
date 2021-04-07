@@ -1,11 +1,16 @@
 package com.aliucord.installer;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.ComponentName;
 import android.content.SharedPreferences;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.*;
+import android.util.Log;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.browser.customtabs.CustomTabsClient;
@@ -19,20 +24,34 @@ import java.io.InputStreamReader;
 import java.lang.Thread;
 import java.nio.charset.StandardCharsets;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
 
 public class GitHubAPI {
-    final String client_id = "9260a23baccb4ebf2d94";
-    final String client_secret = "0ab74f8ed58600ad48acbb9843ab05615ec4940d";
-    final Uri uri = Uri.parse("https://github.com/login/oauth/authorize?client_id=" + client_id + "&redirect_uri=aliucord-installer%3A%2F%2Fauth&scope=repo");
-    URL commits_url;
-    URL contents_url;
-    SharedPreferences prefs;
-    String auth_token;
-    MainActivity main;
+    private final String client_id = "9260a23baccb4ebf2d94";
+    private final String client_secret = "0ab74f8ed58600ad48acbb9843ab05615ec4940d";
+    private final Uri uri = Uri.parse("https://github.com/login/oauth/authorize?client_id=" + client_id + "&redirect_uri=aliucord-installer%3A%2F%2Fauth&scope=repo");
+    private URL commits_url;
+    private URL contents_url;
+    private SharedPreferences prefs;
+    private String auth_token;
+    private MainActivity main;
+    private final String TAG = "Aliucord Installer/GitHubAPI";
+
+    private final String STABLE_PACKAGE = "com.android.chrome";
+    private final String BETA_PACKAGE = "com.chrome.beta";
+    private final String DEV_PACKAGE = "com.chrome.dev";
+    private final String LOCAL_PACKAGE = "com.google.android.apps.chrome";
+    private final String EXTRA_CUSTOM_TABS_KEEP_ALIVE =
+            "android.support.customtabs.extra.KEEP_ALIVE";
+    private final String ACTION_CUSTOM_TABS_CONNECTION =
+            "android.support.customtabs.action.CustomTabsService";
+
+    private String sPackageNameToUse;
 
     public GitHubAPI (SharedPreferences _prefs, MainActivity _main) {
         try {
@@ -45,25 +64,31 @@ public class GitHubAPI {
         if (isAuthenticated()) new Thread(this::checkForUpdates).start();
     }
 
-    public void startAuthFlow(Context context) {
+    public void startAuthFlow() {
         if (isAuthenticated()) {
             prefs.edit().remove("github_token").apply();
             auth_token = "";
             return;
         }
-        CustomTabsServiceConnection tabConnection = new CustomTabsServiceConnection() {
-            @Override
-            public void onCustomTabsServiceConnected(@NonNull ComponentName componentName, CustomTabsClient tabClient) {
-                CustomTabsIntent.Builder tabBuilder = new CustomTabsIntent.Builder();
-                CustomTabsIntent intent = tabBuilder.build();
-                tabClient.warmup(0L);
-                intent.launchUrl(context, uri);
-            }
         
-            @Override
-            public void onServiceDisconnected(ComponentName name) {}
-        };
-        CustomTabsClient.bindCustomTabsService(context, "com.android.chrome", tabConnection);
+        String packageName = getPackageNameToUse();
+        if (packageName != null) {
+            CustomTabsServiceConnection tabConnection = new CustomTabsServiceConnection() {
+                @Override
+                public void onCustomTabsServiceConnected(@NonNull ComponentName componentName, CustomTabsClient tabClient) {
+                    CustomTabsIntent.Builder tabBuilder = new CustomTabsIntent.Builder();
+                    CustomTabsIntent intent = tabBuilder.build();
+                    tabClient.warmup(0L);
+                    intent.launchUrl(main, uri);
+                }
+            
+                @Override
+                public void onServiceDisconnected(ComponentName name) {}
+            };
+            CustomTabsClient.bindCustomTabsService(main, packageName, tabConnection);
+        } else {
+            main.startActivity(new Intent(Intent.ACTION_VIEW, uri));
+        }
     }
 
     public void checkForUpdates() {
@@ -182,5 +207,95 @@ public class GitHubAPI {
             reader.close();
         } catch (Throwable ignored) { return null; }
         return res.toString();
+    }
+
+    // https://stackoverflow.com/a/34331678/13174603
+    /**
+     * Goes through all apps that handle VIEW intents and have a warmup service. Picks
+     * the one chosen by the user if there is one, otherwise makes a best effort to return a
+     * valid package name.
+     *
+     * This is <strong>not</strong> threadsafe.
+     *
+     * @return The package name recommended to use for connecting to custom tabs related components.
+     */
+    private String getPackageNameToUse() {
+        if (sPackageNameToUse != null) return sPackageNameToUse;
+
+        PackageManager pm = main.getPackageManager();
+        // Get default VIEW intent handler.
+        Intent activityIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.example.com"));
+        ResolveInfo defaultViewHandlerInfo = pm.resolveActivity(activityIntent, 0);
+        String defaultViewHandlerPackageName = null;
+        if (defaultViewHandlerInfo != null) {
+            defaultViewHandlerPackageName = defaultViewHandlerInfo.activityInfo.packageName;
+        }
+
+        // Get all apps that can handle VIEW intents.
+        List<ResolveInfo> resolvedActivityList = pm.queryIntentActivities(activityIntent, 0);
+        List<String> packagesSupportingCustomTabs = new ArrayList<>();
+        for (ResolveInfo info : resolvedActivityList) {
+            Intent serviceIntent = new Intent();
+            serviceIntent.setAction(ACTION_CUSTOM_TABS_CONNECTION);
+            serviceIntent.setPackage(info.activityInfo.packageName);
+            if (pm.resolveService(serviceIntent, 0) != null) {
+                packagesSupportingCustomTabs.add(info.activityInfo.packageName);
+            }
+        }
+
+        // Now packagesSupportingCustomTabs contains all apps that can handle both VIEW intents
+        // and service calls.
+        if (packagesSupportingCustomTabs.isEmpty()) {
+            sPackageNameToUse = null;
+        } else if (packagesSupportingCustomTabs.size() == 1) {
+            sPackageNameToUse = packagesSupportingCustomTabs.get(0);
+        } else if (!TextUtils.isEmpty(defaultViewHandlerPackageName)
+                && !hasSpecializedHandlerIntents(activityIntent)
+                && packagesSupportingCustomTabs.contains(defaultViewHandlerPackageName)) {
+            sPackageNameToUse = defaultViewHandlerPackageName;
+        } else if (packagesSupportingCustomTabs.contains(STABLE_PACKAGE)) {
+            sPackageNameToUse = STABLE_PACKAGE;
+        } else if (packagesSupportingCustomTabs.contains(BETA_PACKAGE)) {
+            sPackageNameToUse = BETA_PACKAGE;
+        } else if (packagesSupportingCustomTabs.contains(DEV_PACKAGE)) {
+            sPackageNameToUse = DEV_PACKAGE;
+        } else if (packagesSupportingCustomTabs.contains(LOCAL_PACKAGE)) {
+            sPackageNameToUse = LOCAL_PACKAGE;
+        }
+        return sPackageNameToUse;
+    }
+
+    /**
+     * Used to check whether there is a specialized handler for a given intent.
+     * @param intent The intent to check with.
+     * @return Whether there is a specialized handler for the given intent.
+     */
+    private boolean hasSpecializedHandlerIntents(Intent intent) {
+        try {
+            PackageManager pm = main.getPackageManager();
+            List<ResolveInfo> handlers = pm.queryIntentActivities(
+                    intent,
+                    PackageManager.GET_RESOLVED_FILTER);
+            if (handlers == null || handlers.size() == 0) {
+                return false;
+            }
+            for (ResolveInfo resolveInfo : handlers) {
+                IntentFilter filter = resolveInfo.filter;
+                if (filter == null) continue;
+                if (filter.countDataAuthorities() == 0 || filter.countDataPaths() == 0) continue;
+                if (resolveInfo.activityInfo == null) continue;
+                return true;
+            }
+        } catch (RuntimeException e) {
+            Log.e(TAG, "Runtime exception while getting specialized handlers");
+        }
+        return false;
+    }
+
+    /**
+     * @return All possible chrome package names that provide custom tabs feature.
+     */
+    private String[] getPackages() {
+        return new String[]{"", STABLE_PACKAGE, BETA_PACKAGE, DEV_PACKAGE, LOCAL_PACKAGE};
     }
 }
