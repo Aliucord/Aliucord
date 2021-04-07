@@ -13,9 +13,7 @@ import android.util.Log;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
-import androidx.browser.customtabs.CustomTabsClient;
-import androidx.browser.customtabs.CustomTabsIntent;
-import androidx.browser.customtabs.CustomTabsServiceConnection;
+import androidx.browser.customtabs.*;
 
 import java.net.HttpURLConnection;
 import java.io.BufferedReader;
@@ -37,19 +35,9 @@ public class GitHubAPI {
     private final Uri uri = Uri.parse("https://github.com/login/oauth/authorize?client_id=" + client_id + "&redirect_uri=aliucord-installer%3A%2F%2Fauth&scope=repo");
     private URL commits_url;
     private URL contents_url;
-    private SharedPreferences prefs;
+    private final SharedPreferences prefs;
     private String auth_token;
-    private MainActivity main;
-    private final String TAG = "Aliucord Installer/GitHubAPI";
-
-    private final String STABLE_PACKAGE = "com.android.chrome";
-    private final String BETA_PACKAGE = "com.chrome.beta";
-    private final String DEV_PACKAGE = "com.chrome.dev";
-    private final String LOCAL_PACKAGE = "com.google.android.apps.chrome";
-    private final String EXTRA_CUSTOM_TABS_KEEP_ALIVE =
-            "android.support.customtabs.extra.KEEP_ALIVE";
-    private final String ACTION_CUSTOM_TABS_CONNECTION =
-            "android.support.customtabs.action.CustomTabsService";
+    private final MainActivity main;
 
     private String sPackageNameToUse;
 
@@ -121,12 +109,10 @@ public class GitHubAPI {
                 contentsConnection.connect();
                 String rawContents = httpToText(contentsConnection);
                 if (rawContents == null) {
-                    new Handler(Looper.getMainLooper()).post(() -> {
-                        (new AlertDialog.Builder(main))
-                            .setTitle("Update Error")
-                            .setMessage("Unable to fetch builds")
-                            .show();
-                    });
+                    new Handler(Looper.getMainLooper()).post(() -> (new AlertDialog.Builder(main))
+                        .setTitle("Update Error")
+                        .setMessage("Unable to fetch builds")
+                        .show());
                     return;
                 }
                 JSONArray contents = new JSONArray(rawContents);
@@ -179,6 +165,7 @@ public class GitHubAPI {
                 con.getOutputStream().write(("code=" + code + "&client_id=" + client_id + "&client_secret=" + client_secret).getBytes(StandardCharsets.UTF_8));
                 con.connect();
                 String res = httpToText(con);
+                if (res == null) return;
                 JSONObject json;
                 json = new JSONObject(res);
                 token = json.getString("access_token");
@@ -186,7 +173,7 @@ public class GitHubAPI {
                 return;
             }
 
-            if (token == null || token.equals("")) return;
+            if (token.equals("")) return;
 
             prefs.edit().putString("github_token", token).apply();
             auth_token = token;
@@ -221,6 +208,8 @@ public class GitHubAPI {
      */
     private String getPackageNameToUse() {
         if (sPackageNameToUse != null) return sPackageNameToUse;
+        sPackageNameToUse = CustomTabsClient.getPackageName(main, null);
+        if (sPackageNameToUse != null) return sPackageNameToUse;
 
         PackageManager pm = main.getPackageManager();
         // Get default VIEW intent handler.
@@ -236,7 +225,7 @@ public class GitHubAPI {
         List<String> packagesSupportingCustomTabs = new ArrayList<>();
         for (ResolveInfo info : resolvedActivityList) {
             Intent serviceIntent = new Intent();
-            serviceIntent.setAction(ACTION_CUSTOM_TABS_CONNECTION);
+            serviceIntent.setAction(CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION);
             serviceIntent.setPackage(info.activityInfo.packageName);
             if (pm.resolveService(serviceIntent, 0) != null) {
                 packagesSupportingCustomTabs.add(info.activityInfo.packageName);
@@ -245,6 +234,10 @@ public class GitHubAPI {
 
         // Now packagesSupportingCustomTabs contains all apps that can handle both VIEW intents
         // and service calls.
+        String STABLE_PACKAGE = "com.android.chrome";
+        String BETA_PACKAGE = "com.chrome.beta";
+        String DEV_PACKAGE = "com.chrome.dev";
+        String LOCAL_PACKAGE = "com.google.android.apps.chrome";
         if (packagesSupportingCustomTabs.isEmpty()) {
             sPackageNameToUse = null;
         } else if (packagesSupportingCustomTabs.size() == 1) {
@@ -276,9 +269,7 @@ public class GitHubAPI {
             List<ResolveInfo> handlers = pm.queryIntentActivities(
                     intent,
                     PackageManager.GET_RESOLVED_FILTER);
-            if (handlers == null || handlers.size() == 0) {
-                return false;
-            }
+            if (handlers.size() == 0) return false;
             for (ResolveInfo resolveInfo : handlers) {
                 IntentFilter filter = resolveInfo.filter;
                 if (filter == null) continue;
@@ -287,15 +278,8 @@ public class GitHubAPI {
                 return true;
             }
         } catch (RuntimeException e) {
-            Log.e(TAG, "Runtime exception while getting specialized handlers");
+            Log.e("Aliucord Installer", "Runtime exception while getting specialized handlers");
         }
         return false;
-    }
-
-    /**
-     * @return All possible chrome package names that provide custom tabs feature.
-     */
-    private String[] getPackages() {
-        return new String[]{"", STABLE_PACKAGE, BETA_PACKAGE, DEV_PACKAGE, LOCAL_PACKAGE};
     }
 }
