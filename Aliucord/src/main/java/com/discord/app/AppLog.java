@@ -6,7 +6,7 @@ import java.util.Map;
 
 @SuppressWarnings("unused")
 public class AppLog extends Logger {
-    public static final AppLog e = new AppLog();
+    public static final AppLog g = new AppLog();
 
     // debug
     public void d(String msg, Throwable th) {}

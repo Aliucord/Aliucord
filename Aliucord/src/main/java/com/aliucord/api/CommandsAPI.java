@@ -70,7 +70,7 @@ public class CommandsAPI {
             List<ApplicationCommandOption> options,
             Function1<? super Map<String, ?>, CommandResult> execute
     ) {
-        RemoteApplicationCommand command = new RemoteApplicationCommand(generateIdString(), ALIUCORD_APP_ID, name, description, options, null, null, args -> {
+        RemoteApplicationCommand command = new RemoteApplicationCommand(generateIdString(), ALIUCORD_APP_ID, name, description, options, null, null, null, null, args -> {
             long id = NonceGenerator.computeNonce();
             long channelId = StoreStream.getChannelsSelected().getId();
             User me = StoreStream.getUsers().getMe();

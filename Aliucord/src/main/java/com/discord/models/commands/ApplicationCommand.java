@@ -1,5 +1,7 @@
 package com.discord.models.commands;
 
+import com.discord.api.commands.ApplicationCommandPermission;
+
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +22,8 @@ public abstract class ApplicationCommand {
             boolean builtIn,
             Long guildId,
             String version,
+            Boolean defaultPermissions,
+            List<ApplicationCommandPermission> permissions,
             Function1<? super Map<String, ?>, String> execute,
             int flags,
             DefaultConstructorMarker defaultConstructorMarker

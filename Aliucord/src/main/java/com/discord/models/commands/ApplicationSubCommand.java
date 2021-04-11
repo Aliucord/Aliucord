@@ -1,5 +1,7 @@
 package com.discord.models.commands;
 
+import com.discord.api.commands.ApplicationCommandPermission;
+
 import java.util.List;
 
 @SuppressWarnings("unused")
@@ -18,6 +20,8 @@ public final class ApplicationSubCommand extends ApplicationCommand {
             Integer descriptionRes,
             List<ApplicationCommandOption> options,
             Long guildId,
+            Boolean defaultPermissions,
+            List<ApplicationCommandPermission> permissions,
             String version
     ) {
         super(
@@ -30,6 +34,8 @@ public final class ApplicationSubCommand extends ApplicationCommand {
                 false,
                 guildId,
                 version,
+                defaultPermissions,
+                permissions,
                 null,
                 576,
                 null
