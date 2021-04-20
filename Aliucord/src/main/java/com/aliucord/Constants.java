@@ -11,10 +11,11 @@ public class Constants {
     public static class Fonts {
         private static final int base = 0x7f090000;
 
-        public static int sourcecodepro_semibold = base;
-        public static int whitney_bold = base + 1;
-        public static int whitney_medium = base + 2;
-        public static int whitney_semibold = base + 3;
+        public static int roboto_medium_numbers = base;
+        public static int sourcecodepro_semibold = base + 1;
+        public static int whitney_bold = base + 2;
+        public static int whitney_medium = base + 3;
+        public static int whitney_semibold = base + 4;
     }
 
     public static String ALIUCORD_SUPPORT = "EsNDvBaHVU";

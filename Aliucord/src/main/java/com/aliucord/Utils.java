@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.v4.media.MediaDescriptionCompatApi21$Builder;
 import android.widget.TextView;
 
 import androidx.core.content.res.ResourcesCompat;
@@ -29,7 +28,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 
-import c.a.d.o;
+import c.a.d.p;
+import c.a.j.b;
 import kotlin.jvm.functions.Function1;
 
 @SuppressWarnings("unused")
@@ -71,7 +71,7 @@ public class Utils {
     }
 
     public static void openPage(Context context, Class<? extends AppComponent> clazz) { Utils.openPage(context, clazz, null); }
-    public static void openPage(Context context, Class<? extends AppComponent> clazz, Intent intent) { o.c(context, clazz, intent); }
+    public static void openPage(Context context, Class<? extends AppComponent> clazz, Intent intent) { p.c(context, clazz, intent); }
     public static void openPageWithProxy(Context context, Fragment fragment) {
         String id = String.valueOf(SnowflakeUtils.fromTimestamp(System.currentTimeMillis() * 100));
         AppFragmentProxy.fragments.put(id, fragment);
@@ -134,7 +134,7 @@ public class Utils {
             cs.f(type);
         }
 
-        TextView textView = cs.i.a();
+        TextView textView = cs.j.a();
         textView.setTextSize(16.0f);
         textView.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium));
         textView.setText(text);
@@ -163,7 +163,7 @@ public class Utils {
     public static String toJsonPretty(Object obj) { return gsonPretty.l(obj); }
 
     public static CharSequence renderMD(CharSequence source) {
-        return MediaDescriptionCompatApi21$Builder.Q(source, null, 1);
+        return b.k(source, new Object[0], null, 2);
     }
 
     public static void log(String msg) { Main.logger.debug(msg); }

@@ -4,5 +4,5 @@ import android.widget.ImageView;
 
 @SuppressWarnings("unused")
 public class MGImages {
-    public static void setCornerRadius(ImageView view, float f1, boolean b1, Integer color) {}
+    public static void setRoundingParams(ImageView view, float radius, boolean roundAsCircle, Integer color, Integer color2, Float f2) {}
 }

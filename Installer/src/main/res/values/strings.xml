@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Aliucord Installer</string>
     <string name="patching_placeholder">Patching apk..</string>
-    <string name="supported_version">Supported Discord version: 70.3 (1509)</string>
+    <string name="supported_version">Supported Discord version: 71.3 (1520)</string>
     <string name="path_to_discord_apk">Path to discord apk</string>
     <string name="from_storage">From storage</string>
     <string name="from_installed">Installed app</string>

@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-@SuppressWarnings({"unchecked", "unused"})
+@SuppressWarnings({"unchecked", "unused", "ConstantConditions"})
 public class Patcher {
     public static Map<String, Map<String, ArrayList<PrePatchFunction>>> prePatches = new HashMap<>();
     public static Map<String, Map<String, ArrayList<PatchFunction<Object>>>> patches = new HashMap<>();
@@ -22,9 +22,9 @@ public class Patcher {
         Patcher.addPatch(className, fn, new PatchFunction<Object>() {
             public Object run(Object __this, ArrayList<Object> args, Object ret) {
                 AppActivity.a _this = (AppActivity.a) __this;
-                if (i == 1) Main.preInit((AppActivity) _this.h);
+                if (i == 1) Main.preInit((AppActivity) _this.i);
                 else if (i == 2) {
-                    Main.init((AppActivity) _this.h);
+                    Main.init((AppActivity) _this.i);
                     PatcherAPI.unpatch(className, fn, this);
                 }
                 i++;

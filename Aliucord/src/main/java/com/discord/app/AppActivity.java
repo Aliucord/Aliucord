@@ -9,8 +9,7 @@ import rx.subjects.Subject;
 @SuppressWarnings("unused")
 public class AppActivity extends AppTransitionActivity implements AppComponent {
     public static final class a {
-        public final int g = 0;
-        public final Object h = null;
+        public final Object i = null;
     }
 
     public final Intent c() { return new Intent(); }

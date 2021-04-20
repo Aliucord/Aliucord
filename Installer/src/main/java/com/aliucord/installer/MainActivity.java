@@ -46,8 +46,8 @@ import java.util.regex.Pattern;
 import dalvik.system.DexClassLoader;
 
 public class MainActivity extends AppCompatActivity {
-    final String SUPPORTED_DISCORD_VERSION = "1509";
-    final URL DISCORD_APK_URL = new URL("https://cdn.discordapp.com/attachments/411645018105970699/830188157390946394/Discord-70.3.apk");
+    final String SUPPORTED_DISCORD_VERSION = "1520";
+    final URL DISCORD_APK_URL = new URL("https://aliucord.tk/download/discord?v=1520");
     static final String DEFAULT_DEX_LOCATION = "/storage/emulated/0/Aliucord/Aliucord.dex";
     SharedPreferences prefs;
     GitHubAPI authHandler;
@@ -392,7 +392,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        String code = intent.getData().getQueryParameter("code");
+        Uri data = intent.getData();
+        if (data == null) return;
+        String code = data.getQueryParameter("code");
         if (code != null) authHandler.intentCallback(code);
     }
 }
