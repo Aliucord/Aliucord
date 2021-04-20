@@ -163,7 +163,7 @@ public class Utils {
     public static String toJsonPretty(Object obj) { return gsonPretty.l(obj); }
 
     public static CharSequence renderMD(CharSequence source) {
-        return b.k(source, new Object[0], null, 2);
+        return b.j(source, new Object[0], null, 2);
     }
 
     public static void log(String msg) { Main.logger.debug(msg); }
