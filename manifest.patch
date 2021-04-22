@@ -7,7 +7,7 @@
       <uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
       <uses-feature android:name="android.hardware.faketouch" android:required="false"/>
 --- 1,4 ----
-! <?xml version="1.0" encoding="utf-8" standalone="no"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" android:compileSdkVersion="30" android:compileSdkVersionCodename="11" android:installLocation="auto" package="com.aliucord" platformBuildVersionCode="1520" platformBuildVersionName="71.3">
+! <?xml version="1.0" encoding="utf-8" standalone="no"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" android:compileSdkVersion="30" android:compileSdkVersionCodename="11" android:installLocation="auto" package="com.aliucord" platformBuildVersionCode="1524" platformBuildVersionName="71.5">
       <uses-feature android:name="android.hardware.camera" android:required="false"/>
       <uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
       <uses-feature android:name="android.hardware.faketouch" android:required="false"/>

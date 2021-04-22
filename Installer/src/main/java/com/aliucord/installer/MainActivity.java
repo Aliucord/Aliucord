@@ -46,8 +46,8 @@ import java.util.regex.Pattern;
 import dalvik.system.DexClassLoader;
 
 public class MainActivity extends AppCompatActivity {
-    final String SUPPORTED_DISCORD_VERSION = "1520";
-    final URL DISCORD_APK_URL = new URL("https://aliucord.tk/download/discord?v=1520");
+    final String SUPPORTED_DISCORD_VERSION = "1524";
+    final URL DISCORD_APK_URL = new URL("https://aliucord.tk/download/discord?v=1524");
     static final String DEFAULT_DEX_LOCATION = "/storage/emulated/0/Aliucord/Aliucord.dex";
     SharedPreferences prefs;
     GitHubAPI authHandler;
