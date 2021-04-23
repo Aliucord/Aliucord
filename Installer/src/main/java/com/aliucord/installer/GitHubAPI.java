@@ -43,7 +43,7 @@ public class GitHubAPI {
 
     public GitHubAPI (SharedPreferences _prefs, MainActivity _main) {
         try {
-            commits_url = new URL("https://api.github.com/repos/aliucord/Aliucord/commits");
+            commits_url = new URL("https://api.github.com/repos/aliucord/Aliucord/commits?sha=builds");
             contents_url = new URL("https://api.github.com/repos/Aliucord/Aliucord/contents?ref=builds");
         } catch (Throwable ignored) {}
         prefs = _prefs;
@@ -84,12 +84,7 @@ public class GitHubAPI {
         String message;
         URL downloadURL = null;
         try {
-            HttpURLConnection commitsConnection = (HttpURLConnection)commits_url.openConnection();
-            commitsConnection.setRequestProperty("Accept", "application/vnd.github.v3+json");
-            commitsConnection.setRequestProperty("Authorization", "token " + auth_token);
-            commitsConnection.setRequestProperty("User-Agent", "Aliucord/" + BuildConfig.GIT_REVISION);
-            commitsConnection.connect();
-            String res = httpToText(commitsConnection);
+            String res = httpToText(commits_url);
             if (res == null) {
                 new Handler(Looper.getMainLooper()).post(() -> (new AlertDialog.Builder(main))
                         .setTitle("Update Error")
@@ -98,16 +93,13 @@ public class GitHubAPI {
                 return;
             }
             JSONArray json = new JSONArray(res);
-            commit = json.getJSONObject(0).getString("sha").substring(0, 7);
-            message = json.getJSONObject(0).getJSONObject("commit").getString("message");
+            commit = json.getJSONObject(0).getJSONObject("commit").getString("message").substring(6, 13);
+            res = httpToText(new URL("https://api.github.com/repos/Aliucord/Aliucord/commits/" + commit));
+            JSONObject commitJson = new JSONObject(res);
+            message = commitJson.getJSONObject("commit").getString("message");
 
             if (!commit.equals(BuildConfig.GIT_REVISION)) {
-                HttpURLConnection contentsConnection = (HttpURLConnection) contents_url.openConnection();
-                contentsConnection.setRequestProperty("Accept", "application/vnd.github.v3+json");
-                contentsConnection.setRequestProperty("Authorization", "token " + auth_token);
-                contentsConnection.setRequestProperty("User-Agent", "Aliucord/" + BuildConfig.GIT_REVISION);
-                contentsConnection.connect();
-                String rawContents = httpToText(contentsConnection);
+                String rawContents = httpToText(contents_url);
                 if (rawContents == null) {
                     new Handler(Looper.getMainLooper()).post(() -> (new AlertDialog.Builder(main))
                         .setTitle("Update Error")
@@ -129,6 +121,7 @@ public class GitHubAPI {
                     .setTitle("Update Error")
                     .setMessage("An error occurred checking for updates\n" + e.toString())
                     .show());
+            Log.e("Aliucord Installer", null, e);
             return;
         }
 
@@ -183,6 +176,15 @@ public class GitHubAPI {
 
     public boolean isAuthenticated() {
         return !auth_token.equals("");
+    }
+
+    private String httpToText(URL url) throws Throwable {
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setRequestProperty("Accept", "application/vnd.github.v3+json");
+        con.setRequestProperty("Authorization", "token " + auth_token);
+        con.setRequestProperty("User-Agent", "Aliucord/" + BuildConfig.GIT_REVISION);
+        con.connect();
+        return httpToText(con);
     }
 
     private String httpToText(HttpURLConnection con) {
