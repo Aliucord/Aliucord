@@ -109,13 +109,14 @@ public class PluginUpdater {
 
     public static void update(String plugin) {
         try {
-            UpdateInfo updateInfo = getUpdateInfo(PluginManager.plugins.get(plugin));
+            Plugin p = PluginManager.plugins.get(plugin);
+            UpdateInfo updateInfo = getUpdateInfo(p);
             if (updateInfo == null) return;
 
             String url = updateInfo.build;
             if (url.contains("%s")) url = String.format(url, plugin);
             ReadableByteChannel in = Channels.newChannel(HttpUtils.request(url, null));
-            FileChannel out = new FileOutputStream(Constants.BASE_PATH + "/plugins/" + plugin + ".apk").getChannel();
+            FileChannel out = new FileOutputStream(Constants.BASE_PATH + "/plugins/" + p.__filename + ".apk").getChannel();
             out.transferFrom(in, 0, Long.MAX_VALUE);
             in.close();
             out.close();

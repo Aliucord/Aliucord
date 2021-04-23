@@ -87,6 +87,8 @@ public abstract class Plugin {
     public Resources resources;
     public boolean needsResources = false;
 
+    public String __filename;
+
     // api
     protected CommandsAPI commands = new CommandsAPI(name);
     protected PatcherAPI patcher = new PatcherAPI();

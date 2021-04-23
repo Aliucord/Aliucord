@@ -15,6 +15,8 @@ public class Logger {
     public void info(String msg) { info(msg, null); }
     public void info(String msg, Throwable e) { AppLog.g.i(getMsgWithTag(msg), e); }
     public void verbose(String msg) { AppLog.g.v(getMsgWithTag(msg), null); }
+    public void warn(String msg) { warn(msg, null); }
+    public void warn(String msg, Throwable e) { AppLog.g.w(getMsgWithTag(msg), e); }
 
     private String getMsgWithTag(String msg) { return tag + " " + msg; }
 }

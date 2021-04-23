@@ -19,4 +19,7 @@ public class AppLog extends Logger {
     public void i(String tag, String msg, Throwable th) {}
     // verbose
     public void v(String msg, Throwable th) {}
+    // warn
+    public void w(String msg, Throwable th) {}
+    public void w(String tag, String msg, Throwable th) {}
 }

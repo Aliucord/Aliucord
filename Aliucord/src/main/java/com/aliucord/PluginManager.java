@@ -8,12 +8,11 @@ import com.aliucord.coreplugins.*;
 import com.aliucord.entities.Plugin;
 
 import java.io.File;
+import java.io.InputStream;
 import java.lang.reflect.Method;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
-import dalvik.system.DexFile;
 import dalvik.system.PathClassLoader;
 
 public class PluginManager {
@@ -27,11 +26,18 @@ public class PluginManager {
         logger.info("Loading plugin: " + name);
         try {
             PathClassLoader loader = new PathClassLoader(f.getAbsolutePath(), context.getClassLoader());
-            Class<? extends Plugin> plugin = (Class<? extends Plugin>) loader.loadClass("com.aliucord.plugins." + name);
+            InputStream stream = loader.getResourceAsStream("ac-plugin");
+            String pName = stream == null ? name : new String(Utils.readBytes(stream));
+            if (plugins.containsKey(pName)) {
+                logger.warn("Plugin with name " + pName + " already exists");
+                return;
+            }
+            Class<? extends Plugin> plugin = (Class<? extends Plugin>) loader.loadClass("com.aliucord.plugins." + pName);
             Plugin p = plugin.newInstance();
+            p.__filename = name;
             //noinspection ConstantConditions
             if (p.getManifest() == null) {
-                logger.error("Invalid manifest for plugin: " + name, null);
+                logger.error("Invalid manifest for plugin: " + pName, null);
                 return;
             }
             if (p.needsResources) {
@@ -41,7 +47,7 @@ public class PluginManager {
                 addAssetPath.invoke(assets, f.getAbsolutePath());
                 p.resources = new Resources(assets, context.getResources().getDisplayMetrics(), context.getResources().getConfiguration());
             }
-            plugins.put(name, p);
+            plugins.put(pName, p);
             p.load(context);
         } catch (Throwable e) { logger.error("Exception while loading plugin: " + name, e); }
     }

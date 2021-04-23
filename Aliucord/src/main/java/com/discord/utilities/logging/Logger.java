@@ -16,4 +16,7 @@ public class Logger {
     // verbose
     public void v(String msg, Throwable th) {}
     public void v(String tag, String msg, Throwable th) {}
+    // warn
+    public void w(String msg, Throwable th) {}
+    public void w(String tag, String msg, Throwable th) {}
 }

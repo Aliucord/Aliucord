@@ -22,6 +22,7 @@ import com.discord.utilities.fcm.NotificationClient;
 import com.discord.views.CheckedSetting;
 import com.google.gson.Gson;
 
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.Collection;
@@ -154,6 +155,15 @@ public class Utils {
                 manager.beginTransaction().attach(chatListFragment).commitNow();
             } else ft.detach(chatListFragment).attach(chatListFragment).commit();
         });
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public static byte[] readBytes(InputStream stream) throws Throwable {
+        int len = stream.available();
+        byte[] buf = new byte[len];
+        stream.read(buf);
+        stream.close();
+        return buf;
     }
 
     public final static Gson gson = new Gson();

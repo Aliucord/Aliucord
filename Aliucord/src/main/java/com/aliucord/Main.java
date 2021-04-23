@@ -36,6 +36,7 @@ import com.lytefast.flexinput.R$h;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 
@@ -66,8 +67,17 @@ public class Main {
         if (!dir.exists()) return classes;
         for (File f : Objects.requireNonNull(dir.listFiles((d, name) -> name.endsWith(".apk")))) {
             PathClassLoader loader = new PathClassLoader(f.getAbsolutePath(), Main.class.getClassLoader());
-            String name = f.getName().replace(".apk", "");
             try {
+                String name;
+                InputStream stream = loader.getResourceAsStream("ac-plugin");
+                if (stream != null) {
+                    int len = stream.available();
+                    byte[] buf = new byte[len];
+                    //noinspection ResultOfMethodCallIgnored
+                    stream.read(buf);
+                    stream.close();
+                    name = new String(buf);
+                } else name = f.getName().replace(".apk", "");
                 Map<String, List<String>> map = (Map<String, List<String>>) loader.loadClass("com.aliucord.plugins." + name)
                         .getMethod("getClassesToPatch").invoke(null);
                 if (map == null) continue;
