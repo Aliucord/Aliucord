@@ -13,9 +13,14 @@ public class R$h {
     public static int UiKit_TextAppearance_Button = 0;
     public static int UiKit_TextAppearance_MaterialEditText_Input = 0;
     public static int UiKit_TextAppearance_MaterialEditText_Label = 0;
+    public static int UiKit_TextView = 0;
     public static int UiKit_TextView_H1 = 0;
     public static int UiKit_TextView_H1_Bold = 0;
     public static int UiKit_TextView_H2 = 0;
     public static int UiKit_TextView_Subtext = 0;
     public static int UiKit_ViewGroup_LinearLayout = 0;
+    public static int UserProfile_Section = 0;
+    public static int UserProfile_Section_Card = 0;
+    public static int UserProfile_Section_Header = 0;
+    public static int UserProfile_Section_HeaderTextAppearance = 0;
 }
