@@ -17,6 +17,7 @@ public class R$h {
     public static int UiKit_TextView_H1 = 0;
     public static int UiKit_TextView_H1_Bold = 0;
     public static int UiKit_TextView_H2 = 0;
+    public static int UiKit_TextView_Semibold = 0;
     public static int UiKit_TextView_Subtext = 0;
     public static int UiKit_ViewGroup_LinearLayout = 0;
     public static int UserProfile_Section = 0;
