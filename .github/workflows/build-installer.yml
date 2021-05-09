@@ -35,7 +35,7 @@ jobs:
         echo "storePassword: ${{ secrets.keystorePassword }}" > android/key.properties
         echo "keyPassword: ${{ secrets.keyPassword }}" >> android/key.properties
         echo "keyAlias: Installer" >> android/key.properties
-        echo "storeFile: ../../../keystore.jks" >> android/key.properties
+        echo "storeFile: ../../../../keystore.jks" >> android/key.properties
         flutter build apk
         mv build/app/outputs/flutter-apk/app-release.apk ../../builds/Installer-release.apk
         rm ../../keystore.jks
