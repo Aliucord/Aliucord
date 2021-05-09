@@ -29,7 +29,7 @@ class GithubAPI with ChangeNotifier {
   static const String _clientId = '9260a23baccb4ebf2d94';
   static const String _clientSecret = '0ab74f8ed58600ad48acbb9843ab05615ec4940d';
   static const String _org = 'Aliucord';
-  static const String _repo = 'test';
+  static const String _repo = 'Aliucord';
 
   static const String _authUrl = 'https://github.com/login/oauth/authorize?client_id=$_clientId&redirect_uri=aliucord-installer%3A%2F%2Fauth&scope=repo';
   static const String _oauthAccessToken = 'https://github.com/login/oauth/access_token';
