@@ -1,0 +1,51 @@
+name: Build Installer
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - DexPatcher/**
+      - installer/**
+
+jobs:
+  build:
+    runs-on: ubuntu-16.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@master
+      with:
+        path: 'src'
+
+    - name: Checkout builds
+      uses: actions/checkout@master
+      with:
+        ref: 'builds'
+        path: 'builds'
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v1
+      with:
+        flutter-version: '2.0.6'
+
+    - name: Build Installer
+      run: |
+        cd $GITHUB_WORKSPACE/src/installer
+        echo "${{ secrets.keystore }}" | base64 -d > ../../keystore.jks
+        echo "storePassword: ${{ secrets.keystorePassword }}" > android/key.properties
+        echo "keyPassword: ${{ secrets.keyPassword }}" >> android/key.properties
+        echo "keyAlias: Installer" >> android/key.properties
+        echo "storeFile: ../../../keystore.jks" >> android/key.properties
+        flutter build apk
+        mv build/app/outputs/flutter-apk/app-release.apk ../../builds/Installer-release.apk
+        rm ../../keystore.jks
+        rm android/key.properties
+    
+    - name: Push builds
+      run: |
+        cd $GITHUB_WORKSPACE/builds
+        git config --local user.email "actions@github.com"
+        git config --local user.name "GitHub Actions"
+        git add .
+        git commit -m "Build Installer $GITHUB_SHA"
+        git push

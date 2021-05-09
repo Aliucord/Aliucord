@@ -121,11 +121,7 @@ public class DexPatcher {
         Utils.copyFile(new File(path), outApkFile);
 
         List<File> filesToAdd = new ArrayList<File>(){{ add(outDex); add(classesDex); add(classesDex2); add(classesDex3); add(aliucordDex); }};
-        if (firstPatch) {
-            File manifest = new File(cachePath, "AndroidManifest.xml");
-            Utils.copyAsset(context.getAssets().open("AndroidManifest.xml"), manifest);
-            filesToAdd.add(manifest);
-        }
+        if (firstPatch) filesToAdd.add(new File(context.getFilesDir(), "AndroidManifest.xml"));
 
         stateUpdater.update("Repacking new apk with new classes");
         Zip zip = new Zip(outApk, 6, 'a');
@@ -167,7 +163,7 @@ public class DexPatcher {
 
     public void patchFile(File file, List<String> methodsToPatch) {
         try {
-            stateUpdater.update("Patching file: " + file.getAbsolutePath());
+            stateUpdater.update("Patching file: " + file.getAbsolutePath().split("/patcher/out/", 2)[1]);
             String s = Utils.readFile(file);
             String[] sArr = s.split("\n")[0].split(" ");
             String className = sArr[sArr.length - 1];

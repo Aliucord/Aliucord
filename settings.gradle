@@ -1,4 +1,3 @@
 include ':Aliucord'
-include ':Installer'
 include ':DexPatcher'
 rootProject.name = "Aliucord"

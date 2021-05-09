@@ -4,7 +4,7 @@ Discord Android app mod inspired by desktop Discord client mods. Unlike other mo
 **Supported Discord version**: 71.5 (1524)
 
 ### Download
-Download `Installer-release.apk` from `builds` branch.
+Download [Installer-release.apk](https://github.com/Aliucord/Aliucord/raw/builds/Installer-release.apk) from `builds` branch.
 
 ### Build
 See `.github/workflows/build.yml` for all build steps.

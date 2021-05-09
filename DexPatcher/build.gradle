@@ -28,11 +28,12 @@ android {
 
 dependencies {
     implementation 'com.google.code.gson:gson:2.8.6'
-    implementation 'org.smali:baksmali:2.4.0'
-    implementation 'org.smali:smali:2.4.0'
-
     //noinspection GradleDependency
     implementation 'org.bouncycastle:bcpkix-jdk15on:1.65'
+    //noinspection GradleDependency
+    implementation 'org.smali:baksmali:2.4.0'
+    //noinspection GradleDependency
+    implementation 'org.smali:smali:2.4.0'
 
-    implementation fileTree(include: '*.aar', dir: './libs')
+    compileOnly fileTree(include: '*.aar', dir: './libs')
 }

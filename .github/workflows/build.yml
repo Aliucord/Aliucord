@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - Aliucord/**
 
 jobs:
   build:
@@ -32,7 +34,7 @@ jobs:
       run: |
         echo "$ANDROID_HOME/build-tools/29.0.2" >> $GITHUB_PATH
         mkdir -p ~/bin
-        wget https://github.com/Aliucord/buildtool/releases/download/v0.0.2/buildtool -P ~/bin
+        wget https://github.com/Aliucord/buildtool/releases/download/v0.0.3/buildtool -P ~/bin
         chmod +x ~/bin/buildtool
         chmod +x $GITHUB_WORKSPACE/src/gradlew
         echo "{\"aliucord\":\"$GITHUB_WORKSPACE/src\",\"outputs\":\"$GITHUB_WORKSPACE/builds\"}" > ~/config.json
@@ -40,20 +42,13 @@ jobs:
     - name: Build Aliucord
       run: ~/bin/buildtool --config ~/config.json
 
-    - name: Build Installer
-      run: |
-        cd $GITHUB_WORKSPACE/src
-        cp ../builds/Aliucord.dex Installer/src/main/assets
-        echo "${{ secrets.keystore }}" | base64 -d > ../keystore.jks
-        ./gradlew Installer:assembleRelease -P android.injected.signing.store.file=$GITHUB_WORKSPACE/keystore.jks -P android.injected.signing.store.password=${{ secrets.keystorePassword }} -P android.injected.signing.key.alias=Installer -P android.injected.signing.key.password=${{ secrets.keyPassword }}
-        mv Installer/build/outputs/apk/release/Installer-release.apk ../builds
-        rm ../keystore.jks
-
     - name: Push builds
       run: |
         cd $GITHUB_WORKSPACE/builds
+        cp ../src/.assets/AndroidManifest.xml .
+        cp ../src/.assets/data.json .
         git config --local user.email "actions@github.com"
         git config --local user.name "GitHub Actions"
-        git add *
+        git add .
         git commit -m "Build $GITHUB_SHA"
         git push
