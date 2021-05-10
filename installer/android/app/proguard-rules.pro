@@ -1,5 +1,5 @@
 -keep class com.aliucord.dexpatcher.** { *; }
--keep class com.aliucord.installer.MainActivity { *; }
+-keep class com.aliucord.installer.** { *; }
 -keep class com.aliucord.libzip.Zip { *; }
 
 # Flutter Wrapper
