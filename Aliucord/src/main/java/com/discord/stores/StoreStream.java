@@ -15,9 +15,17 @@ public final class StoreStream {
     public static StoreSearch getSearch() { return new StoreSearch(); }
     public static StoreUser getUsers() { return new StoreUser(); }
     public static StoreUserSettings getUserSettings() { return new StoreUserSettings(); }
+    public static StoreUserSettingsSystem getUserSettingsSystem() { return new StoreUserSettingsSystem(); }
 
-    public static StoreStream access$getCollector$cp() { return new StoreStream(); }
-    public static void access$handleMessageUpdate(StoreStream instance, ModelMessage message) {}
+    public static void handleMessageUpdate(StoreStream instance, ModelMessage message) {}
 
-    public final StoreClientVersion getClientVersion$app_productionGoogleRelease() { return new StoreClientVersion(); }
+    public final StoreClientVersion getClientVersion$app_productionBetaRelease() { return new StoreClientVersion(); }
+
+    public static final class Companion {
+        private Companion() {
+        }
+
+        public static StoreStream access$getCollector$p(StoreStream.Companion companion) { return new StoreStream(); }
+    }
+
 }

@@ -76,7 +76,7 @@ public class WebLogin extends Plugin {
                         ".splashBackground-1FRCko, body, :root {\n"+
                         "  background: transparent;\n"+
                         "}\n"+
-                        ".logo-2iEHEq, .rightSplit-2US0xy, .canvas-3XuBXe, .mainLoginContainer-1ddwnR > .colorHeaderPrimary-26Jzh-, .mainLoginContainer-1ddwnR > .colorHeaderSecondary-3Sp3Ft, .authBox-hW6HRx::before {\n"+
+                        ".mainLoginContainer-1ddwnR > .title-jXR8lp, .logo-2iEHEq, .rightSplit-2US0xy, .canvas-3XuBXe, .mainLoginContainer-1ddwnR > .colorHeaderPrimary-26Jzh-, .mainLoginContainer-1ddwnR > .colorHeaderSecondary-3Sp3Ft, .authBox-hW6HRx::before {\n"+
                         "  display: none;\n"+
                         "}\n"+
                         ".wrapper-6URcxg {\n"+
@@ -153,7 +153,7 @@ public class WebLogin extends Plugin {
             btn.setPadding(0, padding, 0, padding);
             btn.setText("Alternative login");
             btn.setTextSize(16.0f);
-            if (StoreStream.getUserSettings().getTheme().equals("light"))
+            if (StoreStream.getUserSettingsSystem().getTheme().equals("light"))
                 btn.setBackgroundColor(context.getResources().getColor(R$c.uikit_btn_bg_color_selector_secondary_light));
             else btn.setBackgroundColor(context.getResources().getColor(R$c.uikit_btn_bg_color_selector_secondary_dark));
             btn.setOnClickListener(e -> Utils.openPage(e.getContext(), Page.class));
@@ -163,7 +163,7 @@ public class WebLogin extends Plugin {
         });
 
         Patcher.addPatch("com.discord.app.AppActivity", "h", (_this, args, ret) -> {
-            if (!((boolean) ret) && ((AppActivity) _this).d().equals(Page.class)) return true;
+            if (!((boolean) ret) && ((AppActivity) _this).e().equals(Page.class)) return true;
             return ret;
         });
     }

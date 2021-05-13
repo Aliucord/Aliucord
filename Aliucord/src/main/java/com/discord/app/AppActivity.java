@@ -12,8 +12,8 @@ public class AppActivity extends AppTransitionActivity implements AppComponent {
         public final Object i = null;
     }
 
-    public final Intent c() { return new Intent(); }
-    public Class<? extends AppComponent> d() { return AppActivity.class; }
+    public final Intent d() { return new Intent(); }
+    public Class<? extends AppComponent> e() { return AppActivity.class; }
 
     @Override
     public Subject<Void, Void> getUnsubscribeSignal() { return null; }

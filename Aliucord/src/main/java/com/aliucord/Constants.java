@@ -31,7 +31,7 @@ public class Constants {
         try {
             DISCORD_VERSION = (int) Utils.getPrivateField(
                     StoreClientVersion.class,
-                    StoreStream.access$getCollector$cp().getClientVersion$app_productionGoogleRelease(),
+                    StoreStream.Companion.access$getCollector$cp().getClientVersion$app_productionBetaRelease(),
                     "clientVersion"
             );
         } catch (Throwable e) { Main.logger.error(e); }

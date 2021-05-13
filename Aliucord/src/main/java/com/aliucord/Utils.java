@@ -29,7 +29,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 
-import c.a.d.p;
+import c.a.d.n;
 import c.a.j.b;
 import kotlin.jvm.functions.Function1;
 
@@ -72,7 +72,7 @@ public class Utils {
     }
 
     public static void openPage(Context context, Class<? extends AppComponent> clazz) { Utils.openPage(context, clazz, null); }
-    public static void openPage(Context context, Class<? extends AppComponent> clazz, Intent intent) { p.c(context, clazz, intent); }
+    public static void openPage(Context context, Class<? extends AppComponent> clazz, Intent intent) { n.d(context, clazz, intent); }
     public static void openPageWithProxy(Context context, Fragment fragment) {
         String id = String.valueOf(SnowflakeUtils.fromTimestamp(System.currentTimeMillis() * 100));
         AppFragmentProxy.fragments.put(id, fragment);

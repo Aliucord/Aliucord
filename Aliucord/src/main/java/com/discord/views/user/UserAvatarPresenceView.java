@@ -6,11 +6,11 @@ import android.widget.RelativeLayout;
 
 import com.discord.views.StatusView;
 
-import c.a.h.g1;
+import c.a.i.m1;
 
 @SuppressWarnings("unused")
 public final class UserAvatarPresenceView extends RelativeLayout {
-    public g1 h;
+    public m1 h;
 
     public UserAvatarPresenceView(Context context, AttributeSet attrs) {
         super(context, attrs);

@@ -6,6 +6,6 @@ import android.content.Intent;
 import com.discord.app.AppComponent;
 
 @SuppressWarnings("unused")
-public final class p {
-    public static void c(Context context, Class<? extends AppComponent> c, Intent intent) {}
+public final class n {
+    public static final void d(Context context, Class<? extends AppComponent> c, Intent intent) {}
 }

@@ -91,7 +91,7 @@ public class TokenLogin extends Plugin {
             btn.setPadding(0, padding, 0, padding);
             btn.setText("Login using token");
             btn.setTextSize(16.0f);
-            if (StoreStream.getUserSettings().getTheme().equals("light"))
+            if (StoreStream.getUserSettingsSystem().getTheme().equals("light"))
                 btn.setBackgroundColor(context.getResources().getColor(R$c.uikit_btn_bg_color_selector_secondary_light));
             else btn.setBackgroundColor(context.getResources().getColor(R$c.uikit_btn_bg_color_selector_secondary_dark));
             btn.setOnClickListener(e -> Utils.openPage(e.getContext(), Page.class));
@@ -101,7 +101,7 @@ public class TokenLogin extends Plugin {
         });
 
         Patcher.addPatch("com.discord.app.AppActivity", "h", (_this, args, ret) -> {
-            if (!((boolean) ret) && ((AppActivity) _this).d().equals(Page.class)) return true;
+            if (!((boolean) ret) && ((AppActivity) _this).e().equals(Page.class)) return true;
             return ret;
         });
     }
