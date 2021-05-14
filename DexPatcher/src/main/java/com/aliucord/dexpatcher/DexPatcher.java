@@ -138,27 +138,28 @@ public class DexPatcher {
         zip.closeEntry();
         zip.close();
 
-        if (this.options.newBg != null) {
-            byte[] bytes = Utils.readBytes(this.options.newBg);
-
-            // List<String> bgEntries = new ArrayList<>();
-            // String[] folders = new String[]{ "mipmap-hdpi-v4", "mipmap-xhdpi-v4", "mipmap-xxhdpi-v4", "mipmap-xxxhdpi-v4" };
-            // for (String folder : folders) {
-            //     for (String fileName : new String[]{ "ic_launcher_background.png", "ic_logo_background.png" }) {
-            //         bgEntries.add("res/" + folder + "/" + fileName);
-            //     }
-            // }
-            String[] bgEntries = new String[]{ "res/ikM.png", "res/63Y.png", "res/B1u.png", "res/DF6.png" };
-
-            zip = new Zip(outApk, 0, 'a');
-            for (String entryName : bgEntries) zip.deleteEntry(entryName);
-            for (String entryName : bgEntries) {
-                zip.openEntry(entryName);
-                zip.writeEntry(bytes, bytes.length);
-                zip.closeEntry();
-            }
-            zip.close();
-        }
+        // // replacing bg doesn't work anymore (since 74.7)
+        // if (this.options.newBg != null) {
+        //     byte[] bytes = Utils.readBytes(this.options.newBg);
+        //
+        //     // List<String> bgEntries = new ArrayList<>();
+        //     // String[] folders = new String[]{ "mipmap-hdpi-v4", "mipmap-xhdpi-v4", "mipmap-xxhdpi-v4", "mipmap-xxxhdpi-v4" };
+        //     // for (String folder : folders) {
+        //     //     for (String fileName : new String[]{ "ic_launcher_background.png", "ic_logo_background.png" }) {
+        //     //         bgEntries.add("res/" + folder + "/" + fileName);
+        //     //     }
+        //     // }
+        //     String[] bgEntries = new String[]{ "res/ikM.png", "res/63Y.png", "res/B1u.png", "res/DF6.png" };
+        //
+        //     zip = new Zip(outApk, 0, 'a');
+        //     for (String entryName : bgEntries) zip.deleteEntry(entryName);
+        //     for (String entryName : bgEntries) {
+        //         zip.openEntry(entryName);
+        //         zip.writeEntry(bytes, bytes.length);
+        //         zip.closeEntry();
+        //     }
+        //     zip.close();
+        // }
     }
 
     public void patchFile(File file, List<String> methodsToPatch) {

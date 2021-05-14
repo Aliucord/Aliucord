@@ -1,5 +1,5 @@
-*** AndroidManifest.xml.orig	2021-05-11 12:04:31.002251004 -0400
---- AndroidManifest.xml	2021-05-11 12:05:32.219418701 -0400
+*** a/AndroidManifest.xml	2021-05-14 10:48:15.849991000 +0200
+--- b/AndroidManifest.xml	2021-05-14 12:19:07.669402800 +0200
 ***************
 *** 1,4 ****
 ! <?xml version="1.0" encoding="utf-8" standalone="no"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" android:compileSdkVersion="30" android:compileSdkVersionCodename="11" android:installLocation="auto" package="com.discord" platformBuildVersionCode="30" platformBuildVersionName="11">
@@ -7,7 +7,7 @@
       <uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
       <uses-feature android:name="android.hardware.faketouch" android:required="false"/>
 --- 1,4 ----
-! <?xml version="1.0" encoding="utf-8" standalone="no"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" android:compileSdkVersion="30" android:compileSdkVersionCodename="11" android:installLocation="auto" package="com.aliucord" platformBuildVersionCode="73111" platformBuildVersionName="73.11">
+! <?xml version="1.0" encoding="utf-8" standalone="no"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" android:compileSdkVersion="30" android:compileSdkVersionCodename="11" android:installLocation="auto" package="com.aliucord" platformBuildVersionCode="74107" platformBuildVersionName="74.7">
       <uses-feature android:name="android.hardware.camera" android:required="false"/>
       <uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
       <uses-feature android:name="android.hardware.faketouch" android:required="false"/>
@@ -19,7 +19,7 @@
 !     <permission android:description="@string/app_permission_connect_desc" android:label="@string/app_permission_connect_label" android:name="com.discord.permission.CONNECT" android:protectionLevel="dangerous"/>
       <uses-feature android:name="android.hardware.camera.any" android:required="false"/>
       <queries>
-          <intent>
+          <package android:name="com.samsung.android.game.gametools"/>
 --- 21,27 ----
       <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
       <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
@@ -27,9 +27,9 @@
 !     <permission android:description="@string/app_permission_connect_desc" android:label="@string/app_permission_connect_label" android:name="com.aliucord.permission.CONNECT" android:protectionLevel="dangerous"/>
       <uses-feature android:name="android.hardware.camera.any" android:required="false"/>
       <queries>
-          <intent>
+          <package android:name="com.samsung.android.game.gametools"/>
 ***************
-*** 33,39 ****
+*** 34,40 ****
       <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
       <uses-permission android:name="com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE"/>
       <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
@@ -37,17 +37,18 @@
           <activity android:name="com.discord.samsung.SamsungConnectActivity" android:theme="@style/AppTheme.Translucent"/>
           <activity android:name="com.discord.app.AppActivity" android:screenOrientation="fullUser" android:theme="@style/AppTheme.Dark" android:windowSoftInputMode="adjustResize|stateHidden"/>
           <activity android:exported="true" android:launchMode="singleTask" android:name="com.discord.app.AppActivity$Main" android:screenOrientation="fullUser" android:theme="@style/AppTheme.Loading" android:windowSoftInputMode="adjustResize|stateHidden">
---- 33,40 ----
+--- 34,42 ----
       <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
       <uses-permission android:name="com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE"/>
       <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+!     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 !     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
 !     <application android:allowBackup="true" android:requestLegacyExternalStorage="true" android:debuggable="true" android:appCategory="social" android:appComponentFactory="androidx.core.app.CoreComponentFactory" android:icon="@mipmap/ic_logo_square" android:label="Aliucord" android:largeHeap="true" android:name="com.discord.app.App" android:networkSecurityConfig="@xml/network_security_config" android:roundIcon="@mipmap/ic_logo_round" android:supportsRtl="true" android:theme="@style/AppTheme.Dark">
           <activity android:name="com.discord.samsung.SamsungConnectActivity" android:theme="@style/AppTheme.Translucent"/>
           <activity android:name="com.discord.app.AppActivity" android:screenOrientation="fullUser" android:theme="@style/AppTheme.Dark" android:windowSoftInputMode="adjustResize|stateHidden"/>
           <activity android:exported="true" android:launchMode="singleTask" android:name="com.discord.app.AppActivity$Main" android:screenOrientation="fullUser" android:theme="@style/AppTheme.Loading" android:windowSoftInputMode="adjustResize|stateHidden">
 ***************
-*** 114,120 ****
+*** 115,121 ****
           </activity>
           <activity android:excludeFromRecents="true" android:launchMode="singleTask" android:name="com.discord.app.AppActivity$Call"/>
           <activity android:excludeFromRecents="true" android:launchMode="singleTask" android:name="com.discord.app.AppActivity$IncomingCall" android:showOnLockScreen="true" android:showWhenLocked="true" android:turnScreenOn="true"/>
@@ -55,7 +56,7 @@
               <intent-filter>
                   <action android:name="com.discord.intent.action.SDK"/>
                   <category android:name="android.intent.category.DEFAULT"/>
---- 115,121 ----
+--- 117,123 ----
           </activity>
           <activity android:excludeFromRecents="true" android:launchMode="singleTask" android:name="com.discord.app.AppActivity$Call"/>
           <activity android:excludeFromRecents="true" android:launchMode="singleTask" android:name="com.discord.app.AppActivity$IncomingCall" android:showOnLockScreen="true" android:showWhenLocked="true" android:turnScreenOn="true"/>
@@ -64,7 +65,7 @@
                   <action android:name="com.discord.intent.action.SDK"/>
                   <category android:name="android.intent.category.DEFAULT"/>
 ***************
-*** 137,143 ****
+*** 138,144 ****
                   <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
               </intent-filter>
           </service>
@@ -72,7 +73,7 @@
               <intent-filter>
                   <action android:name="com.discord.intent.action.CONNECT"/>
                   <data android:host="app" android:pathPattern="/connect/.*" android:scheme="discord"/>
---- 138,144 ----
+--- 140,146 ----
                   <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
               </intent-filter>
           </service>
@@ -81,7 +82,7 @@
                   <action android:name="com.discord.intent.action.CONNECT"/>
                   <data android:host="app" android:pathPattern="/connect/.*" android:scheme="discord"/>
 ***************
-*** 160,169 ****
+*** 161,170 ****
               </intent-filter>
           </receiver>
           <service android:foregroundServiceType="mediaProjection" android:name="com.discord.utilities.voice.VoiceEngineForegroundService"/>
@@ -92,7 +93,7 @@
           <meta-data android:name="com.google.android.nearby.messages.API_KEY" android:value="AIzaSyD-4L6bgKMixqBRtrG2UktVXK6IexXlsog"/>
           <meta-data android:name="com.google.android.actions" android:resource="@xml/actions"/>
           <meta-data android:name="libdiscord_version" android:value="3.0.12-krisp-cpu-fix"/>
---- 161,170 ----
+--- 163,172 ----
               </intent-filter>
           </receiver>
           <service android:foregroundServiceType="mediaProjection" android:name="com.discord.utilities.voice.VoiceEngineForegroundService"/>
@@ -104,7 +105,7 @@
           <meta-data android:name="com.google.android.actions" android:resource="@xml/actions"/>
           <meta-data android:name="libdiscord_version" android:value="3.0.12-krisp-cpu-fix"/>
 ***************
-*** 205,213 ****
+*** 206,214 ****
           <receiver android:enabled="true" android:exported="false" android:name="com.google.android.gms.measurement.AppMeasurementReceiver"/>
           <service android:enabled="true" android:exported="false" android:name="com.google.android.gms.measurement.AppMeasurementService"/>
           <service android:enabled="true" android:exported="false" android:name="com.google.android.gms.measurement.AppMeasurementJobService" android:permission="android.permission.BIND_JOB_SERVICE"/>
@@ -114,7 +115,7 @@
           <service android:directBootAware="false" android:enabled="@bool/enable_system_alarm_service_default" android:exported="false" android:name="androidx.work.impl.background.systemalarm.SystemAlarmService"/>
           <service android:directBootAware="false" android:enabled="@bool/enable_system_job_service_default" android:exported="true" android:name="androidx.work.impl.background.systemjob.SystemJobService" android:permission="android.permission.BIND_JOB_SERVICE"/>
           <service android:directBootAware="false" android:enabled="@bool/enable_system_foreground_service_default" android:exported="false" android:name="androidx.work.impl.foreground.SystemForegroundService"/>
---- 206,214 ----
+--- 208,216 ----
           <receiver android:enabled="true" android:exported="false" android:name="com.google.android.gms.measurement.AppMeasurementReceiver"/>
           <service android:enabled="true" android:exported="false" android:name="com.google.android.gms.measurement.AppMeasurementService"/>
           <service android:enabled="true" android:exported="false" android:name="com.google.android.gms.measurement.AppMeasurementJobService" android:permission="android.permission.BIND_JOB_SERVICE"/>

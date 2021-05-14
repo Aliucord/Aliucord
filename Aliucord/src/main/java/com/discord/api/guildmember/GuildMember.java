@@ -13,12 +13,12 @@ public final class GuildMember {
     public final UtcDateTime c() { return null; }
     // getNick
     public final String d() { return null; }
-    // getRoles
-    public final List<Long> g() { return null; }
-    // getUser
-    public final User h() { return null; }
-    // getUserId
-    public final Long i() { return 0L; }
     // getIsPending
-    public final boolean j() { return false; }
+    public final boolean e() { return false; }
+    // getRoles
+    public final List<Long> h() { return null; }
+    // getUser
+    public final User i() { return null; }
+    // getUserId
+    public final Long j() { return 0L; }
 }

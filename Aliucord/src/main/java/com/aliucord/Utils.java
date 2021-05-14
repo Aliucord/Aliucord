@@ -30,8 +30,11 @@ import java.util.Map;
 import java.util.Objects;
 
 import c.a.d.n;
-import c.a.j.b;
+import c.a.k.b;
 import kotlin.jvm.functions.Function1;
+import rx.Subscriber;
+import rx.functions.Action0;
+import rx.functions.Action1;
 
 @SuppressWarnings("unused")
 public class Utils {
@@ -174,6 +177,13 @@ public class Utils {
 
     public static CharSequence renderMD(CharSequence source) {
         return b.j(source, new Object[0], null, 2);
+    }
+
+    public static <T> Subscriber<T> createActionSubscriber(Action1<? super T> onNext) {
+        return createActionSubscriber(onNext, null, null);
+    }
+    public static <T> Subscriber<T> createActionSubscriber(Action1<? super T> onNext, Action1<Throwable> onError, Action0 onCompleted) {
+        return new j0.l.e.b<>(onNext, onError == null ? e -> {} : onError, onCompleted == null ? () -> {} : onCompleted);
     }
 
     public static void log(String msg) { Main.logger.debug(msg); }

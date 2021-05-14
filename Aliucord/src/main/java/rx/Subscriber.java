@@ -1,6 +1,6 @@
 package rx;
 
-import i0.g;
+import j0.g;
 
 @SuppressWarnings("unused")
 public abstract class Subscriber<T> implements g<T>, Subscription {

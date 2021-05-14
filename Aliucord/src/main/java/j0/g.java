@@ -1,4 +1,4 @@
-package i0;
+package j0;
 
 // rx.Observer
 // https://github.com/ReactiveX/RxJava/blob/1.x/src/main/java/rx/Observer.java
