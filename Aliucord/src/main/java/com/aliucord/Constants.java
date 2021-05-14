@@ -11,11 +11,14 @@ public class Constants {
     public static class Fonts {
         private static final int base = 0x7f090000;
 
-        public static int roboto_medium_numbers = base;
-        public static int sourcecodepro_semibold = base + 1;
-        public static int whitney_bold = base + 2;
-        public static int whitney_medium = base + 3;
-        public static int whitney_semibold = base + 4;
+        public static int ginto_bold = base;
+        public static int ginto_medium = base + 1;
+        public static int ginto_regular = base + 2;
+        public static int roboto_medium_numbers = base + 3;
+        public static int sourcecodepro_semibold = base + 4;
+        public static int whitney_bold = base + 5;
+        public static int whitney_medium = base + 6;
+        public static int whitney_semibold = base + 7;
     }
 
     public static String ALIUCORD_SUPPORT = "EsNDvBaHVU";
@@ -29,9 +32,10 @@ public class Constants {
 
     static {
         try {
+            //noinspection AccessStaticViaInstance
             DISCORD_VERSION = (int) Utils.getPrivateField(
                     StoreClientVersion.class,
-                    StoreStream.Companion.access$getCollector$cp().getClientVersion$app_productionBetaRelease(),
+                    StoreStream.Companion.access$getCollector$p(StoreStream.Companion).getClientVersion$app_productionBetaRelease(),
                     "clientVersion"
             );
         } catch (Throwable e) { Main.logger.error(e); }

@@ -2,6 +2,7 @@ package com.lytefast.flexinput;
 
 @SuppressWarnings("unused")
 public class R$c {
+    public static int brand = 0;
     public static int hypesquad_house_1 = 0;
     public static int hypesquad_house_2 = 0;
     public static int hypesquad_house_3 = 0;

@@ -9,25 +9,28 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-@SuppressWarnings({"unchecked", "unused", "ConstantConditions"})
+@SuppressWarnings({"unchecked", "unused"})
 public class Patcher {
     public static Map<String, Map<String, ArrayList<PrePatchFunction>>> prePatches = new HashMap<>();
     public static Map<String, Map<String, ArrayList<PatchFunction<Object>>>> patches = new HashMap<>();
     public static Logger logger = new Logger("Patcher");
-    private static int i = 0;
 
     static {
-        String className = "com.discord.app.AppActivity$a";
-        String fn = "invoke";
-        Patcher.addPatch(className, fn, new PatchFunction<Object>() {
-            public Object run(Object __this, ArrayList<Object> args, Object ret) {
-                AppActivity.a _this = (AppActivity.a) __this;
-                if (i == 1) Main.preInit((AppActivity) _this.i);
-                else if (i == 2) {
-                    Main.init((AppActivity) _this.i);
-                    PatcherAPI.unpatch(className, fn, this);
-                }
-                i++;
+        String className = "com.discord.app.AppActivity";
+        String fn = "onCreate";
+        Patcher.addPrePatch(className, fn, new PrePatchFunction() {
+            public PrePatchRes run(Object _this, ArrayList<Object> args) {
+                Main.preInit((AppActivity) _this);
+                PatcherAPI.unpatchpre(className, fn, this);
+                return new PrePatchRes(args);
+            }
+        });
+
+        String fn2 = "c";
+        Patcher.addPatch(className, fn2, new PatchFunction<Object>() {
+            public Object run(Object _this, ArrayList<Object> args, Object ret) {
+                Main.init((AppActivity) _this);
+                PatcherAPI.unpatch(className, fn2, this);
                 return ret;
             }
         });

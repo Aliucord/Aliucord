@@ -19,6 +19,7 @@ import com.discord.stores.StoreApplicationInteractions;
 import com.discord.stores.StoreMessages;
 import com.discord.stores.StoreStream;
 import com.discord.utilities.SnowflakeUtils;
+import com.discord.utilities.time.Clock;
 import com.discord.utilities.time.ClockFactory;
 import com.discord.utilities.user.UserUtils;
 import com.discord.widgets.chat.MessageContent;
@@ -71,11 +72,12 @@ public class CommandsAPI {
             Function1<? super Map<String, ?>, CommandResult> execute
     ) {
         RemoteApplicationCommand command = new RemoteApplicationCommand(generateIdString(), ALIUCORD_APP_ID, name, description, options, null, null, null, null, args -> {
-            long id = NonceGenerator.computeNonce();
+            Clock clock = ClockFactory.get();
+            long id = NonceGenerator.computeNonce(clock);
             long channelId = StoreStream.getChannelsSelected().getId();
             User me = StoreStream.getUsers().getMe();
             ModelMessage message = ModelMessage.createLocalApplicationCommandMessage(
-                    id, name, channelId, UserUtils.INSTANCE.synthesizeApiUser(me), Utils.CLYDE, false, true, id, ClockFactory.get());
+                    id, name, channelId, UserUtils.INSTANCE.synthesizeApiUser(me), Utils.CLYDE, false, true, id, clock);
             Class<ModelMessage> c = ModelMessage.class;
             try {
                 Utils.setPrivateField(c, message, "flags", 192L);
