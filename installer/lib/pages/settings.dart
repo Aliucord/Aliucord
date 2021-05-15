@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../constants.dart';
 import '../utils/main.dart';
@@ -37,17 +38,17 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text('Settings')),
+      appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         children: [
           ListTile(
-            title: Text('Theme'),
+            title: const Text('Theme'),
             trailing: DropdownButton(
               value: _theme,
               items: [
-                DropdownMenuItem(child: Padding(padding: EdgeInsets.only(right: 70), child: Text('System')), value: 0),
-                DropdownMenuItem(child: Text('Light'), value: 1),
-                DropdownMenuItem(child: Text('Dark'), value: 2),
+                DropdownMenuItem(child: Padding(padding: EdgeInsets.only(right: 70), child: const Text('System')), value: 0),
+                DropdownMenuItem(child: const Text('Light'), value: 1),
+                DropdownMenuItem(child: const Text('Dark'), value: 2),
               ],
               onChanged: (newValue) {
                 themeManager.switchTheme(newValue as int);
@@ -57,16 +58,30 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
           ),
           ...buildCheckBoxes(),
           ListTile(
-            title: Text('Dex location'),
+            title: const Text('Dex location'),
             subtitle: Text(_dexLocation),
             enabled: prefs.getBool('use_dex_from_storage') ?? false,
             onTap: () async {
-              var path = await pickFile(context, 'Select Aliucord.dex', '.dex');
+              final path = await pickFile(context, 'Select Aliucord.dex', '.dex');
               if (path != null) {
                 prefs.setString('dex_location', path);
                 setState(() => _dexLocation = path);
               }
             },
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 10),
+            child: ElevatedButton(
+              child: const Text('Clear files cache (Aliucord.dex and patched manifest)', textAlign: TextAlign.center),
+              onPressed: () async {
+                final files = (await getApplicationSupportDirectory()).listSync();
+                for (final file in files) file.delete(recursive: true);
+                prefs.remove('dex_commit');
+              },
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.all(7),
+              ),
+            ),
           ),
         ],
       ),

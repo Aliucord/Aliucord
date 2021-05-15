@@ -1,7 +1,15 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
 import '../github.dart';
 import '../utils/main.dart';
+
+class _CommitData {
+  final Commit commit;
+  String? buildSha;
+
+  _CommitData(this.commit, this.buildSha);
+}
 
 class CommitsWidget extends StatefulWidget {
   final void Function(String?) selectCommit;
@@ -12,18 +20,17 @@ class CommitsWidget extends StatefulWidget {
 }
 
 class _CommitsWidgetState extends State<CommitsWidget> {
-  late Map<String, Commit> _commits;
+  late List<_CommitData> _commits;
   bool _initialized = false;
 
   void _getCommits() async {
-    final buildCommits = await githubAPI!.getCommits(params: { 'sha': 'builds', 'path': 'Aliucord.dex' });
+    final buildCommits = await githubAPI!.getCommits(params: { 'sha': 'builds', 'path': 'Aliucord.dex', 'per_page': '50' });
     final commits = await githubAPI!.getCommits(params: { 'per_page': '50' });
-    _commits = Map.fromIterable(buildCommits.where((bc) => bc.commit.message.startsWith('Build ')), key: (bc) => bc.sha, value: (bc) {
-      final sha = bc.commit.message.substring(6);
-      return commits.firstWhere((c) => sha == c.sha);
-    });
+    _commits = commits.map((c) => _CommitData(c, buildCommits.firstWhereOrNull((bc) => bc.commit.message.substring(6) == c.sha)?.sha)).toList();
     setState(() => _initialized = true);
-    widget.selectCommit(_commits.length > 0 ? _commits.entries.toList()[0].key : null);
+
+    // TODO: add option to select older commits
+    widget.selectCommit(_commits.length > 0 ? _commits.firstWhereOrNull((data) => data.buildSha != null)?.buildSha : null);
   }
 
   @override
@@ -56,12 +63,13 @@ class _CommitsWidgetState extends State<CommitsWidget> {
   );
 
   Widget _buildCommit(BuildContext context, int i) {
-    var commit = _commits.values.toList()[i];
-    var linkStyle = TextStyle(color: Theme.of(context).accentColor);
+    final commit = _commits[i].commit;
+    final hasBuild = _commits[i].buildSha != null;
+    final linkStyle = TextStyle(color: Theme.of(context).accentColor);
     return Padding(padding: i != 0 ? EdgeInsets.all(12) : EdgeInsets.only(left: 12, right: 12, bottom: 12), child: Row(children: [
       Expanded(flex: 1, child: Row(children: [
         InkWell(
-          child: Text(commit.sha.substring(0, 7), style: linkStyle),
+          child: Text(commit.sha.substring(0, 7), style: hasBuild ? linkStyle : TextStyle(color: Colors.grey)),
           onTap: () => openUrl(commit.htmlUrl),
         ),
         SizedBox.shrink(),

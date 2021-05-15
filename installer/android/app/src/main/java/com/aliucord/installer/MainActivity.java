@@ -142,7 +142,7 @@ public final class MainActivity extends FlutterActivity {
                                     .invoke(null);
 
                             DexPatcherOptions options = new DexPatcherOptions(Objects.requireNonNull(methodCall.argument("clearCache")));
-                            if (methodCall.argument("replaceBg") == Boolean.TRUE) options.newBg = getAssets().open("bg.png");
+                            if (methodCall.argument("replaceBg") != Boolean.TRUE) options.replaceIcon = false;
                             DexPatcher patcher = new DexPatcher(this, updater, options);
                             patcher.patchApk(methodCall.argument("path"), classes, outApk, true, aliucordDex);
                             handler.post(() -> result.success(null));

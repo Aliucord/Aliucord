@@ -10,23 +10,23 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@master
       with:
         path: 'src'
 
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v1
+      with:
+        flutter-version: '2.0.6'
+
     - name: Checkout builds
       uses: actions/checkout@master
       with:
         ref: 'builds'
         path: 'builds'
-
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v1
-      with:
-        flutter-version: '2.0.6'
 
     - name: Build Installer
       run: |
@@ -40,7 +40,7 @@ jobs:
         mv build/app/outputs/flutter-apk/app-release.apk ../../builds/Installer-release.apk
         rm ../../keystore.jks
         rm android/key.properties
-    
+
     - name: Push builds
       run: |
         cd $GITHUB_WORKSPACE/builds

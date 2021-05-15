@@ -13,11 +13,7 @@ import org.jf.smali.SmaliOptions;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -99,7 +95,7 @@ public class DexPatcher {
             if (!src.exists()) src = new File(smaliClasses2, c);
             if (!src.exists()) src = new File(smaliClasses3, c);
             if (!src.exists()) {
-                Log.w("Aliucord DexPatcher", "File not found: " + c);
+                stateUpdater.update("File not found: " + c);
                 continue;
             }
             File dest = new File(out, c);
@@ -138,28 +134,10 @@ public class DexPatcher {
         zip.closeEntry();
         zip.close();
 
-        // // replacing bg doesn't work anymore (since 74.7)
-        // if (this.options.newBg != null) {
-        //     byte[] bytes = Utils.readBytes(this.options.newBg);
-        //
-        //     // List<String> bgEntries = new ArrayList<>();
-        //     // String[] folders = new String[]{ "mipmap-hdpi-v4", "mipmap-xhdpi-v4", "mipmap-xxhdpi-v4", "mipmap-xxxhdpi-v4" };
-        //     // for (String folder : folders) {
-        //     //     for (String fileName : new String[]{ "ic_launcher_background.png", "ic_logo_background.png" }) {
-        //     //         bgEntries.add("res/" + folder + "/" + fileName);
-        //     //     }
-        //     // }
-        //     String[] bgEntries = new String[]{ "res/ikM.png", "res/63Y.png", "res/B1u.png", "res/DF6.png" };
-        //
-        //     zip = new Zip(outApk, 0, 'a');
-        //     for (String entryName : bgEntries) zip.deleteEntry(entryName);
-        //     for (String entryName : bgEntries) {
-        //         zip.openEntry(entryName);
-        //         zip.writeEntry(bytes, bytes.length);
-        //         zip.closeEntry();
-        //     }
-        //     zip.close();
-        // }
+        if (this.options.replaceIcon) {
+            stateUpdater.update("Replacing icons");
+            Utils.replaceIcon(context.getAssets(), outApk);
+        }
     }
 
     public void patchFile(File file, List<String> methodsToPatch) {

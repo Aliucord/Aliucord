@@ -1,10 +1,8 @@
 package com.aliucord.dexpatcher;
 
-import java.io.InputStream;
-
-public class DexPatcherOptions {
+public final class DexPatcherOptions {
     public boolean clearCache = true;
-    public InputStream newBg;
+    public boolean replaceIcon = true;
 
     @SuppressWarnings("unused")
     public DexPatcherOptions() {}

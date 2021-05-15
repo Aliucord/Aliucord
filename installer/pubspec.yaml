@@ -15,6 +15,7 @@ dependencies:
     sdk: flutter
 
   android_intent: ^2.0.0
+  collection: ^1.15.0
   dio: ^4.0.0
   filesystem_picker: ^2.0.0-nullsafety.0
   path_provider: ^2.0.1

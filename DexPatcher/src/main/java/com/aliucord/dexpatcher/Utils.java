@@ -1,8 +1,8 @@
 package com.aliucord.dexpatcher;
 
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.os.Build;
-import android.util.Log;
 
 import com.aliucord.libzip.Zip;
 
@@ -16,7 +16,7 @@ import java.nio.file.*;
 import java.util.Objects;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
-public class Utils {
+public final class Utils {
     public static void unzipClasses(Context context, String zipPath) throws Exception {
         File basePathFile = new File(context.getCacheDir(), "patcher");
         if (!basePathFile.exists()) basePathFile.mkdirs();
@@ -75,5 +75,38 @@ public class Utils {
         if (!f.exists()) return;
         if (f.isDirectory()) for (File file : Objects.requireNonNull(f.listFiles())) delete(file);
         f.delete();
+    }
+
+    public static void replaceIcon(AssetManager assets, String outApk) throws Exception {
+        byte[] xmlBytes = readBytes(assets.open("icon.xml"));
+        byte[] icon1Bytes = readBytes(assets.open("icon1.png"));
+        byte[] icon2Bytes = readBytes(assets.open("icon2.png"));
+
+        // use androguard to figure out entries
+        // androguard arsc resources.arsc --id 0x7f0f000b (icon1)
+        // androguard arsc resources.arsc --id 0x7f0f0002 and androguard arsc resources.arsc --id 0x7f0f0006 (icon2 and xml)
+        String[] xmlEntries = new String[]{ "GAp.xml", "UVZ.xml" };
+        String[] icon1Entries = new String[]{ "Cqp.png", "Jy8.png" };
+        String[] icon2Entries = new String[]{ "_h_.png", "9MB.png", "Dy7.png", "kC0.png", "oEH.png", "RG0.png", "ud_.png", "W_3.png" };
+
+        Zip zip = new Zip(outApk, 0, 'a');
+        deleteResEntries(zip, xmlEntries);
+        deleteResEntries(zip, icon1Entries);
+        deleteResEntries(zip, icon2Entries);
+
+        for (String entryName : xmlEntries) writeEntry(zip, "res/" + entryName, xmlBytes);
+        for (String entryName : icon1Entries) writeEntry(zip, "res/" + entryName, icon1Bytes);
+        for (String entryName : icon2Entries) writeEntry(zip, "res/" + entryName, icon2Bytes);
+        zip.close();
+    }
+
+    private static void deleteResEntries(Zip zip, String[] entries) {
+        for (String entryName : entries) zip.deleteEntry("res/" + entryName);
+    }
+
+    private static void writeEntry(Zip zip, String entryName, byte[] bytes) {
+        zip.openEntry(entryName);
+        zip.writeEntry(bytes, bytes.length);
+        zip.closeEntry();
     }
 }
