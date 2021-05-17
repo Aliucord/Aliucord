@@ -17,16 +17,16 @@ jobs:
       with:
         path: 'src'
 
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v1
-      with:
-        flutter-version: '2.0.6'
-
     - name: Checkout builds
       uses: actions/checkout@master
       with:
         ref: 'builds'
         path: 'builds'
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v1
+      with:
+        flutter-version: '2.0.6'
 
     - name: Build Installer
       run: |
@@ -46,6 +46,7 @@ jobs:
         cd $GITHUB_WORKSPACE/builds
         git config --local user.email "actions@github.com"
         git config --local user.name "GitHub Actions"
+        git pull
         git add .
         git commit -m "Build Installer $GITHUB_SHA"
         git push
