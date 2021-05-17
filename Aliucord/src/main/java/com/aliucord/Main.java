@@ -107,6 +107,7 @@ public class Main {
         if (preInitialized) return;
         preInitialized = true;
 
+        Utils.appActivity = activity;
         PluginManager.loadCorePlugins(activity);
 
         if (checkPermissions(activity)) {

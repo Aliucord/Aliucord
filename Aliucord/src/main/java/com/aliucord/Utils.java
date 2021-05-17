@@ -16,6 +16,7 @@ import com.aliucord.fragments.AppFragmentProxy;
 import com.discord.api.commands.CommandChoice;
 import com.discord.api.user.User;
 import com.discord.api.user.UserAvatar;
+import com.discord.app.AppActivity;
 import com.discord.app.AppComponent;
 import com.discord.utilities.SnowflakeUtils;
 import com.discord.utilities.fcm.NotificationClient;
@@ -38,6 +39,7 @@ import rx.functions.Action1;
 
 @SuppressWarnings("unused")
 public class Utils {
+    public static AppActivity appActivity;
     public static Context appContext;
 
     public static void setAppContext() {

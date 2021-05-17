@@ -78,23 +78,19 @@ public final class Utils {
     }
 
     public static void replaceIcon(AssetManager assets, String outApk) throws Exception {
-        byte[] xmlBytes = readBytes(assets.open("icon.xml"));
         byte[] icon1Bytes = readBytes(assets.open("icon1.png"));
         byte[] icon2Bytes = readBytes(assets.open("icon2.png"));
 
         // use androguard to figure out entries
-        // androguard arsc resources.arsc --id 0x7f0f000b (icon1)
-        // androguard arsc resources.arsc --id 0x7f0f0002 and androguard arsc resources.arsc --id 0x7f0f0006 (icon2 and xml)
-        String[] xmlEntries = new String[]{ "GAp.xml", "UVZ.xml" };
-        String[] icon1Entries = new String[]{ "Cqp.png", "Jy8.png" };
+        // androguard arsc resources.arsc --id 0x7f0f0000 (icon1)
+        // androguard arsc resources.arsc --id 0x7f0f0002 and androguard arsc resources.arsc --id 0x7f0f0006 (icon2)
+        String[] icon1Entries = new String[]{ "MbV.png", "kbF.png", "_eu.png", "EtS.png" };
         String[] icon2Entries = new String[]{ "_h_.png", "9MB.png", "Dy7.png", "kC0.png", "oEH.png", "RG0.png", "ud_.png", "W_3.png" };
 
         Zip zip = new Zip(outApk, 0, 'a');
-        deleteResEntries(zip, xmlEntries);
         deleteResEntries(zip, icon1Entries);
         deleteResEntries(zip, icon2Entries);
 
-        for (String entryName : xmlEntries) writeEntry(zip, "res/" + entryName, xmlBytes);
         for (String entryName : icon1Entries) writeEntry(zip, "res/" + entryName, icon1Bytes);
         for (String entryName : icon2Entries) writeEntry(zip, "res/" + entryName, icon2Bytes);
         zip.close();
