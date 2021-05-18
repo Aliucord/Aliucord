@@ -1,7 +1,7 @@
 package com.aliucord.patcher;
 
-import java.util.ArrayList;
+import java.util.List;
 
-public interface PrePatchFunction {
-    PrePatchRes run(Object _this, ArrayList<Object> args);
-}
+import kotlin.jvm.functions.Function2;
+
+public interface PrePatchFunction extends Function2<Object, List<Object>, PrePatchRes> {}

@@ -91,10 +91,10 @@ public class CommandHandler extends Plugin {
 
         Patcher.addPrePatch(Classes.storeApplicationCommands, "handleGuildApplicationsUpdate", (_this, args) -> {
             List<Application> list = (List<Application>) args.get(0);
-            if (list == null || list.contains(CommandsAPI.getAliucordApplication())) return new PrePatchRes(args);
+            if (list == null || list.contains(CommandsAPI.getAliucordApplication())) return null;
             if (!(list instanceof ArrayList)) list = new ArrayList<>(list);
             list.add(CommandsAPI.getAliucordApplication());
-            return new PrePatchRes(args);
+            return null;
         });
 
         Patcher.addPatch(Classes.storeLocalMessagesHolder, "getFlattenedMessages", (_this, args, ret) -> {
@@ -126,11 +126,11 @@ public class CommandHandler extends Plugin {
                         commandArgs.put("__args", args);
 
                         command.getExecute().invoke(commandArgs);
-                        return new PrePatchRes(args, true);
+                        return new PrePatchRes(true);
                     }
                 }
             }
-            return new PrePatchRes(args);
+            return null;
         });
 
         // display plugin name instead of "Aliucord" in command autocomplete
@@ -153,8 +153,8 @@ public class CommandHandler extends Plugin {
         Patcher.addPrePatch(Classes.adapterItemMessage, "configureInteractionMessage", (_this, args) -> {
             ModelMessage message = ((MessageEntry) args.get(0)).getMessage();
             if (message != null && message.isLoading() && !message.isLocalApplicationCommand())
-                unpatch = PatcherAPI.addPrePatch(Classes.modelMessage, "isLocalApplicationCommand", (_this1, args1) -> new PrePatchRes(args1, true));
-            return new PrePatchRes(args);
+                unpatch = PatcherAPI.addPrePatch(Classes.modelMessage, "isLocalApplicationCommand", (_this1, args1) -> new PrePatchRes(true));
+            return null;
         });
         Patcher.addPatch(Classes.adapterItemMessage, "configureInteractionMessage", (_this, args, ret) -> {
             if (unpatch != null) {
@@ -178,10 +178,10 @@ public class CommandHandler extends Plugin {
 
         Patcher.addPrePatch(Classes.commandBottomSheetViewModel, "requestInteractionData", (__this, args) -> {
             WidgetApplicationCommandBottomSheetViewModel _this = (WidgetApplicationCommandBottomSheetViewModel) __this;
-            if (_this.getApplicationId() != -1) return new PrePatchRes(args);
+            if (_this.getApplicationId() != -1) return null;
             WidgetApplicationCommandBottomSheetViewModel.StoreState state = CommandsAPI.interactionsStore.get(_this.getInteractionId());
             if (state != null) WidgetApplicationCommandBottomSheetViewModel.access$handleStoreState(_this, state);
-            return new PrePatchRes(args, null);
+            return new PrePatchRes(null);
         });
     }
 

@@ -1,7 +1,7 @@
 package com.aliucord.patcher;
 
-import java.util.ArrayList;
+import java.util.List;
 
-public interface PatchFunction<T> {
-    T run(Object _this, ArrayList<Object> args, T ret);
-}
+import kotlin.jvm.functions.Function3;
+
+public interface PatchFunction extends Function3<Object, List<Object>, Object, Object> {}

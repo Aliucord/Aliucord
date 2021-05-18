@@ -7,28 +7,32 @@ import com.discord.app.AppActivity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import kotlin.jvm.functions.Function2;
+import kotlin.jvm.functions.Function3;
 
 @SuppressWarnings({"unchecked", "unused"})
 public class Patcher {
-    public static Map<String, Map<String, ArrayList<PrePatchFunction>>> prePatches = new HashMap<>();
-    public static Map<String, Map<String, ArrayList<PatchFunction<Object>>>> patches = new HashMap<>();
+    public static Map<String, Map<String, List<PrePatchFunction>>> prePatches = new HashMap<>();
+    public static Map<String, Map<String, List<PatchFunction>>> patches = new HashMap<>();
     public static Logger logger = new Logger("Patcher");
 
     static {
         String className = "com.discord.app.AppActivity";
         String fn = "onCreate";
         Patcher.addPrePatch(className, fn, new PrePatchFunction() {
-            public PrePatchRes run(Object _this, ArrayList<Object> args) {
+            public PrePatchRes invoke(Object _this, List<Object> args) {
                 Main.preInit((AppActivity) _this);
                 PatcherAPI.unpatchpre(className, fn, this);
-                return new PrePatchRes(args);
+                return null;
             }
         });
 
         String fn2 = "c";
-        Patcher.addPatch(className, fn2, new PatchFunction<Object>() {
-            public Object run(Object _this, ArrayList<Object> args, Object ret) {
+        Patcher.addPatch(className, fn2, new PatchFunction() {
+            public Object invoke(Object _this, List<Object> args, Object ret) {
                 Main.init((AppActivity) _this);
                 PatcherAPI.unpatch(className, fn2, this);
                 return ret;
@@ -36,41 +40,33 @@ public class Patcher {
         });
     }
 
-    public static PrePatchRes runPrePatches(Object _this, ArrayList<Object> args) {
-        PrePatchRes res = new PrePatchRes(args);
+    public static PrePatchRes runPrePatches(Object _this, List<Object> args) {
         String[] names = getCallerNames();
-        Map<String, ArrayList<PrePatchFunction>> cp = prePatches.get(names[0]);
-        if (cp == null) return res;
-        ArrayList<PrePatchFunction> p = cp.get(names[1]);
-        if (p == null) return res;
-        boolean callOriginal = true;
+        Map<String, List<PrePatchFunction>> cp = prePatches.get(names[0]);
+        if (cp == null) return null;
+        List<PrePatchFunction> p = cp.get(names[1]);
+        if (p == null) return null;
+        PrePatchRes res = null;
         Object ret = null;
         for (PrePatchFunction patch : p) {
             try {
-                PrePatchRes res2 = patch.run(_this, args);
+                PrePatchRes res2 = patch.invoke(_this, args);
                 if (res2 != null) res = res2;
-                if (!res.callOriginalMethod) {
-                    callOriginal = false;
-                    ret = res.ret;
-                }
             } catch (Throwable e) {
                 logger.error("Failed to run prepatch on " + names[0] + "." + names[1], e);
             }
         }
-        res.callOriginalMethod = callOriginal;
-        res.ret = ret;
         return res;
     }
 
-    public static <T> T runPatches(Object _this, ArrayList<Object> args, T ret) {
+    public static Object runPatches(Object _this, List<Object> args, Object ret) {
         String[] names = getCallerNames();
-//        logger.debug(Arrays.toString(names));
-        Map<String, ArrayList<PatchFunction<Object>>> cp = patches.get(names[0]);
+        Map<String, List<PatchFunction>> cp = patches.get(names[0]);
         if (cp == null) return ret;
-        ArrayList<PatchFunction<Object>> p = cp.get(names[1]);
+        List<PatchFunction> p = cp.get(names[1]);
         if (p == null) return ret;
         try {
-            for (PatchFunction<Object> patch : p) ret = (T) patch.run(_this, args, ret);
+            for (PatchFunction patch : p) ret = patch.invoke(_this, args, ret);
         } catch (Throwable e) {
             logger.error("Failed to run patch on " + names[0] + "." + names[1], e);
         }
@@ -78,25 +74,25 @@ public class Patcher {
     }
 
     public static void addPrePatch(String forClass, String fn, PrePatchFunction patch) {
-        Map<String, ArrayList<PrePatchFunction>> cp = prePatches.get(forClass);
+        Map<String, List<PrePatchFunction>> cp = prePatches.get(forClass);
         if (cp == null) {
             cp = new HashMap<>();
             prePatches.put(forClass, cp);
         }
-        ArrayList<PrePatchFunction> p = cp.get(fn);
+        List<PrePatchFunction> p = cp.get(fn);
         if (p == null) {
             p = new ArrayList<>();
             cp.put(fn, p);
         }
         p.add(patch);
     }
-    public static void addPatch(String forClass, String fn, PatchFunction<Object> patch) {
-        Map<String, ArrayList<PatchFunction<Object>>> cp = patches.get(forClass);
+    public static void addPatch(String forClass, String fn, PatchFunction patch) {
+        Map<String, List<PatchFunction>> cp = patches.get(forClass);
         if (cp == null) {
             cp = new HashMap<>();
             patches.put(forClass, cp);
         }
-        ArrayList<PatchFunction<Object>> p = cp.get(fn);
+        List<PatchFunction> p = cp.get(fn);
         if (p == null) {
             p = new ArrayList<>();
             cp.put(fn, p);

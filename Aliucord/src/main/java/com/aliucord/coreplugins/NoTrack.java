@@ -7,9 +7,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import com.aliucord.entities.Plugin;
-import com.aliucord.patcher.Patcher;
-import com.aliucord.patcher.PrePatchFunction;
-import com.aliucord.patcher.PrePatchRes;
+import com.aliucord.patcher.*;
 
 import java.util.*;
 
@@ -40,7 +38,7 @@ public class NoTrack extends Plugin {
 
     @Override
     public void load(Context context) {
-        final PrePatchFunction patch = (_this, args) -> new PrePatchRes(args, null);
+        final PrePatchFunction patch = (_this, args) -> new PrePatchRes(null);
 
         for (Map.Entry<String, List<String>> entry : getClassesToPatch().entrySet()) {
             String className = entry.getKey();
@@ -58,9 +56,9 @@ public class NoTrack extends Plugin {
                 Object val = props.get(key);
                 if (val != null) newProps.put(key, val);
             }
-            if (newProps.size() == 0) return new PrePatchRes(args, null);
+            if (newProps.size() == 0) return new PrePatchRes(null);
             args.set(0, newProps);
-            return new PrePatchRes(args);
+            return null;
         });
         Patcher.addPrePatch(className, "setCampaignProperties", patch);
     }

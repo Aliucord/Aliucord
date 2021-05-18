@@ -34,10 +34,7 @@ import com.lytefast.flexinput.R$b;
 import com.lytefast.flexinput.R$d;
 import com.lytefast.flexinput.R$h;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.*;
 
 import dalvik.system.PathClassLoader;
@@ -178,9 +175,9 @@ public class Main {
         // Patch to repair built-in emotes is needed because installer doesn't recompile resources,
         // so they stay in package com.discord instead of apk package name
         Patcher.addPrePatch("com.discord.models.domain.emoji.ModelEmojiUnicode", "getImageUri", (_this, args) -> {
-            if (args.size() != 2) return new PrePatchRes(args);
+            if (args.size() != 2) return null;
             String name = "emoji_" + args.get(0);
-            return new PrePatchRes(args, "res:///" + Utils.getResId(name, "raw"));
+            return new PrePatchRes("res:///" + Utils.getResId(name, "raw"));
         });
 
         Patcher.addPatch("com.discord.widgets.chat.list.WidgetChatList", "onViewBound", (_this, args, ret) -> {
