@@ -22,7 +22,7 @@ public class PluginManager {
 
     @SuppressWarnings({"unchecked", "JavaReflectionMemberAccess"})
     public static void loadPlugin(Context context, File f) {
-        String name = f.getName().replace(".apk", "");
+        String name = f.getName().replace(".zip", "");
         logger.info("Loading plugin: " + name);
         try {
             PathClassLoader loader = new PathClassLoader(f.getAbsolutePath(), context.getClassLoader());

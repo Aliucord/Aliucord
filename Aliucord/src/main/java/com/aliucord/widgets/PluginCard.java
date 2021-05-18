@@ -119,7 +119,7 @@ public class PluginCard extends MaterialCardView {
         Button uninstall = new Button(context, true);
         uninstall.setText("Uninstall");
         uninstall.setOnClickListener(e -> {
-            File pluginFile = new File(Constants.BASE_PATH + "/plugins/" + p.__filename + ".apk");
+            File pluginFile = new File(Constants.BASE_PATH + "/plugins/" + p.__filename + ".zip");
             if (pluginFile.exists() && !pluginFile.delete()) Main.logger.error("Failed to delete plugin", null);
             PluginManager.stopPlugin(name);
             PluginManager.plugins.remove(name);

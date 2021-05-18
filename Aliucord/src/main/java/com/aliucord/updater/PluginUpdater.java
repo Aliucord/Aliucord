@@ -116,7 +116,7 @@ public class PluginUpdater {
             String url = updateInfo.build;
             if (url.contains("%s")) url = String.format(url, plugin);
             ReadableByteChannel in = Channels.newChannel(HttpUtils.request(url, null));
-            FileChannel out = new FileOutputStream(Constants.BASE_PATH + "/plugins/" + p.__filename + ".apk").getChannel();
+            FileChannel out = new FileOutputStream(Constants.BASE_PATH + "/plugins/" + p.__filename + ".zip").getChannel();
             out.transferFrom(in, 0, Long.MAX_VALUE);
             in.close();
             out.close();

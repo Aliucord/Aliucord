@@ -61,7 +61,7 @@ public class Main {
         String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Aliucord/plugins";
         File dir = new File(path);
         if (!dir.exists()) return classes;
-        for (File f : Objects.requireNonNull(dir.listFiles((d, name) -> name.endsWith(".apk")))) {
+        for (File f : Objects.requireNonNull(dir.listFiles((d, name) -> name.endsWith(".zip")))) {
             PathClassLoader loader = new PathClassLoader(f.getAbsolutePath(), Main.class.getClassLoader());
             try {
                 String name;
@@ -73,7 +73,7 @@ public class Main {
                     stream.read(buf);
                     stream.close();
                     name = new String(buf);
-                } else name = f.getName().replace(".apk", "");
+                } else name = f.getName().replace(".zip", "");
                 Map<String, List<String>> map = (Map<String, List<String>>) loader.loadClass("com.aliucord.plugins." + name)
                         .getMethod("getClassesToPatch").invoke(null);
                 if (map == null) continue;
@@ -113,7 +113,7 @@ public class Main {
                 boolean res = dir.mkdirs();
                 if (!res) logger.error("Failed to create directories!", null);
             }
-            for (File f : Objects.requireNonNull(dir.listFiles((d, name) -> name.endsWith(".apk"))))
+            for (File f : Objects.requireNonNull(dir.listFiles((d, name) -> name.endsWith(".zip"))))
                 PluginManager.loadPlugin(activity, f);
         }
     }
