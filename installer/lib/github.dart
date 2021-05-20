@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021 Juby210
+ * Licensed under the Open Software License version 3.0
+ */
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
