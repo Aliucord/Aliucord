@@ -12,7 +12,7 @@ public class Logger {
     public String tag = "[Aliucord]";
 
     public Logger() {}
-    public Logger(String mdl) { tag += " [" + mdl + "]"; }
+    public Logger(String module) { tag += " [" + module + "]"; }
 
     public void debug(String msg) { AppLog.g.d(getMsgWithTag(msg), null); }
     public void error(Throwable e) { error("Error:", e); }
