@@ -147,7 +147,7 @@ public class Utils {
 
         TextView textView = cs.j.a();
         textView.setTextSize(16.0f);
-        textView.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.WHITNEY_MEDIUM));
+        textView.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium));
         textView.setText(text);
         cs.setSubtext(subtext);
         return cs;

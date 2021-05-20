@@ -137,10 +137,10 @@ public class Main {
             v.addView(new Divider(context), baseIndex);
             TextView header = new TextView(context, null, 0, R$h.UiKit_Settings_Item_Header);
             header.setText("Aliucord");
-            header.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.WHITNEY_SEMIBOLD));
+            header.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
             v.addView(header, baseIndex + 1);
 
-            Typeface font = ResourcesCompat.getFont(context, Constants.Fonts.WHITNEY_MEDIUM);
+            Typeface font = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium);
             TextView plugins = new TextView(context, null, 0, R$h.UiKit_Settings_Item_Icon);
             plugins.setText("Plugins");
             plugins.setTypeface(font);
