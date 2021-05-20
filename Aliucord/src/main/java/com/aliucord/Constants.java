@@ -16,14 +16,14 @@ public final class Constants {
     public static final class Fonts {
         private static final int base = 0x7f090000;
 
-        public static final int ginto_bold = base;
-        public static final int ginto_medium = base + 1;
-        public static final int ginto_regular = base + 2;
-        public static final int roboto_medium_numbers = base + 3;
-        public static final int sourcecodepro_semibold = base + 4;
-        public static final int whitney_bold = base + 5;
-        public static final int whitney_medium = base + 6;
-        public static final int whitney_semibold = base + 7;
+        public static final int GINTO_BOLD = base;
+        public static final int GINTO_MEDIUM = base + 1;
+        public static final int GINTO_REGULAR = base + 2;
+        public static final int ROBOTO_MEDIUM_NUMBERS = base + 3;
+        public static final int SOURCECODEPRO_SEMIBOLD = base + 4;
+        public static final int WHITNEY_BOLD = base + 5;
+        public static final int WHITNEY_MEDIUM = base + 6;
+        public static final int WHITNEY_SEMIBOLD = base + 7;
     }
 
     public static final String ALIUCORD_SUPPORT = "EsNDvBaHVU";
