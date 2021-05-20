@@ -5,15 +5,12 @@
 
 package com.aliucord;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class HttpUtils {
-    public static String stringRequest(String url, String body) throws Exception {
+    public static String stringRequest(String url, String body) throws IOException {
         String ln;
         StringBuilder res = new StringBuilder();
         BufferedReader reader = new BufferedReader(new InputStreamReader(request(url, body)));
@@ -23,7 +20,7 @@ public class HttpUtils {
         return res.toString().trim();
     }
 
-    public static InputStream request(String url, String body) throws Exception {
+    public static InputStream request(String url, String body) throws IOException {
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
 
         boolean post = body != null;
