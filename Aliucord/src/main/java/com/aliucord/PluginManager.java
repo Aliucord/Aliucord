@@ -95,7 +95,6 @@ public class PluginManager {
         corePlugins.put("CoreCommands", new CoreCommands());
         corePlugins.put("NoTrack", new NoTrack());
         corePlugins.put("TokenLogin", new TokenLogin());
-        corePlugins.put("WebLogin", new WebLogin());
 
         for (Map.Entry<String, Plugin> entry : corePlugins.entrySet()) {
             Plugin p = entry.getValue();

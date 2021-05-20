@@ -61,7 +61,6 @@ public class Main {
             putAll(CoreCommands.getClassesToPatch());
             putAll(NoTrack.getClassesToPatch());
             putAll(TokenLogin.getClassesToPatch());
-            putAll(WebLogin.getClassesToPatch());
         }};
         String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Aliucord/plugins";
         File dir = new File(path);
