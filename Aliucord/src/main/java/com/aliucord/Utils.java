@@ -133,12 +133,6 @@ public class Utils {
         field.set(instance, v);
     }
 
-    /** @deprecated Use CollectionUtils.removeIf instead */
-    @Deprecated
-    public static <E> boolean removeIf(Collection<E> collection, Function1<E, Boolean> filter) {
-        return CollectionUtils.removeIf(collection, filter);
-    }
-
     public static CheckedSetting createCheckedSetting(Context context, CheckedSetting.ViewType type, CharSequence text, CharSequence subtext) {
         CheckedSetting cs = new CheckedSetting(context, null);
         if (!type.equals(CheckedSetting.ViewType.CHECK)) {
