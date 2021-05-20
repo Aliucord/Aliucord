@@ -16,15 +16,30 @@ public class CollectionUtils {
         return null;
     }
 
+    public static <E> E findLast(Collection<E> collection, Function1<E, Boolean> filter) {
+        E last = null;
+        for(E e : collection) if (filter.invoke(e)) last = e;
+        return last;
+    }
+
     public static <E> int findIndex(List<E> list, Function1<E, Boolean> filter) {
-        int j = list.size();
-        for (int i = 0; i < j; i++) if (filter.invoke(list.get(i))) return i;
+        int i = 0;
+        for(E e : list){
+            if(filter.invoke(e)) return i;
+            i++;
+        }
         return -1;
     }
 
     public static <E> int findLastIndex(List<E> list, Function1<E, Boolean> filter) {
-        for (int i = list.size() - 1; i >= 0; i--) if (filter.invoke(list.get(i))) return i;
-        return -1;
+        Iterator<E> iterator = list.iterator();
+        int last = -1;
+        int i = 0;
+        while(iterator.hasNext()){
+            if(filter.invoke(iterator.next())) last = i;
+            i++;
+        }
+        return last;
     }
 
     public static <E> List<E> filter(Collection<E> collection, Function1<E, Boolean> filter) {
@@ -34,7 +49,7 @@ public class CollectionUtils {
     }
 
     public static <E, R> List<R> map(Collection<E> collection, Function1<E, R> transform) {
-        List<R> ret = new ArrayList<>();
+        List<R> ret = new ArrayList<>(collection.size());
         for (E e : collection) ret.add(transform.invoke(e));
         return ret;
     }
@@ -42,10 +57,10 @@ public class CollectionUtils {
     public static <E> boolean removeIf(Collection<E> collection, Function1<E, Boolean> filter) {
         Objects.requireNonNull(filter);
         boolean removed = false;
-        final Iterator<E> each = collection.iterator();
-        while (each.hasNext()) {
-            if (filter.invoke(each.next())) {
-                each.remove();
+        final Iterator<E> iterator = collection.iterator();
+        while (iterator.hasNext()) {
+            if (filter.invoke(iterator.next())) {
+                iterator.remove();
                 removed = true;
             }
         }
@@ -60,7 +75,7 @@ public class CollectionUtils {
     public static <E> List<E> splice(List<E> list, int start, int deleteCount, E... items) {
         List<E> ret = new ArrayList<>();
         for (int i = 0; i < deleteCount; i++) ret.add(list.remove(start + i));
-        for (int i = items.length - 1; i >= 0; i--) list.add(start, items[i]);
+        list.addAll(start, Arrays.asList(items));
         return ret;
     }
 }
