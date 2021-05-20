@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.View;
 import android.widget.TextView;
 
 import androidx.core.content.res.ResourcesCompat;
@@ -150,6 +151,9 @@ public class Utils {
         textView.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium));
         textView.setText(text);
         cs.setSubtext(subtext);
+
+        View root = cs.j.b();
+        root.setPadding(0, root.getPaddingTop(), root.getPaddingRight(), root.getPaddingBottom());
         return cs;
     }
 

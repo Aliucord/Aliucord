@@ -9,6 +9,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+// TODO: make it better?
 public class HttpUtils {
     public static String stringRequest(String url, String body) throws IOException {
         String ln;

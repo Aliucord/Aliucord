@@ -62,7 +62,7 @@ public class Updater extends SettingsPage {
         layoutParams.setMargins(0, 0, padding, 0);
         btn.setLayoutParams(layoutParams);
         btn.setOnClickListener(e -> {
-            state.setText("Cheecking for updates...");
+            state.setText("Checking for updates...");
             new Thread(() -> {
                 PluginUpdater.checkUpdates(false);
                 new Handler(Looper.getMainLooper()).post(() -> {

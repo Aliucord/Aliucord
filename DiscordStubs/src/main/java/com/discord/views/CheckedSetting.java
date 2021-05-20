@@ -20,6 +20,9 @@ public final class CheckedSetting extends RelativeLayout implements Checkable {
     public interface b {
         // text
         TextView a();
+        // root
+        @SuppressWarnings("MethodNameSameAsClassName")
+        View b();
         // subtext
         TextView d();
     }

@@ -40,7 +40,7 @@ import com.lytefast.flexinput.R$h;
 import java.io.File;
 
 @SuppressLint({"SetTextI18n", "ViewConstructor"})
-public class PluginCard extends MaterialCardView {
+public final class PluginCard extends MaterialCardView {
     public final TextView titleView;
     public PluginCard(Context context, String name, Plugin p, FragmentManager fragmentManager) {
         super(context);
