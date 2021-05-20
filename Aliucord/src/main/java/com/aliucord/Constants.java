@@ -33,16 +33,18 @@ public final class Constants {
     public static final String NAMESPACE_ANDROID = "http://schemas.android.com/apk/res/android";
     public static final String NAMESPACE_APP = "http://schemas.android.com/apk/res-auto";
 
-    public static int DISCORD_VERSION;
+    public static final int DISCORD_VERSION;
 
     static {
+        int version = 0;
         try {
             //noinspection AccessStaticViaInstance
-            DISCORD_VERSION = (int) Utils.getPrivateField(
+            version = (int) Utils.getPrivateField(
                     StoreClientVersion.class,
                     StoreStream.Companion.access$getCollector$p(StoreStream.Companion).getClientVersion$app_productionBetaRelease(),
                     "clientVersion"
             );
         } catch (Throwable e) { Main.logger.error(e); }
+        DISCORD_VERSION = version;
     }
 }
