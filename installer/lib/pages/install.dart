@@ -96,14 +96,7 @@ class _InstallPageState extends State<InstallPage> {
   Future<bool> _downloadAliucord(String out) async {
     if ((prefs.getString('dex_commit') ?? '') == widget.commit && await File(out).exists()) return true;
     setState(() => _logs += 'Downloading Aliucord.dex..\n');
-    final url = await githubAPI!.getDownloadUrl(widget.commit, 'Aliucord.dex');
-    if (url == null) {
-      setState(() {
-        _progressBar = false;
-        _logs += 'Failed to get download url\n';  
-      });
-      return false;
-    }
+    final url = githubAPI!.getDownloadUrl(widget.commit, 'Aliucord.dex');
     try {
       await dio.download(url, out, onReceiveProgress: (count, total) => setState(() => _progress = count / total));
       setState(() {
@@ -124,7 +117,7 @@ class _InstallPageState extends State<InstallPage> {
     setState(() => _logs += 'Downloading patched AndroidManifest.xml..\n');
     try {
       await dio.download(
-        (await githubAPI!.getDownloadUrl(widget.commit, 'AndroidManifest.xml'))!,
+        githubAPI!.getDownloadUrl(widget.commit, 'AndroidManifest.xml'),
         manifest,
         onReceiveProgress: (count, total) => setState(() => _progress = count / total),
       );

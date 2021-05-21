@@ -3,8 +3,6 @@
  * Licensed under the Open Software License version 3.0
  */
 
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
@@ -35,8 +33,8 @@ class _UpdateDialogState extends State<UpdateDialog> {
     setState(() => _updating = true);
     final outPath = storageRoot.path + '/Aliucord/Installer.apk';
     try {
-      final url = await githubAPI!.getDownloadUrl('builds', 'Installer-release.apk');
-      await dio.download(url!, outPath, onReceiveProgress: (count, total) => setState(() => _progress = count / total));
+      final url = githubAPI!.getDownloadUrl('builds', 'Installer-release.apk');
+      await dio.download(url, outPath, onReceiveProgress: (count, total) => setState(() => _progress = count / total));
       installApk(outPath);
     } on DioError catch (e) {
       toast('Update failed: ${e.error}');

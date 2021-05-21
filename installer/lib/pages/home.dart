@@ -30,8 +30,7 @@ class _HomePageState extends State<HomePage> {
   void _selectCommit(String? commit) async {
     if (commit == null) return;
     try {
-      final dataUrl = await githubAPI!.getDownloadUrl(commit, 'data.json');
-      if (dataUrl == null) return;
+      final dataUrl = githubAPI!.getDownloadUrl(commit, 'data.json');
       final res = await dio.get(dataUrl);
       final json = jsonDecode(res.data);
       setState(() {
@@ -80,11 +79,9 @@ class _HomePageState extends State<HomePage> {
             onPressed: () => openUrl('https://discord.gg/$supportServer'),
           )),
           PopupMenuButton<int>(
-            onSelected: (action) => action == 0 ?
-              Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsPage())) : githubAPI!.startAuthFlow(),
+            onSelected: (action) => Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsPage())),
             itemBuilder: (context) => [
               PopupMenuItem(child: Text('Settings'), value: 0),
-              PopupMenuItem(child: Text(githubAPI!.isAuthenticated() ? 'Log out GitHub account' : 'Login with GitHub'), value: 1),
             ],
           ),
         ],

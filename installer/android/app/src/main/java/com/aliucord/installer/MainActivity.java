@@ -201,15 +201,4 @@ public final class MainActivity extends FlutterActivity {
             permResult = null;
         }
     }
-
-    @Override
-    protected void onNewIntent(@NonNull Intent intent) {
-        super.onNewIntent(intent);
-
-        if (channel == null) return;
-        Uri data = intent.getData();
-        if (data == null) return;
-        String code = data.getQueryParameter("code");
-        if (channel != null && code != null) channel.invokeMethod("authCallback", code);
-    }
 }

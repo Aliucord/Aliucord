@@ -53,7 +53,7 @@ class _CommitsWidgetState extends State<CommitsWidget> {
 
   Widget build(BuildContext context) => Card(
     child: !_initialized || _commits.length == 0 ? Padding(padding: EdgeInsets.symmetric(vertical: 30), child: Center(
-      child: _initialized ? Text('You\'re not logged in using an GitHub account.') : CircularProgressIndicator(),
+      child: CircularProgressIndicator(),
     )) : Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

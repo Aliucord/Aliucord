@@ -44,9 +44,6 @@ class _AppState extends State<MyApp> {
       themeManager = ThemeManager();
       themeManager.addListener(() => setState(() {}));
       githubAPI = GithubAPI();
-      channel.setMethodCallHandler((call) async {
-        if (call.method == 'authCallback') githubAPI!.authCallback(call.arguments);
-      });
       setState(() => _initialized = true);
     });
   }

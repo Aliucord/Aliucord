@@ -6,7 +6,11 @@ Discord Android app mod inspired by desktop Discord client mods. Unlike other mo
 [Support Server](https://discord.gg/EsNDvBaHVU)
 
 ### Download
-Download [Installer-release.apk](https://github.com/Aliucord/Aliucord/raw/builds/Installer-release.apk) from `builds` branch.
+1. Download [Installer-release.apk](https://github.com/Aliucord/Aliucord/raw/builds/Installer-release.apk) from `builds` branch
+2. Install Installer app
+3. Open Installer app, click Install, leave Download option (recommended)
+4. Wait for Installer to finish its job
+5. Click Install when it will prompt you to install Aliucord
 
 ### Build
 See `.github/workflows/build.yml` for all build steps.

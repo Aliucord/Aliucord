@@ -45,14 +45,6 @@ public final class Utils {
         Baksmali.disassembleDexFile(DexFileFactory.loadDexFile(file, null), out, Runtime.getRuntime().availableProcessors(), new BaksmaliOptions());
     }
 
-    public static void copyAsset(InputStream in, File dest) throws IOException {
-        OutputStream out = new FileOutputStream(dest);
-        byte[] buf = new byte[4096];
-        for (int read = in.read(buf); read > -1; read = in.read(buf)) out.write(buf, 0, read);
-        in.close();
-        out.close();
-    }
-
     public static void copyFile(File src, File dest) throws IOException {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Files.copy(src.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
