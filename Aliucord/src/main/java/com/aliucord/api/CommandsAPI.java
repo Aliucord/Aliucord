@@ -103,9 +103,10 @@ public class CommandsAPI {
                 CommandResult res = execute.invoke(args);
                 if (!res.send) {
                     // TODO: add arguments
+                    long guildId = StoreStream.getChannels().getChannel(channelId).e();
                     interactionsStore.put(id, new WidgetApplicationCommandBottomSheetViewModel.StoreState(
                             me,
-                            StoreStream.getGuilds().getMembers().get(StoreStream.getChannels().getChannel(channelId).e()).get(me.getId()),
+                            guildId == 0 ? null : StoreStream.getGuilds().getMembers().get(guildId).get(me.getId()),
                             new StoreApplicationInteractions.State.Loaded(new ApplicationCommandData("", "", "", name, Collections.emptyList())),
                             CommandsAPI.getAliucordApplication(),
                             Collections.emptyList(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(),
