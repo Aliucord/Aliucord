@@ -53,18 +53,19 @@ public class NoTrack extends Plugin {
         }
 
         String className = "com.discord.utilities.analytics.AnalyticSuperProperties";
-        final String[] whitelist = new String[]{ "browser", "browser_user_agent", "os", "accessibility_support_enabled", "accessibility_features" };
-        Patcher.addPrePatch(className, "setSuperProperties", (_this, args) -> {
-            @SuppressWarnings("unchecked") Map<String, Object> props = (Map<String, Object>) args.get(0);
-            Map<String, Object> newProps = new HashMap<>();
-            for (String key : whitelist) {
-                Object val = props.get(key);
-                if (val != null) newProps.put(key, val);
-            }
-            if (newProps.size() == 0) return new PrePatchRes(null);
-            args.set(0, newProps);
-            return null;
-        });
+        // temporarily disabled patch, as it probably can cause phone verifiaction
+        // final String[] whitelist = new String[]{ "browser", "browser_user_agent", "os", "accessibility_support_enabled", "accessibility_features" };
+        // Patcher.addPrePatch(className, "setSuperProperties", (_this, args) -> {
+        //     @SuppressWarnings("unchecked") Map<String, Object> props = (Map<String, Object>) args.get(0);
+        //     Map<String, Object> newProps = new HashMap<>();
+        //     for (String key : whitelist) {
+        //         Object val = props.get(key);
+        //         if (val != null) newProps.put(key, val);
+        //     }
+        //     if (newProps.size() == 0) return new PrePatchRes(null);
+        //     args.set(0, newProps);
+        //     return null;
+        // });
         Patcher.addPrePatch(className, "setCampaignProperties", patch);
     }
 
