@@ -60,7 +60,7 @@ public class PluginUpdater {
         notificationData.body = Utils.renderMD("Updates for plugins are available: **" + TextUtils.join("**, **", updates.toArray()) + "**");
         notificationData.autoDismissPeriodSecs = 10;
         notificationData.onClick = v -> {
-            Utils.openPage(v.getContext(), com.aliucord.settings.Updater.class);
+            Utils.openPage(Utils.appActivity, com.aliucord.settings.Updater.class);
             return Unit.a;
         };
         NotificationsAPI.display(notificationData);

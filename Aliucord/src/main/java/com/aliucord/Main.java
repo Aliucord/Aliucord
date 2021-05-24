@@ -23,6 +23,7 @@ import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 
 import com.aliucord.coreplugins.*;
+import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.MissingPatchesDialog;
 import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.PrePatchRes;
@@ -51,8 +52,12 @@ public class Main {
     public static Logger logger = new Logger();
 
     public static Map<String, List<String>> getClassesToPatch() {
+        return getClassesToPatch(true);
+    }
+
+    public static Map<String, List<String>> getClassesToPatch(boolean loadPlugins) {
         Map<String, List<String>> classes = new HashMap<String, List<String>>(){{
-            put("com.discord.app.AppActivity", Collections.singletonList("*"));
+            put("com.discord.app.AppActivity", Arrays.asList("c", "onCreate", "h"));
             put("com.discord.widgets.settings.WidgetSettings", Collections.singletonList("onViewBound"));
             put("com.discord.models.domain.emoji.ModelEmojiUnicode", Collections.singletonList("getImageUri"));
             put("com.discord.widgets.chat.list.WidgetChatList", Collections.singletonList("onViewBound"));
@@ -62,46 +67,59 @@ public class Main {
             putAll(NoTrack.getClassesToPatch());
             putAll(TokenLogin.getClassesToPatch());
         }};
-        String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Aliucord/plugins";
-        File dir = new File(path);
-        if (!dir.exists()) return classes;
-        for (File f : Objects.requireNonNull(dir.listFiles((d, name) -> name.endsWith(".zip")))) {
-            PathClassLoader loader = new PathClassLoader(f.getAbsolutePath(), Main.class.getClassLoader());
-            try {
-                String name;
-                InputStream stream = loader.getResourceAsStream("ac-plugin");
-                if (stream != null) {
-                    int len = stream.available();
-                    byte[] buf = new byte[len];
-                    //noinspection ResultOfMethodCallIgnored
-                    stream.read(buf);
-                    stream.close();
-                    name = new String(buf);
-                } else name = f.getName().replace(".zip", "");
-                Map<String, List<String>> map = (Map<String, List<String>>) loader.loadClass("com.aliucord.plugins." + name)
-                        .getMethod("getClassesToPatch").invoke(null);
+        if (loadPlugins) {
+            String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Aliucord/plugins";
+            File dir = new File(path);
+            if (!dir.exists()) return classes;
+            for (File f : Objects.requireNonNull(dir.listFiles((d, name) -> name.endsWith(".zip")))) {
+                PathClassLoader loader = new PathClassLoader(f.getAbsolutePath(), Main.class.getClassLoader());
+                try {
+                    String name;
+                    InputStream stream = loader.getResourceAsStream("ac-plugin");
+                    if (stream != null) {
+                        int len = stream.available();
+                        byte[] buf = new byte[len];
+                        //noinspection ResultOfMethodCallIgnored
+                        stream.read(buf);
+                        stream.close();
+                        name = new String(buf);
+                    } else name = f.getName().replace(".zip", "");
+                    Map<String, List<String>> map = (Map<String, List<String>>) loader.loadClass("com.aliucord.plugins." + name)
+                            .getMethod("getClassesToPatch").invoke(null);
+                    if (map == null) continue;
+                    joinClasses(classes, map);
+                } catch (Exception ignored) {}
+            }
+        } else {
+            for (Plugin p : PluginManager.plugins.values()) {
+                //noinspection AccessStaticViaInstance
+                Map<String, List<String>> map = p.getClassesToPatch();
+                //noinspection ConstantConditions
                 if (map == null) continue;
-
-                for (Map.Entry<String, List<String>> entry : map.entrySet()) {
-                    String key = entry.getKey();
-                    List<String> val = entry.getValue();
-                    List<String> list = classes.get(key);
-                    if (list == null) classes.put(key, val);
-                    else if (!list.contains("*")) {
-                        if (list instanceof ArrayList) {
-                            list.removeAll(val);
-                            list.addAll(val);
-                        } else {
-                            list = new ArrayList<>(list);
-                            list.removeAll(val);
-                            list.addAll(val);
-                            classes.put(key, list);
-                        }
-                    }
-                }
-            } catch (Exception ignored) {}
+                joinClasses(classes, map);
+            }
         }
         return classes;
+    }
+
+    private static void joinClasses(Map<String, List<String>> classes, Map<String, List<String>> pluginClasses) {
+        for (Map.Entry<String, List<String>> entry : pluginClasses.entrySet()) {
+            String key = entry.getKey();
+            List<String> val = entry.getValue();
+            List<String> list = classes.get(key);
+            if (list == null) classes.put(key, val);
+            else if (!list.contains("*")) {
+                if (list instanceof ArrayList) {
+                    list.removeAll(val);
+                    list.addAll(val);
+                } else {
+                    list = new ArrayList<>(list);
+                    list.removeAll(val);
+                    list.addAll(val);
+                    classes.put(key, list);
+                }
+            }
+        }
     }
 
     public static void preInit(AppActivity activity) {

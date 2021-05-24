@@ -38,7 +38,7 @@ public class Patcher {
         String fn2 = "c";
         Patcher.addPatch(className, fn2, new PatchFunction() {
             public Object invoke(Object _this, List<Object> args, Object ret) {
-                Main.init((AppActivity) _this);
+                new Thread(() -> Main.init((AppActivity) _this)).start();
                 PatcherAPI.unpatch(className, fn2, this);
                 return ret;
             }
