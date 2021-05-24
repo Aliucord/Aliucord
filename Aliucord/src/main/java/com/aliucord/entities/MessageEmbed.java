@@ -13,19 +13,19 @@ import java.util.List;
 @SuppressWarnings("unused")
 public class MessageEmbed extends ModelMessageEmbed {
     public static class Field extends ModelMessageEmbed.Field {
-        private static java.lang.reflect.Field inline;
-        private static java.lang.reflect.Field name;
-        private static java.lang.reflect.Field value;
+        private static java.lang.reflect.Field inlineField;
+        private static java.lang.reflect.Field nameField;
+        private static java.lang.reflect.Field valueField;
 
         static {
             try {
                 Class<ModelMessageEmbed.Field> c = ModelMessageEmbed.Field.class;
-                inline = c.getDeclaredField("inline");
-                inline.setAccessible(true);
-                name = c.getDeclaredField("name");
-                name.setAccessible(true);
-                value = c.getDeclaredField("value");
-                value.setAccessible(true);
+                inlineField = c.getDeclaredField("inline");
+                inlineField.setAccessible(true);
+                nameField = c.getDeclaredField("name");
+                nameField.setAccessible(true);
+                valueField = c.getDeclaredField("value");
+                valueField.setAccessible(true);
             } catch (Exception e) { Main.logger.error(e); }
         }
 
@@ -41,73 +41,73 @@ public class MessageEmbed extends ModelMessageEmbed {
 
         public void setInline(boolean v) {
             try {
-                inline.set(this, v);
+                inlineField.set(this, v);
             } catch (IllegalAccessException e) { Main.logger.error(e); }
         }
 
         public void setName(String v) {
             try {
-                name.set(this, v);
+                nameField.set(this, v);
             } catch (IllegalAccessException e) { Main.logger.error(e); }
         }
 
         public void setValue(String v) {
             try {
-                value.set(this, v);
+                valueField.set(this, v);
             } catch (IllegalAccessException e) { Main.logger.error(e); }
         }
     }
 
     // reflect moment
-    private static java.lang.reflect.Field attachment;
-    private static java.lang.reflect.Field author;
-    private static java.lang.reflect.Field color;
-    private static java.lang.reflect.Field description;
-    private static java.lang.reflect.Field fields;
-    private static java.lang.reflect.Field footer;
-    private static java.lang.reflect.Field image;
-    private static java.lang.reflect.Field provider;
-    private static java.lang.reflect.Field referenceId;
-    private static java.lang.reflect.Field thumbnail;
-    private static java.lang.reflect.Field timestamp;
-    private static java.lang.reflect.Field title;
-    private static java.lang.reflect.Field type;
-    private static java.lang.reflect.Field url;
-    private static java.lang.reflect.Field video;
+    private static java.lang.reflect.Field attachmentField;
+    private static java.lang.reflect.Field authorField;
+    private static java.lang.reflect.Field colorField;
+    private static java.lang.reflect.Field descriptionField;
+    private static java.lang.reflect.Field fieldsField;
+    private static java.lang.reflect.Field footerField;
+    private static java.lang.reflect.Field imageField;
+    private static java.lang.reflect.Field providerField;
+    private static java.lang.reflect.Field referenceIdField;
+    private static java.lang.reflect.Field thumbnailField;
+    private static java.lang.reflect.Field timestampField;
+    private static java.lang.reflect.Field titleField;
+    private static java.lang.reflect.Field typeField;
+    private static java.lang.reflect.Field urlField;
+    private static java.lang.reflect.Field videoField;
 
     static {
         try {
             Class<ModelMessageEmbed> c = ModelMessageEmbed.class;
-            attachment = c.getDeclaredField("attachment");
-            attachment.setAccessible(true);
-            author = c.getDeclaredField("author");
-            author.setAccessible(true);
-            color = c.getDeclaredField("color");
-            color.setAccessible(true);
-            description = c.getDeclaredField("description");
-            description.setAccessible(true);
-            fields = c.getDeclaredField("fields");
-            fields.setAccessible(true);
-            footer = c.getDeclaredField("footer");
-            footer.setAccessible(true);
-            image = c.getDeclaredField("image");
-            image.setAccessible(true);
-            provider = c.getDeclaredField("provider");
-            provider.setAccessible(true);
-            referenceId = c.getDeclaredField("referenceId");
-            referenceId.setAccessible(true);
-            thumbnail = c.getDeclaredField("thumbnail");
-            thumbnail.setAccessible(true);
-            timestamp = c.getDeclaredField("timestamp");
-            timestamp.setAccessible(true);
-            title = c.getDeclaredField("title");
-            title.setAccessible(true);
-            type = c.getDeclaredField("type");
-            type.setAccessible(true);
-            url = c.getDeclaredField("url");
-            url.setAccessible(true);
-            video = c.getDeclaredField("video");
-            video.setAccessible(true);
+            attachmentField = c.getDeclaredField("attachment");
+            attachmentField.setAccessible(true);
+            authorField = c.getDeclaredField("author");
+            authorField.setAccessible(true);
+            colorField = c.getDeclaredField("color");
+            colorField.setAccessible(true);
+            descriptionField = c.getDeclaredField("description");
+            descriptionField.setAccessible(true);
+            fieldsField = c.getDeclaredField("fields");
+            fieldsField.setAccessible(true);
+            footerField = c.getDeclaredField("footer");
+            footerField.setAccessible(true);
+            imageField = c.getDeclaredField("image");
+            imageField.setAccessible(true);
+            providerField = c.getDeclaredField("provider");
+            providerField.setAccessible(true);
+            referenceIdField = c.getDeclaredField("referenceId");
+            referenceIdField.setAccessible(true);
+            thumbnailField = c.getDeclaredField("thumbnail");
+            thumbnailField.setAccessible(true);
+            timestampField = c.getDeclaredField("timestamp");
+            timestampField.setAccessible(true);
+            titleField = c.getDeclaredField("title");
+            titleField.setAccessible(true);
+            typeField = c.getDeclaredField("type");
+            typeField.setAccessible(true);
+            urlField = c.getDeclaredField("url");
+            urlField.setAccessible(true);
+            videoField = c.getDeclaredField("video");
+            videoField.setAccessible(true);
         } catch (Exception e) { Main.logger.error(e); }
     }
 
@@ -122,91 +122,91 @@ public class MessageEmbed extends ModelMessageEmbed {
 
     public void setAttachment(boolean v) {
         try {
-            attachment.set(this, v);
+            attachmentField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
     }
 
-    public void setAuthor(String v) {
+    public void setAuthor(Item v) {
         try {
-            author.set(this, v);
+            authorField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
     }
 
     public void setColor(Integer v) {
         try {
-            color.set(this, v);
+            colorField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
     }
 
     public void setDescription(String v) {
         try {
-            description.set(this, v);
+            descriptionField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
     }
 
     public void setFields(List<ModelMessageEmbed.Field> v) {
         try {
-            fields.set(this, v);
+            fieldsField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
     }
 
     public void setFooter(Item v) {
         try {
-            footer.set(this, v);
+            footerField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
     }
 
     public void setImage(Item v) {
         try {
-            image.set(this, v);
+            imageField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
     }
 
     public void setProvider(Item v) {
         try {
-            provider.set(this, v);
+            providerField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
     }
 
     public void setReferenceId(Long v) {
         try {
-            referenceId.set(this, v);
+            referenceIdField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
     }
 
     public void setThumbnail(Item v) {
         try {
-            thumbnail.set(this, v);
+            thumbnailField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
     }
 
     public void setTimestamp(String v) {
         try {
-            timestamp.set(this, v);
+            timestampField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
     }
 
     public void setTitle(String v) {
         try {
-            title.set(this, v);
+            titleField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
     }
 
     public void setType(String v) {
         try {
-            type.set(this, v);
+            typeField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
     }
 
     public void setUrl(String v) {
         try {
-            url.set(this, v);
+            urlField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
     }
 
     public void setVideo(String v) {
         try {
-            video.set(this, v);
+            videoField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
     }
 }
