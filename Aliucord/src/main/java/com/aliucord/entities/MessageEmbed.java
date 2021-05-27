@@ -8,6 +8,7 @@ package com.aliucord.entities;
 import com.aliucord.Main;
 import com.discord.models.domain.ModelMessageEmbed;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -316,8 +317,9 @@ public class MessageEmbed extends ModelMessageEmbed {
         try {
             Object o = fieldsField.get(this);
             if (o instanceof List) {
-                ((List<ModelMessageEmbed.Field>) o).add(v);
-                fieldsField.set(this, o);
+                ArrayList<ModelMessageEmbed.Field> list = (ArrayList<ModelMessageEmbed.Field>) (o instanceof ArrayList ? o : new ArrayList<>((List<ModelMessageEmbed.Field>)o));
+                list.add(v);
+                fieldsField.set(this, list);
             } else {
                 fieldsField.set(this, Collections.singletonList(v));
             }
