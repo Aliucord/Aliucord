@@ -8,6 +8,7 @@ package com.aliucord.entities;
 import com.aliucord.Main;
 import com.discord.models.domain.ModelMessageEmbed;
 
+import java.util.Collections;
 import java.util.List;
 
 @SuppressWarnings("unused")
@@ -54,6 +55,162 @@ public class MessageEmbed extends ModelMessageEmbed {
         public void setValue(String v) {
             try {
                 valueField.set(this, v);
+            } catch (IllegalAccessException e) { Main.logger.error(e); }
+        }
+    }
+
+    public static class Author extends ModelMessageEmbed.Item {
+        private static java.lang.reflect.Field nameField;
+        private static java.lang.reflect.Field iconUrlField;
+        private static java.lang.reflect.Field urlField;
+
+        static {
+            try {
+                Class<ModelMessageEmbed.Item> c = ModelMessageEmbed.Item.class;
+                nameField = c.getDeclaredField("name");
+                nameField.setAccessible(true);
+                iconUrlField = c.getDeclaredField("iconUrl");
+                iconUrlField.setAccessible(true);
+                urlField = c.getDeclaredField("url");
+                urlField.setAccessible(true);
+            } catch (Exception e) { Main.logger.error(e); }
+        }
+
+        public Author() {
+            super();
+        }
+        public Author(String name) {
+            this(name, null, null);
+        }
+        public Author(String name, String iconUrl) {
+            this(name, iconUrl, null);
+        }
+        public Author(String name, String iconUrl, String url) {
+            super();
+            setName(name);
+            setIconUrl(iconUrl);
+            setUrl(url);
+        }
+
+        public void setIconUrl(String v) {
+            try {
+                iconUrlField.set(this, v);
+            } catch (IllegalAccessException e) { Main.logger.error(e); }
+        }
+
+        public void setName(String v) {
+            try {
+                nameField.set(this, v);
+            } catch (IllegalAccessException e) { Main.logger.error(e); }
+        }
+
+        public void setUrl(String v) {
+            try {
+                urlField.set(this, v);
+            } catch (IllegalAccessException e) { Main.logger.error(e); }
+        }
+    }
+
+    public static class Footer extends ModelMessageEmbed.Item {
+        private static java.lang.reflect.Field textField;
+        private static java.lang.reflect.Field iconUrlField;
+
+        static {
+            try {
+                Class<ModelMessageEmbed.Item> c = ModelMessageEmbed.Item.class;
+                textField = c.getDeclaredField("text");
+                textField.setAccessible(true);
+                iconUrlField = c.getDeclaredField("iconUrl");
+                iconUrlField.setAccessible(true);
+            } catch (Exception e) { Main.logger.error(e); }
+        }
+
+        public Footer() {
+            super();
+        }
+        public Footer(String text) {
+            this(text, null);
+        }
+        public Footer(String name, String iconUrl) {
+            super();
+            setText(name);
+            setIconUrl(iconUrl);
+        }
+
+        public void setIconUrl(String v) {
+            try {
+                iconUrlField.set(this, v);
+            } catch (IllegalAccessException e) { Main.logger.error(e); }
+        }
+
+        public void setText(String v) {
+            try {
+                textField.set(this, v);
+            } catch (IllegalAccessException e) { Main.logger.error(e); }
+        }
+    }
+
+    public static class Image extends ModelMessageEmbed.Item {
+        private static java.lang.reflect.Field urlField;
+
+        static {
+            try {
+                Class<ModelMessageEmbed.Item> c = ModelMessageEmbed.Item.class;
+                urlField = c.getDeclaredField("url");
+                urlField.setAccessible(true);
+            } catch (Exception e) { Main.logger.error(e); }
+        }
+
+        public Image() {
+            super();
+        }
+        public Image(String url) {
+            super();
+            setUrl(url);
+        }
+
+        public void setUrl(String v) {
+            try {
+                urlField.set(this, v);
+            } catch (IllegalAccessException e) { Main.logger.error(e); }
+        }
+    }
+
+    public static class Provider extends ModelMessageEmbed.Item {
+        private static java.lang.reflect.Field nameField;
+        private static java.lang.reflect.Field urlField;
+
+        static {
+            try {
+                Class<ModelMessageEmbed.Item> c = ModelMessageEmbed.Item.class;
+                nameField = c.getDeclaredField("name");
+                nameField.setAccessible(true);
+                urlField = c.getDeclaredField("url");
+                urlField.setAccessible(true);
+            } catch (Exception e) { Main.logger.error(e); }
+        }
+
+        public Provider() {
+            super();
+        }
+        public Provider(String name) {
+            this(name, null);
+        }
+        public Provider(String name, String url) {
+            super();
+            setName(name);
+            setUrl(url);
+        }
+        
+        public void setName(String v) {
+            try {
+                nameField.set(this, v);
+            } catch (IllegalAccessException e) { Main.logger.error(e); }
+        }
+
+        public void setUrl(String v) {
+            try {
+                urlField.set(this, v);
             } catch (IllegalAccessException e) { Main.logger.error(e); }
         }
     }
@@ -120,93 +277,137 @@ public class MessageEmbed extends ModelMessageEmbed {
         setType(type);
     }
 
-    public void setAttachment(boolean v) {
+    public MessageEmbed setAttachment(boolean v) {
         try {
             attachmentField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
+        return this;
     }
 
-    public void setAuthor(Item v) {
+    public MessageEmbed setAuthor(String name, String iconUrl, String url) {
+        return setAuthor(new Author(name, iconUrl, url));
+    }
+    public MessageEmbed setAuthor(Author v) {
         try {
             authorField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
+        return this;
     }
 
-    public void setColor(Integer v) {
+    public MessageEmbed setColor(Integer v) {
         try {
             colorField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
+        return this;
     }
 
-    public void setDescription(String v) {
+    public MessageEmbed setDescription(String v) {
         try {
             descriptionField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
+        return this;
     }
 
-    public void setFields(List<ModelMessageEmbed.Field> v) {
+    public MessageEmbed addField(String name, String value, boolean inline) {
+        return addField(new Field(name, value, inline));
+    }
+    @SuppressWarnings("unchecked")
+    public MessageEmbed addField(ModelMessageEmbed.Field v) {
+        try {
+            Object o = fieldsField.get(this);
+            if (o instanceof List) {
+                ((List<ModelMessageEmbed.Field>) o).add(v);
+                fieldsField.set(this, o);
+            } else {
+                fieldsField.set(this, Collections.singletonList(v));
+            }
+        } catch (IllegalAccessException e) { Main.logger.error(e); }
+        return this;
+    }
+
+    public MessageEmbed setFields(List<ModelMessageEmbed.Field> v) {
         try {
             fieldsField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
+        return this;
     }
 
-    public void setFooter(Item v) {
+    public MessageEmbed setFooter(String text, String iconUrl) {
+        return setFooter(new Footer(text, iconUrl));
+    }
+    public MessageEmbed setFooter(Footer v) {
         try {
             footerField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
+        return this;
     }
 
-    public void setImage(Item v) {
+    public MessageEmbed setImage(String v) {
+        return setImage(new Image(v));
+    }
+    public MessageEmbed setImage(Image v) {
         try {
             imageField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
+        return this;
     }
 
-    public void setProvider(Item v) {
+    public MessageEmbed setProvider(Provider v) {
         try {
             providerField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
+        return this;
     }
 
-    public void setReferenceId(Long v) {
+    public MessageEmbed setReferenceId(Long v) {
         try {
             referenceIdField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
+        return this;
     }
 
-    public void setThumbnail(Item v) {
+    public MessageEmbed setThumbnail(String v) {
+        return setThumbnail(new Image(v));
+    }
+    public MessageEmbed setThumbnail(Image v) {
         try {
             thumbnailField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
+        return this;
     }
 
-    public void setTimestamp(String v) {
+    public MessageEmbed setTimestamp(String v) {
         try {
             timestampField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
+        return this;
     }
 
-    public void setTitle(String v) {
+    public MessageEmbed setTitle(String v) {
         try {
             titleField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
+        return this;
     }
 
-    public void setType(String v) {
+    public MessageEmbed setType(String v) {
         try {
             typeField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
+        return this;
     }
 
-    public void setUrl(String v) {
+    public MessageEmbed setUrl(String v) {
         try {
             urlField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
+        return this;
     }
 
-    public void setVideo(String v) {
+    public MessageEmbed setVideo(String v) {
         try {
             videoField.set(this, v);
         } catch (IllegalAccessException e) { Main.logger.error(e); }
+        return this;
     }
 }
