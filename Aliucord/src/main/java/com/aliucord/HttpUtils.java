@@ -6,11 +6,175 @@
 package com.aliucord;
 
 import java.io.*;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-// TODO: make it better?
 public class HttpUtils {
+    /** Request Builder */
+    public static class Request {
+        /** The connection of this Request */
+        public final HttpURLConnection conn;
+
+        public Request(String url) throws IOException {
+            this(url, "GET");
+        }
+        public Request(String url, String method) throws IOException {
+            conn = (HttpURLConnection) new URL(url).openConnection();
+            conn.setRequestMethod(method.toUpperCase());
+            conn.addRequestProperty("User-Agent", "Aliucord (https://github.com/Aliucord/Aliucord)");
+        }
+
+        /**
+         * Sets the request body. May not be used in GET requests
+         * @param body The request body
+         * @return self
+         */
+        public Request setBody(String body) throws IOException {
+            if (conn.getRequestMethod().equals("GET")) throw new IOException("Body may not be specified in GET requests");
+            conn.setDoOutput(true);
+            try (OutputStream out = conn.getOutputStream()) {
+                byte[] bytes = body.getBytes();
+                out.write(bytes, 0, bytes.length);
+                out.flush();
+            }
+            return this;
+        }
+
+        /**
+         * Add a header
+         * @param key the name
+         * @param value the value
+         * @return self
+         */
+        public Request setHeader(String key, String value) {
+            conn.setRequestProperty(key, value);
+            return this;
+        }
+
+        /**
+         * Sets the request connection and read timeout
+         * @param timeout the timeout, in milliseconds
+         * @return self
+         */
+        public Request setRequestTimeout(int timeout) {
+            conn.setConnectTimeout(timeout);
+            conn.setReadTimeout(timeout);
+            return this;
+        }
+
+        /**
+         * Sets the request connection and read timeout
+         * @param follow Whether redirects should be followed
+         * @return self
+         */
+        public Request setFollowRedirects(boolean follow) {
+            conn.setInstanceFollowRedirects(follow);
+            return this;
+        }
+
+        /**
+         * Execute the request
+         * @return A response object
+         */
+        public Response execute() {
+            return new Response(this);
+        }
+    }
+
+    /** Response obtained by calling Response.execute() */
+    public static class Response {
+        private final Request req;
+
+        public Response(Request req) {
+            this.req = req;
+        }
+
+        /** Get the raw response */
+        public String text() throws IOException {
+            String ln;
+            StringBuilder res = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream()))) {
+                while ((ln = reader.readLine()) != null) res.append(ln);
+            }
+            return res.toString().trim();
+        }
+
+        /**
+         * Deserializes json response
+         * @param type Class to deserialize into
+         * @return Response Object
+         */
+        public <T> T json(Type type) throws IOException {
+            return Utils.fromJson(text(), type);
+        }
+
+        /**
+         * Get the raw response stream of this connection
+         * @return InputStream
+         */
+        public InputStream stream() throws IOException {
+            return req.conn.getInputStream();
+        }
+
+        /**
+         * Pipe response into OutputStream
+         * @param os The OutputStream to pipe into
+         */
+        public void pipe(OutputStream os) throws IOException {
+            InputStream is = stream();
+            int n;
+            byte[] buf = new byte[16384]; // 16 KB
+            while ((n = is.read(buf)) > -1) {
+                os.write(buf, 0, n);
+            }
+            // Not sure if this should be kept here, probably better to have
+            os.close();
+        }
+    }
+
+    /**
+     * Send a simple GET request
+     * @param url The url to fetch
+     * @return Raw response (String). If you want Json, use simpleJsonGet
+     */
+    public static String simpleGet(String url) throws IOException {
+        return new Request(url, "GET").execute().text();
+    }
+
+    /**
+     * Send a simple GET request
+     * @param url The url to fetch
+     * @param schema Class to <a href="https://en.wikipedia.org/wiki/Serialization">deserialize</a> the response into
+     * @return Response Object
+     */
+    public static <T> T simpleJsonGet(String url, Type schema) throws IOException {
+        return new Request(url, "GET").execute().json(schema);
+    }
+
+    /**
+     * Send a simple POST request
+     * @param url The url to fetch
+     * @param body The request body
+     * @return Raw response (String). If you want Json, use simpleJsonPost
+     */
+    public static String simplePost(String url, String body) throws IOException {
+        return new Request(url, "POST").setBody(body).execute().text();
+    }
+
+    /**
+     * Send a simple json POST request
+     * @param url The url to fetch
+     * @param body The request body
+     * @param schema Class to <a href="https://en.wikipedia.org/wiki/Serialization">deserialize</a> the response into
+     * @return Response deserialized into the provided Class
+     */
+    public static <T> T simpleJsonPost(String url, String body, Type schema) throws IOException {
+        return new Request(url, "POST").setBody(body).execute().json(schema);
+    }
+
+    /** @deprecated Use HttpUtils.Request or HttpUtils.simpleGet */
+    @Deprecated
     public static String stringRequest(String url, String body) throws IOException {
         String ln;
         StringBuilder res = new StringBuilder();
@@ -21,6 +185,8 @@ public class HttpUtils {
         return res.toString().trim();
     }
 
+    /** @deprecated Use HttpUtils.Request or HttpUtils.SimpleGet */
+    @Deprecated
     public static InputStream request(String url, String body) throws IOException {
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
 
