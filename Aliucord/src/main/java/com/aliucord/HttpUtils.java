@@ -9,13 +9,49 @@ import java.io.*;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 
 public class HttpUtils {
+    /** QueryString Builder */
+    public static class QueryBuilder {
+        private final StringBuilder sb;
+
+        public QueryBuilder(String baseUrl) {
+            sb = new StringBuilder(baseUrl + "?");
+        }
+
+        /**
+         * Append query parameter. Will automatically be encoded for you
+         * @param key The parameter key
+         * @param value The parameter value
+         * @return self
+         */
+        public QueryBuilder append(String key, String value) {
+            try {
+                key = URLEncoder.encode(key, "UTF-8");
+                value = URLEncoder.encode(value, "UTF-8");
+                sb.append(key).append('=').append(value).append('&');
+            } catch (UnsupportedEncodingException ignored) {} // This should never happen
+            return this;
+        }
+
+        /**
+         * Build the finished Url
+         */
+        public String build() {
+            String str = sb.toString();
+            return str.substring(0, str.length() -1); // Remove last & or ? if no query specified
+        }
+    }
+
     /** Request Builder */
     public static class Request {
         /** The connection of this Request */
         public final HttpURLConnection conn;
 
+        public Request(QueryBuilder builder) throws IOException {
+            this(builder.build(), "GET");
+        }
         public Request(String url) throws IOException {
             this(url, "GET");
         }
