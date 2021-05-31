@@ -118,18 +118,18 @@ public class HttpUtils {
         }
 
         /**
-         * Pipe response into OutputStream
+         * Pipe response into OutputStream. Remember to close the OutputStream
          * @param os The OutputStream to pipe into
          */
         public void pipe(OutputStream os) throws IOException {
-            InputStream is = stream();
-            int n;
-            byte[] buf = new byte[16384]; // 16 KB
-            while ((n = is.read(buf)) > -1) {
-                os.write(buf, 0, n);
+            try (InputStream is = stream()) {
+                int n;
+                byte[] buf = new byte[16384]; // 16 KB
+                while ((n = is.read(buf)) > -1) {
+                    os.write(buf, 0, n);
+                }
+                os.flush();
             }
-            // Not sure if this should be kept here, probably better to have
-            os.close();
         }
     }
 
