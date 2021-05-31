@@ -31,7 +31,6 @@ import com.discord.views.CheckedSetting;
 import com.google.gson.Gson;
 
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Objects;
@@ -180,7 +179,7 @@ public class Utils {
     public static String toJsonPretty(Object obj) { return gsonPretty.l(obj); }
 
     public static CharSequence renderMD(CharSequence source) {
-        return b.j(source, new Object[0], null, 2);
+        return b.k(source, new Object[0], null, 2);
     }
 
     public static <T> Subscriber<T> createActionSubscriber(Action1<? super T> onNext) {
