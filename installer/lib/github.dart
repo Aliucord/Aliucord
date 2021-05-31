@@ -37,6 +37,10 @@ class GithubAPI with ChangeNotifier {
   static const String _apiHost = 'api.github.com';
   static const String _commitsEndpoint = '/repos/$_org/$_repo/commits';
 
+  GithubAPI() {
+    checkForUpdates();
+  }
+
   void checkForUpdates() async {
     final commits = await getCommits(params: { 'sha': 'builds', 'path': 'Installer-release.apk' });
     if (commits.length == 0) return;
