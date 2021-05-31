@@ -45,11 +45,11 @@ public class Patcher {
         });
     }
 
-    public static PrePatchRes runPrePatches(Object _this, List<Object> args) {
-        String[] names = getCallerNames();
-        Map<String, List<PrePatchFunction>> cp = prePatches.get(names[0]);
+    public static PrePatchRes runPrePatches(String className, String fn, Object _this, List<Object> args) {
+        // String[] names = getCallerNames();
+        Map<String, List<PrePatchFunction>> cp = prePatches.get(className);
         if (cp == null) return null;
-        List<PrePatchFunction> p = cp.get(names[1]);
+        List<PrePatchFunction> p = cp.get(fn);
         if (p == null) return null;
         PrePatchRes res = null;
         Object ret = null;
@@ -58,22 +58,22 @@ public class Patcher {
                 PrePatchRes res2 = patch.invoke(_this, args);
                 if (res2 != null) res = res2;
             } catch (Throwable e) {
-                logger.error("Failed to run prepatch on " + names[0] + "." + names[1], e);
+                logger.error("Failed to run prepatch on " + className + " " + fn, e);
             }
         }
         return res;
     }
 
-    public static Object runPatches(Object _this, List<Object> args, Object ret) {
-        String[] names = getCallerNames();
-        Map<String, List<PatchFunction>> cp = patches.get(names[0]);
+    public static Object runPatches(String className, String fn, Object _this, List<Object> args, Object ret) {
+        // String[] names = getCallerNames();
+        Map<String, List<PatchFunction>> cp = patches.get(className);
         if (cp == null) return ret;
-        List<PatchFunction> p = cp.get(names[1]);
+        List<PatchFunction> p = cp.get(fn);
         if (p == null) return ret;
         try {
             for (PatchFunction patch : p) ret = patch.invoke(_this, args, ret);
         } catch (Throwable e) {
-            logger.error("Failed to run patch on " + names[0] + "." + names[1], e);
+            logger.error("Failed to run patch on " + className + " " + fn, e);
         }
         return ret;
     }
@@ -105,8 +105,8 @@ public class Patcher {
         p.add(patch);
     }
 
-    private static String[] getCallerNames() {
-        StackTraceElement s = new Throwable().getStackTrace()[2];
-        return new String[]{ s.getClassName(), s.getMethodName() };
-    }
+    // private static String[] getCallerNames() {
+    //     StackTraceElement s = new Throwable().getStackTrace()[2];
+    //     return new String[]{ s.getClassName(), s.getMethodName() };
+    // }
 }

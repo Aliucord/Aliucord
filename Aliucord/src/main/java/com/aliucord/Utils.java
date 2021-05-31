@@ -19,6 +19,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.aliucord.fragments.AppFragmentProxy;
+import com.aliucord.utils.ReflectUtils;
 import com.discord.api.commands.CommandChoice;
 import com.discord.api.user.User;
 import com.discord.api.user.UserAvatar;
@@ -32,13 +33,11 @@ import com.google.gson.Gson;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 
-import c.a.d.n;
+import c.a.d.l;
 import c.a.k.b;
-import kotlin.jvm.functions.Function1;
 import rx.Subscriber;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -83,7 +82,7 @@ public class Utils {
     }
 
     public static void openPage(Context context, Class<? extends AppComponent> clazz) { Utils.openPage(context, clazz, null); }
-    public static void openPage(Context context, Class<? extends AppComponent> clazz, Intent intent) { n.d(context, clazz, intent); }
+    public static void openPage(Context context, Class<? extends AppComponent> clazz, Intent intent) { l.d(context, clazz, intent); }
     public static void openPageWithProxy(Context context, Fragment fragment) {
         String id = String.valueOf(SnowflakeUtils.fromTimestamp(System.currentTimeMillis() * 100));
         AppFragmentProxy.fragments.put(id, fragment);
@@ -93,8 +92,8 @@ public class Utils {
     public static CommandChoice createCommandChoice(String name, String value) {
         CommandChoice choice = new CommandChoice();
         try {
-            setPrivateField(CommandChoice.class, choice, "name", name);
-            setPrivateField(CommandChoice.class, choice, "value", value);
+            ReflectUtils.setField(choice, "name", name, true);
+            ReflectUtils.setField(choice, "value", name, true);
         } catch (Throwable e) { Main.logger.error(e); }
         return choice;
     }
@@ -121,16 +120,16 @@ public class Utils {
             null
     );
 
+    /** @deprecated Use ReflectUtils */
+    @Deprecated
     public static Object getPrivateField(Class<?> clazz, Object instance, String fieldName) throws Exception {
-        Field field = clazz.getDeclaredField(fieldName);
-        field.setAccessible(true);
-        return field.get(instance);
+        return ReflectUtils.getField(clazz, instance, fieldName, true);
     }
 
+    /** @deprecated Use ReflectUtils */
+    @Deprecated
     public static void setPrivateField(Class<?> clazz, Object instance, String fieldName, Object v) throws Exception {
-        Field field = clazz.getDeclaredField(fieldName);
-        field.setAccessible(true);
-        field.set(instance, v);
+        ReflectUtils.setField(clazz, instance, fieldName, v, true);
     }
 
     public static CheckedSetting createCheckedSetting(Context context, CheckedSetting.ViewType type, CharSequence text, CharSequence subtext) {
@@ -140,13 +139,13 @@ public class Utils {
             cs.f(type);
         }
 
-        TextView textView = cs.j.a();
+        TextView textView = cs.k.a();
         textView.setTextSize(16.0f);
         textView.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium));
         textView.setText(text);
         cs.setSubtext(subtext);
 
-        View root = cs.j.b();
+        View root = cs.k.b();
         root.setPadding(0, root.getPaddingTop(), root.getPaddingRight(), root.getPaddingBottom());
         return cs;
     }
@@ -195,9 +194,7 @@ public class Utils {
 
     static {
         try {
-            Field prettyPrint = Gson.class.getDeclaredField("k");
-            prettyPrint.setAccessible(true);
-            prettyPrint.set(gsonPretty, true);
+            ReflectUtils.setField(gsonPretty, "k", true, true);
         } catch (Throwable e) { Main.logger.error(e); }
     }
 }

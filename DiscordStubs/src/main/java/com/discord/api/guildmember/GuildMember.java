@@ -8,17 +8,17 @@ import java.util.List;
 @SuppressWarnings("unused")
 public final class GuildMember {
     // getGuildId
-    public final long b() { return 0; }
+    public final long c() { return 0; }
     // getJoinedAt
-    public final UtcDateTime c() { return null; }
+    public final UtcDateTime d() { return null; }
     // getNick
-    public final String d() { return null; }
+    public final String e() { return null; }
     // getIsPending
-    public final boolean e() { return false; }
+    public final boolean f() { return false; }
     // getRoles
-    public final List<Long> h() { return null; }
+    public final List<Long> i() { return null; }
     // getUser
-    public final User i() { return null; }
+    public final User j() { return null; }
     // getUserId
-    public final Long j() { return 0L; }
+    public final Long k() { return 0L; }
 }

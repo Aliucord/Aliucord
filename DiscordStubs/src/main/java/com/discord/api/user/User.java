@@ -41,4 +41,6 @@ public final class User {
     public final Boolean m() { return false; }
     // getUsername
     public final String o() { return ""; }
+    // getVerified
+    public final Boolean p() { return null; }
 }

@@ -7,7 +7,7 @@ package com.aliucord;
 
 import android.os.Environment;
 
-import com.discord.stores.StoreClientVersion;
+import com.aliucord.utils.ReflectUtils;
 import com.discord.stores.StoreStream;
 
 @SuppressWarnings("unused")
@@ -33,16 +33,18 @@ public final class Constants {
     public static final String NAMESPACE_ANDROID = "http://schemas.android.com/apk/res/android";
     public static final String NAMESPACE_APP = "http://schemas.android.com/apk/res-auto";
 
+    public static final String RELEASE_SUFFIX = "app_productionCanaryRelease";
+
     public static final int DISCORD_VERSION;
 
     static {
         int version = 0;
         try {
             //noinspection AccessStaticViaInstance
-            version = (int) Utils.getPrivateField(
-                    StoreClientVersion.class,
-                    StoreStream.Companion.access$getCollector$p(StoreStream.Companion).getClientVersion$app_productionBetaRelease(),
-                    "clientVersion"
+            version = (int) ReflectUtils.getField(
+                    ReflectUtils.getField(StoreStream.Companion.access$getCollector$p(StoreStream.Companion), "clientVersion", true),
+                    "clientVersion",
+                    true
             );
         } catch (Throwable e) { Main.logger.error(e); }
         DISCORD_VERSION = version;

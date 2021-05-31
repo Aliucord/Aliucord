@@ -1,5 +1,5 @@
 .method %s %s%s
-    .locals 4
+    .locals 6
 
     new-instance v0, Ljava/util/ArrayList;
 
@@ -9,7 +9,11 @@
 
     %s
 
-    invoke-static {v3, v0}, Lcom/aliucord/patcher/Patcher;->runPrePatches(Ljava/lang/Object;Ljava/util/List;)Lcom/aliucord/patcher/PrePatchRes;
+    const-string v4, "%s"
+
+    const-string v5, "%s"
+
+    invoke-static {v4, v5, v3, v0}, Lcom/aliucord/patcher/Patcher;->runPrePatches(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;Ljava/util/List;)Lcom/aliucord/patcher/PrePatchRes;
 
     move-result-object v1
 
@@ -26,7 +30,7 @@
 
     %s
 
-    invoke-static {v3, v0, v1}, Lcom/aliucord/patcher/Patcher;->runPatches(Ljava/lang/Object;Ljava/util/List;Ljava/lang/Object;)Ljava/lang/Object;
+    invoke-static {v4, v5, v3, v0, v1}, Lcom/aliucord/patcher/Patcher;->runPatches(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;Ljava/util/List;Ljava/lang/Object;)Ljava/lang/Object;
 
     move-result-object v1
 

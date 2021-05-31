@@ -19,8 +19,6 @@ public final class StoreStream {
 
     public static void handleMessageUpdate(StoreStream instance, ModelMessage message) {}
 
-    public final StoreClientVersion getClientVersion$app_productionBetaRelease() { return new StoreClientVersion(); }
-
     public static final Companion Companion = new Companion();
     public static final class Companion {
         public static StoreStream access$getCollector$p(StoreStream.Companion companion) { return new StoreStream(); }

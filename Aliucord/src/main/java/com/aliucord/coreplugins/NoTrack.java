@@ -29,13 +29,13 @@ public class NoTrack extends Plugin {
 
         map.put("c.i.a.f.i.b.k9", Arrays.asList("n", "Q"));
         map.put("c.i.a.b.j.t.h.g", Collections.singletonList("run"));
-        map.put("c.i.a.f.h.i.r", Collections.singletonList("R"));
+        // map.put("c.i.a.f.h.i.r", Collections.singletonList("R"));
         map.put("com.discord.utilities.analytics.AdjustConfig", Collections.singletonList("init"));
         map.put("com.discord.utilities.analytics.AdjustConfig$AdjustLifecycleListener", Arrays.asList("onActivityPaused", "onActivityResumed"));
-//        map.put("com.discord.utilities.analytics.AnalyticsTracker$AdjustEventTracker", Collections.singletonList("*"));
+        // map.put("com.discord.utilities.analytics.AnalyticsTracker$AdjustEventTracker", Collections.singletonList("*"));
         map.put("com.discord.utilities.analytics.AnalyticsTracker$AdjustEventTracker", Arrays.asList("trackLogin", "trackRegister"));
         map.put("com.discord.utilities.analytics.AnalyticSuperProperties", Arrays.asList("setSuperProperties", "setCampaignProperties"));
-//        map.put("com.discord.utilities.analytics.AnalyticsUtils$Tracker", Collections.singletonList("*"));
+        // map.put("com.discord.utilities.analytics.AnalyticsUtils$Tracker", Collections.singletonList("*"));
         map.put("com.discord.utilities.analytics.AnalyticsUtils$Tracker", Arrays.asList("drainEventsQueue", "setTrackingData", "track", "trackFireBase"));
         map.put("com.discord.utilities.integrations.SpotifyHelper$openPlayStoreForSpotify$1", Collections.singletonList("run"));
         return map;

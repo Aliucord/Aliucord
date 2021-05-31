@@ -10,6 +10,7 @@ import android.os.Looper;
 
 import com.aliucord.Main;
 import com.aliucord.Utils;
+import com.aliucord.utils.ReflectUtils;
 import com.discord.api.commands.ApplicationCommandData;
 import com.discord.models.domain.ModelMessage;
 import com.discord.models.domain.ModelMessageEmbed;
@@ -85,8 +86,8 @@ public class CommandsAPI {
                     id, name, channelId, UserUtils.INSTANCE.synthesizeApiUser(me), Utils.CLYDE, false, true, id, clock);
             Class<ModelMessage> c = ModelMessage.class;
             try {
-                Utils.setPrivateField(c, message, "flags", 192L);
-                Utils.setPrivateField(c, message, "type", ModelMessage.TYPE_LOCAL);
+                ReflectUtils.setField(c, message, "flags", 192L, true);
+                ReflectUtils.setField(c, message, "type", ModelMessage.TYPE_LOCAL, true);
             } catch (Throwable ignored) {}
             StoreMessages storeMessages = StoreStream.getMessages();
             StoreMessages.access$handleLocalMessageCreate(storeMessages, message);
@@ -96,6 +97,7 @@ public class CommandsAPI {
             args.remove("__this");
             args.remove("__args");
 
+            if (_this == null || _args == null) return null;
             MessageContent content = _this.$chatInput.getMatchedContentWithMetaData();
             WidgetChatInput.clearInput$default(_this.this$0, false, true, 0, null);
 
@@ -113,9 +115,9 @@ public class CommandsAPI {
                             Collections.emptyMap()
                     ));
                     try {
-                        Utils.setPrivateField(c, message, "content", res.content);
-                        Utils.setPrivateField(c, message, "embeds", res.embeds);
-                        Utils.setPrivateField(c, message, "flags", 64L);
+                        ReflectUtils.setField(c, message, "content", res.content, true);
+                        ReflectUtils.setField(c, message, "embeds", res.embeds, true);
+                        ReflectUtils.setField(c, message, "flags", 64L, true);
                         Utils.rerenderChat(); // TODO: figure out how to rerender single message
                     } catch (Throwable ignored) {}
                 } else {
@@ -136,8 +138,8 @@ public class CommandsAPI {
             return null;
         });
         try {
-            Utils.setPrivateField(ApplicationCommand.class, command, "builtIn", true);
-        } catch (Exception e) { Main.logger.error(e); }
+            ReflectUtils.setField(ApplicationCommand.class, command, "builtIn", true, true);
+        } catch (Throwable e) { Main.logger.error(e); }
         commands.put(name, command);
         updateCommandCount();
     }

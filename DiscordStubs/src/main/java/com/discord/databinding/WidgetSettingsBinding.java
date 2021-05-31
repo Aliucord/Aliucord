@@ -6,9 +6,9 @@ import android.widget.TextView;
 @SuppressWarnings("unused")
 public final class WidgetSettingsBinding {
     // developerOptionsDivider
-    public View m;
+    public View n;
     // developerOptionsHeader
-    public TextView n;
+    public TextView o;
     // developerOptions
-    public TextView l;
+    public TextView m;
 }

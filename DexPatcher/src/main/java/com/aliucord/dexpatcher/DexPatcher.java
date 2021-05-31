@@ -283,7 +283,8 @@ public class DexPatcher {
                     }
                 }
 
-                String newCode = String.format(formats.get("patchedmethod"), g1, g2, g3, addArgs.toString(), _this, ret, getArgs.toString(),
+                String normalClassName = className.substring(1, className.length() - 1).replaceAll("/", ".");
+                String newCode = String.format(formats.get("patchedmethod"), g1, g2, g3, addArgs.toString(), _this, normalClassName, g2Arr[0], ret, getArgs.toString(),
                         invoke, invokeArgs, className, newMethodName, g3, moveResult, ret);
                 s = s.replace(matcher.group(),
                         newCode + "\n\n.method " + g1 + " " + newMethodName + g3 + "\n" + matcher.group(4) + "\n.end method");

@@ -24,10 +24,10 @@ public final class CheckedSetting extends RelativeLayout implements Checkable {
         @SuppressWarnings("MethodNameSameAsClassName")
         View b();
         // subtext
-        TextView d();
+        TextView f();
     }
 
-    public b j;
+    public b k;
 
     public boolean isChecked() { return false; }
     public void toggle() {}
