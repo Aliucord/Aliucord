@@ -33,8 +33,8 @@ import com.aliucord.views.Divider;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.views.CheckedSetting;
 import com.discord.widgets.user.usersheet.WidgetUserSheet;
+import com.discord.R.attr;
 import com.google.android.material.card.MaterialCardView;
-import com.lytefast.flexinput.R$b;
 import com.lytefast.flexinput.R$h;
 
 import java.io.File;
@@ -52,8 +52,8 @@ public final class PluginCard extends MaterialCardView {
         params.setMargins(0, padding2, 0, 0);
         setLayoutParams(params);
         setUseCompatPadding(true);
-        setCardBackgroundColor(ColorCompat.getThemedColor(context, R$b.primary_630));
-        setStrokeColor(ColorCompat.getThemedColor(context, R$b.primary_900));
+        setCardBackgroundColor(ColorCompat.getThemedColor(context, attr.primary_630));
+        setStrokeColor(ColorCompat.getThemedColor(context, attr.primary_900));
         setStrokeWidth(Utils.dpToPx(0.5f));
         setRadius(Utils.dpToPx(4));
 

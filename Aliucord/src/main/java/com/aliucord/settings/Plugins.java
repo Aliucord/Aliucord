@@ -31,9 +31,12 @@ import com.aliucord.Main;
 import com.aliucord.PluginManager;
 import com.aliucord.Utils;
 import com.aliucord.entities.Plugin;
+import com.aliucord.views.Divider;
 import com.aliucord.views.TextInput;
 import com.aliucord.widgets.PluginCard;
 import com.aliucord.fragments.SettingsPage;
+import com.discord.utilities.color.ColorCompat;
+import com.discord.R.attr;
 import com.lytefast.flexinput.R$g;
 
 import java.util.ArrayList;
@@ -129,10 +132,15 @@ public class Plugins extends SettingsPage {
 
         Context context = requireContext();
         TextInput input = new TextInput(context);
-        input.setHint(context.getString(R$g.search));
+        input.setPadding(padding, 0, padding, 0);
+        input.setBackgroundColor(ColorCompat.getThemedColor(view, attr.primary_400));
+        input.setPlaceholderText(context.getString(R$g.search));
+        input.setPlaceholderTextColor(input.getHintTextColor());
+        input.requestFocus();
         EditText editText = input.getEditText();
         if (editText != null) editText.setMaxLines(1);
         v.addView(input);
+        v.addView(new Divider(context));
 
         new Thread(() -> {
             FragmentManager fragmentManager = getFragmentManager();
