@@ -118,7 +118,7 @@ public class HttpUtils {
         }
     }
 
-    /** Response obtained by calling Response.execute() */
+    /** Response obtained by calling Request.execute() */
     public static class Response {
         private final Request req;
 
