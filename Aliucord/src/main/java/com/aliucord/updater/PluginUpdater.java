@@ -8,7 +8,7 @@ package com.aliucord.updater;
 import android.text.TextUtils;
 
 import com.aliucord.Constants;
-import com.aliucord.HttpUtils;
+import com.aliucord.Http;
 import com.aliucord.Logger;
 import com.aliucord.PluginManager;
 import com.aliucord.Utils;
@@ -19,9 +19,6 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.FileOutputStream;
 import java.lang.reflect.Type;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -96,7 +93,7 @@ public class PluginUpdater {
             return updateInfo;
         }
 
-        Map<String, UpdateInfo> res = Utils.fromJson(HttpUtils.stringRequest(manifest.updateUrl, null), resType);
+        Map<String, UpdateInfo> res = Http.simpleJsonGet(manifest.updateUrl, resType);
         if (res == null) return null;
         cache.put(manifest.updateUrl, new CachedData(res));
         UpdateInfo updateInfo = res.get(name);
@@ -120,11 +117,10 @@ public class PluginUpdater {
 
             String url = updateInfo.build;
             if (url.contains("%s")) url = String.format(url, plugin);
-            ReadableByteChannel in = Channels.newChannel(HttpUtils.request(url, null));
-            FileChannel out = new FileOutputStream(Constants.BASE_PATH + "/plugins/" + p.__filename + ".zip").getChannel();
-            out.transferFrom(in, 0, Long.MAX_VALUE);
-            in.close();
-            out.close();
+
+            try (FileOutputStream out = new FileOutputStream(Constants.BASE_PATH + "/plugins/" + p.__filename + ".zip")) {
+                new Http.Request(url).execute().pipe(out);
+            }
 
             updated.put(plugin, updateInfo.version);
         } catch (Throwable e) { logger.error(e); }
