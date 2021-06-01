@@ -113,7 +113,7 @@ public class Http {
          * @return self
          */
         public Response executeWithBody(String body) throws IOException {
-            if (conn.getRequestMethod().equals("GET")) throw new IOException("Body may not be specified in GET requests");
+            if (conn.getRequestMethod().equals("GET")) throw new HttpException("Body may not be specified in GET requests");
             conn.setDoOutput(true);
             try (OutputStream out = conn.getOutputStream()) {
                 byte[] bytes = body.getBytes();
@@ -123,7 +123,7 @@ public class Http {
             return execute();
         }
 
-        public Response executeWithBody(Object body) throws IOException {
+        public Response executeWithJson(Object body) throws IOException {
             return setHeader("Content-Type", "application/json").executeWithBody(Utils.toJson(body));
         }
     }
