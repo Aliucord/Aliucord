@@ -68,26 +68,6 @@ public class Http {
         }
 
         /**
-         * Sets the request body. May not be used in GET requests
-         * @param body The request body
-         * @return self
-         */
-        public Request setBody(String body) throws IOException {
-            if (conn.getRequestMethod().equals("GET")) throw new IOException("Body may not be specified in GET requests");
-            conn.setDoOutput(true);
-            try (OutputStream out = conn.getOutputStream()) {
-                byte[] bytes = body.getBytes();
-                out.write(bytes, 0, bytes.length);
-                out.flush();
-            }
-            return this;
-        }
-
-        public Request setBody(Object body) throws IOException {
-            return setBody(Utils.toJson(body)).setHeader("Content-Type", "application/json");
-        }
-
-        /**
          * Add a header
          * @param key the name
          * @param value the value
@@ -125,6 +105,26 @@ public class Http {
          */
         public Response execute() throws IOException {
             return new Response(this);
+        }
+
+        /**
+         * Execute the request with the specified body. May not be used in GET requests.
+         * @param body The request body
+         * @return self
+         */
+        public Response executeWithBody(String body) throws IOException {
+            if (conn.getRequestMethod().equals("GET")) throw new IOException("Body may not be specified in GET requests");
+            conn.setDoOutput(true);
+            try (OutputStream out = conn.getOutputStream()) {
+                byte[] bytes = body.getBytes();
+                out.write(bytes, 0, bytes.length);
+                out.flush();
+            }
+            return execute();
+        }
+
+        public Response executeWithBody(Object body) throws IOException {
+            return setHeader("Content-Type", "application/json").executeWithBody(Utils.toJson(body));
         }
     }
 
@@ -224,7 +224,7 @@ public class Http {
      * @return Raw response (String). If you want Json, use simpleJsonPost
      */
     public static String simplePost(String url, String body) throws IOException {
-        Response res = new Request(url, "POST").setBody(body).execute();
+        Response res = new Request(url, "POST").executeWithBody(body);
         res.assertOk();
         return res.text();
     }
