@@ -11,7 +11,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 
-public class HttpUtils {
+public class Http {
     public static class HttpException extends IOException {
         public HttpException(String message) {
             super(message);
@@ -44,7 +44,7 @@ public class HttpUtils {
         /**
          * Build the finished Url
          */
-        public String build() {
+        public String toString() {
             String str = sb.toString();
             return str.substring(0, str.length() -1); // Remove last & or ? if no query specified
         }
@@ -56,7 +56,7 @@ public class HttpUtils {
         public final HttpURLConnection conn;
 
         public Request(QueryBuilder builder) throws IOException {
-            this(builder.build(), "GET");
+            this(builder.toString(), "GET");
         }
         public Request(String url) throws IOException {
             this(url, "GET");
