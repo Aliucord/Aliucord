@@ -12,6 +12,12 @@ import java.net.URL;
 import java.net.URLEncoder;
 
 public class HttpUtils {
+    public static class HttpException extends IOException {
+        public HttpException(String message) {
+            super(message);
+        }
+    }
+
     /** QueryString Builder */
     public static class QueryBuilder {
         private final StringBuilder sb;
@@ -77,6 +83,10 @@ public class HttpUtils {
             return this;
         }
 
+        public Request setBody(Object body) throws IOException {
+            return setBody(Utils.toJson(body)).setHeader("Content-Type", "application/json");
+        }
+
         /**
          * Add a header
          * @param key the name
@@ -113,7 +123,7 @@ public class HttpUtils {
          * Execute the request
          * @return A response object
          */
-        public Response execute() {
+        public Response execute() throws IOException {
             return new Response(this);
         }
     }
@@ -121,9 +131,25 @@ public class HttpUtils {
     /** Response obtained by calling Request.execute() */
     public static class Response {
         private final Request req;
+        /** The <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status">status code</a> of this response */
+        public final int statusCode;
+        /** The <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status">status message</a> of this response */
+        public final String statusMessage;
 
-        public Response(Request req) {
+        public Response(Request req) throws IOException {
             this.req = req;
+            statusCode = req.conn.getResponseCode();
+            statusMessage = req.conn.getResponseMessage();
+        }
+
+        /** Whether the request was successful (status code 2xx) */
+        public boolean ok() {
+            return statusCode > 199 && statusCode < 300;
+        }
+
+        /** Throws an HttpException if this request was not successful */
+        public void assertOk() throws HttpException {
+            if (!ok()) throw new HttpException(String.format("%d: %s", statusCode, statusMessage));
         }
 
         /** Get the raw response */
@@ -175,7 +201,9 @@ public class HttpUtils {
      * @return Raw response (String). If you want Json, use simpleJsonGet
      */
     public static String simpleGet(String url) throws IOException {
-        return new Request(url, "GET").execute().text();
+        Response res = new Request(url, "GET").execute();
+        res.assertOk();
+        return res.text();
     }
 
     /**
@@ -185,7 +213,8 @@ public class HttpUtils {
      * @return Response Object
      */
     public static <T> T simpleJsonGet(String url, Type schema) throws IOException {
-        return new Request(url, "GET").execute().json(schema);
+        String res = simpleGet(url);
+        return Utils.fromJson(res, schema);
     }
 
     /**
@@ -195,7 +224,9 @@ public class HttpUtils {
      * @return Raw response (String). If you want Json, use simpleJsonPost
      */
     public static String simplePost(String url, String body) throws IOException {
-        return new Request(url, "POST").setBody(body).execute().text();
+        Response res = new Request(url, "POST").setBody(body).execute();
+        res.assertOk();
+        return res.text();
     }
 
     /**
@@ -206,7 +237,8 @@ public class HttpUtils {
      * @return Response deserialized into the provided Class
      */
     public static <T> T simpleJsonPost(String url, String body, Type schema) throws IOException {
-        return new Request(url, "POST").setBody(body).execute().json(schema);
+        String res = simplePost(url, body);
+        return Utils.fromJson(res, schema);
     }
 
     /** @deprecated Use HttpUtils.Request or HttpUtils.simpleGet */
