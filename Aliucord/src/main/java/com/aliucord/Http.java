@@ -11,6 +11,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 
+@SuppressWarnings("unused")
 public class Http {
     public static class HttpException extends IOException {
         public HttpException(String message) {
@@ -244,36 +245,5 @@ public class Http {
     public static <T> T simpleJsonPost(String url, String body, Type schema) throws IOException {
         String res = simplePost(url, body);
         return Utils.fromJson(res, schema);
-    }
-
-    /** @deprecated Use HttpUtils.Request or HttpUtils.simpleGet */
-    @Deprecated
-    public static String stringRequest(String url, String body) throws IOException {
-        String ln;
-        StringBuilder res = new StringBuilder();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(request(url, body)));
-        while ((ln = reader.readLine()) != null) res.append(ln);
-        reader.close();
-
-        return res.toString().trim();
-    }
-
-    /** @deprecated Use HttpUtils.Request or HttpUtils.SimpleGet */
-    @Deprecated
-    public static InputStream request(String url, String body) throws IOException {
-        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-
-        boolean post = body != null;
-        conn.setDoOutput(post);
-        conn.setRequestMethod(post ? "POST" : "GET");
-        if (post) {
-            OutputStream out = conn.getOutputStream();
-            byte[] bytes = body.getBytes();
-            out.write(bytes, 0, bytes.length);
-            out.flush();
-            out.close();
-        }
-
-        return conn.getInputStream();
     }
 }

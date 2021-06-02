@@ -13,7 +13,7 @@ public final class WidgetUserSheetBinding implements ViewBinding {
     // developer section header
     public TextView j;
     // note section header
-    public TextView t;
+    public TextView u;
 
     @NonNull
     @Override
