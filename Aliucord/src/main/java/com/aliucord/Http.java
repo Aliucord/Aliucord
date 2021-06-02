@@ -90,7 +90,7 @@ public class Http {
         }
 
         /**
-         * Sets the request connection and read timeout
+         * Sets whether redirects should be followed
          * @param follow Whether redirects should be followed
          * @return self
          */
@@ -123,6 +123,11 @@ public class Http {
             return execute();
         }
 
+        /**
+         * Execute the request with the specified object as json. May not be used in GET requests.
+         * @param body The request body
+         * @return self
+         */
         public Response executeWithJson(Object body) throws IOException {
             return setHeader("Content-Type", "application/json").executeWithBody(Utils.toJson(body));
         }
