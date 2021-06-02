@@ -48,7 +48,7 @@ public class CommandsAPI {
         public String content;
         public List<MessageEmbed> embeds;
         public boolean send;
-        public String name;
+        public String username;
         public String avatarUrl;
 
         public CommandResult() { this(null); }
@@ -60,16 +60,16 @@ public class CommandsAPI {
             this.embeds = embeds;
             this.send = send;
         }
-        public CommandResult(String content, List<MessageEmbed> embeds, String name, boolean send) {
+        public CommandResult(String content, List<MessageEmbed> embeds, boolean send, String username) {
             this.content = content;
             this.embeds = embeds;
-            this.name = name;
+            this.username = username;
             this.send = send;
         }
         public CommandResult(String content, List<MessageEmbed> embeds, boolean send, String username, String avatarUrl) {
             this.content = content;
             this.embeds = embeds;
-            this.name = name;
+            this.username = username;
             this.avatarUrl = avatarUrl;
             this.send = send;
         }
@@ -133,7 +133,7 @@ public class CommandsAPI {
                         ReflectUtils.setField(c, message, "content", res.content, true);
                         ReflectUtils.setField(c, message, "embeds", res.embeds, true);
                         ReflectUtils.setField(c, message, "flags", 64L, true);
-                        ReflectUtils.setField(c, message, "author", Utils.buildClyde(res.name, res.avatarUrl), true);
+                        ReflectUtils.setField(c, message, "author", Utils.buildClyde(res.username, res.avatarUrl), true);
                         Utils.rerenderChat(); // TODO: figure out how to rerender single message
                     } catch (Throwable ignored) {}
                 } else {

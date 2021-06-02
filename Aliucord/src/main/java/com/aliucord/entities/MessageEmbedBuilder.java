@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "deprecation"})
 public class MessageEmbedBuilder {
     // reflect moment
     private static Field authorField;
@@ -64,7 +64,10 @@ public class MessageEmbedBuilder {
         } catch (Exception e) { Main.logger.error(e); }
     }
 
-    private final com.discord.api.message.embed.MessageEmbed embed;
+    // NOTE: make it private again after
+    /** @deprecated Use build() instead */
+    @Deprecated
+    public final com.discord.api.message.embed.MessageEmbed embed;
 
     public MessageEmbedBuilder() {
         this(EmbedType.RICH);
@@ -75,7 +78,7 @@ public class MessageEmbedBuilder {
         setType(type);
     }
 
-    public MessageEmbed build() {
+    public com.discord.api.message.embed.MessageEmbed build() {
         return embed;
     }
 
