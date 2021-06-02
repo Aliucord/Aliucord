@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class MessageEmbed {
+public class MessageEmbedBuilder {
     // reflect moment
     private static Field authorField;
     private static Field colorField;
@@ -64,18 +64,22 @@ public class MessageEmbed {
         } catch (Exception e) { Main.logger.error(e); }
     }
 
-    public com.discord.api.message.embed.MessageEmbed embed;
+    private final com.discord.api.message.embed.MessageEmbed embed;
 
-    public MessageEmbed() {
+    public MessageEmbedBuilder() {
         this(EmbedType.RICH);
     }
 
-    public MessageEmbed(EmbedType type) {
+    public MessageEmbedBuilder(EmbedType type) {
         embed = new com.discord.api.message.embed.MessageEmbed();
         setType(type);
     }
 
-    public MessageEmbed setAuthor(String name, String iconUrl, String url) {
+    public MessageEmbed build() {
+        return embed;
+    }
+
+    public MessageEmbedBuilder setAuthor(String name, String iconUrl, String url) {
         EmbedAuthor author = new EmbedAuthor();
         Class<EmbedAuthor> c = EmbedAuthor.class;
         try {
@@ -85,32 +89,32 @@ public class MessageEmbed {
         } catch (Throwable e) { Main.logger.error(e); }
         return setAuthor(author);
     }
-    public MessageEmbed setAuthor(EmbedAuthor v) {
+    public MessageEmbedBuilder setAuthor(EmbedAuthor v) {
         try {
             authorField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
 
-    public MessageEmbed setColor(Integer v) {
+    public MessageEmbedBuilder setColor(Integer v) {
         try {
             colorField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
 
-    public MessageEmbed setDescription(String v) {
+    public MessageEmbedBuilder setDescription(String v) {
         try {
             descriptionField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
 
-    public MessageEmbed addField(String name, String value, boolean inline) {
+    public MessageEmbedBuilder addField(String name, String value, boolean inline) {
         return addField(createField(name, value, inline));
     }
     @SuppressWarnings("unchecked")
-    public MessageEmbed addField(EmbedField v) {
+    public MessageEmbedBuilder addField(EmbedField v) {
         try {
             List<EmbedField> o = (List<EmbedField>) fieldsField.get(embed);
             if (o == null) fieldsField.set(embed, Collections.singletonList(v));
@@ -123,14 +127,14 @@ public class MessageEmbed {
         return this;
     }
 
-    public MessageEmbed setFields(List<EmbedField> v) {
+    public MessageEmbedBuilder setFields(List<EmbedField> v) {
         try {
             fieldsField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
 
-    public MessageEmbed setFooter(String text, String iconUrl) {
+    public MessageEmbedBuilder setFooter(String text, String iconUrl) {
         EmbedFooter footer = new EmbedFooter();
         Class<EmbedFooter> c = EmbedFooter.class;
         try {
@@ -139,63 +143,63 @@ public class MessageEmbed {
         } catch (Throwable e) { Main.logger.error(e); }
         return setFooter(footer);
     }
-    public MessageEmbed setFooter(EmbedFooter v) {
+    public MessageEmbedBuilder setFooter(EmbedFooter v) {
         try {
             footerField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
 
-    public MessageEmbed setImage(EmbedImage v) {
+    public MessageEmbedBuilder setImage(EmbedImage v) {
         try {
             imageField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
 
-    public MessageEmbed setProvider(EmbedProvider v) {
+    public MessageEmbedBuilder setProvider(EmbedProvider v) {
         try {
             providerField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
 
-    public MessageEmbed setThumbnail(EmbedThumbnail v) {
+    public MessageEmbedBuilder setThumbnail(EmbedThumbnail v) {
         try {
             thumbnailField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
 
-    public MessageEmbed setTimestamp(UtcDateTime v) {
+    public MessageEmbedBuilder setTimestamp(UtcDateTime v) {
         try {
             timestampField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
 
-    public MessageEmbed setTitle(String v) {
+    public MessageEmbedBuilder setTitle(String v) {
         try {
             titleField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
 
-    public MessageEmbed setType(EmbedType v) {
+    public MessageEmbedBuilder setType(EmbedType v) {
         try {
             typeField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
 
-    public MessageEmbed setUrl(String v) {
+    public MessageEmbedBuilder setUrl(String v) {
         try {
             urlField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
 
-    public MessageEmbed setVideo(EmbedVideo v) {
+    public MessageEmbedBuilder setVideo(EmbedVideo v) {
         try {
             videoField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
