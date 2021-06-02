@@ -2,6 +2,7 @@ package com.discord.models.domain;
 
 import com.discord.api.guildmember.GuildMember;
 import com.discord.api.interaction.Interaction;
+import com.discord.api.message.embed.MessageEmbed;
 import com.discord.api.user.User;
 import com.discord.models.messages.LocalAttachment;
 import com.discord.models.sticker.dto.ModelSticker;
@@ -86,7 +87,7 @@ public class ModelMessage {
             String timestamp,
             String editedTimestamp,
             List<ModelMessageAttachment> attachments,
-            List<ModelMessageEmbed> embeds,
+            List<MessageEmbed> embeds,
             boolean tts,
             Call call,
             boolean mentionEveryone,
@@ -118,7 +119,7 @@ public class ModelMessage {
     public String getContent() { return null; }
     public long getEditedTimestamp() { return 0; }
     public Long getEditedTimestampMilliseconds() { return null; }
-    public List<ModelMessageEmbed> getEmbeds() { return new ArrayList<>(); }
+    public List<MessageEmbed> getEmbeds() { return new ArrayList<>(); }
     public Long getFlags() { return null; }
     public Long getGuildId() { return null; }
     public long getId() { return 0; }

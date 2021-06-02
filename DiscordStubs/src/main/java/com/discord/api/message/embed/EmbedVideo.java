@@ -2,17 +2,10 @@ package com.discord.api.message.embed;
 
 @SuppressWarnings("unused")
 public final class EmbedVideo {
-    private final Integer height;
-    private final String proxyUrl;
-    private final String url;
-    private final Integer width;
-
-    public EmbedVideo(String url, String proxyUrl, Integer height, Integer width) {
-        this.url = url;
-        this.proxyUrl = proxyUrl;
-        this.height = height;
-        this.width = width;
-    }
+    private Integer height;
+    private String proxyUrl;
+    private String url;
+    private Integer width;
 
     // getHeight
     public final Integer a() { return height; }

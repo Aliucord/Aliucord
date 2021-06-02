@@ -7,8 +7,8 @@ import com.discord.models.member.GuildMember;
 import com.discord.models.user.User;
 import com.discord.stores.StoreApplicationInteractions;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @SuppressWarnings("unused")
 public final class WidgetApplicationCommandBottomSheetViewModel {
@@ -22,7 +22,7 @@ public final class WidgetApplicationCommandBottomSheetViewModel {
                 GuildMember member,
                 StoreApplicationInteractions.State state,
                 Application application,
-                List<Long> mentionedUsers,
+                Set<Long> mentionedUsers,
                 Map<Long, GuildMember> guildMembers,
                 Map<Long, GuildRole> guildRoles,
                 Map<Long, ? extends User> users,

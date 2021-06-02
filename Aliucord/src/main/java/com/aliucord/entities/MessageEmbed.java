@@ -8,7 +8,7 @@ package com.aliucord.entities;
 import com.aliucord.Main;
 import com.aliucord.utils.ReflectUtils;
 import com.discord.api.message.embed.*;
-import com.discord.models.domain.ModelMessageEmbed;
+import com.discord.api.utcdatetime.UtcDateTime;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -16,9 +16,8 @@ import java.util.Collections;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class MessageEmbed extends ModelMessageEmbed {
+public class MessageEmbed {
     // reflect moment
-    private static Field attachmentField;
     private static Field authorField;
     private static Field colorField;
     private static Field descriptionField;
@@ -26,7 +25,6 @@ public class MessageEmbed extends ModelMessageEmbed {
     private static Field footerField;
     private static Field imageField;
     private static Field providerField;
-    private static Field referenceIdField;
     private static Field thumbnailField;
     private static Field timestampField;
     private static Field titleField;
@@ -36,9 +34,7 @@ public class MessageEmbed extends ModelMessageEmbed {
 
     static {
         try {
-            Class<ModelMessageEmbed> c = ModelMessageEmbed.class;
-            attachmentField = c.getDeclaredField("attachment");
-            attachmentField.setAccessible(true);
+            Class<com.discord.api.message.embed.MessageEmbed> c = com.discord.api.message.embed.MessageEmbed.class;
             authorField = c.getDeclaredField("author");
             authorField.setAccessible(true);
             colorField = c.getDeclaredField("color");
@@ -53,8 +49,6 @@ public class MessageEmbed extends ModelMessageEmbed {
             imageField.setAccessible(true);
             providerField = c.getDeclaredField("provider");
             providerField.setAccessible(true);
-            referenceIdField = c.getDeclaredField("referenceId");
-            referenceIdField.setAccessible(true);
             thumbnailField = c.getDeclaredField("thumbnail");
             thumbnailField.setAccessible(true);
             timestampField = c.getDeclaredField("timestamp");
@@ -70,20 +64,15 @@ public class MessageEmbed extends ModelMessageEmbed {
         } catch (Exception e) { Main.logger.error(e); }
     }
 
+    public com.discord.api.message.embed.MessageEmbed embed;
+
     public MessageEmbed() {
-        this(RICH);
+        this(EmbedType.RICH);
     }
 
-    public MessageEmbed(String type) {
-        super();
+    public MessageEmbed(EmbedType type) {
+        embed = new com.discord.api.message.embed.MessageEmbed();
         setType(type);
-    }
-
-    public MessageEmbed setAttachment(boolean v) {
-        try {
-            attachmentField.set(this, v);
-        } catch (Throwable e) { Main.logger.error(e); }
-        return this;
     }
 
     public MessageEmbed setAuthor(String name, String iconUrl, String url) {
@@ -98,21 +87,21 @@ public class MessageEmbed extends ModelMessageEmbed {
     }
     public MessageEmbed setAuthor(EmbedAuthor v) {
         try {
-            authorField.set(this, v);
+            authorField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
 
     public MessageEmbed setColor(Integer v) {
         try {
-            colorField.set(this, v);
+            colorField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
 
     public MessageEmbed setDescription(String v) {
         try {
-            descriptionField.set(this, v);
+            descriptionField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
@@ -123,12 +112,12 @@ public class MessageEmbed extends ModelMessageEmbed {
     @SuppressWarnings("unchecked")
     public MessageEmbed addField(EmbedField v) {
         try {
-            List<EmbedField> o = (List<EmbedField>) fieldsField.get(this);
-            if (o == null) fieldsField.set(this, Collections.singletonList(v));
+            List<EmbedField> o = (List<EmbedField>) fieldsField.get(embed);
+            if (o == null) fieldsField.set(embed, Collections.singletonList(v));
             else {
                 ArrayList<EmbedField> aList = (o instanceof ArrayList ? (ArrayList<EmbedField>) o : new ArrayList<>(o));
                 aList.add(v);
-                fieldsField.set(this, aList);
+                fieldsField.set(embed, aList);
             }
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
@@ -136,7 +125,7 @@ public class MessageEmbed extends ModelMessageEmbed {
 
     public MessageEmbed setFields(List<EmbedField> v) {
         try {
-            fieldsField.set(this, v);
+            fieldsField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
@@ -152,70 +141,63 @@ public class MessageEmbed extends ModelMessageEmbed {
     }
     public MessageEmbed setFooter(EmbedFooter v) {
         try {
-            footerField.set(this, v);
+            footerField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
 
     public MessageEmbed setImage(EmbedImage v) {
         try {
-            imageField.set(this, v);
+            imageField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
 
     public MessageEmbed setProvider(EmbedProvider v) {
         try {
-            providerField.set(this, v);
-        } catch (Throwable e) { Main.logger.error(e); }
-        return this;
-    }
-
-    public MessageEmbed setReferenceId(Long v) {
-        try {
-            referenceIdField.set(this, v);
+            providerField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
 
     public MessageEmbed setThumbnail(EmbedThumbnail v) {
         try {
-            thumbnailField.set(this, v);
+            thumbnailField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
 
-    public MessageEmbed setTimestamp(String v) {
+    public MessageEmbed setTimestamp(UtcDateTime v) {
         try {
-            timestampField.set(this, v);
+            timestampField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
 
     public MessageEmbed setTitle(String v) {
         try {
-            titleField.set(this, v);
+            titleField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
 
-    public MessageEmbed setType(String v) {
+    public MessageEmbed setType(EmbedType v) {
         try {
-            typeField.set(this, v);
+            typeField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
 
     public MessageEmbed setUrl(String v) {
         try {
-            urlField.set(this, v);
+            urlField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
 
-    public MessageEmbed setVideo(String v) {
+    public MessageEmbed setVideo(EmbedVideo v) {
         try {
-            videoField.set(this, v);
+            videoField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }

@@ -8,12 +8,13 @@ package com.aliucord.api;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.aliucord.CollectionUtils;
 import com.aliucord.Main;
 import com.aliucord.Utils;
 import com.aliucord.utils.ReflectUtils;
 import com.discord.api.commands.ApplicationCommandData;
+import com.discord.api.message.embed.MessageEmbed;
 import com.discord.models.domain.ModelMessage;
-import com.discord.models.domain.ModelMessageEmbed;
 import com.discord.api.commands.ApplicationCommandType;
 import com.discord.api.commands.Application;
 import com.discord.models.commands.ApplicationCommand;
@@ -46,14 +47,14 @@ import kotlin.jvm.functions.Function1;
 public class CommandsAPI {
     public static class CommandResult {
         public String content;
-        public List<ModelMessageEmbed> embeds;
+        public List<MessageEmbed> embeds;
         public boolean send;
 
         public CommandResult() { this(null); }
         public CommandResult(String content) {
             this(content, null, true);
         }
-        public CommandResult(String content, List<ModelMessageEmbed> embeds, boolean send) {
+        public CommandResult(String content, List<MessageEmbed> embeds, boolean send) {
             this.content = content;
             this.embeds = embeds;
             this.send = send;
@@ -111,7 +112,7 @@ public class CommandsAPI {
                             guildId == 0 ? null : StoreStream.getGuilds().getMembers().get(guildId).get(me.getId()),
                             new StoreApplicationInteractions.State.Loaded(new ApplicationCommandData("", "", "", name, Collections.emptyList())),
                             CommandsAPI.getAliucordApplication(),
-                            Collections.emptyList(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(),
+                            Collections.emptySet(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(),
                             Collections.emptyMap()
                     ));
                     try {
