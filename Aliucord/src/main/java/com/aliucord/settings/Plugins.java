@@ -141,7 +141,7 @@ public class Plugins extends SettingsPage {
             for (Map.Entry<String, Plugin> entry : PluginManager.plugins.entrySet()) try {
                 list.add(new PluginCard(context, entry.getKey(), entry.getValue(), fragmentManager));
             } catch (Throwable e) { Main.logger.error("Exception while rendering plugin settings", e); }
-            Collections.sort(list, (a, b) -> a.pluginName.charAt(0) - b.pluginName.charAt(0));
+            Collections.sort(list, (a, b) -> a.pluginName.compareTo(b.pluginName));
 
             new Handler(Looper.getMainLooper()).post(() -> {
                 RecyclerView recyclerView = new RecyclerView(context);
