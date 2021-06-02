@@ -8,7 +8,6 @@ package com.aliucord.api;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.aliucord.CollectionUtils;
 import com.aliucord.Main;
 import com.aliucord.Utils;
 import com.aliucord.utils.ReflectUtils;
@@ -49,6 +48,8 @@ public class CommandsAPI {
         public String content;
         public List<MessageEmbed> embeds;
         public boolean send;
+        public String name;
+        public String avatarUrl;
 
         public CommandResult() { this(null); }
         public CommandResult(String content) {
@@ -57,6 +58,19 @@ public class CommandsAPI {
         public CommandResult(String content, List<MessageEmbed> embeds, boolean send) {
             this.content = content;
             this.embeds = embeds;
+            this.send = send;
+        }
+        public CommandResult(String content, List<MessageEmbed> embeds, String name, boolean send) {
+            this.content = content;
+            this.embeds = embeds;
+            this.name = name;
+            this.send = send;
+        }
+        public CommandResult(String content, List<MessageEmbed> embeds, String name, String avatarUrl, boolean send) {
+            this.content = content;
+            this.embeds = embeds;
+            this.name = name;
+            this.avatarUrl = avatarUrl;
             this.send = send;
         }
     }
@@ -84,7 +98,7 @@ public class CommandsAPI {
             long channelId = StoreStream.getChannelsSelected().getId();
             User me = StoreStream.getUsers().getMe();
             ModelMessage message = ModelMessage.createLocalApplicationCommandMessage(
-                    id, name, channelId, UserUtils.INSTANCE.synthesizeApiUser(me), Utils.CLYDE, false, true, id, clock);
+                    id, name, channelId, UserUtils.INSTANCE.synthesizeApiUser(me), Utils.buildClyde(null, null), false, true, id, clock);
             Class<ModelMessage> c = ModelMessage.class;
             try {
                 ReflectUtils.setField(c, message, "flags", 192L, true);
@@ -119,6 +133,7 @@ public class CommandsAPI {
                         ReflectUtils.setField(c, message, "content", res.content, true);
                         ReflectUtils.setField(c, message, "embeds", res.embeds, true);
                         ReflectUtils.setField(c, message, "flags", 64L, true);
+                        ReflectUtils.setField(c, message, "author", Utils.buildClyde(res.name, res.avatarUrl), true);
                         Utils.rerenderChat(); // TODO: figure out how to rerender single message
                     } catch (Throwable ignored) {}
                 } else {

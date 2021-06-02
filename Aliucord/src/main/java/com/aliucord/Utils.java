@@ -97,10 +97,19 @@ public class Utils {
         return choice;
     }
 
-    public static User CLYDE = new User(
+    public static User buildClyde(String name, String avatarUrl) {
+        if (name == null) {
+            name = "Clyde";
+        }
+
+        if (avatarUrl == null) {
+            avatarUrl = "https://canary.discord.com/assets/f78426a064bc9dd24847519259bc42af.png";
+        }
+
+        return new User(
             -1,
-            "Clyde",
-            new UserAvatar.Avatar("https://canary.discord.com/assets/f78426a064bc9dd24847519259bc42af.png"),
+            name,
+            new UserAvatar.Avatar(avatarUrl),
             "0000",
             0,
             null,
@@ -117,7 +126,8 @@ public class Utils {
             null,
             null,
             null
-    );
+        );
+    }
 
     /** @deprecated Use ReflectUtils */
     @Deprecated
