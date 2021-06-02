@@ -41,9 +41,11 @@ import java.io.File;
 
 @SuppressLint({"SetTextI18n", "ViewConstructor"})
 public final class PluginCard extends MaterialCardView {
+    public final String pluginName;
     public final TextView titleView;
     public PluginCard(Context context, String name, Plugin p, FragmentManager fragmentManager) {
         super(context);
+        pluginName = name;
         int padding = Utils.getDefaultPadding();
         int padding2 = padding / 2;
         boolean enabled = PluginManager.isPluginEnabled(name);
