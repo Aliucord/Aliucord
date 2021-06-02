@@ -66,7 +66,7 @@ public class CommandsAPI {
             this.name = name;
             this.send = send;
         }
-        public CommandResult(String content, List<MessageEmbed> embeds, String name, String avatarUrl, boolean send) {
+        public CommandResult(String content, List<MessageEmbed> embeds, boolean send, String username, String avatarUrl) {
             this.content = content;
             this.embeds = embeds;
             this.name = name;
