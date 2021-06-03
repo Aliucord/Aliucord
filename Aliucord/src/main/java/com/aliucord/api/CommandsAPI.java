@@ -130,11 +130,13 @@ public class CommandsAPI {
                             Collections.emptyMap()
                     ));
                     try {
-                        ReflectUtils.setField(c, message, "content", res.content, true);
-                        ReflectUtils.setField(c, message, "embeds", res.embeds, true);
-                        ReflectUtils.setField(c, message, "flags", 64L, true);
-                        ReflectUtils.setField(c, message, "author", Utils.buildClyde(res.username, res.avatarUrl), true);
-                        Utils.rerenderChat(); // TODO: figure out how to rerender single message
+                        ModelMessage commandMessage = ModelMessage.createLocalMessage(res.content, channelId, Utils.buildClyde(res.username, res.avatarUrl), null, false, false, null, null, clock, null, null, null, null, null, null, null);
+
+                        ReflectUtils.setField(c, commandMessage, "embeds", res.embeds, true);
+                        ReflectUtils.setField(c, commandMessage, "flags", 64L, true);
+
+                        storeMessages.deleteMessage(message);
+                        StoreMessages.access$handleLocalMessageCreate(storeMessages, commandMessage);
                     } catch (Throwable ignored) {}
                 } else {
                     new Handler(Looper.getMainLooper()).post(() -> ChatInputViewModel.sendMessage$default(

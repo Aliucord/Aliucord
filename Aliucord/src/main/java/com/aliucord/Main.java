@@ -202,11 +202,6 @@ public class Main {
             return new PrePatchRes("res:///" + Utils.getResId(name, "raw"));
         });
 
-        Patcher.addPatch("com.discord.widgets.chat.list.WidgetChatList", "onViewBound", (_this, args, ret) -> {
-            Utils.chatListFragment = (Fragment) _this;
-            return ret;
-        });
-
         PluginManager.startCorePlugins(activity);
 
         for (String name : PluginManager.plugins.keySet()) {

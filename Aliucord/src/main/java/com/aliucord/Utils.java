@@ -7,16 +7,11 @@ package com.aliucord;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.View;
 import android.widget.TextView;
 
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 
 import com.aliucord.fragments.AppFragmentProxy;
 import com.aliucord.utils.ReflectUtils;
@@ -157,20 +152,6 @@ public class Utils {
         View root = cs.k.b();
         root.setPadding(0, root.getPaddingTop(), root.getPaddingRight(), root.getPaddingBottom());
         return cs;
-    }
-
-    public static Fragment chatListFragment;
-    public static void rerenderChat() {
-        if (chatListFragment == null || chatListFragment.isStateSaved()) return;
-        FragmentManager manager = chatListFragment.getFragmentManager();
-        if (manager == null) return;
-        new Handler(Looper.getMainLooper()).post(() -> {
-            FragmentTransaction ft = manager.beginTransaction();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                ft.detach(chatListFragment).commitNow();
-                manager.beginTransaction().attach(chatListFragment).commitNow();
-            } else ft.detach(chatListFragment).attach(chatListFragment).commit();
-        });
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
