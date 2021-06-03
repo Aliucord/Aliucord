@@ -134,7 +134,7 @@ public class CommandsAPI {
                         ReflectUtils.setField(c, message, "embeds", res.embeds, true);
                         ReflectUtils.setField(c, message, "flags", 64L, true);
                         ReflectUtils.setField(c, message, "author", Utils.buildClyde(res.username, res.avatarUrl), true);
-                        Utils.rerenderChat(); // TODO: figure out how to rerender single message
+                        storeMessages.handleMessageUpdate(message);
                     } catch (Throwable ignored) {}
                 } else {
                     new Handler(Looper.getMainLooper()).post(() -> ChatInputViewModel.sendMessage$default(
