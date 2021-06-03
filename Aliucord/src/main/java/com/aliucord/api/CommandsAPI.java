@@ -134,7 +134,6 @@ public class CommandsAPI {
 
                         ReflectUtils.setField(c, commandMessage, "embeds", res.embeds, true);
                         ReflectUtils.setField(c, commandMessage, "flags", 64L, true);
-                        ReflectUtils.setField(c, commandMessage, "type", ModelMessage.TYPE_LOCAL, true);
 
                         storeMessages.deleteMessage(message);
                         StoreMessages.access$handleLocalMessageCreate(storeMessages, commandMessage);
