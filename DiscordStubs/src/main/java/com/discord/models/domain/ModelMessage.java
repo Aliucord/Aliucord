@@ -9,7 +9,6 @@ import com.discord.api.message.embed.MessageEmbed;
 import com.discord.api.sticker.Sticker;
 import com.discord.api.user.User;
 import com.discord.models.messages.LocalAttachment;
-import com.discord.models.sticker.dto.ModelSticker;
 import com.discord.utilities.time.Clock;
 
 import java.util.ArrayList;
@@ -18,7 +17,6 @@ import java.util.List;
 
 @SuppressWarnings("unused")
 public class ModelMessage {
-    public static class Activity {}
     public static class Call {}
 
     public static final int TYPE_APPLICATION_COMMAND = 20;
@@ -97,8 +95,8 @@ public class ModelMessage {
             LinkedHashMap<String, ModelMessageReaction> reactions,
             Boolean pinned,
             Long webhookId,
-            ModelApplication application,
-            Activity activity,
+            Application application,
+            MessageActivity activity,
             boolean hit,
             List<Long> mentionRoles,
             boolean hasLocalUploads,
@@ -110,7 +108,7 @@ public class ModelMessage {
             Long lastManualAttemptTimestamp,
             Long initialAttemptTimestamp,
             Integer retries,
-            List<ModelSticker> stickers
+            List<Sticker> stickers
     ) {}
 
     public ModelMessage(ModelMessage message) {}
