@@ -103,27 +103,36 @@ public class PluginUpdater {
         return updateInfo;
     }
 
-    public static void updateAll() {
-        for (String plugin : updates) update(plugin);
+    public static int updateAll() {
+        int updateCount = 0;
+        for (String plugin : updates) {
+            try {
+                if (update(plugin) && updateCount != -1) updateCount++;
+            } catch (Throwable t) {
+                logger.error("Error while updating plugin " + plugin, t);
+                updateCount = -1;
+            }
+        }
         updates.clear();
         checkUpdates(false);
+        return updateCount;
     }
 
-    public static void update(String plugin) {
-        try {
-            Plugin p = PluginManager.plugins.get(plugin);
-            UpdateInfo updateInfo = getUpdateInfo(p);
-            if (updateInfo == null) return;
+    public static boolean update(String plugin) throws Throwable {
+        Plugin p = PluginManager.plugins.get(plugin);
+        assert p != null;
+        UpdateInfo updateInfo = getUpdateInfo(p);
+        if (updateInfo == null) return false;
 
-            String url = updateInfo.build;
-            if (url.contains("%s")) url = String.format(url, plugin);
+        String url = updateInfo.build;
+        if (url.contains("%s")) url = String.format(url, plugin);
 
-            try (FileOutputStream out = new FileOutputStream(Constants.BASE_PATH + "/plugins/" + p.__filename + ".zip")) {
-                new Http.Request(url).execute().pipe(out);
-            }
+        try (FileOutputStream out = new FileOutputStream(Constants.BASE_PATH + "/plugins/" + p.__filename + ".zip")) {
+            new Http.Request(url).execute().pipe(out);
+        }
 
-            updated.put(plugin, updateInfo.version);
-        } catch (Throwable e) { logger.error(e); }
+        updated.put(plugin, updateInfo.version);
+        return true;
     }
 
     private static void addDefaultInfo(UpdateInfo updateInfo, UpdateInfo defaultInfo) {

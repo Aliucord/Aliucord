@@ -7,8 +7,6 @@ package com.aliucord.widgets;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.View;
 import android.widget.TextView;
 
@@ -26,8 +24,6 @@ import com.google.android.material.card.MaterialCardView;
 import com.lytefast.flexinput.R$b;
 import com.lytefast.flexinput.R$h;
 
-import java.util.Objects;
-
 @SuppressLint({"SetTextI18n", "ViewConstructor"})
 public class UpdaterPluginCard extends MaterialCardView {
     public UpdaterPluginCard(Context context, String plugin, Runnable forceUpdate) {
@@ -43,6 +39,7 @@ public class UpdaterPluginCard extends MaterialCardView {
         setContentPadding(padding, padding, padding, padding);
 
         Plugin p = PluginManager.plugins.get(plugin);
+        assert p != null;
 
         ConstraintLayout layout = new ConstraintLayout(context);
         TextView tv = new TextView(context, null, 0, R$h.UiKit_TextView_H2);
@@ -60,7 +57,8 @@ public class UpdaterPluginCard extends MaterialCardView {
 
         tv = new TextView(context, null, 0, R$h.UiKit_TextView_Subtext);
         try {
-            tv.setText(p.getManifest().version + " -> " + Objects.requireNonNull(PluginUpdater.getUpdateInfo(p)).version);
+            PluginUpdater.UpdateInfo info = PluginUpdater.getUpdateInfo(p);
+            tv.setText(String.format("%s -> v%s", p.getManifest().version, info != null ? info.version : "?"));
         } catch (Throwable e) { Main.logger.error(e); }
         int verid = View.generateViewId();
         tv.setId(verid);
@@ -79,9 +77,15 @@ public class UpdaterPluginCard extends MaterialCardView {
             update.setEnabled(false);
             update.setText("Updating..");
             new Thread(() -> {
-                PluginUpdater.update(plugin);
-                PluginUpdater.updates.remove(plugin);
-                new Handler(Looper.getMainLooper()).post(forceUpdate);
+                try {
+                    PluginUpdater.update(plugin);
+                    PluginUpdater.updates.remove(plugin);
+                    Main.logger.info(context, "Successfully updated " + p.name);
+                } catch (Throwable t) {
+                    Main.logger.error(context, "Sorry, something went wrong while updating " + p.name, t);
+                } finally {
+                    Utils.mainThread.post(forceUpdate);
+                }
             }).start();
         });
         int updateId = View.generateViewId();
