@@ -42,7 +42,7 @@ public class PluginManager {
             p.__filename = name;
             //noinspection ConstantConditions
             if (p.getManifest() == null) {
-                logger.error("Invalid manifest for plugin: " + pName, null);
+                logger.error(context, "Invalid manifest for plugin: " + pName, null);
                 return;
             }
             if (p.needsResources) {
@@ -54,7 +54,7 @@ public class PluginManager {
             }
             plugins.put(pName, p);
             p.load(context);
-        } catch (Throwable e) { logger.error("Exception while loading plugin: " + name, e); }
+        } catch (Throwable e) { logger.error(context, "Failed to load plugin: " + name, e); }
     }
 
     public static void enablePlugin(String name) {
@@ -102,7 +102,7 @@ public class PluginManager {
             try {
                 p.load(context);
             } catch (Throwable e) {
-                logger.error("Failed to load core plugin", e);
+                logger.error(context,"Failed to load core plugin " + p.name, e);
             }
         }
     }
@@ -114,7 +114,7 @@ public class PluginManager {
             try {
                 p.start(context);
             } catch (Throwable e) {
-                logger.error("Failed to start core plugin", e);
+                logger.error(context, "Failed to start core plugin " + p.name, e);
             }
         }
     }

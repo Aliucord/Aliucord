@@ -7,8 +7,11 @@ package com.aliucord;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
@@ -27,6 +30,7 @@ import com.google.gson.Gson;
 
 import java.io.InputStream;
 import java.lang.reflect.Type;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -38,8 +42,21 @@ import rx.functions.Action1;
 
 @SuppressWarnings("unused")
 public class Utils {
+    public static final Handler mainThread = new Handler(Looper.getMainLooper());
     public static AppActivity appActivity;
     public static Context appContext;
+
+    public static String pluralise(int amount, String noun) {
+        return String.format(Locale.ENGLISH, "%d %s%s", amount, noun, amount == 1 ? "" : "s");
+    }
+
+    /** Send a toast from any Thread */
+    public static void showToast(Context ctx, String message, boolean showLonger) {
+        mainThread.post(() -> Toast.makeText(ctx, message, showLonger ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT).show());
+    }
+    public static void showToast(Context ctx, String message) {
+        showToast(ctx, message, false);
+    }
 
     public static void setAppContext() {
         appContext = NotificationClient.access$getContext$p(NotificationClient.INSTANCE);

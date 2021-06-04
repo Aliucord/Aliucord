@@ -127,9 +127,10 @@ public final class PluginCard extends MaterialCardView {
         uninstall.setText("Uninstall");
         uninstall.setOnClickListener(e -> {
             File pluginFile = new File(Constants.BASE_PATH + "/plugins/" + p.__filename + ".zip");
-            if (pluginFile.exists() && !pluginFile.delete()) Main.logger.error("Failed to delete plugin", null);
+            if (pluginFile.exists() && !pluginFile.delete()) Main.logger.error(context, "Failed to delete plugin " + p.name, null);
             PluginManager.stopPlugin(name);
             PluginManager.plugins.remove(name);
+            Main.logger.info(context, "Successfully deleted " + p.name);
             setVisibility(GONE);
         });
         buttons.addView(uninstall, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(3)));
