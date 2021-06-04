@@ -69,13 +69,12 @@ public class Updater extends SettingsPage {
             state.setText("Checking for updates...");
             new Thread(() -> {
                 PluginUpdater.checkUpdates(false);
-                Utils.mainThread.post(forceUpdate);
                 int updateCount = PluginUpdater.updates.size();
                 if (updateCount == 0)
                     stateText = "No updates found";
                 else
                     stateText = String.format("Found %s", Utils.pluralise(updateCount, "update"));
-                Utils.mainThread.post(() -> state.setText(stateText));
+                Utils.mainThread.post(forceUpdate);
             }).start();
         });
         buttons.addView(btn);
