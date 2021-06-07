@@ -27,6 +27,10 @@ public final class User {
             GuildMember guildMember
     ) {}
 
+    /** getAvatar */
+    public final UserAvatar a() { return null; }
+    /** getBot */
+    public final Boolean b() { return false; }
     /** getDiscriminator */
     public final String c() { return ""; }
     /** getFlags */

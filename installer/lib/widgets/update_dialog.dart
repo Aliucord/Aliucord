@@ -53,14 +53,14 @@ class _UpdateDialogState extends State<UpdateDialog> {
         child: Row(children: [
           const Icon(Icons.cancel_outlined),
           const Text(' Cancel'),
-        ]),
+        ], mainAxisSize: MainAxisSize.min),
         onPressed: _dismiss,
       ),
       TextButton(
         child: Row(children: [
           const Icon(Icons.file_download),
           const Text(' Update'),
-        ]),
+        ], mainAxisSize: MainAxisSize.min),
         onPressed: _update,
       ),
     ],

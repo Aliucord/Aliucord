@@ -28,7 +28,7 @@ class Themes {
     accentColor: primaryColor,
     appBarTheme: AppBarTheme(brightness: Brightness.dark, iconTheme: IconThemeData(color: Colors.white)),
     brightness: Brightness.dark,
-    colorScheme: ColorScheme.dark(primary: primaryColor, primaryVariant: primaryColorDark, onPrimary: Colors.white),
+    colorScheme: ColorScheme.dark(primary: primaryColor, primaryVariant: primaryColorDark, secondary: primaryColor, onPrimary: Colors.white),
     checkboxTheme: CheckboxThemeData(fillColor: MaterialStateProperty.resolveWith((states) => primaryColor)),
     primaryColor: primaryColor,
     primaryColorLight: primaryColorLight,

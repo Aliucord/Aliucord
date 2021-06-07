@@ -9,5 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 public class WidgetChatInputCommandsAdapter {
     public static class Item extends RecyclerView.ViewHolder {
         public Item(@NonNull View itemView) { super(itemView); }
+
+        public void onConfigure(int i, final WidgetChatInputCommandsModel widgetChatInputCommandsModel) {}
     }
 }
