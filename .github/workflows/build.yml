@@ -11,11 +11,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Sleep for 4 minutes (waiting for installer build action)
-      uses: kibertoad/wait-action@1.0.1
-      with:
-        time: '4m'
-
     - name: Checkout
       uses: actions/checkout@master
       with:
