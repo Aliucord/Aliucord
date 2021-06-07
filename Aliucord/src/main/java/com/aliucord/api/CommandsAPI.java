@@ -95,7 +95,7 @@ public class CommandsAPI {
          * @param embeds Embeds to include in the command output. Requires <code>send</code> to be false.
          * @param send Whether to send the message or not. If false, messages will appear locally, otherwise they'll be sent to the current channel.
          * @param username Username for Clyde. Requires <code>send</code> to be false.
-         * @param avatarUrl Avatar URL for Clyde, must be raw. Requires <code>send</code> to be false.
+         * @param avatarUrl Avatar URL for Clyde, must be a direct link, not a redirect. Requires <code>send</code> to be false.
          */
         public CommandResult(String content, List<MessageEmbed> embeds, boolean send, String username, String avatarUrl) {
             this.content = content;
