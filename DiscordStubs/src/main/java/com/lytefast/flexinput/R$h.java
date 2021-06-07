@@ -3,6 +3,8 @@ package com.lytefast.flexinput;
 @SuppressWarnings("unused")
 public class R$h {
     public static int UiKit_CheckedSetting_Themed = 0;
+    public static int UiKit_Material_Button = 0;
+    public static int UiKit_Material_Button_Red = 0;
     public static int UiKit_Settings_Divider = 0;
     public static int UiKit_Settings_Item_Addition = 0;
     public static int UiKit_Settings_Item_Header = 0;
@@ -24,6 +26,4 @@ public class R$h {
     public static int UserProfile_Section_Card = 0;
     public static int UserProfile_Section_Header = 0;
     public static int UserProfile_Section_HeaderTextAppearance = 0;
-    public static int UiKit_Material_Button = 0;
-    public static int UiKit_Material_Button_Red = 0;
 }
