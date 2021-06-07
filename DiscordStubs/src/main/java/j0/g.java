@@ -1,7 +1,7 @@
 package j0;
 
-// rx.Observer
-// https://github.com/ReactiveX/RxJava/blob/1.x/src/main/java/rx/Observer.java
+/** rx.Observer */
+/** https://github.com/ReactiveX/RxJava/blob/1.x/src/main/java/rx/Observer.java */
 @SuppressWarnings("unused")
 public interface g<T> {
     void onCompleted();

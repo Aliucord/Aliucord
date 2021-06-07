@@ -5,10 +5,10 @@ import android.widget.TextView;
 
 @SuppressWarnings("unused")
 public final class WidgetSettingsBinding {
-    // developerOptionsDivider
+    /** developerOptionsDivider */
     public View n;
-    // developerOptionsHeader
+    /** developerOptionsHeader */
     public TextView o;
-    // developerOptions
+    /** developerOptions */
     public TextView m;
 }

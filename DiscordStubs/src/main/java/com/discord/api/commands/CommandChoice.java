@@ -2,8 +2,8 @@ package com.discord.api.commands;
 
 @SuppressWarnings("unused")
 public final class CommandChoice {
-    // getName
+    /** getName */
     public final String a() { return ""; }
-    // getValue
+    /** getValue */
     public final String b() { return ""; }
 }

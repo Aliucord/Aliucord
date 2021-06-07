@@ -4,11 +4,11 @@ import java.lang.reflect.Type;
 
 @SuppressWarnings("unused")
 public final class Gson {
-    // prettyPrint
+    /** prettyPrint */
     public final boolean k = false;
 
-    // fromJson
+    /** fromJson */
     public <T> T g(String json, Type type) throws JsonSyntaxException { return null; }
-    // toJson
+    /** toJson */
     public String l(Object object) { return ""; }
 }

@@ -7,10 +7,10 @@ public final class EmbedAuthor {
     private String proxyIconUrl;
     private String url;
 
-    // getName
+    /** getName */
     public final String a() { return name; }
-    // getProxyIconUrl
+    /** getProxyIconUrl */
     public final String b() { return proxyIconUrl; }
-    // getUrl
+    /** getUrl */
     public final String c() { return url; }
 }

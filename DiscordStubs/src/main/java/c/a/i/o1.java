@@ -2,7 +2,7 @@ package c.a.i;
 
 import com.facebook.drawee.view.SimpleDraweeView;
 
-// UserAvatarPresenceViewBinding
+/** UserAvatarPresenceViewBinding */
 public final class o1 {
     public SimpleDraweeView b;
 }

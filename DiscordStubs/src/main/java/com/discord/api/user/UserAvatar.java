@@ -20,6 +20,6 @@ public abstract class UserAvatar {
 
     public UserAvatar(String url, DefaultConstructorMarker defaultConstructorMarker) {}
 
-    // getUrl
+    /** getUrl */
     public final String a() { return ""; }
 }

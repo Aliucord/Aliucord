@@ -6,8 +6,8 @@ public final class EmbedFooter {
     private String proxyIconUrl;
     private String text;
 
-    // getProxyIconUrl
+    /** getProxyIconUrl */
     public final String a() { return proxyIconUrl; }
-    // getText
+    /** getText */
     public final String b() { return text; }
 }

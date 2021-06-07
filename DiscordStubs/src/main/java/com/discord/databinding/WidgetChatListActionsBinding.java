@@ -9,9 +9,9 @@ import androidx.viewbinding.ViewBinding;
 
 @SuppressWarnings("unused")
 public final class WidgetChatListActionsBinding implements ViewBinding {
-    // root
+    /** root */
     public NestedScrollView a;
-    // delete button
+    /** delete button */
     public final TextView e = new TextView(null);
 
     @NonNull
