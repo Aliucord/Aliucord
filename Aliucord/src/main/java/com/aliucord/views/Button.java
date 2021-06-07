@@ -6,10 +6,8 @@
 package com.aliucord.views;
 
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.res.Resources;
 import android.os.Build;
-import android.util.Log;
 import android.view.ContextThemeWrapper;
 
 import com.google.android.material.button.MaterialButton;
@@ -32,6 +30,10 @@ public class Button extends MaterialButton {
         else setBackgroundColor(res.getColor(R$c.brand));
     }
 
+    /**
+     * Creates a Discord styled button.
+     * @param context {@link Context}
+     */
     public Button(Context context) {
         super(new ContextThemeWrapper(context, R$h.UiKit_Material_Button), null, 0);
     }

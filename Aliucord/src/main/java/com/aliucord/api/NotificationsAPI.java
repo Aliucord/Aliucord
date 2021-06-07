@@ -13,10 +13,21 @@ import com.discord.widgets.notice.NoticePopup;
 import kotlin.Unit;
 
 public class NotificationsAPI {
+
+    /**
+     * Displays a notification to the user.
+     * @param data {@link NotificationData}
+     * @see NotificationsAPI#display(NotificationData, Long)
+     */
     public static void display(NotificationData data) {
         display(data, null);
     }
 
+    /**
+     * Displays a notification to the user in a specific channel.
+     * @param data {@link NotificationData}
+     * @param channelId Channel to display the notification in.
+     */
     public static void display(NotificationData data, Long channelId) {
         NoticePopup.enqueue$default(
                 NoticePopup.INSTANCE,
