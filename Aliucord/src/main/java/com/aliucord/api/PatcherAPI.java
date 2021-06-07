@@ -115,7 +115,7 @@ public class PatcherAPI {
     }
 
     /**
-     * Unpatches all patches.
+     * Removes all patches.
      */
     public void unpatchAll() {
         Object[] runnables = unpatches.toArray();
