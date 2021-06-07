@@ -24,4 +24,6 @@ public class R$h {
     public static int UserProfile_Section_Card = 0;
     public static int UserProfile_Section_Header = 0;
     public static int UserProfile_Section_HeaderTextAppearance = 0;
+    public static int UiKit_Material_Button = 0;
+    public static int UiKit_Material_Button_Red = 0;
 }
