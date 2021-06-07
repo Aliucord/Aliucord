@@ -51,21 +51,52 @@ public class CommandsAPI {
         public String username;
         public String avatarUrl;
 
+        /**
+         * calls {@link CommandResult#CommandResult(String, List, boolean)} with default arguments.
+         * @see CommandResult#CommandResult(String, List, boolean)
+         */
         public CommandResult() { this(null); }
+
+        /**
+         * calls {@link CommandResult#CommandResult(String, List, boolean)} with default arguments.
+         * @param content Output message content
+         * @see CommandResult#CommandResult(String, List, boolean)
+         */
         public CommandResult(String content) {
             this(content, null, true);
         }
+
+        /**
+         * @param content Output message content
+         * @param embeds Embeds to include in the command output. Requires <code>send</code> to be false.
+         * @param send Whether to send the message or not. If false, messages will appear locally, otherwise they'll be sent to the current channel.
+         */
         public CommandResult(String content, List<MessageEmbed> embeds, boolean send) {
             this.content = content;
             this.embeds = embeds;
             this.send = send;
         }
+
+        /**
+         * @param content Output message content
+         * @param embeds Embeds to include in the command output. Requires <code>send</code> to be false.
+         * @param send Whether to send the message or not. If false, messages will appear locally, otherwise they'll be sent to the current channel.
+         * @param username Username for Clyde's customization. Requires <code>send</code> to be false.
+         */
         public CommandResult(String content, List<MessageEmbed> embeds, boolean send, String username) {
             this.content = content;
             this.embeds = embeds;
             this.username = username;
             this.send = send;
         }
+
+        /**
+         * @param content Output message content
+         * @param embeds Embeds to include in the command output. Requires <code>send</code> to be false.
+         * @param send Whether to send the message or not. If false, messages will appear locally, otherwise they'll be sent to the current channel.
+         * @param username Username for Clyde. Requires <code>send</code> to be false.
+         * @param avatarUrl Avatar URL for Clyde, must be raw. Requires <code>send</code> to be false.
+         */
         public CommandResult(String content, List<MessageEmbed> embeds, boolean send, String username, String avatarUrl) {
             this.content = content;
             this.embeds = embeds;
@@ -195,6 +226,13 @@ public class CommandsAPI {
         pluginName = plugin;
     }
 
+    /**
+     * Registers a slash command.
+     * @param name Name of the command.
+     * @param description Description of the command.
+     * @param options Arguments for the command. see {@link ApplicationCommandOption}
+     * @param execute Callback for the command.
+     */
     public void registerCommand(
             String name,
             String description,
@@ -206,12 +244,19 @@ public class CommandsAPI {
         pluginCommands.add(name);
     }
 
+    /**
+     * Unregisters a command.
+     * @param name Command to unregister.
+     */
     public void unregisterCommand(String name) {
         _unregisterCommand(name);
         commandsAndPlugins.remove(name);
         pluginCommands.remove(name);
     }
 
+    /**
+     * Unregisters all commands
+     */
     public void unregisterAll() {
         for (String name : pluginCommands) {
             _unregisterCommand(name);
