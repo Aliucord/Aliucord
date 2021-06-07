@@ -12,23 +12,23 @@ import com.google.android.material.button.MaterialButton;
 
 @SuppressWarnings("unused")
 public final class LeaveGuildDialogBinding implements ViewBinding {
-    // root
+    /** root */
     @NonNull
     public final LinearLayout a;
 
-    // cancel
+    /** cancel */
     @NonNull
     public final MaterialButton b;
 
-    // leave
+    /** leave */
     @NonNull
     public final LoadingButton c;
 
-    // body
+    /** body */
     @NonNull
     public final TextView d;
 
-    // header
+    /** header */
     @NonNull
     public final TextView e;
 

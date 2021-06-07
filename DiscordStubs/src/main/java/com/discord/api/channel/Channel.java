@@ -7,24 +7,24 @@ import java.util.List;
 
 @SuppressWarnings("unused")
 public final class Channel {
-    // getGuildId
+    /** getGuildId */
     public final long e() { return 0; }
-    // getId
+    /** getId */
     public final long g() { return 0; }
-    // getName
+    /** getName */
     public final String l() { return ""; }
-    // getMessageCount
+    /** getMessageCount */
     public final Integer k() { return 0; }
-    // getParentId
+    /** getParentId */
     public final long q() { return 0; }
-    // getPosition
+    /** getPosition */
     public final int s() { return 0; }
-    // getRecipientIds
+    /** getRecipientIds */
     public final List<Long> u() { return Collections.emptyList(); }
-    // getRecipients
+    /** getRecipients */
     public final List<User> v() { return Collections.emptyList(); }
-    // getTopic
+    /** getTopic */
     public final String y() { return null; }
-    // getType
+    /** getType */
     public final int z() { return 0; }
 }

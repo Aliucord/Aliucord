@@ -5,10 +5,10 @@ import java.util.List;
 
 @SuppressWarnings("unused")
 public final class GuildMembersChunk {
-    // getGuildId
+    /** getGuildId */
     public final long a() { return 0; }
-    // getMembers
+    /** getMembers */
     public final List<GuildMember> b() { return Collections.emptyList(); }
-    // getNotFound
+    /** getNotFound */
     public final List<Long> c() { return Collections.emptyList(); }
 }

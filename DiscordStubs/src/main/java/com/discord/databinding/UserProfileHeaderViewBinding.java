@@ -13,17 +13,17 @@ import com.discord.views.UsernameView;
 import com.discord.views.user.UserAvatarPresenceView;
 
 public final class UserProfileHeaderViewBinding implements ViewBinding {
-    // root
+    /** root */
     public ConstraintLayout a;
-    // avatar
+    /** avatar */
     public UserAvatarPresenceView b;
-    // badges
+    /** badges */
     public RecyclerView c;
-    // custom status
+    /** custom status */
     public SimpleDraweeSpanTextView d;
-    // username
+    /** username */
     public UsernameView e;
-    // secondary name
+    /** secondary name */
     public TextView f;
 
     @NonNull

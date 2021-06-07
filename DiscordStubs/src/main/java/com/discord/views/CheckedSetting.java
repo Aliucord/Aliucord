@@ -16,14 +16,14 @@ public final class CheckedSetting extends RelativeLayout implements Checkable {
 
         private static final ViewType[] VALUES = values();
     }
-    
+
     public interface b {
-        // text
+        /** text */
         TextView a();
-        // root
+        /** root */
         @SuppressWarnings("MethodNameSameAsClassName")
         View b();
-        // subtext
+        /** subtext */
         TextView f();
     }
 
@@ -40,8 +40,8 @@ public final class CheckedSetting extends RelativeLayout implements Checkable {
     public final void setText(CharSequence text) {}
     public final void setSubtext(CharSequence text) {}
 
-    // setOnClick (?)
+    /** setOnClick (?) */
     public void e(View.OnClickListener listener) {}
-    // setType (?)
+    /** setType (?) */
     public void f(ViewType type) {}
 }

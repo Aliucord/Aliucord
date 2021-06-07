@@ -4,19 +4,19 @@ import java.util.Map;
 
 @SuppressWarnings("unused")
 public class Logger {
-    // debug
+    /** debug */
     public void d(String msg, Throwable th) {}
     public void d(String tag, String msg, Throwable th) {}
-    // error
+    /** error */
     public void e(String msg, Throwable th, Map<String, String> metadata) {}
     public void e(String tag, String msg, Throwable th, Map<String, String> metadata) {}
-    // info
+    /** info */
     public void i(String msg, Throwable th) {}
     public void i(String tag, String msg, Throwable th) {}
-    // verbose
+    /** verbose */
     public void v(String msg, Throwable th) {}
     public void v(String tag, String msg, Throwable th) {}
-    // warn
+    /** warn */
     public void w(String msg, Throwable th) {}
     public void w(String tag, String msg, Throwable th) {}
 }

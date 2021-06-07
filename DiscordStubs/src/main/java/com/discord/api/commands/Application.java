@@ -8,6 +8,6 @@ public final class Application {
 
     public Application(long id, String name, String icon, int commandCount, User bot, boolean builtIn) {}
 
-    // getCommandCount
+    /** getCommandCount */
     public final int c() { return 0; }
 }

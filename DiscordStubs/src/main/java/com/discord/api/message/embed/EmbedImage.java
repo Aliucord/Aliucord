@@ -7,12 +7,12 @@ public final class EmbedImage {
     private String url;
     private Integer width;
 
-    // getHeight
+    /** getHeight */
     public final Integer a() { return height; }
-    // getProxyUrl
+    /** getProxyUrl */
     public final String b() { return proxyUrl; }
-    // getUrl
+    /** getUrl */
     public final String c() { return url; }
-    // getWidth
+    /** getWidth */
     public final Integer d() { return width; }
 }

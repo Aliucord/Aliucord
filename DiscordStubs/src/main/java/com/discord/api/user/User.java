@@ -27,20 +27,20 @@ public final class User {
             GuildMember guildMember
     ) {}
 
-    // getDiscriminator
+    /** getDiscriminator */
     public final String c() { return ""; }
-    // getFlags
+    /** getFlags */
     public final Integer e() { return 0; }
-    // getId
+    /** getId */
     public final long f() { return 0; }
-    // getMember
+    /** getMember */
     public final GuildMember g() { return null; }
-    // getPublicFlags
+    /** getPublicFlags */
     public final Integer l() { return 0; }
-    // getSystem
+    /** getSystem */
     public final Boolean m() { return false; }
-    // getUsername
+    /** getUsername */
     public final String o() { return ""; }
-    // getVerified
+    /** getVerified */
     public final Boolean p() { return null; }
 }

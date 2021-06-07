@@ -14,7 +14,7 @@ import rx.subjects.SerializedSubject;
 
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public final class StoreGatewayConnection {
-    // events
+    /** events */
     public final SerializedSubject<Channel, Channel> getChannelCreateOrUpdate() { return new SerializedSubject<>(); }
     public final SerializedSubject<Channel, Channel> getChannelDeleted() { return new SerializedSubject<>(); }
     public final Observable<Boolean> getConnected() { return new Observable<>(); }

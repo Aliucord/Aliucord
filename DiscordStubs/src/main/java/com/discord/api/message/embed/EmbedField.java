@@ -6,8 +6,8 @@ public final class EmbedField {
     private String name;
     private String value;
 
-    // getName
+    /** getName */
     public final String a() { return name; }
-    // getValue
+    /** getValue */
     public final String b() { return value; }
 }

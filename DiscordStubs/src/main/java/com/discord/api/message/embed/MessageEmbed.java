@@ -20,30 +20,30 @@ public final class MessageEmbed {
     private String url;
     private EmbedVideo video;
 
-    // getAuthor
+    /** getAuthor */
     public final EmbedAuthor a() { return author; }
-    // getColor
+    /** getColor */
     public final Integer b() { return color; }
-    // getDescription
+    /** getDescription */
     public final String c() { return description; }
-    // getFields
+    /** getFields */
     public final List<EmbedField> d() { return fields; }
-    // getFooter
+    /** getFooter */
     public final EmbedFooter e() { return footer; }
-    // getImage
+    /** getImage */
     public final EmbedImage f() { return image; }
-    // getProvider
+    /** getProvider */
     public final EmbedProvider g() { return provider; }
-    // getThumbnail
+    /** getThumbnail */
     public final EmbedThumbnail h() { return thumbnail; }
-    // getTimestamp
+    /** getTimestamp */
     public final UtcDateTime i() { return timestamp; }
-    // getTitle
+    /** getTitle */
     public final String j() { return title; }
-    // getType
+    /** getType */
     public final EmbedType k() { return type; }
-    // getUrl
+    /** getUrl */
     public final String l() { return url; }
-    // getVideo
+    /** getVideo */
     public final EmbedVideo m() { return video; }
 }
