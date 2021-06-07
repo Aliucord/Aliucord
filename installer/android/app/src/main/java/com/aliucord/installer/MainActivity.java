@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.*;
 import android.util.Log;
@@ -21,12 +22,11 @@ import androidx.annotation.Nullable;
 import androidx.browser.customtabs.*;
 import androidx.core.content.FileProvider;
 
-import com.aliucord.dexpatcher.*;
+import com.aliucord.libzip.Zip;
 
 import java.io.File;
 import java.util.*;
 
-import dalvik.system.DexClassLoader;
 import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodChannel;
@@ -36,7 +36,7 @@ public final class MainActivity extends FlutterActivity {
     public MethodChannel.Result permResult;
 
     @Override
-    @SuppressWarnings({"unchecked", "ResultOfMethodCallIgnored"})
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -45,7 +45,7 @@ public final class MainActivity extends FlutterActivity {
 
         MethodChannel updaterChannel = new MethodChannel(binaryMessenger, "updater");
         Handler handler = new Handler(Looper.getMainLooper());
-        StateUpdater updater = state -> {
+        Action1<String> updater = state -> {
             Log.d("Aliucord Installer", state);
             handler.post(() -> updaterChannel.invokeMethod("updateState", state));
         };
@@ -129,27 +129,81 @@ public final class MainActivity extends FlutterActivity {
 
                 case "patchApk":
                     new Thread(() -> {
+                        String path = methodCall.argument("path");
+                        if (path == null) return;
                         File outApkDir = new File(Environment.getExternalStorageDirectory(), "Aliucord");
                         if (!outApkDir.exists()) outApkDir.mkdirs();
                         String outApk = outApkDir.getAbsolutePath() + "/Aliucord.apk";
 
                         try {
-                            File aliucordDex = new File(getFilesDir(), "classes5.dex");
-                            ClassLoader loader = new DexClassLoader(
-                                    aliucordDex.getAbsolutePath(),
-                                    getCacheDir().getAbsolutePath(),
-                                    null,
-                                    getClassLoader()
-                            );
-                            Map<String, List<String>> classes = (Map<String, List<String>>) loader
-                                    .loadClass("com.aliucord.Main")
-                                    .getMethod("getClassesToPatch")
-                                    .invoke(null);
+                            File aliucordDex = new File(getFilesDir(), "classes.dex");
 
-                            DexPatcherOptions options = new DexPatcherOptions(Objects.requireNonNull(methodCall.argument("clearCache")));
-                            if (methodCall.argument("replaceBg") != Boolean.TRUE) options.replaceIcon = false;
-                            DexPatcher patcher = new DexPatcher(this, updater, options);
-                            patcher.patchApk(methodCall.argument("path"), classes, outApk, true, aliucordDex);
+                            // NOTE: some files that may be not replaced if using aliucord as base (and currently are):
+                            // icon files, AndroidManifest.xml, classes5.dex (pine classes)
+
+                            updater.call("Copying original apk (" + path + ")");
+                            File outApkFile = new File(outApk);
+                            Utils.copyFile(new File(path), outApkFile);
+
+                            updater.call("Repacking apk");
+                            Zip zip = new Zip(outApk, 6, 'r');
+
+                            boolean patched = false;
+                            int j = zip.getTotalEntries();
+                            for (int i = 0; i < j; i++) {
+                                zip.openEntryByIndex(i);
+                                String name = zip.getEntryName();
+                                if (name.equals("classes5.dex")) patched = true;
+                                zip.closeEntry();
+                            }
+
+                            String cacheDir = getCacheDir().getAbsolutePath();
+                            if (!patched) for (int i = 1; i <= 3; i++) {
+                                zip.openEntry("classes" + (i == 1 ? "" : i) + ".dex");
+                                zip.extractEntry(cacheDir + "/classes" + (i + 1) + ".dex");
+                                zip.closeEntry();
+                            }
+                            zip.close();
+
+                            zip = new Zip(outApk, 6, 'a');
+                            if (!patched) {
+                                for (int i = 1; i <= 3; i++) zip.deleteEntry("classes" + (i == 1 ? "" : i) + ".dex");
+                            } else {
+                                zip.deleteEntry("classes.dex");
+                                zip.deleteEntry("classes5.dex");
+                            }
+                            zip.deleteEntry("AndroidManifest.xml");
+                            zip.deleteEntry("lib/arm64-v8a/libpine.so");
+                            zip.deleteEntry("lib/armeabi-v7a/libpine.so");
+
+                            if (!patched) for (int i = 2; i <= 4; i++) {
+                                String name = "classes" + i + ".dex";
+                                File cacheFile = new File(cacheDir, name);
+                                zip.openEntry(name);
+                                zip.compressFile(cacheFile.getAbsolutePath());
+                                zip.closeEntry();
+                                cacheFile.delete();
+                            }
+
+                            zip.openEntry("classes.dex");
+                            zip.compressFile(aliucordDex.getAbsolutePath());
+                            zip.closeEntry();
+
+                            AssetManager assets = getAssets();
+                            Utils.writeEntry(zip, "classes5.dex", Utils.readBytes(assets.open("pine/classes.dex")));
+
+                            zip.openEntry("AndroidManifest.xml");
+                            zip.compressFile(getFilesDir().getAbsolutePath() + "/AndroidManifest.xml");
+                            zip.closeEntry();
+
+                            Utils.writeEntry(zip, "lib/arm64-v8a/libpine.so", Utils.readBytes(assets.open("pine/arm64-v8a/libpine.so")));
+                            Utils.writeEntry(zip, "lib/armeabi-v7a/libpine.so", Utils.readBytes(assets.open("pine/armeabi-v7a/libpine.so")));
+                            zip.close();
+
+                            if (methodCall.argument("replaceBg") != Boolean.FALSE) {
+                                updater.call("Replacing icons");
+                                Utils.replaceIcon(assets, outApk);
+                            }
                             handler.post(() -> result.success(null));
                         } catch (Throwable e) {
                             Log.e("Aliucord Installer", null, e);
@@ -158,19 +212,16 @@ public final class MainActivity extends FlutterActivity {
                     }).start();
                     break;
                 case "signApk":
+                    updater.call("Signing apk file");
                     new Thread(() -> {
                         try {
-                            Signer.signApk(new File(Environment.getExternalStorageDirectory(), "Aliucord/Aliucord.apk"), updater);
+                            Signer.signApk(new File(Environment.getExternalStorageDirectory(), "Aliucord/Aliucord.apk"));
                             handler.post(() -> result.success(null));
                         } catch (Throwable e) {
                             Log.e("Aliucord Installer", null, e);
                             handler.post(() -> result.error("signApk", e.getMessage(), Utils.stackTraceToString(e.getStackTrace())));
                         }
                     }).start();
-                    break;
-                case "clearCache":
-                    new Thread(() -> com.aliucord.dexpatcher.Utils.delete(new File(getCacheDir(), "patcher"))).start();
-                    result.success(null);
                     break;
                 case "installApk":
                     try {

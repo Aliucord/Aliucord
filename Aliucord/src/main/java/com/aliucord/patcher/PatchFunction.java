@@ -9,4 +9,5 @@ import java.util.List;
 
 import kotlin.jvm.functions.Function3;
 
+@Deprecated
 public interface PatchFunction extends Function3<Object, List<Object>, Object, Object> {}

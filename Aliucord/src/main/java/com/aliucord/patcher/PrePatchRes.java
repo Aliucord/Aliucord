@@ -5,6 +5,7 @@
 
 package com.aliucord.patcher;
 
+@Deprecated
 public class PrePatchRes {
     public Object ret;
 

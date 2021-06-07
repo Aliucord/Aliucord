@@ -1,4 +1,3 @@
 include ':Aliucord'
-include ':DexPatcher'
 include ':DiscordStubs'
 rootProject.name = "Aliucord"

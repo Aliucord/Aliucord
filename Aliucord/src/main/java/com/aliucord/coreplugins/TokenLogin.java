@@ -16,6 +16,7 @@ import androidx.annotation.NonNull;
 import com.aliucord.Utils;
 import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.Patcher;
+import com.aliucord.patcher.PinePatchFn;
 import com.aliucord.views.Button;
 import com.discord.app.AppActivity;
 import com.discord.app.AppFragment;
@@ -28,14 +29,11 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputLayout;
 import com.lytefast.flexinput.R$c;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import kotlin.Unit;
 
-public class TokenLogin extends Plugin {
+public final class TokenLogin extends Plugin {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static class Page extends AppFragment {
         public Page() {
@@ -63,6 +61,7 @@ public class TokenLogin extends Plugin {
             MaterialButton button = (MaterialButton) v.getChildAt(2);
             if (button != null) {
                 button.setOnClickListener(e -> {
+                    if (input == null || input.getEditText() == null) return;
                     CharSequence token = input.getEditText().getText();
                     if (!token.equals("")) login(token);
                 });
@@ -77,18 +76,13 @@ public class TokenLogin extends Plugin {
     @NonNull
     @Override
     public Manifest getManifest() { return new Manifest(); }
-    public static Map<String, List<String>> getClassesToPatch() {
-        Map<String, List<String>> map = new HashMap<>();
-        map.put("com.discord.widgets.auth.WidgetAuthLanding", Collections.singletonList("onViewBound"));
-        return map;
-    }
 
     @Override
     @SuppressLint("SetTextI18n")
-    public void start(Context appContext) {
-        Patcher.addPatch("com.discord.widgets.auth.WidgetAuthLanding", "onViewBound", (_this, args, ret) -> {
-            Context context = ((WidgetAuthLanding) _this).requireContext();
-            RelativeLayout view = (RelativeLayout) args.get(0);
+    public void start(Context appContext) throws Throwable {
+        Patcher.addPatch(WidgetAuthLanding.class.getDeclaredMethod("onViewBound", View.class), new PinePatchFn(callFrame -> {
+            Context context = ((WidgetAuthLanding) callFrame.thisObject).requireContext();
+            RelativeLayout view = (RelativeLayout) callFrame.args[0];
             LinearLayout v = (LinearLayout) view.getChildAt(1);
 
             int padding = Utils.dpToPx(18);
@@ -101,14 +95,11 @@ public class TokenLogin extends Plugin {
             else btn.setBackgroundColor(context.getResources().getColor(R$c.uikit_btn_bg_color_selector_secondary_dark));
             btn.setOnClickListener(e -> Utils.openPage(e.getContext(), Page.class));
             v.addView(btn);
+        }));
 
-            return ret;
-        });
-
-        Patcher.addPatch("com.discord.app.AppActivity", "h", (_this, args, ret) -> {
-            if (!((boolean) ret) && ((AppActivity) _this).e().equals(Page.class)) return true;
-            return ret;
-        });
+        Patcher.addPatch(AppActivity.class, "h", new Class<?>[]{ List.class }, new PinePatchFn(callFrame -> {
+            if (!((boolean) callFrame.getResult()) && ((AppActivity) callFrame.thisObject).e().equals(Page.class)) callFrame.setResult(true);
+        }));
     }
 
     @Override

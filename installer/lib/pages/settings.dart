@@ -25,7 +25,6 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderStateMixin {
   static final List<CheckBoxData> _checkBoxes = [
-    CheckBoxData('clear_cache', 'Clear cache after and before install', true),
     CheckBoxData('replace_bg', 'Replace icon background with Aliucord\'s', true),
     CheckBoxData('use_dex_from_storage', 'Use Aliucord.dex from storage', false),
   ];

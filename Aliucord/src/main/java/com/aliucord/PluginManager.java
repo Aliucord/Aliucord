@@ -82,12 +82,14 @@ public class PluginManager {
         logger.info("Starting plugin: " + name);
          try {
             plugins.get(name).start(Utils.getAppContext());
-         } catch (Throwable e) { PluginManager.logger.error("Exception while starting plugin: " + name, e); }
+         } catch (Throwable e) { logger.error("Exception while starting plugin: " + name, e); }
     }
 
     public static void stopPlugin(String name) {
         logger.info("Unloading plugin: " + name);
-        plugins.get(name).stop(Utils.getAppContext());
+        try {
+            plugins.get(name).stop(Utils.getAppContext());
+        } catch (Throwable e) { logger.error("Exception while stopping plugin " + name, e); }
     }
 
     public static void loadCorePlugins(Context context) {

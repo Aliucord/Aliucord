@@ -7,38 +7,50 @@ package com.aliucord.api;
 
 import com.aliucord.patcher.*;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-@SuppressWarnings("unused")
+import top.canyie.pine.callback.MethodHook;
+
+@SuppressWarnings({"unused", "deprecation"})
 public class PatcherAPI {
+    @Deprecated
     public static Runnable addPatch(String forClass, String fn, PatchFunction patch) {
-        Patcher.addPatch(forClass, fn, patch);
-        return () -> unpatch(forClass, fn, patch);
+        return Patcher.addPatch(forClass, fn, patch);
     }
 
+    @Deprecated
     public static Runnable addPrePatch(String forClass, String fn, PrePatchFunction patch) {
-        Patcher.addPrePatch(forClass, fn, patch);
-        return () -> unpatchpre(forClass, fn, patch);
-    }
-
-    public static void unpatch(String clazz, String fn, PatchFunction patch) {
-        Map<String, List<PatchFunction>> cp = Patcher.patches.get(clazz);
-        if (cp == null) return;
-        List<PatchFunction> p = cp.get(fn);
-        if (p != null) p.remove(patch);
-    }
-
-    public static void unpatchpre(String clazz, String fn, PrePatchFunction patch) {
-        Map<String, List<PrePatchFunction>> cp = Patcher.prePatches.get(clazz);
-        if (cp == null) return;
-        List<PrePatchFunction> p = cp.get(fn);
-        if (p != null) p.remove(patch);
+        return Patcher.addPrePatch(forClass, fn, patch);
     }
 
     public List<Runnable> unpatches = new ArrayList<>();
 
+    private Runnable createUnpatch(Runnable _unpatch) {
+        Runnable unpatch = new Runnable() {
+            public void run() {
+                _unpatch.run();
+                unpatches.remove(this);
+            }
+        };
+        unpatches.add(unpatch);
+        return unpatch;
+    }
+
+    public Runnable patch(String forClass, String fn, Class<?>[] paramTypes, MethodHook hook) {
+        return createUnpatch(Patcher.addPatch(forClass, fn, paramTypes, hook));
+    }
+
+    public Runnable patch(Class<?> clazz, String fn, Class<?>[] paramTypes, MethodHook hook) {
+        return createUnpatch(Patcher.addPatch(clazz, fn, paramTypes, hook));
+    }
+
+    public Runnable patch(Method m, MethodHook hook) {
+        return createUnpatch(Patcher.addPatch(m, hook));
+    }
+
+    @Deprecated
     public Runnable patch(String forClass, String fn, PatchFunction patch) {
         Runnable unpatch = PatcherAPI.addPatch(forClass, fn, patch);
         Runnable _unpatch = new Runnable() {
@@ -51,6 +63,7 @@ public class PatcherAPI {
         return _unpatch;
     }
 
+    @Deprecated
     public Runnable prePatch(String forClass, String fn, PrePatchFunction patch) {
         Runnable unpatch = PatcherAPI.addPrePatch(forClass, fn, patch);
         Runnable _unpatch = new Runnable() {

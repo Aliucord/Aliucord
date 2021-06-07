@@ -1,5 +1,7 @@
 # Aliucord
-Discord Android app mod inspired by desktop Discord client mods. Unlike other mods, you don't need to rebuild full apk on PC. You need only to rebuild Aliucord patches after installing plugins that requires patching new classes, which can be done on Android phone using Aliucord Installer.
+Discord Android app mod inspired by desktop Discord client mods. Unlike other mods, you don't need to rebuild full apk on PC, because Aliucord is hooking at the runtime using [Pine](https://github.com/canyie/pine) hook framework.
+
+⚠ **Info**: Aliucord doesn't support `x86` and `x86_64` architectures, because Pine supports `arm` and `arm64` only.
 
 **Supported Discord version**: 79.1 - Alpha (79201)
 

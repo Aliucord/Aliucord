@@ -74,16 +74,19 @@ public abstract class Plugin {
         }
     }
 
+    @Deprecated
     public static Map<String, List<String>> getClassesToPatch() { return new HashMap<>(); }
 
     @NonNull
     public abstract Manifest getManifest();
 
-    public void load(Context context) {}
-    public void unload(Context context) {} // not used now
+    @SuppressWarnings("RedundantThrows")
+    public void load(Context context) throws Throwable {}
+    @SuppressWarnings("RedundantThrows")
+    public void unload(Context context) throws Throwable {} // not used now
 
-    public abstract void start(Context context);
-    public abstract void stop(Context context);
+    public abstract void start(Context context) throws Throwable;
+    public abstract void stop(Context context) throws Throwable;
 
     public String name = this.getClass().getSimpleName();
 

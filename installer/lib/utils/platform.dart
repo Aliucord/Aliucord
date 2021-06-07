@@ -44,8 +44,7 @@ Future<AppInfo?> getApkInfo(String path) async {
   return info == null ? null : AppInfo.fromMap(info);
 }
 
-Future<void> patchApk(String path, bool clearCache, bool replaceBg) =>
-  channel.invokeMethod('patchApk', { 'path': path, 'clearCache': clearCache, 'replaceBg': replaceBg });
+Future<void> patchApk(String path, bool replaceBg) =>
+  channel.invokeMethod('patchApk', { 'path': path, 'replaceBg': replaceBg });
 Future<void> signApk() => channel.invokeMethod('signApk');
-Future<void> clearCache() => channel.invokeMethod('clearCache');
 Future<void> installApk(String path) => channel.invokeMethod('installApk', path);

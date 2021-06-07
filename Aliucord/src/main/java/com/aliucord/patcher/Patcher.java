@@ -5,108 +5,118 @@
 
 package com.aliucord.patcher;
 
+import android.os.Bundle;
+
 import com.aliucord.Logger;
 import com.aliucord.Main;
-import com.aliucord.api.PatcherAPI;
 import com.discord.app.AppActivity;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Method;
+import java.util.*;
 
-import kotlin.jvm.functions.Function2;
-import kotlin.jvm.functions.Function3;
+import top.canyie.pine.Pine;
+import top.canyie.pine.PineConfig;
+import top.canyie.pine.callback.MethodHook;
 
-@SuppressWarnings({"unchecked", "unused"})
+@SuppressWarnings("unused")
 public class Patcher {
-    public static Map<String, Map<String, List<PrePatchFunction>>> prePatches = new HashMap<>();
-    public static Map<String, Map<String, List<PatchFunction>>> patches = new HashMap<>();
     public static Logger logger = new Logger("Patcher");
 
-    static {
-        String className = "com.discord.app.AppActivity";
-        String fn = "onCreate";
-        Patcher.addPrePatch(className, fn, new PrePatchFunction() {
-            public PrePatchRes invoke(Object _this, List<Object> args) {
-                Main.preInit((AppActivity) _this);
-                PatcherAPI.unpatchpre(className, fn, this);
-                return null;
-            }
-        });
+    private static MethodHook.Unhook unhook1;
+    private static MethodHook.Unhook unhook2;
 
-        String fn2 = "c";
-        Patcher.addPatch(className, fn2, new PatchFunction() {
-            public Object invoke(Object _this, List<Object> args, Object ret) {
-                new Thread(() -> Main.init((AppActivity) _this)).start();
-                PatcherAPI.unpatch(className, fn2, this);
-                return ret;
-            }
-        });
-    }
+    @SuppressWarnings("JavaReflectionMemberAccess")
+    public static void init() {
+        Pine.setDebuggable(true);
+        PineConfig.debug = false;
 
-    public static PrePatchRes runPrePatches(String className, String fn, Object _this, List<Object> args) {
-        // String[] names = getCallerNames();
-        Map<String, List<PrePatchFunction>> cp = prePatches.get(className);
-        if (cp == null) return null;
-        List<PrePatchFunction> p = cp.get(fn);
-        if (p == null) return null;
-        PrePatchRes res = null;
-        Object ret = null;
-        for (PrePatchFunction patch : p) {
-            try {
-                PrePatchRes res2 = patch.invoke(_this, args);
-                if (res2 != null) res = res2;
-            } catch (Throwable e) {
-                logger.error("Failed to run prepatch on " + className + " " + fn, e);
-            }
-        }
-        return res;
-    }
-
-    public static Object runPatches(String className, String fn, Object _this, List<Object> args, Object ret) {
-        // String[] names = getCallerNames();
-        Map<String, List<PatchFunction>> cp = patches.get(className);
-        if (cp == null) return ret;
-        List<PatchFunction> p = cp.get(fn);
-        if (p == null) return ret;
         try {
-            for (PatchFunction patch : p) ret = patch.invoke(_this, args, ret);
-        } catch (Throwable e) {
-            logger.error("Failed to run patch on " + className + " " + fn, e);
-        }
-        return ret;
+            unhook1 = Pine.hook(AppActivity.class.getDeclaredMethod("onCreate", Bundle.class), new PinePrePatchFn(callFrame -> {
+                Main.preInit((AppActivity) callFrame.thisObject);
+                unhook1.unhook();
+            }));
+
+            unhook2 = Pine.hook(AppActivity.class.getDeclaredMethod("c", String.class, boolean.class), new PinePatchFn(callFrame -> {
+                Main.init((AppActivity) callFrame.thisObject);
+                unhook2.unhook();
+            }));
+        } catch (Throwable e) { logger.error(e); }
     }
 
-    public static void addPrePatch(String forClass, String fn, PrePatchFunction patch) {
-        Map<String, List<PrePatchFunction>> cp = prePatches.get(forClass);
-        if (cp == null) {
-            cp = new HashMap<>();
-            prePatches.put(forClass, cp);
-        }
-        List<PrePatchFunction> p = cp.get(fn);
-        if (p == null) {
-            p = new ArrayList<>();
-            cp.put(fn, p);
-        }
-        p.add(patch);
-    }
-    public static void addPatch(String forClass, String fn, PatchFunction patch) {
-        Map<String, List<PatchFunction>> cp = patches.get(forClass);
-        if (cp == null) {
-            cp = new HashMap<>();
-            patches.put(forClass, cp);
-        }
-        List<PatchFunction> p = cp.get(fn);
-        if (p == null) {
-            p = new ArrayList<>();
-            cp.put(fn, p);
-        }
-        p.add(patch);
+    private static final ClassLoader cl = Objects.requireNonNull(Patcher.class.getClassLoader());
+
+    public static Runnable addPatch(String forClass, String fn, Class<?>[] paramTypes, MethodHook hook) {
+        try {
+            return addPatch(cl.loadClass(forClass), fn, paramTypes, hook);
+        } catch (Throwable e) { Patcher.logger.error(e); }
+        return null;
     }
 
-    // private static String[] getCallerNames() {
-    //     StackTraceElement s = new Throwable().getStackTrace()[2];
-    //     return new String[]{ s.getClassName(), s.getMethodName() };
-    // }
+    public static Runnable addPatch(Class<?> clazz, String fn, Class<?>[] paramTypes, MethodHook hook) {
+        try {
+            return addPatch(clazz.getDeclaredMethod(fn, paramTypes), hook);
+        } catch (Throwable e) { Patcher.logger.error(e); }
+        return null;
+    }
+
+    public static Runnable addPatch(Method m, MethodHook hook) {
+        return Pine.hook(m, hook)::unhook;
+    }
+
+    @SuppressWarnings("deprecation")
+    public static MethodHook prePatchToMethodHook(PrePatchFunction patch) {
+        return new MethodHook() {
+            public void beforeCall(Pine.CallFrame callFrame) {
+                try {
+                    ArrayList<Object> args = new ArrayList<>(Arrays.asList(callFrame.args));
+                    PrePatchRes res = patch.invoke(callFrame.thisObject, args);
+                    if (res != null) callFrame.setResult(res.ret);
+                    callFrame.args = args.toArray();
+                } catch (Throwable e) { logger.error(e); }
+            }
+        };
+    }
+
+    @SuppressWarnings("deprecation")
+    public static MethodHook patchToMethodHook(PatchFunction patch) {
+        return new MethodHook() {
+            public void afterCall(Pine.CallFrame callFrame) {
+                try {
+                    callFrame.setResult(patch.invoke(callFrame.thisObject, Arrays.asList(callFrame.args), callFrame.getResult()));
+                } catch (Throwable e) { logger.error(e); }
+            }
+        };
+    }
+
+    @Deprecated
+    @SuppressWarnings("deprecation")
+    public static Runnable addPrePatch(String forClass, String fn, PrePatchFunction patch) {
+        List<Runnable> unhooks = new ArrayList<>();
+        try {
+            Class<?> clazz = Objects.requireNonNull(Patcher.class.getClassLoader()).loadClass(forClass);
+            MethodHook hook = prePatchToMethodHook(patch);
+            for (Method m : clazz.getDeclaredMethods()) {
+                if (m.getName().equals(fn)) unhooks.add(Pine.hook(m, hook)::unhook);
+            }
+        } catch (Throwable e) { logger.error(e); }
+        return () -> {
+            for (Runnable unhook : unhooks) unhook.run();
+        };
+    }
+
+    @Deprecated
+    @SuppressWarnings("deprecation")
+    public static Runnable addPatch(String forClass, String fn, PatchFunction patch) {
+        List<Runnable> unhooks = new ArrayList<>();
+        try {
+            Class<?> clazz = Objects.requireNonNull(Patcher.class.getClassLoader()).loadClass(forClass);
+            MethodHook hook = patchToMethodHook(patch);
+            for (Method m : clazz.getDeclaredMethods()) {
+                if (m.getName().equals(fn)) unhooks.add(Pine.hook(m, hook)::unhook);
+            }
+        } catch (Throwable e) { logger.error(e); }
+        return () -> {
+            for (Runnable unhook : unhooks) unhook.run();
+        };
+    }
 }

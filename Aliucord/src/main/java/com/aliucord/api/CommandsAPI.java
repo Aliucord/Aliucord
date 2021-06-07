@@ -108,7 +108,7 @@ public class CommandsAPI {
             StoreMessages.access$handleLocalMessageCreate(storeMessages, message);
 
             WidgetChatInput$configureSendListeners$2 _this = (WidgetChatInput$configureSendListeners$2) args.get("__this");
-            ArrayList<Object> _args = (ArrayList<Object>) args.get("__args");
+            Object[] _args = (Object[]) args.get("__args");
             args.remove("__this");
             args.remove("__args");
 
@@ -144,9 +144,9 @@ public class CommandsAPI {
                             _this.$context,
                             _this.$messageManager,
                             new MessageContent(res.content, content != null ? content.getMentionedUsers() : Collections.emptyList()),
-                            (List<? extends Attachment<?>>) _args.get(0),
+                            (List<? extends Attachment<?>>) _args[0],
                             false,
-                            (Function1<? super Boolean, Unit>) _args.get(2),
+                            (Function1<? super Boolean, Unit>) _args[2],
                             16,
                             null
                     ));

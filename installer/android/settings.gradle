@@ -1,8 +1,5 @@
 include ':app'
 
-include ':DexPatcher'
-project(':DexPatcher').projectDir = new File('../../DexPatcher')
-
 def localPropertiesFile = new File(rootProject.projectDir, "local.properties")
 def properties = new Properties()
 

@@ -14,7 +14,7 @@ import com.aliucord.entities.Plugin;
 
 import java.util.Collections;
 
-public class CoreCommands extends Plugin {
+public final class CoreCommands extends Plugin {
     @NonNull
     @Override
     public Manifest getManifest() { return new Manifest(); }

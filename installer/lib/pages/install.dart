@@ -59,7 +59,7 @@ class _InstallPageState extends State<InstallPage> {
 
   void _install(String apk) async {
     final cache = (await getApplicationSupportDirectory()).path;
-    final aliucordDex = '$cache/classes5.dex';
+    final aliucordDex = '$cache/classes.dex';
     var downloadManifest = true;
     if (prefs.getBool('use_dex_from_storage') ?? false) {
       final dexFile = File(prefs.getString('dex_location') ?? defaultDexLocation);
@@ -75,16 +75,11 @@ class _InstallPageState extends State<InstallPage> {
     } else if (!await _downloadAliucord(aliucordDex)) return _onFailed();
     if (downloadManifest && !await _downloadManifest(cache)) return _onFailed();
 
-    final _clearCache = prefs.getBool('clear_cache') ?? true;
-    final forceClear = prefs.getString('last_patched') != widget.supportedVersion;
-
     final updater = MethodChannel('updater');
     updater.setMethodCallHandler((call) async => setState(() => _logs += call.arguments + '\n'));
     try {
-      await patchApk(apk, _clearCache || forceClear, prefs.getBool('replace_bg') ?? true);
+      await patchApk(apk, prefs.getBool('replace_bg') ?? true);
       await signApk();
-      if (_clearCache) clearCache();
-      if (forceClear) prefs.setString('last_patched', widget.supportedVersion);
       installApk(storageRoot.path + '/Aliucord/Aliucord.apk');
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage()));
     } on PlatformException catch (e) {
