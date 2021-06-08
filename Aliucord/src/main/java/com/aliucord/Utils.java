@@ -123,6 +123,7 @@ public class Utils {
     }
 
     private static int defaultPadding = 0;
+    private static int defaultCardRadius = 0;
 
     /**
      * Gets the default padding for the items.
@@ -133,6 +134,11 @@ public class Utils {
     public static int getDefaultPadding() {
         if (defaultPadding == 0) defaultPadding = Utils.dpToPx(16);
         return defaultPadding;
+    }
+
+    public static int getDefaultCardRadius() {
+        if (defaultCardRadius == 0) defaultCardRadius = Utils.dpToPx(8);
+        return defaultCardRadius;
     }
 
     public static <K, V> K getMapKey(Map<K, V> map, V val) {

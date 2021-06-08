@@ -12,8 +12,6 @@ import android.graphics.drawable.GradientDrawable;
 import android.text.InputType;
 import android.view.inputmethod.EditorInfo;
 
-
-import com.aliucord.Main;
 import com.aliucord.Utils;
 import com.discord.utilities.color.ColorCompat;
 import com.google.android.material.textfield.TextInputEditText;
@@ -39,7 +37,7 @@ public class TextInput extends TextInputLayout {
         setPadding(padding, padding, padding, 0);
 
         GradientDrawable shape = new GradientDrawable();
-        shape.setCornerRadius(Utils.dpToPx(4));
+        shape.setCornerRadius(Utils.getDefaultCardRadius());
         shape.setColor(bgColor);
         setBackground(shape);
 

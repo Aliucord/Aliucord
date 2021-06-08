@@ -35,7 +35,7 @@ public class UpdaterPluginCard extends MaterialCardView {
         setLayoutParams(params);
         setUseCompatPadding(true);
         setCardBackgroundColor(ColorCompat.getThemedColor(context, R$b.colorBackgroundSecondary));
-        setRadius(Utils.dpToPx(4));
+        setRadius(Utils.getDefaultCardRadius());
         setContentPadding(padding, padding, padding, padding);
 
         Plugin p = PluginManager.plugins.get(plugin);
@@ -71,7 +71,7 @@ public class UpdaterPluginCard extends MaterialCardView {
         set.connect(verid, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM);
         set.applyTo(layout);
 
-        Button update = new Button(context, false);
+        Button update = new Button(context);
         update.setText("Update");
         update.setOnClickListener(e -> {
             update.setEnabled(false);
