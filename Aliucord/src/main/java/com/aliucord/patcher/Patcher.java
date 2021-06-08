@@ -11,6 +11,7 @@ import com.aliucord.Logger;
 import com.aliucord.Main;
 import com.discord.app.AppActivity;
 
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -59,7 +60,7 @@ public class Patcher {
         return null;
     }
 
-    public static Runnable addPatch(Method m, MethodHook hook) {
+    public static Runnable addPatch(Member m, MethodHook hook) {
         return Pine.hook(m, hook)::unhook;
     }
 

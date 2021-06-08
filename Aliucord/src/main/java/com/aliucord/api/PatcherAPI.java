@@ -9,7 +9,7 @@ import androidx.annotation.NonNull;
 
 import com.aliucord.patcher.*;
 
-import java.lang.reflect.Method;
+import java.lang.reflect.Member;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +19,7 @@ import top.canyie.pine.callback.MethodHook;
 public class PatcherAPI {
 
     /**
-     * @deprecated Use {@link PatcherAPI#patch(String, String, Class[], MethodHook)}, {@link PatcherAPI#patch(Class, String, Class[], MethodHook)} or {@link PatcherAPI#patch(Method, MethodHook)} instead.
+     * @deprecated Use {@link PatcherAPI#patch(String, String, Class[], MethodHook)}, {@link PatcherAPI#patch(Class, String, Class[], MethodHook)} or {@link PatcherAPI#patch(Member, MethodHook)} instead.
      */
     @Deprecated
     public static Runnable addPatch(String forClass, String fn, PatchFunction patch) {
@@ -27,7 +27,7 @@ public class PatcherAPI {
     }
 
     /**
-     * @deprecated Use {@link PatcherAPI#patch(String, String, Class[], MethodHook)}, {@link PatcherAPI#patch(Class, String, Class[], MethodHook)} or {@link PatcherAPI#patch(Method, MethodHook)} instead.
+     * @deprecated Use {@link PatcherAPI#patch(String, String, Class[], MethodHook)}, {@link PatcherAPI#patch(Class, String, Class[], MethodHook)} or {@link PatcherAPI#patch(Member, MethodHook)} instead.
      */
     @Deprecated
     public static Runnable addPrePatch(String forClass, String fn, PrePatchFunction patch) {
@@ -76,8 +76,8 @@ public class PatcherAPI {
     }
 
     /**
-     * Patches a method.
-     * @param m Method to patch. see {@link Method}.
+     * Patches a method or constructor.
+     * @param m Method or constructor to patch. see {@link Member}.
      * @param hook Callback for the patch.
      * @return A {@link Runnable} object.
      * @see PatcherAPI#patch(String, String, Class[], MethodHook)
@@ -85,12 +85,12 @@ public class PatcherAPI {
      * @see PinePatchFn
      * @see PinePrePatchFn
      */
-    public Runnable patch(@NonNull Method m, @NonNull MethodHook hook) {
+    public Runnable patch(@NonNull Member m, @NonNull MethodHook hook) {
         return createUnpatch(Patcher.addPatch(m, hook));
     }
 
     /**
-     * @deprecated Use {@link PatcherAPI#patch(String, String, Class[], MethodHook)}, {@link PatcherAPI#patch(Class, String, Class[], MethodHook)} or {@link PatcherAPI#patch(Method, MethodHook)} instead.
+     * @deprecated Use {@link PatcherAPI#patch(String, String, Class[], MethodHook)}, {@link PatcherAPI#patch(Class, String, Class[], MethodHook)} or {@link PatcherAPI#patch(Member, MethodHook)} instead.
      */
     @Deprecated
     public Runnable patch(String forClass, String fn, PatchFunction patch) {
@@ -106,7 +106,7 @@ public class PatcherAPI {
     }
 
     /**
-     * @deprecated Use {@link PatcherAPI#patch(String, String, Class[], MethodHook)}, {@link PatcherAPI#patch(Class, String, Class[], MethodHook)} or {@link PatcherAPI#patch(Method, MethodHook)} instead.
+     * @deprecated Use {@link PatcherAPI#patch(String, String, Class[], MethodHook)}, {@link PatcherAPI#patch(Class, String, Class[], MethodHook)} or {@link PatcherAPI#patch(Member, MethodHook)} instead.
      */
     @Deprecated
     public Runnable prePatch(String forClass, String fn, PrePatchFunction patch) {
