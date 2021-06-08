@@ -8,6 +8,9 @@ package com.aliucord.api;
 import android.os.Handler;
 import android.os.Looper;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.aliucord.Main;
 import com.aliucord.Utils;
 import com.aliucord.utils.ReflectUtils;
@@ -62,7 +65,7 @@ public class CommandsAPI {
          * @param content Output message content
          * @see CommandResult#CommandResult(String, List, boolean)
          */
-        public CommandResult(String content) {
+        public CommandResult(@Nullable String content) {
             this(content, null, true);
         }
 
@@ -71,7 +74,7 @@ public class CommandsAPI {
          * @param embeds Embeds to include in the command output. Requires <code>send</code> to be false.
          * @param send Whether to send the message or not. If false, messages will appear locally, otherwise they'll be sent to the current channel.
          */
-        public CommandResult(String content, List<MessageEmbed> embeds, boolean send) {
+        public CommandResult(@Nullable String content, @Nullable List<MessageEmbed> embeds, boolean send) {
             this.content = content;
             this.embeds = embeds;
             this.send = send;
@@ -83,7 +86,7 @@ public class CommandsAPI {
          * @param send Whether to send the message or not. If false, messages will appear locally, otherwise they'll be sent to the current channel.
          * @param username Username for Clyde's customization. Requires <code>send</code> to be false.
          */
-        public CommandResult(String content, List<MessageEmbed> embeds, boolean send, String username) {
+        public CommandResult(@Nullable String content, @Nullable List<MessageEmbed> embeds, boolean send, String username) {
             this.content = content;
             this.embeds = embeds;
             this.username = username;
@@ -97,7 +100,7 @@ public class CommandsAPI {
          * @param username Username for Clyde. Requires <code>send</code> to be false.
          * @param avatarUrl Avatar URL for Clyde, must be a direct link, not a redirect. Requires <code>send</code> to be false.
          */
-        public CommandResult(String content, List<MessageEmbed> embeds, boolean send, String username, String avatarUrl) {
+        public CommandResult(@Nullable String content, @Nullable List<MessageEmbed> embeds, boolean send, @Nullable String username, @Nullable String avatarUrl) {
             this.content = content;
             this.embeds = embeds;
             this.username = username;
@@ -234,10 +237,10 @@ public class CommandsAPI {
      * @param execute Callback for the command.
      */
     public void registerCommand(
-            String name,
-            String description,
-            List<ApplicationCommandOption> options,
-            Function1<? super Map<String, ?>, CommandResult> execute
+            @NonNull String name,
+            @NonNull String description,
+            @NonNull List<ApplicationCommandOption> options,
+            @NonNull Function1<? super Map<String, ?>, CommandResult> execute
     ) {
         _registerCommand(name, description, options, execute);
         commandsAndPlugins.put(name, pluginName);

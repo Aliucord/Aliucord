@@ -71,7 +71,7 @@ public class PatcherAPI {
      * @see PinePatchFn
      * @see PinePrePatchFn
      */
-    public Runnable patch(Class<?> clazz, String fn, Class<?>[] paramTypes, MethodHook hook) {
+    public Runnable patch(@NonNull Class<?> clazz, @NonNull String fn, @NonNull Class<?>[] paramTypes, @NonNull MethodHook hook) {
         return createUnpatch(Patcher.addPatch(clazz, fn, paramTypes, hook));
     }
 
@@ -85,7 +85,7 @@ public class PatcherAPI {
      * @see PinePatchFn
      * @see PinePrePatchFn
      */
-    public Runnable patch(Method m, MethodHook hook) {
+    public Runnable patch(@NonNull Method m, @NonNull MethodHook hook) {
         return createUnpatch(Patcher.addPatch(m, hook));
     }
 
