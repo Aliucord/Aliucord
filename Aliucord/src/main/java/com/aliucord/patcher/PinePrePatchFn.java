@@ -12,6 +12,11 @@ import top.canyie.pine.callback.MethodHook;
 public class PinePrePatchFn extends MethodHook {
     private Action1<Pine.CallFrame> p;
 
+    /**
+     * Calls {@link top.canyie.pine.Pine.CallFrame} patch block <strong>before</strong> the method has been invoked.
+     * @param patch Patch block to execute.
+     * @see top.canyie.pine.Pine.CallFrame
+     */
     public PinePrePatchFn(Action1<Pine.CallFrame> patch) { p = patch; }
 
     @Override

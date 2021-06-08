@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 
@@ -46,14 +47,31 @@ public class Utils {
     public static AppActivity appActivity;
     public static Context appContext;
 
+    /**
+     * Converts the singular term of the <code>noun</code> into plural.
+     * @param amount Amount of the noun.
+     * @param noun The noun
+     * @return Pluralised <code>noun</code>
+     */
     public static String pluralise(int amount, String noun) {
         return String.format(Locale.ENGLISH, "%d %s%s", amount, noun, amount == 1 ? "" : "s");
     }
 
-    /** Send a toast from any Thread */
+    /**
+     * Send a toast from any {@link Thread}
+     * @param ctx {@link Context}
+     * @param message Message to show.
+     * @param showLonger Whether to show toast for an extended period of time.
+     */
     public static void showToast(Context ctx, String message, boolean showLonger) {
         mainThread.post(() -> Toast.makeText(ctx, message, showLonger ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT).show());
     }
+
+    /**
+     * Send a toast from any {@link Thread}
+     * @param ctx {@link Context}
+     * @param message Message to show.
+     */
     public static void showToast(Context ctx, String message) {
         showToast(ctx, message, false);
     }
@@ -61,11 +79,22 @@ public class Utils {
     public static void setAppContext() {
         appContext = NotificationClient.access$getContext$p(NotificationClient.INSTANCE);
     }
+
+    /**
+     * Retrieves {@link android.app.Application} {@link Context}
+     * @return {@link Context}
+     */
     public static Context getAppContext() {
         if (appContext == null) setAppContext();
         return appContext;
     }
 
+    /**
+     * Get resource id from discord package.
+     * @param name Name of the resource.
+     * @param type Type of the resource.
+     * @return ID of the resource, or 0 if not found.
+     */
     public static int getResId(String name, String type) {
         Context context = getAppContext();
         if (context == null) return 0;
@@ -73,13 +102,34 @@ public class Utils {
     }
 
     private static float density;
+
+    /**
+     * Converts DP to PX.
+     * @param dp DP value.
+     * @return <code>dp</code> converted to PX.
+     * @see Utils#dpToPx(float)
+     */
     public static int dpToPx(int dp) { return Utils.dpToPx((float) dp); }
+
+    /**
+     * Converts DP to PX.
+     * @param dp DP value.
+     * @return <code>dp</code> converted to PX.
+     * @see Utils#dpToPx(int)
+     */
     public static int dpToPx(float dp) {
         if (density == 0) density = Utils.getAppContext().getResources().getDisplayMetrics().density;
         return (int) (dp * Utils.getAppContext().getResources().getDisplayMetrics().density + 0.5f);
     }
 
     private static int defaultPadding = 0;
+
+    /**
+     * Gets the default padding for the items.
+     * @return default padding
+     * @see Utils#dpToPx(int)
+     * @see Utils#dpToPx(float)
+     */
     public static int getDefaultPadding() {
         if (defaultPadding == 0) defaultPadding = Utils.dpToPx(16);
         return defaultPadding;
@@ -109,7 +159,13 @@ public class Utils {
         return choice;
     }
 
-    public static User buildClyde(String name, String avatarUrl) {
+    /**
+     * Clyde builder
+     * @param name Name of Clyde
+     * @param avatarUrl Avatar URL of Clyde
+     * @return Customized Clyde
+     */
+    public static User buildClyde(@Nullable String name, @Nullable String avatarUrl) {
         if (name == null) {
             name = "Clyde";
         }
@@ -141,18 +197,30 @@ public class Utils {
         );
     }
 
-    /** @deprecated Use ReflectUtils */
+    /**
+     * @deprecated Use {@link ReflectUtils#getField(Object, String, boolean)} or {@link ReflectUtils#getField(Class, Object, String, boolean)}
+     */
     @Deprecated
     public static Object getPrivateField(Class<?> clazz, Object instance, String fieldName) throws Exception {
         return ReflectUtils.getField(clazz, instance, fieldName, true);
     }
 
-    /** @deprecated Use ReflectUtils */
+    /**
+     * @deprecated Use {@link ReflectUtils#setField(Object, String, Object, boolean)} or {@link ReflectUtils#setField(Class, Object, String, Object, boolean)}
+     */
     @Deprecated
     public static void setPrivateField(Class<?> clazz, Object instance, String fieldName, Object v) throws Exception {
         ReflectUtils.setField(clazz, instance, fieldName, v, true);
     }
 
+    /**
+     * Creates a checkable {@link View}.
+     * @param context {@link Context}
+     * @param type {@link CheckedSetting.ViewType} of the checkable item.
+     * @param text Title of the checkable item.
+     * @param subtext Summary of the checkable item.
+     * @return Checkable item.
+     */
     public static CheckedSetting createCheckedSetting(Context context, CheckedSetting.ViewType type, CharSequence text, CharSequence subtext) {
         CheckedSetting cs = new CheckedSetting(context, null);
         if (!type.equals(CheckedSetting.ViewType.CHECK)) {
@@ -197,6 +265,10 @@ public class Utils {
         return new j0.l.e.b<>(onNext, onError == null ? e -> {} : onError, onCompleted == null ? () -> {} : onCompleted);
     }
 
+    /**
+     * Logs a message.
+     * @param msg Message to log.
+     */
     public static void log(String msg) { Main.logger.debug(msg); }
 
     static {
