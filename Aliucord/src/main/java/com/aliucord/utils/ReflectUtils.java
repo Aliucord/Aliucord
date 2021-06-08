@@ -11,7 +11,7 @@ public final class ReflectUtils {
 
     /**
      * Gets a field declared in the class.
-     * @param instance Instance of the class where field is located.
+     * @param instance Instance of the class where the field is located.
      * @param fieldName Name of the field.
      * @param priv Whether the field is private or not.
      * @return Data stored in the field.
@@ -24,7 +24,7 @@ public final class ReflectUtils {
 
     /**
      * Gets a field declared in the class.
-     * @param clazz {@link Class} where the field is stored
+     * @param clazz {@link Class} where the field is located.
      * @param instance Instance of the <code>clazz</code>.
      * @param fieldName Name of the field.
      * @param priv Whether the field is private or not.
@@ -40,7 +40,7 @@ public final class ReflectUtils {
 
     /**
      * Stores a value to the field declared in the class.
-     * @param instance Instance of the class where field is located.
+     * @param instance Instance of the class where the field is located.
      * @param fieldName Name of the field.
      * @param v Value to store.
      * @param priv Whether the field is private or not.
@@ -53,7 +53,7 @@ public final class ReflectUtils {
 
     /**
      * Stores a value to the field declared in the class.
-     * @param clazz {@link Class} where the field is stored
+     * @param clazz {@link Class} where the field is located.
      * @param instance Instance of the <code>clazz</code>.
      * @param fieldName Name of the field.
      * @param v Value to store.
