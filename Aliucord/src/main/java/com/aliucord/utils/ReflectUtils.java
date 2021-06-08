@@ -15,8 +15,8 @@ public final class ReflectUtils {
      * @param fieldName Name of the field.
      * @param priv Whether the field is private or not.
      * @return Data stored in the field.
-     * @throws NoSuchFieldException If the field doesn't exist, or if <code>priv</code> is set to false but the field is private in the class.
-     * @throws IllegalAccessException If field is public but inaccessible.
+     * @throws NoSuchFieldException If the field doesn't exist.
+     * @throws IllegalAccessException If the field is private and <code>priv</code> is set to false.
      */
     public static Object getField(Object instance, String fieldName, boolean priv) throws NoSuchFieldException, IllegalAccessException {
         return getField(instance.getClass(), instance, fieldName, priv);
@@ -29,8 +29,8 @@ public final class ReflectUtils {
      * @param fieldName Name of the field.
      * @param priv Whether the field is private or not.
      * @return Data stored in the field.
-     * @throws NoSuchFieldException If the field doesn't exist, or if <code>priv</code> is set to false but the field is private in the class.
-     * @throws IllegalAccessException If the field is public but inaccessible.
+     * @throws NoSuchFieldException If the field doesn't exist.
+     * @throws IllegalAccessException If the field is private and <code>priv</code> is set to false.
      */
     public static Object getField(Class<?> clazz, Object instance, String fieldName, boolean priv) throws NoSuchFieldException, IllegalAccessException {
         Field field = clazz.getDeclaredField(fieldName);
@@ -44,8 +44,8 @@ public final class ReflectUtils {
      * @param fieldName Name of the field.
      * @param v Value to store.
      * @param priv Whether the field is private or not.
-     * @throws NoSuchFieldException If the field doesn't exist, or if <code>priv</code> is set to false but the field is private in the class.
-     * @throws IllegalAccessException If the field is public but inaccessible.
+     * @throws NoSuchFieldException If the field doesn't exist.
+     * @throws IllegalAccessException If the field is private and <code>priv</code> is set to false.
      */
     public static void setField(Object instance, String fieldName, Object v, boolean priv) throws NoSuchFieldException, IllegalAccessException {
         setField(instance.getClass(), instance, fieldName, v, priv);
@@ -58,8 +58,8 @@ public final class ReflectUtils {
      * @param fieldName Name of the field.
      * @param v Value to store.
      * @param priv Whether the field is private or not.
-     * @throws NoSuchFieldException If the field doesn't exist, or if <code>priv</code> is set to false but the field is private in the class.
-     * @throws IllegalAccessException If the field is public but inaccessible.
+     * @throws NoSuchFieldException If the field doesn't exist.
+     * @throws IllegalAccessException If the field is private and <code>priv</code> is set to false.
      */
     public static void setField(Class<?> clazz, Object instance, String fieldName, Object v, boolean priv) throws NoSuchFieldException, IllegalAccessException {
         Field field = clazz.getDeclaredField(fieldName);
