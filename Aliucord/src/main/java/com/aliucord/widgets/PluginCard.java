@@ -29,6 +29,7 @@ import com.aliucord.Utils;
 import com.aliucord.entities.Plugin;
 import com.aliucord.entities.Plugin.Settings.Type;
 import com.aliucord.views.Button;
+import com.aliucord.views.DangerButton;
 import com.aliucord.views.Divider;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.views.CheckedSetting;
@@ -49,20 +50,14 @@ public final class PluginCard extends MaterialCardView {
         int padding = Utils.getDefaultPadding();
         int padding2 = padding / 2;
         boolean enabled = PluginManager.isPluginEnabled(name);
-
-        LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-        params.setMargins(0, padding2, 0, 0);
-        setLayoutParams(params);
-        setUseCompatPadding(true);
-        setCardBackgroundColor(ColorCompat.getThemedColor(context, R$b.primary_630));
-        setStrokeColor(ColorCompat.getThemedColor(context, R$b.primary_900));
-        setStrokeWidth(Utils.dpToPx(0.5f));
-        setRadius(Utils.dpToPx(4));
+        setRadius(Utils.getDefaultCardRadius());
+        setCardBackgroundColor(ColorCompat.getThemedColor(context, R$b.colorBackgroundSecondary));
+        setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 
         Plugin.Manifest manifest = p.getManifest();
         LinearLayout pluginLayout = new LinearLayout(context);
 
-        Button settings = new Button(context, false);
+        Button settings = new Button(context);
         String title = name + " v" + manifest.version + " by " + TextUtils.join(", ", manifest.authors);
         SpannableString spannableTitle = new SpannableString(title);
         for (Plugin.Manifest.Author author : manifest.authors) {
@@ -123,7 +118,7 @@ public final class PluginCard extends MaterialCardView {
             buttons.addView(settings, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(2)));
         }
 
-        Button uninstall = new Button(context, true);
+        DangerButton uninstall = new DangerButton(context);
         uninstall.setText("Uninstall");
         uninstall.setOnClickListener(e -> {
             File pluginFile = new File(Constants.BASE_PATH + "/plugins/" + p.__filename + ".zip");

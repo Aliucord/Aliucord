@@ -60,7 +60,7 @@ public class Updater extends SettingsPage {
             onViewBound(view);
         };
 
-        Button btn = new Button(context, false);
+        Button btn = new Button(context);
         btn.setText("Check for Updates");
         LayoutParams layoutParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
         layoutParams.setMargins(0, 0, padding, 0);
@@ -79,7 +79,7 @@ public class Updater extends SettingsPage {
         });
         buttons.addView(btn);
 
-        btn = new Button(context, false);
+        btn = new Button(context);
         btn.setText("Update All");
         btn.setOnClickListener(e -> {
             state.setText("Updating...");

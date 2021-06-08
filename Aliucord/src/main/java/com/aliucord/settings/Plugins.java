@@ -7,6 +7,9 @@ package com.aliucord.settings;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.RectShape;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -24,6 +27,7 @@ import androidx.annotation.Nullable;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.FragmentManager;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -148,6 +152,14 @@ public class Plugins extends SettingsPage {
                 recyclerView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
                 Adapter adapter = new Adapter(recyclerView, list);
                 recyclerView.setAdapter(adapter);
+                ShapeDrawable shape = new ShapeDrawable(new RectShape());
+                shape.setTint(Color.TRANSPARENT);
+                shape.setIntrinsicHeight(padding);
+                DividerItemDecoration decoration = new DividerItemDecoration(context, DividerItemDecoration.VERTICAL);
+                decoration.setDrawable(shape);
+                recyclerView.addItemDecoration(decoration);
+                recyclerView.setPadding(0, padding, 0, 0);
+
                 v.addView(recyclerView);
 
                 if (editText != null) editText.addTextChangedListener(new TextWatcher() {
