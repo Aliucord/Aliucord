@@ -146,11 +146,23 @@ public class MessageEmbedBuilder {
         } catch (Throwable e) { Main.logger.error(e); }
         return setFooter(footer);
     }
+
     public MessageEmbedBuilder setFooter(EmbedFooter v) {
         try {
             footerField.set(embed, v);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
+    }
+
+    public MessageEmbedBuilder setImage(String imageUrl) {
+        EmbedImage image = new EmbedImage();
+        Class<EmbedImage> c = EmbedImage.class;
+        try {
+            ReflectUtils.setField(c, image, "url", imageUrl, true);
+            ReflectUtils.setField(c, image, "width", -1, true);
+            ReflectUtils.setField(c, image, "height", -1, true);
+        } catch (Throwable e) { Main.logger.error(e); }
+        return setImage(image);
     }
 
     public MessageEmbedBuilder setImage(EmbedImage v) {
