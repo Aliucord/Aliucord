@@ -28,8 +28,10 @@ public class Patcher {
 
     @SuppressWarnings("JavaReflectionMemberAccess")
     public static void init() {
-        Pine.setDebuggable(true);
         PineConfig.debug = false;
+        PineConfig.disableHiddenApiPolicy = false;
+        PineConfig.disableHiddenApiPolicyForPlatformDomain = false;
+        Pine.setDebuggable(true);
 
         try {
             unhook1 = Pine.hook(AppActivity.class.getDeclaredMethod("onCreate", Bundle.class), new PinePrePatchFn(callFrame -> {
