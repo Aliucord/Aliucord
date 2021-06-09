@@ -10,10 +10,7 @@ import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.aliucord.Constants;
-import com.aliucord.Logger;
-import com.aliucord.PluginManager;
-import com.aliucord.Utils;
+import com.aliucord.*;
 import com.aliucord.entities.Plugin;
 import com.aliucord.utils.ReflectUtils;
 import com.discord.api.commands.Application;
@@ -42,12 +39,7 @@ import com.lytefast.flexinput.R$g;
 import com.lytefast.flexinput.model.Attachment;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
