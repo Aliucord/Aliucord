@@ -1,21 +1,15 @@
 package com.discord.api.guild;
 
-import androidx.constraintlayout.solver.widgets.analyzer.BasicMeasure;
 import com.discord.api.channel.Channel;
 import com.discord.api.emoji.GuildEmoji;
-import com.discord.api.guild.welcome.GuildWelcomeScreen;
-import com.discord.api.guildhash.GuildHashes;
 import com.discord.api.guildmember.GuildMember;
-import com.discord.api.presence.Presence;
 import com.discord.api.role.GuildRole;
-import com.discord.api.stageinstance.StageInstance;
-import com.discord.api.voice.state.VoiceState;
-import com.discord.models.domain.ModelAuditLogEntry;
+
 import java.util.List;
-import java.util.Objects;
 
 /* compiled from: Guild.kt */
 public final class Guild {
+    /*
     public Guild(
             List<GuildRole> roles,
             List<GuildEmoji> emojis,
@@ -60,7 +54,6 @@ public final class Guild {
             boolean nsfw,
             List<StageInstance> stageInstances) { }
 
-    /** Maybe another time
     public static Guild a(Guild guild, List list, List list2, String str, String str2, Integer num, long j, String str3, long j2, String str4, GuildVerificationLevel guildVerificationLevel, GuildExplicitContentFilter guildExplicitContentFilter, List list3, List list4, List list5, List list6, boolean z2, int i, int i2, Long l, Long l2, List list7, int i3, String str5, String str6, int i4, int i5, int i6, String str7, Long l3, Long l4, String str8, GuildWelcomeScreen guildWelcomeScreen, GuildMaxVideoChannelUsers guildMaxVideoChannelUsers, String str9, int i7, int i8, Integer num2, GuildHashes guildHashes2, List list8, List list9, boolean z3, List list10, int i9, int i10) {
         List list11 = (i9 & 1) != 0 ? guild.roles : list;
         List list12 = (i9 & 2) != 0 ? guild.emojis : list2;
@@ -112,7 +105,7 @@ public final class Guild {
     */
 
     /** getPresences */
-    public final List<Presence> A() { return null; }
+    // public final List<Presence> A() { return null; }
     /** getPublicUpdatesChannelId */
     public final Long B() { return null; }
     /** getRegion */
@@ -124,7 +117,7 @@ public final class Guild {
     /** getSplash */
     public final String F() { return null; }
     /** getStageInstances */
-    public final List<StageInstance> G() { return null; }
+    // public final List<StageInstance> G() { return null; }
     /** getSystemChannelFlags */
     public final int H() { return 0; }
     /** getSystemChannelId */
@@ -138,9 +131,9 @@ public final class Guild {
     /** getGuildVerificationLevel */
     public final GuildVerificationLevel M() { return null; }
     /** getVoiceStates */
-    public final List<VoiceState> N() { return null; }
+    // public final List<VoiceState> N() { return null; }
     /** getWelcomeScreen */
-    public final GuildWelcomeScreen O() { return null; }
+    // public final GuildWelcomeScreen O() { return null; }
     /** getAfkChannelId */
     public final Long b() { return null; }
     /** getAfkTimeoput */
