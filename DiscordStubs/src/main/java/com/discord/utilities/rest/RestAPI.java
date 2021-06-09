@@ -1,114 +1,25 @@
 package com.discord.utilities.rest;
 
-import android.content.Context;
-import android.util.Base64;
-import androidx.core.app.NotificationCompat;
-import com.discord.BuildConfig;
-import com.discord.api.activity.ActivityActionConfirmation;
-import com.discord.api.activity.ActivityMetadata;
 import com.discord.api.application.Application;
-import com.discord.api.auth.RegisterResponse;
-import com.discord.api.auth.mfa.DisableMfaRequestBody;
-import com.discord.api.auth.mfa.DisableMfaResponse;
-import com.discord.api.auth.mfa.EnableMfaResponse;
-import com.discord.api.auth.mfa.GetBackupCodesRequestBody;
-import com.discord.api.auth.mfa.GetBackupCodesResponse;
 import com.discord.api.channel.Channel;
-import com.discord.api.commands.ApplicationCommand;
 import com.discord.api.commands.ApplicationCommandData;
-import com.discord.api.fingerprint.FingerprintResponse;
-import com.discord.api.friendsuggestions.BulkAddFriendsResponse;
-import com.discord.api.friendsuggestions.BulkFriendSuggestions;
-import com.discord.api.friendsuggestions.FriendSuggestion;
 import com.discord.api.guild.Guild;
-import com.discord.api.guild.PruneCountResponse;
-import com.discord.api.guild.VanityUrlResponse;
-import com.discord.api.guild.preview.GuildPreview;
-import com.discord.api.guild.welcome.GuildWelcomeScreen;
-import com.discord.api.message.activity.MessageActivityType;
-import com.discord.api.report.MenuAPIResponse;
-import com.discord.api.report.ReportReason;
-import com.discord.api.report.ReportSubmissionBody;
 import com.discord.api.role.GuildRole;
-import com.discord.api.stageinstance.RecommendedStageInstance;
-import com.discord.api.thread.ThreadListing;
-import com.discord.api.thread.ThreadMember;
-import com.discord.api.user.UserSurveyFetchResponse;
-import com.discord.api.utcdatetime.UtcDateTime;
-import com.discord.app.AppLog;
-import com.discord.models.domain.Consents;
-import com.discord.models.domain.Harvest;
-import com.discord.models.domain.ModelApplicationStreamPreview;
 import com.discord.models.domain.ModelAuditLog;
-import com.discord.models.domain.ModelAuditLogEntry;
 import com.discord.models.domain.ModelBan;
-import com.discord.models.domain.ModelCall;
-import com.discord.models.domain.ModelChannelFollowerStatsDto;
 import com.discord.models.domain.ModelConnectedAccount;
-import com.discord.models.domain.ModelConnectionAccessToken;
-import com.discord.models.domain.ModelConnectionState;
-import com.discord.models.domain.ModelEntitlement;
-import com.discord.models.domain.ModelGift;
-import com.discord.models.domain.ModelGuildIntegration;
-import com.discord.models.domain.ModelGuildMemberListUpdate;
-import com.discord.models.domain.ModelGuildTemplate;
 import com.discord.models.domain.ModelInvite;
-import com.discord.models.domain.ModelLibraryApplication;
-import com.discord.models.domain.ModelLocationMetadata;
-import com.discord.models.domain.ModelMemberVerificationForm;
-import com.discord.models.domain.ModelMemberVerificationFormResponse;
 import com.discord.models.domain.ModelMessage;
-import com.discord.models.domain.ModelNotificationSettings;
-import com.discord.models.domain.ModelOAuth2Token;
-import com.discord.models.domain.ModelPhoneVerificationToken;
-import com.discord.models.domain.ModelPremiumGuildSubscription;
-import com.discord.models.domain.ModelPremiumGuildSubscriptionSlot;
-import com.discord.models.domain.ModelRemoteAuthHandshake;
-import com.discord.models.domain.ModelRtcLatencyRegion;
 import com.discord.models.domain.ModelSearchResponse;
-import com.discord.models.domain.ModelSubscription;
-import com.discord.models.domain.ModelTypingResponse;
-import com.discord.models.domain.ModelUrl;
-import com.discord.models.domain.ModelUserAffinities;
-import com.discord.models.domain.ModelUserNote;
 import com.discord.models.domain.ModelUserProfile;
-import com.discord.models.domain.ModelUserRelationship;
-import com.discord.models.domain.ModelUserSettings;
-import com.discord.models.domain.ModelVoiceRegion;
-import com.discord.models.domain.PatchPaymentSourceRaw;
-import com.discord.models.domain.PaymentSourceRaw;
-import com.discord.models.domain.auth.ModelLoginResult;
-import com.discord.models.domain.billing.ModelInvoicePreview;
 import com.discord.models.domain.emoji.ModelEmojiGuild;
-import com.discord.models.domain.spotify.ModelSpotifyTrack;
-import com.discord.models.experiments.dto.UnauthenticatedUserExperimentsDto;
-import com.discord.models.gifpicker.dto.GifDto;
-import com.discord.models.gifpicker.dto.TrendingGifCategoriesResponseDto;
-import com.discord.models.sticker.dto.ModelStickerPack;
-import com.discord.models.sticker.dto.ModelStickerStoreDirectory;
-import com.discord.models.sticker.dto.ModelUserStickerPack;
 import com.discord.models.user.User;
-import com.discord.restapi.BreadcrumbInterceptor;
-import com.discord.restapi.PayloadJSON;
-import com.discord.restapi.RequiredHeadersInterceptor;
-import com.discord.restapi.RestAPIBuilder;
-import com.discord.restapi.RestAPIInterface;
 import com.discord.restapi.RestAPIParams;
-import com.discord.stores.StoreStream;
 import com.discord.utilities.time.Clock;
-import com.discord.utilities.time.ClockFactory;
-import java.nio.charset.Charset;
+
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+
 import kotlin.Unit;
-import kotlin.jvm.functions.Function0;
-import kotlin.jvm.internal.DefaultConstructorMarker;
-import okhttp3.Interceptor;
-import okhttp3.MultipartBody;
-import org.json.JSONException;
-import org.json.JSONObject;
 import rx.Observable;
 
 @SuppressWarnings("unused")
@@ -170,7 +81,7 @@ public final class RestAPI {
 
     public final Observable<Channel> createOrFetchDM(long userId) { return null; }
 
-    public Observable<GuildRole> createRole(long guildId) { }
+    public Observable<GuildRole> createRole(long guildId) { return null; }
 
     public Observable<Channel> createThread(long channelId, RestAPIParams.ThreadCreationSettings threadCreationSettings) { return null; }
 
@@ -214,13 +125,8 @@ public final class RestAPI {
 
     public Observable<Unit> endStageInstance(long channelId) { return null; }
 
-    public Observable<ActivityMetadata> getActivityMetadata(long userId, String sessionId, long applicationId) { return null; }
-
-    public Observable<ThreadListing> getAllPrivateArchivedThreads(long channelId, String before) { return null; }
-
-    public Observable<ThreadListing> getAllPublicArchivedThreads(long channelId, String before) { return null; }
-
-    public Observable<List<ApplicationCommand>> getApplicationCommands(long botId) { return null; }
+    // public Observable<ThreadListing> getAllPrivateArchivedThreads(long channelId, String before) { return null; }
+    // public Observable<ThreadListing> getAllPublicArchivedThreads(long channelId, String before) { return null; }
 
     public Observable<List<Application>> getApplications(long applicationIds) { return null; }
 
@@ -238,7 +144,7 @@ public final class RestAPI {
 
     public final Observable<Integer> getClientVersion() { return null; }
 
-    public Observable<ModelConnectionState> getConnectionState(String connection, String pinNumber) { return null; }
+    // public Observable<ModelConnectionState> getConnectionState(String connection, String pinNumber) { return null; }
 
     public Observable<List<ModelConnectedAccount>> getConnections() { return null; }
 
@@ -260,7 +166,7 @@ public final class RestAPI {
      */
     public Observable<List<com.discord.api.user.User>> getReactionUsers(long channelId, long messageId, String emoji, Integer limit) { return null; }
 
-    public Observable<List<ModelUserRelationship>> getRelationships(long userId) { return null; }
+    // public Observable<List<ModelUserRelationship>> getRelationships(long userId) { return null; }
 
     public Observable<List<Guild>> getUserJoinRequestGuilds() { return null; }
 
@@ -279,8 +185,6 @@ public final class RestAPI {
     public Observable<Void> leaveThread(long channelId, String location) { return null; }
 
     public Observable<ModelEmojiGuild> patchGuildEmoji(long guildId, long emojiId, RestAPIParams.PatchGuildEmoji patchGuildEmoji) { return null; }
-
-    public Observable<com.discord.api.user.User> patchUser(RestAPIParams.UserInfo userInfo) { return null; }
 
     public Observable<ModelInvite> postChannelInvite(long channelId, RestAPIParams.Invite invite) { return null; }
 
@@ -320,8 +224,6 @@ public final class RestAPI {
 
     public Observable<ModelSearchResponse> searchGuildMessages(long guildId, Long maxId, List<String> authorIds, List<String> mentions, List<String> channelIds, List<String> has, List<String> content, Integer attempts, Boolean includeNsfw) { return null; }
 
-    public Observable<ModelMessage> sendMessage(long channelId, PayloadJSON<RestAPIParams.Message> payloadJSON, MultipartBody.Part[] files) { return null; }
-
     public Observable<ModelMessage> sendMessage(long channelId, RestAPIParams.Message message) { return null; }
 
     /** Location is something like ContextMenu telling discord via which menu you added the user */
@@ -331,7 +233,7 @@ public final class RestAPI {
 
     public final Observable<Void> setUserSuppressed(Channel channel, long userId, boolean z2) { return null; }
 
-    public Observable<ModelTypingResponse> setUserTyping(long channelId, RestAPIParams.EmptyBody emptyBody) { return null; }
+    // public Observable<ModelTypingResponse> setUserTyping(long channelId, RestAPIParams.EmptyBody emptyBody) { return null; }
 
     public final Observable<Void> stopRinging(long j, long j2, List<Long> list) { return null; }
 
@@ -343,8 +245,7 @@ public final class RestAPI {
 
     public Observable<Void> updatePermissionOverwrites(long channelId, long targetId, RestAPIParams.ChannelPermissionOverwrites channelPermissionOverwrites) { return null; }
 
-    public Observable<ModelNotificationSettings> updatePrivateChannelSettings(RestAPIParams.UserGuildSettings userGuildSettings) {
-    }
+    // public Observable<ModelNotificationSettings> updatePrivateChannelSettings(RestAPIParams.UserGuildSettings userGuildSettings) { return null; }
 
     public Observable<Void> updateRole(long guildId, long roleId, RestAPIParams.Role role) { return null; }
 

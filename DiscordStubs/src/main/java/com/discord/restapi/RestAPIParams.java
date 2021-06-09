@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("unused")
 public final class RestAPIParams {
     public static final class ApplicationCommand {
         public ApplicationCommand(long type, String channelId, String applicationId, String guildId, ApplicationCommandData applicationCommandData, String nonce) { }
