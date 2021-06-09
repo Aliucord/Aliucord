@@ -2,13 +2,15 @@ package com.discord.api.user;
 
 import com.discord.api.guildmember.GuildMember;
 import com.discord.api.premium.PremiumTier;
+import com.discord.nullserializable.NullSerializable;
 
 @SuppressWarnings("unused")
 public final class User {
     public User(
             long id,
             String username,
-            UserAvatar avatar,
+            NullSerializable<String> avatar,
+            NullSerializable<String> banner,
             String discriminator,
             Integer publicFlags,
             Integer flags,
@@ -24,27 +26,35 @@ public final class User {
             String str,
             PremiumTier premiumTier,
             Integer approximateGuildCount,
-            GuildMember guildMember
+            GuildMember guildMember,
+            String bio,
+            String bannerColor
     ) {}
 
     /** getAvatar */
-    public final UserAvatar a() { return null; }
+    public final NullSerializable<String> a() { return null; }
+    /** getBanner */
+    public final NullSerializable<String> b() { return null; }
+    /** getBannerColor */
+    public final String c() { return null; }
+    /** getBio */
+    public final String d() { return null; }
     /** getBot */
-    public final Boolean b() { return false; }
+    public final Boolean e() { return false; }
     /** getDiscriminator */
-    public final String c() { return ""; }
+    public final String f() { return ""; }
     /** getFlags */
-    public final Integer e() { return 0; }
+    public final Integer h() { return 0; }
     /** getId */
-    public final long f() { return 0; }
+    public final long i() { return 0; }
     /** getMember */
-    public final GuildMember g() { return null; }
+    public final GuildMember j() { return null; }
     /** getPublicFlags */
-    public final Integer l() { return 0; }
+    public final Integer o() { return 0; }
     /** getSystem */
-    public final Boolean m() { return false; }
+    public final Boolean p() { return false; }
     /** getUsername */
-    public final String o() { return ""; }
+    public final String r() { return ""; }
     /** getVerified */
-    public final Boolean p() { return null; }
+    public final Boolean s() { return null; }
 }

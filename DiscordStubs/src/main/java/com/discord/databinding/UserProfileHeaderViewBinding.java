@@ -1,9 +1,9 @@
 package com.discord.databinding;
 
 import android.view.View;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
@@ -11,20 +11,26 @@ import androidx.viewbinding.ViewBinding;
 import com.discord.utilities.view.text.SimpleDraweeSpanTextView;
 import com.discord.views.UsernameView;
 import com.discord.views.user.UserAvatarPresenceView;
+import com.facebook.drawee.view.SimpleDraweeView;
 
+@SuppressWarnings("unused")
 public final class UserProfileHeaderViewBinding implements ViewBinding {
     /** root */
     public ConstraintLayout a;
+    /** banner */
+    public SimpleDraweeView b;
+    /** betaTag */
+    public CardView c;
     /** avatar */
-    public UserAvatarPresenceView b;
+    public UserAvatarPresenceView d;
     /** badges */
-    public RecyclerView c;
+    public RecyclerView e;
     /** custom status */
-    public SimpleDraweeSpanTextView d;
+    public SimpleDraweeSpanTextView f;
     /** username */
-    public UsernameView e;
+    public UsernameView g;
     /** secondary name */
-    public TextView f;
+    public SimpleDraweeSpanTextView h;
 
     @NonNull
     @Override

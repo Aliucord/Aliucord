@@ -13,9 +13,10 @@ public class AppFragmentProxy extends FragmentProxy {
     private Fragment mFragment;
 
     @Override
+    @SuppressWarnings("ConstantConditions")
     public Fragment getmFragment() {
         if (mFragment == null) {
-            String id = ((AppActivity) getActivity()).d().getStringExtra("AC_FRAGMENT_ID");
+            String id = ((AppActivity) getActivity()).c().getStringExtra("AC_FRAGMENT_ID");
             mFragment = FragmentProxy.fragments.get(id);
             FragmentProxy.fragments.remove(id);
         }

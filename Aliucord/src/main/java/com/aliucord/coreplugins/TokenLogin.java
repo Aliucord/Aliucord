@@ -86,19 +86,19 @@ public final class TokenLogin extends Plugin {
             LinearLayout v = (LinearLayout) view.getChildAt(1);
 
             int padding = Utils.dpToPx(18);
-            Button btn = new Button(context, false);
+            Button btn = new Button(context);
             btn.setPadding(0, padding, 0, padding);
             btn.setText("Login using token");
             btn.setTextSize(16.0f);
             if (StoreStream.getUserSettingsSystem().getTheme().equals("light"))
-                btn.setBackgroundColor(context.getResources().getColor(R$c.uikit_btn_bg_color_selector_secondary_light));
-            else btn.setBackgroundColor(context.getResources().getColor(R$c.uikit_btn_bg_color_selector_secondary_dark));
+                btn.setBackgroundColor(context.getResources().getColor(R$c.uikit_btn_bg_color_selector_secondary_light, null));
+            else btn.setBackgroundColor(context.getResources().getColor(R$c.uikit_btn_bg_color_selector_secondary_dark, null));
             btn.setOnClickListener(e -> Utils.openPage(e.getContext(), Page.class));
             v.addView(btn);
         }));
 
-        Patcher.addPatch(AppActivity.class, "h", new Class<?>[]{ List.class }, new PinePatchFn(callFrame -> {
-            if (!((boolean) callFrame.getResult()) && ((AppActivity) callFrame.thisObject).e().equals(Page.class)) callFrame.setResult(true);
+        Patcher.addPatch(AppActivity.class, "g", new Class<?>[]{ List.class }, new PinePatchFn(callFrame -> {
+            if (!((boolean) callFrame.getResult()) && ((AppActivity) callFrame.thisObject).d().equals(Page.class)) callFrame.setResult(true);
         }));
     }
 

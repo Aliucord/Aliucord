@@ -11,9 +11,9 @@ import androidx.viewbinding.ViewBinding;
 public final class WidgetUserSheetBinding implements ViewBinding {
     public NestedScrollView a;
     /** developer section header */
-    public TextView j;
+    public TextView m;
     /** note section header */
-    public TextView u;
+    public TextView x;
 
     @NonNull
     @Override

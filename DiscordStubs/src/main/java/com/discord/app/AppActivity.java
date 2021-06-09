@@ -8,12 +8,8 @@ import rx.subjects.Subject;
 
 @SuppressWarnings("unused")
 public class AppActivity extends AppTransitionActivity implements AppComponent {
-    public static final class a {
-        public final Object i = null;
-    }
-
-    public final Intent d() { return new Intent(); }
-    public Class<? extends AppComponent> e() { return AppActivity.class; }
+    public final Intent c() { return new Intent(); }
+    public Class<? extends AppComponent> d() { return AppActivity.class; }
 
     @Override
     public Subject<Void, Void> getUnsubscribeSignal() { return null; }

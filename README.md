@@ -5,7 +5,7 @@ Discord Android app mod inspired by desktop Discord client mods. Unlike other mo
 
 **Supported Android versions**: 7.0 or higher (sdk 24)
 
-**Supported Discord version**: 79.1 - Alpha (79201)
+**Supported Discord version**: 80.2 - Alpha (80202)
 
 [Support Server](https://discord.gg/EsNDvBaHVU)
 

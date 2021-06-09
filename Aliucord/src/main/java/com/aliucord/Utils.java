@@ -19,11 +19,12 @@ import androidx.fragment.app.Fragment;
 
 import com.aliucord.fragments.AppFragmentProxy;
 import com.aliucord.utils.ReflectUtils;
+import com.aliucord.utils.RxUtils;
 import com.discord.api.commands.CommandChoice;
 import com.discord.api.user.User;
-import com.discord.api.user.UserAvatar;
 import com.discord.app.AppActivity;
 import com.discord.app.AppComponent;
+import com.discord.nullserializable.NullSerializable;
 import com.discord.utilities.SnowflakeUtils;
 import com.discord.utilities.fcm.NotificationClient;
 import com.discord.views.CheckedSetting;
@@ -172,18 +173,14 @@ public class Utils {
      * @return Customized Clyde
      */
     public static User buildClyde(@Nullable String name, @Nullable String avatarUrl) {
-        if (name == null) {
-            name = "Clyde";
-        }
-
-        if (avatarUrl == null) {
-            avatarUrl = "https://canary.discord.com/assets/f78426a064bc9dd24847519259bc42af.png";
-        }
+        if (name == null) name = "Clyde";
+        if (avatarUrl == null) avatarUrl = "https://canary.discord.com/assets/f78426a064bc9dd24847519259bc42af.png";
 
         return new User(
             -1,
             name,
-            new UserAvatar.Avatar(avatarUrl),
+            new NullSerializable.b<>(avatarUrl),
+            new NullSerializable.a<>(),
             "0000",
             0,
             null,
@@ -192,6 +189,8 @@ public class Utils {
             null,
             null,
             false,
+            null,
+            null,
             null,
             null,
             null,
@@ -257,18 +256,21 @@ public class Utils {
     public final static Gson gson = new Gson();
     public final static Gson gsonPretty = new Gson();
     public static <T> T fromJson(String json, Type type) { return gson.g(json, type); }
-    public static String toJson(Object obj) { return gson.l(obj); }
-    public static String toJsonPretty(Object obj) { return gsonPretty.l(obj); }
+    public static String toJson(Object obj) { return gson.m(obj); }
+    public static String toJsonPretty(Object obj) { return gsonPretty.m(obj); }
 
     public static CharSequence renderMD(CharSequence source) {
         return b.k(source, new Object[0], null, 2);
     }
 
+    @Deprecated
     public static <T> Subscriber<T> createActionSubscriber(Action1<? super T> onNext) {
-        return createActionSubscriber(onNext, null, null);
+        return RxUtils.createActionSubscriber(onNext);
     }
+
+    @Deprecated
     public static <T> Subscriber<T> createActionSubscriber(Action1<? super T> onNext, Action1<Throwable> onError, Action0 onCompleted) {
-        return new j0.l.e.b<>(onNext, onError == null ? e -> {} : onError, onCompleted == null ? () -> {} : onCompleted);
+        return RxUtils.createActionSubscriber(onNext, onError, onCompleted);
     }
 
     /**

@@ -4,7 +4,7 @@ package rx;
 @SuppressWarnings("unused")
 public class Observable<T> {
     /** onBackpressureBuffer */
-    public final Observable<T> I() { return this; }
+    public final Observable<T> K() { return this; }
     /** subscribe */
-    public final Subscription T(Subscriber<? super T> subscriber) { return subscriber; }
+    public final Subscription V(Subscriber<? super T> subscriber) { return subscriber; }
 }

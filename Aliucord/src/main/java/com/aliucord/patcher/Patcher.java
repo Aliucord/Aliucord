@@ -39,7 +39,7 @@ public class Patcher {
                 unhook1.unhook();
             }));
 
-            unhook2 = Pine.hook(AppActivity.class.getDeclaredMethod("c", String.class, boolean.class), new PinePatchFn(callFrame -> {
+            unhook2 = Pine.hook(AppActivity.class.getDeclaredMethod("b", String.class, boolean.class), new PinePatchFn(callFrame -> {
                 Main.init((AppActivity) callFrame.thisObject);
                 unhook2.unhook();
             }));
