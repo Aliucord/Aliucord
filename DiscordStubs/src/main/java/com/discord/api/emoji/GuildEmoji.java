@@ -1,12 +1,11 @@
 package com.discord.api.emoji;
 
-import com.aliucord.wrappers.GuildEmojiWrapper;
-
 import java.util.List;
 
 /**
  * Obfuscated class with regularly changing method names.
- * Please use {@link GuildEmojiWrapper}
+ * Do not use this directly, use Aliucords wrapper instead
+ * @see com.aliucord.wrappers.GuildEmojiWrapper
  */
 @SuppressWarnings("unused")
 public final class GuildEmoji {
