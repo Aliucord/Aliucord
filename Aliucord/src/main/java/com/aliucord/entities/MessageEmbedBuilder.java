@@ -95,7 +95,6 @@ public class MessageEmbedBuilder {
         return setAuthor(name, null, null);
     }
 
-
     /**
      * @param name Name of the author.
      * @param iconUrl Icon URL of the author.
@@ -132,6 +131,14 @@ public class MessageEmbedBuilder {
             authorField.set(embed, author);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
+    }
+
+    /**
+     * Sets a random embed color.
+     * @return {@link MessageEmbedBuilder} for chaining.
+     */
+    public MessageEmbedBuilder setRandomColor() {
+        return setColor(new java.util.Random().nextInt(0xffffff + 1));
     }
 
     /**
@@ -438,6 +445,15 @@ public class MessageEmbedBuilder {
             ReflectUtils.setField(c, video, "height", height, true);
         } catch (Throwable e) { Main.logger.error(e); }
         return setVideo(video);
+    }
+
+    /**
+     * Sets the embed video.
+     * @param videoUrl Video URL.
+     * @return {@link MessageEmbedBuilder} for chaining.
+     */
+    public MessageEmbedBuilder setVideo(String videoUrl) {
+        return setVideo(videoUrl, videoUrl, -1, -1);
     }
 
     /**
