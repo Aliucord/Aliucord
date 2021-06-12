@@ -151,7 +151,7 @@ public class CommandsAPI {
             MessageContent content = _this.$chatInput.getMatchedContentWithMetaData();
             WidgetChatInput.clearInput$default(_this.this$0, false, true, 0, null);
 
-            new Thread(() -> {
+            Utils.threadPool.execute(() -> {
                 try {
                     CommandResult res = execute.invoke(args);
                     if (res == null) {
@@ -242,7 +242,7 @@ public class CommandsAPI {
                     } catch (Throwable ignored) {}
                     StoreMessages.access$handleLocalMessageCreate(storeMessages, commandMessage);
                 }
-            }).start();
+            });
             return null;
         });
         try {

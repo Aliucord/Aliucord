@@ -35,6 +35,8 @@ import java.lang.reflect.Type;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import c.a.d.l;
 import c.a.k.b;
@@ -44,7 +46,13 @@ import rx.functions.Action1;
 
 @SuppressWarnings("unused")
 public class Utils {
+    /** The main (UI) thread */
     public static final Handler mainThread = new Handler(Looper.getMainLooper());
+    /**
+     * ThreadPool. Please use this for asynchronous Tasks instead of creating Threads manually
+     * as spinning up new Threads everytime is heavy on the CPU
+     */
+    public static final ExecutorService threadPool = Executors.newCachedThreadPool();
     public static AppActivity appActivity;
     public static Context appContext;
 
@@ -161,7 +169,7 @@ public class Utils {
         CommandChoice choice = new CommandChoice();
         try {
             ReflectUtils.setField(choice, "name", name, true);
-            ReflectUtils.setField(choice, "value", name, true);
+            ReflectUtils.setField(choice, "value", value, true);
         } catch (Throwable e) { Main.logger.error(e); }
         return choice;
     }

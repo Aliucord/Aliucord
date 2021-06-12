@@ -7,7 +7,6 @@ package com.aliucord.widgets;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.os.Handler;
 import android.os.Looper;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -100,7 +99,7 @@ public final class PluginCard extends MaterialCardView {
 
             if (!enabled) {
                 if (Looper.myLooper() == Looper.getMainLooper()) settings.setEnabled(false);
-                else new Handler(Looper.getMainLooper()).post(() -> settings.setEnabled(false));
+                else Utils.mainThread.post(() -> settings.setEnabled(false));
             }
             if (p.settings.type == Type.PAGE && p.settings.page != null)
                 settings.setOnClickListener(v -> {

@@ -67,7 +67,7 @@ public class Updater extends SettingsPage {
         btn.setLayoutParams(layoutParams);
         btn.setOnClickListener(e -> {
             state.setText("Checking for updates...");
-            new Thread(() -> {
+            Utils.threadPool.execute(() -> {
                 PluginUpdater.checkUpdates(false);
                 int updateCount = PluginUpdater.updates.size();
                 if (updateCount == 0)
@@ -75,7 +75,7 @@ public class Updater extends SettingsPage {
                 else
                     stateText = String.format("Found %s", Utils.pluralise(updateCount, "update"));
                 Utils.mainThread.post(forceUpdate);
-            }).start();
+            });
         });
         buttons.addView(btn);
 
@@ -83,7 +83,7 @@ public class Updater extends SettingsPage {
         btn.setText("Update All");
         btn.setOnClickListener(e -> {
             state.setText("Updating...");
-            new Thread(() -> {
+            Utils.threadPool.execute(() -> {
                 int updateCount = PluginUpdater.updateAll();
                 if (updateCount == 0) {
                     stateText = "No updates found";
@@ -93,7 +93,7 @@ public class Updater extends SettingsPage {
                     stateText = String.format("Successfully updated %s!", Utils.pluralise(updateCount, "plugin"));
                 }
                 Utils.mainThread.post(forceUpdate);
-            }).start();
+            });
         });
         buttons.addView(btn);
         v.addView(buttons);
