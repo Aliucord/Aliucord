@@ -18,10 +18,19 @@ import kotlin.jvm.functions.Function1;
 public class CollectionUtils {
     /**
      * Check whether any element of the collection passes the filter
-     * @return True if condition is true for any value in the collection
+     * @return True if condition is true for any element in the collection
      */
     public static <E> boolean some(@NonNull Collection<E> collection, @NonNull Function1<E, Boolean> filter) {
         return find(collection, filter) != null;
+    }
+
+    /**
+     * Check whether all elements of the collection pass the filter
+     * @return True if condition is true for all elements in the collection
+     */
+    public static <E> boolean every(@NonNull Collection<E> collection, @NonNull Function1<E, Boolean> filter) {
+        for (E e : collection) if (!filter.invoke(e)) return false;
+        return true;
     }
 
     /**
