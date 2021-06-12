@@ -76,7 +76,7 @@ public class UpdaterPluginCard extends MaterialCardView {
         update.setOnClickListener(e -> {
             update.setEnabled(false);
             update.setText("Updating..");
-            new Thread(() -> {
+            Utils.threadPool.execute(() -> {
                 try {
                     PluginUpdater.update(plugin);
                     PluginUpdater.updates.remove(plugin);
@@ -86,7 +86,7 @@ public class UpdaterPluginCard extends MaterialCardView {
                 } finally {
                     Utils.mainThread.post(forceUpdate);
                 }
-            }).start();
+            });
         });
         int updateId = View.generateViewId();
         update.setId(updateId);

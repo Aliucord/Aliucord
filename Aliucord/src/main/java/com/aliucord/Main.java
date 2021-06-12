@@ -10,7 +10,6 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.view.View;
 import android.widget.TextView;
 
@@ -35,7 +34,7 @@ import com.lytefast.flexinput.R$b;
 import com.lytefast.flexinput.R$d;
 import com.lytefast.flexinput.R$h;
 
-import java.io.*;
+import java.io.File;
 import java.util.*;
 
 @SuppressWarnings({"unchecked"})
@@ -143,21 +142,13 @@ public class Main {
             } catch (Throwable e) { PluginManager.logger.error("Exception while starting plugin: " + name, e); }
         }
 
-        new Thread(() -> PluginUpdater.checkUpdates(true)).start();
+        Utils.threadPool.execute(() -> PluginUpdater.checkUpdates(true));
     }
 
     private static boolean checkPermissions(AppCompatActivity activity) {
-        if (Build.VERSION.SDK_INT >= 23) {
-            String perm = "android.permission.WRITE_EXTERNAL_STORAGE";
-            if (activity.checkSelfPermission(perm) == PackageManager.PERMISSION_GRANTED) return true;
-//            Toast.makeText(
-//                    activity,
-//                    "Restart app after granting permission (permission is needed to load plugins)",
-//                    Toast.LENGTH_LONG
-//            ).show();
-            activity.requestPermissions(new String[]{ perm }, 1);
-            return false;
-        }
-        return true;
+        String perm = "android.permission.WRITE_EXTERNAL_STORAGE";
+        if (activity.checkSelfPermission(perm) == PackageManager.PERMISSION_GRANTED) return true;
+        activity.requestPermissions(new String[]{ perm }, 1);
+        return false;
     }
 }

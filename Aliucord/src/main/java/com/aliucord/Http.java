@@ -5,6 +5,8 @@
 
 package com.aliucord;
 
+import androidx.annotation.NonNull;
+
 import java.io.*;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
@@ -45,6 +47,7 @@ public class Http {
         /**
          * Build the finished Url
          */
+        @NonNull
         public String toString() {
             String str = sb.toString();
             return str.substring(0, str.length() -1); // Remove last & or ? if no query specified
@@ -236,7 +239,7 @@ public class Http {
     }
 
     /**
-     * Send a simple json POST request
+     * Send a simple POST request and parse the JSON response
      * @param url The url to fetch
      * @param body The request body
      * @param schema Class to <a href="https://en.wikipedia.org/wiki/Serialization">deserialize</a> the response into
@@ -245,5 +248,16 @@ public class Http {
     public static <T> T simpleJsonPost(String url, String body, Type schema) throws IOException {
         String res = simplePost(url, body);
         return Utils.fromJson(res, schema);
+    }
+
+    /**
+     * Send a simple POST request with JSON body
+     * @param url The url to fetch
+     * @param body The request body
+     * @param schema Class to <a href="https://en.wikipedia.org/wiki/Serialization">deserialize</a> the response into
+     * @return Response deserialized into the provided Class
+     */
+    public static <T> T simpleJsonPost(String url, Object body, Type schema) throws IOException {
+        return new Request(url).executeWithJson(body).json(schema);
     }
 }

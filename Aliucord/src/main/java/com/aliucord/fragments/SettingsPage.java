@@ -21,6 +21,7 @@ public class SettingsPage extends AppFragment {
     @SuppressLint("ResourceType")
     public SettingsPage() { super(Utils.getResId("widget_settings_behavior", "layout")); }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);

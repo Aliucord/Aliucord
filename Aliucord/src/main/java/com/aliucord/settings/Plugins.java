@@ -41,7 +41,7 @@ import com.aliucord.widgets.PluginCard;
 import com.lytefast.flexinput.R$g;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -139,15 +139,15 @@ public class Plugins extends SettingsPage {
         if (editText != null) editText.setMaxLines(1);
         v.addView(input);
 
-        new Thread(() -> {
-            FragmentManager fragmentManager = getFragmentManager();
+        Utils.threadPool.execute(() -> {
+            FragmentManager fragmentManager = getParentFragmentManager();
             List<PluginCard> list = new ArrayList<>();
             for (Map.Entry<String, Plugin> entry : PluginManager.plugins.entrySet()) try {
                 list.add(new PluginCard(context, entry.getKey(), entry.getValue(), fragmentManager));
             } catch (Throwable e) { Main.logger.error("Exception while rendering plugin settings", e); }
-            Collections.sort(list, (a, b) -> a.pluginName.compareTo(b.pluginName));
+            list.sort(Comparator.comparing(a -> a.pluginName));
 
-            new Handler(Looper.getMainLooper()).post(() -> {
+            Utils.mainThread.post(() -> {
                 RecyclerView recyclerView = new RecyclerView(context);
                 recyclerView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
                 Adapter adapter = new Adapter(recyclerView, list);
@@ -171,6 +171,6 @@ public class Plugins extends SettingsPage {
                     public void onTextChanged(CharSequence s, int start, int before, int count) {}
                 });
             });
-        }).start();
+        });
     }
 }
