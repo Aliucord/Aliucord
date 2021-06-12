@@ -135,13 +135,25 @@ public class CollectionUtils {
     }
 
 
+    /**
+     * Removes all elements after the specified start index
+     * @return The removed elements
+     */
     public static <E> List<E> splice(List<E> list, int start) {
         return splice(list, start, list.size() - start);
     }
 
+    /**
+     * Removes the specified amount of elements after the specified start index and inserts the specified items
+     * @param list The list of splice
+     * @param start The start index
+     * @param deleteCount The amount of items to remove
+     * @param items The items to insert
+     * @return The removed elements
+     */
     @SafeVarargs
     public static <E> List<E> splice(List<E> list, int start, int deleteCount, E... items) {
-        List<E> ret = new ArrayList<>();
+        List<E> ret = new ArrayList<>(deleteCount);
         for (int i = 0; i < deleteCount; i++) ret.add(list.remove(start + i));
         list.addAll(start, Arrays.asList(items));
         return ret;
