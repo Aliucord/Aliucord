@@ -241,7 +241,6 @@ public class NotificationData {
         return this;
     }
 
-    //FIXME Documentation is invalid.
     /**
      * @return Valid screens
      * @see NotificationData#setValidScreens(List)
@@ -250,7 +249,6 @@ public class NotificationData {
         return validScreens;
     }
 
-    //FIXME Documentation is invalid.
     /**
      * Sets valid screens for the notification.
      * @param validScreens Valid screens.
