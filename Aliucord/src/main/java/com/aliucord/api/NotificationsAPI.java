@@ -32,24 +32,24 @@ public class NotificationsAPI {
         NoticePopup.enqueue$default(
                 NoticePopup.INSTANCE,
                 "InAppNotif#" + ClockFactory.get().currentTimeMillis(),
-                data.title,
-                data.subtitle,
-                data.body,
-                data.attachmentBackground,
-                data.attachmentUrl,
-                data.attachment,
-                data.stickers,
-                data.iconUrl,
-                data.iconResId,
-                data.iconTopRight,
-                data.autoDismissPeriodSecs,
-                data.validScreens,
-                data.onClickTopRightIcon,
-                (data.onClick == null && channelId != null ? v -> {
+                data.getTitle(),
+                data.getSubtitle(),
+                data.getBody(),
+                data.getAttachmentBackground(),
+                data.getAttachmentUrl(),
+                data.getAttachment(),
+                data.getStickers(),
+                data.getIconUrl(),
+                data.getIconResId(),
+                data.getIconTopRight(),
+                data.getAutoDismissPeriodSecs(),
+                data.getValidScreens(),
+                data.getOnClickTopRightIcon(),
+                (data.getOnClick() == null && channelId != null ? v -> {
                     ChannelSelector.getInstance().findAndSet(v.getContext(), channelId);
                     return Unit.a;
-                } : data.onClick),
-                (data.validScreens == null ? 4096 : 0) | (data.onClickTopRightIcon == null ? 8192 : 0),
+                } : data.getOnClick()),
+                (data.getValidScreens() == null ? 4096 : 0) | (data.getOnClickTopRightIcon()== null ? 8192 : 0),
                 null
         );
     }

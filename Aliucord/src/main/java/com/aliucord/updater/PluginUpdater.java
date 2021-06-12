@@ -52,14 +52,15 @@ public class PluginUpdater {
             if (checkPluginUpdate(plugin.getValue())) updates.add(plugin.getKey());
         }
         if (!notif || updates.size() == 0) return;
-        NotificationData notificationData = new NotificationData();
-        notificationData.title = "Updater";
-        notificationData.body = Utils.renderMD("Updates for plugins are available: **" + TextUtils.join("**, **", updates.toArray()) + "**");
-        notificationData.autoDismissPeriodSecs = 10;
-        notificationData.onClick = v -> {
-            Utils.openPage(Utils.appActivity, com.aliucord.settings.Updater.class);
-            return Unit.a;
-        };
+        NotificationData notificationData = new NotificationData()
+                .setTitle("Updater")
+                .setBody(Utils.renderMD("Updates for plugins are available: **" + TextUtils.join("**, **", updates.toArray()) + "**"))
+                .setAutoDismissPeriodSecs(10)
+                .setOnClick(view -> {
+                    Utils.openPage(Utils.appActivity, com.aliucord.settings.Updater.class);
+                    return Unit.a;
+                });
+
         NotificationsAPI.display(notificationData);
     }
 
