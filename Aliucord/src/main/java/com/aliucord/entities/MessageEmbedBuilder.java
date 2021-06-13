@@ -435,14 +435,14 @@ public class MessageEmbedBuilder {
      * @param videoUrl Video URL.
      * @return {@link MessageEmbedBuilder} for chaining.
      */
-    public MessageEmbedBuilder setVideo(String videoUrl, String proxyVideoUrl, int width, int height) {
+    public MessageEmbedBuilder setVideo(String videoUrl, String proxyVideoUrl, Integer height, Integer width) {
         EmbedVideo video = new EmbedVideo();
         Class<EmbedVideo> c = EmbedVideo.class;
         try {
             ReflectUtils.setField(c, video, "url", videoUrl, true);
             ReflectUtils.setField(c, video, "proxyUrl", proxyVideoUrl, true);
-            ReflectUtils.setField(c, video, "width", width, true);
             ReflectUtils.setField(c, video, "height", height, true);
+            ReflectUtils.setField(c, video, "width", width, true);
         } catch (Throwable e) { Main.logger.error(e); }
         return setVideo(video);
     }
