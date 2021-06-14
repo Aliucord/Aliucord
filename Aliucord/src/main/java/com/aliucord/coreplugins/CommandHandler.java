@@ -22,6 +22,7 @@ import com.discord.models.commands.ApplicationCommand;
 import com.discord.models.commands.ApplicationSubCommand;
 import com.discord.models.commands.RemoteApplicationCommand;
 import com.discord.models.domain.ModelMessage;
+import com.discord.models.user.CoreUser;
 import com.discord.stores.StoreApplicationCommands;
 import com.discord.stores.StoreStream;
 import com.discord.utilities.view.text.SimpleDraweeSpanTextView;
@@ -84,7 +85,8 @@ public final class CommandHandler extends Plugin {
         Patcher.addPatch("com.discord.stores.StoreLocalMessagesHolder", "getFlattenedMessages", new Class<?>[0], new PinePatchFn(callFrame -> {
             List<ModelMessage> list = (List<ModelMessage>) callFrame.getResult();
             CollectionUtils.removeIf(list, m -> {
-                boolean r = m.getAuthor().i() == -1 || m.getAuthor().i() == 0;
+                CoreUser author = new CoreUser(m.getAuthor());
+                boolean r = author.getId() == -1 || author.getId() == 0;
                 if (r) StoreStream.getMessages().deleteMessage(m);
                 return r;
             });
@@ -155,7 +157,7 @@ public final class CommandHandler extends Plugin {
         Patcher.addPatch(WidgetChatListAdapterItemMessage.class, "processMessageText", new Class<?>[]{ SimpleDraweeSpanTextView.class, MessageEntry.class },
             new PinePatchFn(callFrame -> {
                 ModelMessage message = ((MessageEntry) callFrame.args[1]).getMessage();
-                if (message != null && message.getType() == ModelMessage.TYPE_LOCAL && message.getAuthor().i() == -1) {
+                if (message != null && message.getType() == ModelMessage.TYPE_LOCAL && new CoreUser(message.getAuthor()).getId() == -1) {
                     TextView textView = (TextView) callFrame.args[0];
                     if (textView.getAlpha() != 1.0f) textView.setAlpha(1.0f);
                 }

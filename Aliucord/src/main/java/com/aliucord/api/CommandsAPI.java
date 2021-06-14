@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import com.aliucord.*;
 import com.aliucord.entities.Plugin;
 import com.aliucord.utils.ReflectUtils;
+import com.aliucord.wrappers.ChannelWrapper;
 import com.discord.api.commands.Application;
 import com.discord.api.commands.ApplicationCommandData;
 import com.discord.api.commands.ApplicationCommandType;
@@ -167,7 +168,7 @@ public class CommandsAPI {
                         }
 
                         // TODO: add arguments
-                        long guildId = StoreStream.getChannels().getChannel(channelId).e();
+                        long guildId = new ChannelWrapper(StoreStream.getChannels().getChannel(channelId)).getGuildId();
                         interactionsStore.put(id, new WidgetApplicationCommandBottomSheetViewModel.StoreState(
                                 me,
                                 guildId == 0 ? null : StoreStream.getGuilds().getMembers().get(guildId).get(me.getId()),
