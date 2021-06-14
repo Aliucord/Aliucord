@@ -14,13 +14,7 @@ public enum EmbedType {
     APPLICATION_NEWS("application_news"),
     UNKNOWN("unknown");
 
-    private final String apiValue;
+    EmbedType(String str) { }
 
-    EmbedType(String str) {
-        apiValue = str;
-    }
-
-    public final String getApiValue() {
-        return this.apiValue;
-    }
+    public final String getApiValue() { return null; }
 }

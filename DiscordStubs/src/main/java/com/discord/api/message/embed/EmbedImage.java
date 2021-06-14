@@ -1,5 +1,9 @@
 package com.discord.api.message.embed;
 
+/**
+ * Obfuscated class with regularly changing method names.
+ * Do not use this directly, use {@link com.aliucord.wrappers.embeds.ImageWrapper} instead.
+ */
 @SuppressWarnings("unused")
 public final class EmbedImage {
     private Integer height;
@@ -7,12 +11,28 @@ public final class EmbedImage {
     private String url;
     private Integer width;
 
-    /** getHeight */
+    /**
+     * getHeight
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.embeds.ImageWrapper} instead.
+     */
+    @Deprecated
     public final Integer a() { return height; }
-    /** getProxyUrl */
+    /**
+     * getProxyUrl
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.embeds.ImageWrapper} instead.
+     */
+    @Deprecated
     public final String b() { return proxyUrl; }
-    /** getUrl */
+    /**
+     * getUrl
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.embeds.ImageWrapper} instead.
+     */
+    @Deprecated
     public final String c() { return url; }
-    /** getWidth */
+    /**
+     * getWidth
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.embeds.ImageWrapper} instead.
+     */
+    @Deprecated
     public final Integer d() { return width; }
 }
