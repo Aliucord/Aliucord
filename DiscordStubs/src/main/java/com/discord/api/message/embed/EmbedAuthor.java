@@ -2,7 +2,7 @@ package com.discord.api.message.embed;
 
 /**
  * Obfuscated class with regularly changing method names.
- * Do not use this directly, use {@link com.aliucord.wrappers.MessageEmbedWrapper.EmbedAuthorWrapper} instead.
+ * Do not use this directly, use {@link com.aliucord.wrappers.embeds.AuthorWrapper} instead.
  */
 @SuppressWarnings("unused")
 public final class EmbedAuthor {
@@ -13,19 +13,19 @@ public final class EmbedAuthor {
 
     /**
      * getName
-     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.MessageEmbedWrapper.EmbedAuthorWrapper} instead.
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.embeds.AuthorWrapper} instead.
      */
     @Deprecated
     public final String a() { return name; }
     /**
      * getProxyIconUrl
-     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.MessageEmbedWrapper.EmbedAuthorWrapper} instead.
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.embeds.AuthorWrapper} instead.
      */
     @Deprecated
     public final String b() { return proxyIconUrl; }
     /**
      * getUrl
-     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.MessageEmbedWrapper.EmbedAuthorWrapper} instead.
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.embeds.AuthorWrapper} instead.
      */
     @Deprecated
     public final String c() { return url; }

@@ -25,6 +25,7 @@ public class GuildWrapper {
         this.guild = guild;
     }
 
+    /** Returns the raw (obfuscated) {@link Guild} Object associated with this wrapper */
     public final Guild raw() {
         return guild;
     }

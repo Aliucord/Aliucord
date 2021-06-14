@@ -23,6 +23,7 @@ public class GuildEmojiWrapper {
         this.emoji = emoji;
     }
 
+    /** Returns the raw (obfuscated) {@link GuildEmoji} Object associated with this wrapper */
     public final GuildEmoji raw() {
         return emoji;
     }

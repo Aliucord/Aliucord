@@ -2,7 +2,7 @@ package com.discord.api.message.embed;
 
 /**
  * Obfuscated class with regularly changing method names.
- * Do not use this directly, use {@link com.aliucord.wrappers.MessageEmbedWrapper.EmbedFieldWrapper} instead.
+ * Do not use this directly, use {@link com.aliucord.wrappers.embeds.FieldWrapper} instead.
  */
 @SuppressWarnings("unused")
 public final class EmbedField {
@@ -12,13 +12,13 @@ public final class EmbedField {
 
     /**
      * getName
-     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.MessageEmbedWrapper.EmbedFieldWrapper} instead.
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.embeds.FieldWrapper} instead.
      */
     @Deprecated
     public final String a() { return name; }
     /**
      * getValue
-     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.MessageEmbedWrapper.EmbedFieldWrapper} instead.
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.embeds.FieldWrapper} instead.
      */
     @Deprecated
     public final String b() { return value; }

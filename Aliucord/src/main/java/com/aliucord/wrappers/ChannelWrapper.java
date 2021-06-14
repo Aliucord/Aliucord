@@ -23,6 +23,7 @@ public class ChannelWrapper {
         this.channel = channel;
     }
 
+    /** Returns the raw (obfuscated) {@link Channel} Object associated with this wrapper */
     public final Channel raw() {
         return channel;
     }
