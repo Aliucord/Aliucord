@@ -4,6 +4,10 @@ import com.discord.api.utcdatetime.UtcDateTime;
 
 import java.util.List;
 
+/**
+ * Obfuscated class with regularly changing method names.
+ * Do not use this directly, use {@link com.aliucord.wrappers.MessageEmbedWrapper} instead.
+ */
 @SuppressWarnings("unused")
 public final class MessageEmbed {
     private EmbedAuthor author;
@@ -20,30 +24,82 @@ public final class MessageEmbed {
     private String url;
     private EmbedVideo video;
 
-    /** getAuthor */
+    /**
+     * getAuthor
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.MessageEmbedWrapper} instead.
+     */
+    @Deprecated
     public final EmbedAuthor a() { return author; }
-    /** getColor */
+    /**
+     * getColor
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.MessageEmbedWrapper} instead.
+     */
+    @Deprecated
     public final Integer b() { return color; }
-    /** getDescription */
+    /**
+     * getDescription
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.MessageEmbedWrapper} instead.
+     */
+    @Deprecated
     public final String c() { return description; }
-    /** getFields */
+    /**
+     * getFields
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.MessageEmbedWrapper} instead.
+     */
+    @Deprecated
     public final List<EmbedField> d() { return fields; }
-    /** getFooter */
+    /**
+     * getFooter
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.MessageEmbedWrapper} instead.
+     */
+    @Deprecated
     public final EmbedFooter e() { return footer; }
-    /** getImage */
+    /**
+     * getImage
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.MessageEmbedWrapper} instead.
+     */
+    @Deprecated
     public final EmbedImage f() { return image; }
-    /** getProvider */
+    /**
+     * getProvider
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.MessageEmbedWrapper} instead.
+     */
+    @Deprecated
     public final EmbedProvider g() { return provider; }
-    /** getThumbnail */
+    /**
+     * getThumbnail
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.MessageEmbedWrapper} instead.
+     */
+    @Deprecated
     public final EmbedThumbnail h() { return thumbnail; }
-    /** getTimestamp */
+    /**
+     * getTimestamp
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.MessageEmbedWrapper} instead.
+     */
+    @Deprecated
     public final UtcDateTime i() { return timestamp; }
-    /** getTitle */
+    /**
+     * getTitle
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.MessageEmbedWrapper} instead.
+     */
+    @Deprecated
     public final String j() { return title; }
-    /** getType */
+    /**
+     * getType
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.MessageEmbedWrapper} instead.
+     */
+    @Deprecated
     public final EmbedType k() { return type; }
-    /** getUrl */
+    /**
+     * getUrl
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.MessageEmbedWrapper} instead.
+     */
+    @Deprecated
     public final String l() { return url; }
-    /** getVideo */
+    /**
+     * getVideo
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.MessageEmbedWrapper} instead.
+     */
+    @Deprecated
     public final EmbedVideo m() { return video; }
 }

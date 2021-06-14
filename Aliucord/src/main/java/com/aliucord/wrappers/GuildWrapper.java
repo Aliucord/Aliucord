@@ -25,6 +25,10 @@ public class GuildWrapper {
         this.guild = guild;
     }
 
+    public final Guild raw() {
+        return guild;
+    }
+
     public final Long getAfkChannelId() {
         return guild.b();
     }

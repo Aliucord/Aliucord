@@ -23,36 +23,36 @@ public class GuildEmojiWrapper {
         this.emoji = emoji;
     }
 
-    public GuildEmoji raw() {
+    public final GuildEmoji raw() {
         return emoji;
     }
 
-    public boolean isAnimated() {
+    public final boolean isAnimated() {
         return emoji.a();
     }
 
     @Nullable
-    public Boolean isAvailable() {
+    public final Boolean isAvailable() {
         return emoji.b();
     }
 
-    public long getId() {
+    public final long getId() {
         return emoji.c();
     }
 
-    public boolean isManaged() {
+    public final boolean isManaged() {
         return emoji.d();
     }
 
-    public String getName() {
+    public final String getName() {
         return emoji.e();
     }
 
-    public boolean requireColons() {
+    public final boolean requireColons() {
         return emoji.f();
     }
 
-    public List<Long> getRoles() {
+    public final List<Long> getRoles() {
         return emoji.g();
     }
 }

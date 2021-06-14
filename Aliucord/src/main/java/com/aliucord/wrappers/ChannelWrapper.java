@@ -23,6 +23,10 @@ public class ChannelWrapper {
         this.channel = channel;
     }
 
+    public final Channel raw() {
+        return channel;
+    }
+
     public final long getApplicationId() {
         return channel.b();
     }
