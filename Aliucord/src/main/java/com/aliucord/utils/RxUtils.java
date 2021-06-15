@@ -61,7 +61,11 @@ public class RxUtils {
             }
         }
 
-        return new Pair<>((T) result[0], (Throwable) result[1]);
+        T res;
+        try {
+            res = (T) result[0];
+        } catch (Throwable ignored) { res = null; }
+        return new Pair<>(res, (Throwable) result[1]);
     }
 
     /**
