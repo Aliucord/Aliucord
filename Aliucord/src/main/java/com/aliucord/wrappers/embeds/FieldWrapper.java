@@ -41,7 +41,6 @@ public class FieldWrapper {
     public final boolean isInline() {
         try {
             return inlineField.get(field) == Boolean.TRUE;
-        } catch (Throwable ignored) {}
-        return false;
+        } catch (Throwable ignored) { return false; }
     }
 }

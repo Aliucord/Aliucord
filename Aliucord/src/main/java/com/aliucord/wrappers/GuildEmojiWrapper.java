@@ -5,8 +5,6 @@
 
 package com.aliucord.wrappers;
 
-import androidx.annotation.Nullable;
-
 import com.discord.api.emoji.GuildEmoji;
 
 import java.util.List;
@@ -32,7 +30,6 @@ public class GuildEmojiWrapper {
         return emoji.a();
     }
 
-    @Nullable
     public final Boolean isAvailable() {
         return emoji.b();
     }

@@ -40,7 +40,7 @@ public final class Channel {
      * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.ChannelWrapper} instead.
      */
     @Deprecated
-    public final String f() { return ""; }
+    public final String f() { return null; }
     /**
      * getId
      * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.ChannelWrapper} instead.

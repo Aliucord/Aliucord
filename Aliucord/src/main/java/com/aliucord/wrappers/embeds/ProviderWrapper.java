@@ -1,5 +1,7 @@
 package com.aliucord.wrappers.embeds;
 
+import androidx.annotation.Nullable;
+
 import com.discord.api.message.embed.EmbedProvider;
 
 /**
@@ -23,6 +25,7 @@ public class ProviderWrapper {
         return provider.a();
     }
 
+    @Nullable
     public final String getUrl() {
         return provider.b();
     }

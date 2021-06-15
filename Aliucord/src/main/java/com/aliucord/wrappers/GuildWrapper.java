@@ -5,6 +5,8 @@
 
 package com.aliucord.wrappers;
 
+import androidx.annotation.Nullable;
+
 import com.discord.api.channel.Channel;
 import com.discord.api.emoji.GuildEmoji;
 import com.discord.api.guild.*;
@@ -30,6 +32,7 @@ public class GuildWrapper {
         return guild;
     }
 
+    @Nullable
     public final Long getAfkChannelId() {
         return guild.b();
     }
@@ -42,6 +45,7 @@ public class GuildWrapper {
         return guild.d();
     }
 
+    @Nullable
     public final String getBanner() {
         return guild.e();
     }
@@ -58,6 +62,7 @@ public class GuildWrapper {
         return guild.h();
     }
 
+    @Nullable
     public final String getDescription() {
         return guild.i();
     }
@@ -74,6 +79,7 @@ public class GuildWrapper {
         return guild.l();
     }
 
+    @Nullable
     public final String getIcon() {
         return guild.n();
     }
@@ -82,6 +88,7 @@ public class GuildWrapper {
         return guild.o();
     }
 
+    @Nullable
     public final String getJoinedAt() {
         return guild.p();
     }
@@ -110,6 +117,7 @@ public class GuildWrapper {
         return guild.w();
     }
 
+    @Nullable
     public final String getPreferredLocale() {
         return guild.x();
     }
@@ -122,6 +130,7 @@ public class GuildWrapper {
         return guild.z();
     }
 
+    @Nullable
     public final Long getPublicUpdatesChannelId() {
         return guild.B();
     }
@@ -134,10 +143,12 @@ public class GuildWrapper {
         return guild.D();
     }
 
+    @Nullable
     public final Long getRulesChannelId() {
         return guild.E();
     }
 
+    @Nullable
     public final String getSplash() {
         return guild.F();
     }
@@ -146,6 +157,7 @@ public class GuildWrapper {
         return guild.H();
     }
 
+    @Nullable
     public final Long getSystemChannelId() {
         return guild.I();
     }
@@ -158,6 +170,7 @@ public class GuildWrapper {
         return guild.K();
     }
 
+    @Nullable
     public final String getVanityUrlCode() {
         return guild.L();
     }

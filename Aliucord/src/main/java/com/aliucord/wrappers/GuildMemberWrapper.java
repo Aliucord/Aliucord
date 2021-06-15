@@ -5,6 +5,8 @@
 
 package com.aliucord.wrappers;
 
+import androidx.annotation.Nullable;
+
 import com.discord.api.guildmember.GuildMember;
 import com.discord.api.user.User;
 import com.discord.api.utcdatetime.UtcDateTime;
@@ -28,6 +30,7 @@ public class GuildMemberWrapper {
         return guildMember;
     }
 
+    @Nullable
     public final String getAvatar() {
         return guildMember.b();
     }
@@ -40,6 +43,7 @@ public class GuildMemberWrapper {
         return guildMember.d();
     }
 
+    @Nullable
     public final String getNick() {
         return guildMember.e();
     }
@@ -48,6 +52,7 @@ public class GuildMemberWrapper {
         return guildMember.f();
     }
 
+    @Nullable
     public final String getPremiumSince() {
         return guildMember.g();
     }

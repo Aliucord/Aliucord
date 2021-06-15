@@ -1,5 +1,7 @@
 package com.aliucord.wrappers.embeds;
 
+import androidx.annotation.Nullable;
+
 import com.discord.api.message.embed.EmbedAuthor;
 
 /**
@@ -23,10 +25,12 @@ public class AuthorWrapper {
         return author.a();
     }
 
+    @Nullable
     public final String getProxyIconUrl() {
         return author.b();
     }
 
+    @Nullable
     public final String getUrl() {
         return author.c();
     }

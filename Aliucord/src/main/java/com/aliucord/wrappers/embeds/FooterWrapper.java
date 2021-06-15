@@ -1,6 +1,10 @@
 package com.aliucord.wrappers.embeds;
 
+import androidx.annotation.Nullable;
+
 import com.discord.api.message.embed.EmbedFooter;
+
+import java.lang.reflect.Field;
 
 /**
  * Wraps the obfuscated {@link EmbedFooter} class to provide nice method names and require only one central
@@ -8,6 +12,16 @@ import com.discord.api.message.embed.EmbedFooter;
  */
 @SuppressWarnings({"unused", "deprecation"})
 public class FooterWrapper {
+    private static Field iconUrlField;
+
+    static {
+        try {
+            // why is there no getter for this lol
+            // FIXME: Do this without reflection once Discord adds getter
+            iconUrlField = EmbedFooter.class.getDeclaredField("iconUrl");
+            iconUrlField.setAccessible(true);
+        } catch (Throwable ignored) {}
+    }
     private final EmbedFooter footer;
 
     public FooterWrapper(EmbedFooter footer) {
@@ -19,11 +33,20 @@ public class FooterWrapper {
         return footer;
     }
 
+    public final String getText() {
+        return footer.b();
+    }
+
+    @Nullable
+    public final String getIconUrl() {
+        try {
+            return (String) iconUrlField.get(this);
+        } catch (Throwable ignored) { return null; }
+    }
+
+    @Nullable
     public final String getProxyIconUrl() {
         return footer.a();
     }
 
-    public final String getText() {
-        return footer.b();
-    }
 }

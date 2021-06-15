@@ -1,5 +1,7 @@
 package com.aliucord.wrappers.embeds;
 
+import androidx.annotation.Nullable;
+
 import com.discord.api.message.embed.EmbedVideo;
 
 /**
@@ -27,10 +29,12 @@ public class VideoWrapper {
         return image.b();
     }
 
+    @Nullable
     public final Integer getHeight() {
         return image.a();
     }
 
+    @Nullable
     public final Integer getWidth() {
         return image.d();
     }

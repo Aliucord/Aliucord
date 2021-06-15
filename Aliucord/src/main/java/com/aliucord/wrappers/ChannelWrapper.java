@@ -5,6 +5,8 @@
 
 package com.aliucord.wrappers;
 
+import androidx.annotation.Nullable;
+
 import com.discord.api.channel.Channel;
 import com.discord.api.channel.ChannelRecipientNick;
 import com.discord.api.user.User;
@@ -40,6 +42,7 @@ public class ChannelWrapper {
         return channel.e();
     }
 
+    @Nullable
     public final String getIcon() {
         return channel.f();
     }
@@ -88,10 +91,12 @@ public class ChannelWrapper {
         return channel.v();
     }
 
+    @Nullable
     public final String getRtcRegion() {
         return channel.w();
     }
 
+    @Nullable
     public final String getTopic() {
         return channel.y();
     }
