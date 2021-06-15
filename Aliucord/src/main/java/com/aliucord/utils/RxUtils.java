@@ -5,7 +5,12 @@
 
 package com.aliucord.utils;
 
-import rx.*;
+import android.os.Looper;
+import android.util.Pair;
+
+import rx.Observable;
+import rx.Subscriber;
+import rx.Subscription;
 import rx.functions.Action0;
 import rx.functions.Action1;
 
@@ -17,6 +22,46 @@ public class RxUtils {
 
     public static <T> Subscription subscribe(Observable<T> observable, Subscriber<? super T> subscriber) {
         return observable.V(subscriber);
+    }
+
+    /**
+     * Blocks the current thread and waits for the observable to complete, then returns a Pair containing the result, and the error (if any)
+     * This must not be called from the Main thread (and will throw an IllegalStateException if done so) as that would freeze the UI
+     * @param observable The observable to wait for
+     * @return A pair whose first value is the result and whose second value is the error that occurred, if any
+     */
+    public static <T> Pair<T, Throwable> getResultBlocking(Observable<T> observable) throws IllegalStateException {
+        if (Looper.getMainLooper() == Looper.myLooper()) throw new IllegalStateException("getResultBlocking may not be called from the main thread as this would freeze the UI.");
+
+        Object lock = new Object();
+        final Object[] result = new Object[3];
+
+        subscribe(observable, new Subscriber<T>() {
+            public void onCompleted() {
+                result[2] = true; // see comment below
+                synchronized (lock) {
+                    lock.notify();
+                }
+            }
+            public void onError(Throwable th) {
+                result[1] = th;
+            }
+            public void onNext(T val) {
+                result[0] = val;
+            }
+        });
+
+        // Sometimes onCompleted is reached before this point so lock.notify gets called before lock.wait resulting in an infinite lock
+        // so check whether finished already
+        if (result[2] != Boolean.TRUE) {
+            synchronized (lock) {
+                try {
+                    lock.wait();
+                } catch (InterruptedException ignored) { }
+            }
+        }
+
+        return new Pair<>((T) result[0], (Throwable) result[1]);
     }
 
     /**
