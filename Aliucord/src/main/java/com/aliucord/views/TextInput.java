@@ -9,6 +9,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.GradientDrawable;
+import android.text.Editable;
 import android.text.InputType;
 import android.view.inputmethod.EditorInfo;
 
@@ -49,10 +50,13 @@ public class TextInput extends TextInputLayout {
         input.setImeOptions(EditorInfo.IME_ACTION_DONE);
         input.setPadding(0, padding, 0, padding);
         input.setOnFocusChangeListener((view, focus) -> {
-            if (!focus && input.getText().toString().equals("")) input.setText(" ");
-            if (focus && input.getText().toString().startsWith(" ")) input.setText(input.getText().toString().trim().replace(" ", ""));
+            Editable text = input.getText();
+            if (text == null) return;
+            String textStr = text.toString();
+            if (!focus && textStr.equals("")) input.setText(" ");
+            if (focus && textStr.startsWith(" ")) input.setText(textStr.trim().replace(" ", ""));
         });
-        if (!input.hasFocus() && input.getText().toString().equals("")) input.setText(" ");
+        if (!input.hasFocus() && (input.getText() == null || input.getText().toString().equals(""))) input.setText(" ");
         addView(input);
     }
 }

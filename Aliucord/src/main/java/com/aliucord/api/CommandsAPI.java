@@ -218,7 +218,7 @@ public class CommandsAPI {
                     }
                     String argString = argStringB.toString();
 
-                    Plugin.Manifest manifest = PluginManager.plugins.get(pluginName).getManifest();
+                    Plugin.Manifest manifest = Objects.requireNonNull(PluginManager.plugins.get(pluginName)).getManifest();
 
                     String detailedError = String.format(
                             Locale.ENGLISH,

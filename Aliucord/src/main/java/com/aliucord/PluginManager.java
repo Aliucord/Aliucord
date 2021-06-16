@@ -17,13 +17,14 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import dalvik.system.PathClassLoader;
 
 public class PluginManager {
-    public static Map<String, Plugin> plugins = new HashMap<>();
-    public static Map<String, Plugin> corePlugins = new HashMap<>();
-    public static Logger logger = new Logger("PM");
+    public static final Map<String, Plugin> plugins = new HashMap<>();
+    public static final Map<String, Plugin> corePlugins = new HashMap<>();
+    public static final Logger logger = new Logger("PM");
 
     @SuppressWarnings({"unchecked", "JavaReflectionMemberAccess"})
     public static void loadPlugin(Context context, File f) {
@@ -81,14 +82,14 @@ public class PluginManager {
     public static void startPlugin(String name) {
         logger.info("Starting plugin: " + name);
          try {
-            plugins.get(name).start(Utils.getAppContext());
+            Objects.requireNonNull(plugins.get(name)).start(Utils.getAppContext());
          } catch (Throwable e) { logger.error("Exception while starting plugin: " + name, e); }
     }
 
     public static void stopPlugin(String name) {
         logger.info("Unloading plugin: " + name);
         try {
-            plugins.get(name).stop(Utils.getAppContext());
+            Objects.requireNonNull(plugins.get(name)).stop(Utils.getAppContext());
         } catch (Throwable e) { logger.error("Exception while stopping plugin " + name, e); }
     }
 

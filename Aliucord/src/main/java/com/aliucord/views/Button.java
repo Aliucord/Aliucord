@@ -22,12 +22,12 @@ public class Button extends MaterialButton {
     @Deprecated
     public Button(Context context, boolean danger) {
         super(context);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) this.setTextAppearance(R$h.UiKit_TextAppearance_Button);
+        setTextAppearance(R$h.UiKit_TextAppearance_Button);
         setAllCaps(false);
         Resources res = context.getResources();
-        setTextColor(res.getColor(R$c.uikit_btn_text_color_selector));
-        if (danger) setBackgroundColor(res.getColor(R$c.uikit_btn_bg_color_selector_red));
-        else setBackgroundColor(res.getColor(R$c.brand));
+        setTextColor(res.getColor(R$c.uikit_btn_text_color_selector, null));
+        if (danger) setBackgroundColor(res.getColor(R$c.uikit_btn_bg_color_selector_red, null));
+        else setBackgroundColor(res.getColor(R$c.brand, null));
     }
 
     /**

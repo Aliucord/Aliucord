@@ -13,10 +13,12 @@ public final class EmbedProvider {
      * getName
      * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.embeds.ProviderWrapper} instead.
      */
+    @Deprecated
     public final String a() { return name; }
     /**
      * getUrl
      * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.embeds.ProviderWrapper} instead.
      */
+    @Deprecated
     public final String b() { return url; }
 }

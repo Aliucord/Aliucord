@@ -41,7 +41,7 @@ import java.util.*;
 public class Main {
     public static boolean preInitialized = false;
     public static boolean initialized = false;
-    public static Logger logger = new Logger();
+    public static final Logger logger = new Logger();
 
     @Deprecated
     @SuppressWarnings("deprecation")

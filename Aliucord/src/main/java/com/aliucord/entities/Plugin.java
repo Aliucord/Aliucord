@@ -25,7 +25,7 @@ import java.util.Map;
 public abstract class Plugin {
     public static class Manifest {
         public static class Author {
-            public String name = "";
+            public String name;
             public long id;
 
             public Author(String name) {

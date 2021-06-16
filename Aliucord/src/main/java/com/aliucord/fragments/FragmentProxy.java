@@ -43,8 +43,9 @@ import java.util.Map;
 
 import rx.subjects.Subject;
 
+@SuppressWarnings({"CommentedOutCode", "deprecation"})
 public class FragmentProxy extends Fragment implements AppComponent {
-    public static Map<String, Fragment> fragments = new HashMap<>();
+    public static final Map<String, Fragment> fragments = new HashMap<>();
 
     private Fragment mFragment;
 
@@ -133,8 +134,7 @@ public class FragmentProxy extends Fragment implements AppComponent {
 
     @Override
     public boolean getUserVisibleHint() {
-        getmFragment().getUserVisibleHint();
-        return false;
+        return getmFragment().getUserVisibleHint();
     }
 
     @NonNull

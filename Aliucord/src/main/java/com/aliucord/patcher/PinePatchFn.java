@@ -10,7 +10,7 @@ import top.canyie.pine.Pine;
 import top.canyie.pine.callback.MethodHook;
 
 public class PinePatchFn extends MethodHook {
-    private Action1<Pine.CallFrame> p;
+    private final Action1<Pine.CallFrame> p;
 
     /**
      * Calls {@link top.canyie.pine.Pine.CallFrame} patch block <strong>after</strong> the method has been invoked.
