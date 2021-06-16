@@ -113,17 +113,11 @@ public class Plugins extends SettingsPage {
     }
 
     @Override
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        setActionBarTitle("Plugins");
-    }
-
-    @Override
     @SuppressLint("SetTextI18n")
     public void onViewBound(View view) {
         super.onViewBound(view);
+        //noinspection ResultOfMethodCallIgnored
+        setActionBarTitle("Plugins");
 
         int padding = Utils.getDefaultPadding();
         LinearLayout v = (LinearLayout) ((NestedScrollView) ((CoordinatorLayout)

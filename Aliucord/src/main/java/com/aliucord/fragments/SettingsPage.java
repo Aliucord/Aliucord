@@ -21,18 +21,12 @@ public class SettingsPage extends AppFragment {
     @SuppressLint("ResourceType")
     public SettingsPage() { super(Utils.getResId("widget_settings_behavior", "layout")); }
 
+    @Override
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        setActionBarSubtitle("Aliucord");
-        setActionBarDisplayHomeAsUpEnabled();
-    }
-
-    @Override
     public void onViewBound(View view) {
         super.onViewBound(view);
+        setActionBarSubtitle("Aliucord");
+        setActionBarDisplayHomeAsUpEnabled();
 
         // Clear page layout
         ((LinearLayout) ((NestedScrollView) ((CoordinatorLayout) view).getChildAt(1)).getChildAt(0)).removeAllViews();

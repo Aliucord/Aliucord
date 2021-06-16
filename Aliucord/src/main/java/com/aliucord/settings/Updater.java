@@ -31,17 +31,11 @@ public class Updater extends SettingsPage {
     private String stateText = "No new updates found";
 
     @Override
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        setActionBarTitle("Updater");
-    }
-
-    @Override
     @SuppressLint("SetTextI18n")
     public void onViewBound(View view) {
         super.onViewBound(view);
+        //noinspection ResultOfMethodCallIgnored
+        setActionBarTitle("Updater");
 
         Context context = requireContext();
         int padding = Utils.getDefaultPadding();

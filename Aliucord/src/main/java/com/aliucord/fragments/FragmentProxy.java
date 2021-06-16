@@ -7,29 +7,18 @@ package com.aliucord.fragments;
 
 import android.animation.Animator;
 import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentSender;
+import android.content.*;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.AttributeSet;
-import android.view.ContextMenu;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.view.animation.Animation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.SharedElementCallback;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.LifecycleOwner;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.ViewModelStore;
+import androidx.lifecycle.*;
 import androidx.loader.app.LoaderManager;
 
 import com.aliucord.Main;
@@ -244,7 +233,7 @@ public class FragmentProxy extends Fragment implements AppComponent {
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
-        // if (mFragment != null) mFragment.onCreate(savedInstanceState);
+        if (mFragment != null) mFragment.onCreate(savedInstanceState);
         super.onCreate(savedInstanceState);
     }
 
