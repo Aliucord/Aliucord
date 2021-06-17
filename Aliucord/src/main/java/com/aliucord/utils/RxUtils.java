@@ -45,6 +45,10 @@ public class RxUtils {
             }
             public void onError(Throwable th) {
                 result[1] = th;
+                result[2] = true; // see comment below
+                synchronized (lock) {
+                    lock.notify();
+                }
             }
             public void onNext(T val) {
                 result[0] = val;

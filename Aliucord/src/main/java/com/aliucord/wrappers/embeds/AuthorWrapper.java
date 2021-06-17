@@ -27,16 +27,31 @@ public class AuthorWrapper {
     }
 
     public final String getName() {
-        return author.a();
+        return getName(author);
     }
 
     @Nullable
     public final String getProxyIconUrl() {
-        return author.b();
+        return getProxyIconUrl(author);
     }
 
     @Nullable
     public final String getUrl() {
+        return getUrl(author);
+    }
+
+
+    public static String getName(EmbedAuthor author) {
+        return author.a();
+    }
+
+    @Nullable
+    public static String getProxyIconUrl(EmbedAuthor author) {
+        return author.b();
+    }
+
+    @Nullable
+    public static String getUrl(EmbedAuthor author) {
         return author.c();
     }
 }

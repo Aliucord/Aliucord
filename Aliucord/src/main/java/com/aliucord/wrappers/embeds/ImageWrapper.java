@@ -27,20 +27,38 @@ public class ImageWrapper {
     }
 
     public final String getUrl() {
-        return image.c();
+        return getUrl(image);
     }
 
     public final String getProxyUrl() {
-        return image.b();
+        return getProxyUrl(image);
     }
 
     @Nullable
     public final Integer getHeight() {
-        return image.a();
+        return getHeight(image);
     }
 
     @Nullable
     public final Integer getWidth() {
+        return getWidth(image);
+    }
+
+    public static String getUrl(EmbedImage image) {
+        return image.c();
+    }
+
+    public static String getProxyUrl(EmbedImage image) {
+        return image.b();
+    }
+
+    @Nullable
+    public static Integer getHeight(EmbedImage image) {
+        return image.a();
+    }
+
+    @Nullable
+    public static Integer getWidth(EmbedImage image) {
         return image.d();
     }
 }

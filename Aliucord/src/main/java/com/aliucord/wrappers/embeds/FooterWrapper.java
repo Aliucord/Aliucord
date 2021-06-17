@@ -18,7 +18,6 @@ import java.lang.reflect.Field;
 @SuppressWarnings({"unused", "deprecation"})
 public class FooterWrapper {
     private static Field iconUrlField;
-
     static {
         try {
             // why is there no getter for this lol
@@ -27,6 +26,7 @@ public class FooterWrapper {
             iconUrlField.setAccessible(true);
         } catch (Throwable ignored) {}
     }
+
     private final EmbedFooter footer;
 
     public FooterWrapper(EmbedFooter footer) {
@@ -39,19 +39,33 @@ public class FooterWrapper {
     }
 
     public final String getText() {
-        return footer.b();
+        return getText(footer);
     }
 
     @Nullable
     public final String getIconUrl() {
-        try {
-            return (String) iconUrlField.get(this);
-        } catch (Throwable ignored) { return null; }
+        return  getIconUrl(footer);
     }
 
     @Nullable
     public final String getProxyIconUrl() {
-        return footer.a();
+        return getProxyIconUrl(footer);
     }
 
+
+    public static String getText(EmbedFooter footer) {
+        return footer.b();
+    }
+
+    @Nullable
+    public static String getIconUrl(EmbedFooter footer) {
+        try {
+            return (String) iconUrlField.get(footer);
+        } catch (Throwable ignored) { return null; }
+    }
+
+    @Nullable
+    public static String getProxyIconUrl(EmbedFooter footer) {
+        return footer.a();
+    }
 }

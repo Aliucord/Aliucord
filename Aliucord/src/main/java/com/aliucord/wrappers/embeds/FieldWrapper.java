@@ -36,14 +36,27 @@ public class FieldWrapper {
     }
 
     public final String getName() {
-        return field.a();
+        return getName(field);
     }
 
     public final String getValue() {
-        return field.b();
+        return getValue(field);
     }
 
     public final boolean isInline() {
+        return isInline(field);
+    }
+
+
+    public static String getName(EmbedField field) {
+        return field.a();
+    }
+
+    public static String getValue(EmbedField field) {
+        return field.b();
+    }
+
+    public static boolean isInline(EmbedField field) {
         try {
             return inlineField.get(field) == Boolean.TRUE;
         } catch (Throwable ignored) { return false; }
