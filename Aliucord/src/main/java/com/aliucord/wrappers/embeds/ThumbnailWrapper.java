@@ -15,32 +15,51 @@ import com.discord.api.message.embed.EmbedThumbnail;
  */
 @SuppressWarnings({"unused", "deprecation"})
 public class ThumbnailWrapper {
-    private final EmbedThumbnail image;
+    private final EmbedThumbnail thumbnail;
 
-    public ThumbnailWrapper(EmbedThumbnail image) {
-        this.image = image;
+    public ThumbnailWrapper(EmbedThumbnail thumbnail) {
+        this.thumbnail = thumbnail;
     }
 
     /** Returns the raw (obfuscated) {@link EmbedThumbnail} Object associated with this wrapper */
     public final EmbedThumbnail raw() {
-        return image;
+        return thumbnail;
     }
 
     public final String getUrl() {
-        return image.c();
+        return getUrl(thumbnail);
     }
 
     public final String getProxyUrl() {
-        return image.b();
+        return getProxyUrl(thumbnail);
     }
 
     @Nullable
     public final Integer getWidth() {
-        return image.d();
+        return getWidth(thumbnail);
     }
 
     @Nullable
     public final Integer getHeight() {
-        return image.a();
+        return getHeight(thumbnail);
+    }
+
+
+    public static String getUrl(EmbedThumbnail thumbnail) {
+        return thumbnail.c();
+    }
+
+    public static String getProxyUrl(EmbedThumbnail thumbnail) {
+        return thumbnail.b();
+    }
+
+    @Nullable
+    public static Integer getWidth(EmbedThumbnail thumbnail) {
+        return thumbnail.d();
+    }
+
+    @Nullable
+    public static Integer getHeight(EmbedThumbnail thumbnail) {
+        return thumbnail.a();
     }
 }

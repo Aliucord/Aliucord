@@ -27,30 +27,60 @@ public class GuildEmojiWrapper {
     }
 
     public final boolean isAnimated() {
-        return emoji.a();
+        return isAnimated(emoji);
     }
 
     public final Boolean isAvailable() {
-        return emoji.b();
+        return isAvailable(emoji);
     }
 
     public final long getId() {
-        return emoji.c();
+        return getId(emoji);
     }
 
     public final boolean isManaged() {
-        return emoji.d();
+        return isManaged(emoji);
     }
 
     public final String getName() {
-        return emoji.e();
+        return getName(emoji);
     }
 
     public final boolean requireColons() {
-        return emoji.f();
+        return requireColons(emoji);
     }
 
     public final List<Long> getRoles() {
+        return getRoles(emoji);
+    }
+
+
+
+    public static boolean isAnimated(GuildEmoji emoji) {
+        return emoji.a();
+    }
+
+    public static Boolean isAvailable(GuildEmoji emoji) {
+        return emoji.b();
+    }
+
+    public static long getId(GuildEmoji emoji) {
+        return emoji.c();
+    }
+
+    public static boolean isManaged(GuildEmoji emoji) {
+        return emoji.d();
+    }
+
+    public static String getName(GuildEmoji emoji) {
+        return emoji.e();
+    }
+
+    public static boolean requireColons(GuildEmoji emoji) {
+        return emoji.f();
+    }
+
+    public static List<Long> getRoles(GuildEmoji emoji) {
         return emoji.g();
     }
 }

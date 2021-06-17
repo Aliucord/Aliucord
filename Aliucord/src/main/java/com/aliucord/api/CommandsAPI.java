@@ -168,7 +168,7 @@ public class CommandsAPI {
                         }
 
                         // TODO: add arguments
-                        long guildId = new ChannelWrapper(StoreStream.getChannels().getChannel(channelId)).getGuildId();
+                        long guildId = ChannelWrapper.getGuildId(StoreStream.getChannels().getChannel(channelId));
                         interactionsStore.put(id, new WidgetApplicationCommandBottomSheetViewModel.StoreState(
                                 me,
                                 guildId == 0 ? null : StoreStream.getGuilds().getMembers().get(guildId).get(me.getId()),

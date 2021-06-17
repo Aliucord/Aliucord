@@ -27,11 +27,20 @@ public class ProviderWrapper {
     }
 
     public final String getName() {
-        return provider.a();
+        return getName(provider);
     }
 
     @Nullable
     public final String getUrl() {
+        return getUrl(provider);
+    }
+
+    public static String getName(EmbedProvider provider) {
+        return provider.a();
+    }
+
+    @Nullable
+    public static String getUrl(EmbedProvider provider) {
         return provider.b();
     }
 }

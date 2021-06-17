@@ -31,81 +31,162 @@ public class ChannelWrapper {
     }
 
     public final long getApplicationId() {
-        return channel.b();
+        return getApplicationId(channel);
     }
 
     public final int getBitrate() {
-        return channel.c();
+        return getBitrate(channel);
     }
 
     public final long getGuildId() {
-        return channel.e();
+        return getGuildId(channel);
     }
 
     @Nullable
     public final String getIcon() {
-        return channel.f();
+        return getIcon(channel);
     }
 
     public final long getId() {
-        return channel.g();
+        return getId(channel);
     }
 
     public final long getLastMessageId() {
-        return channel.h();
+        return getLastMessageId(channel);
     }
 
     public final Integer getMessageCount() {
-        return channel.k();
+        return getMessageCount(channel);
     }
 
     public final String getName() {
-        return channel.l();
+        return getName(channel);
     }
 
     public final List<ChannelRecipientNick> getNicks() {
-        return channel.m();
+        return getNicks(channel);
     }
 
     public final boolean isNsfw() {
-        return channel.n();
+        return isNsfw(channel);
     }
 
     public final long getParentId() {
-        return channel.q();
+        return getParentId(channel);
     }
 
     public final int getPosition() {
-        return channel.s();
+        return getPosition(channel);
     }
 
     public final int getRateLimitPerUser() {
-        return channel.t();
+        return getRateLimitPerUser(channel);
     }
 
     public final List<Long> getRecipientIds() {
-        return channel.u();
+        return getRecipientIds(channel);
     }
 
     public final List<User> getRecipients() {
-        return channel.v();
+        return getRecipients(channel);
     }
 
     @Nullable
     public final String getRtcRegion() {
-        return channel.w();
+        return getRtcRegion(channel);
     }
 
     @Nullable
     public final String getTopic() {
-        return channel.y();
+        return getTopic(channel);
     }
 
     public final int getType() {
-        return channel.z();
+        return getType(channel);
     }
 
     public final int getUserLimit() {
+        return getUserLimit(channel);
+    }
+
+
+
+    public static long getApplicationId(Channel channel) {
+        return channel.b();
+    }
+
+    public static int getBitrate(Channel channel) {
+        return channel.c();
+    }
+
+    public static long getGuildId(Channel channel) {
+        return channel.e();
+    }
+
+    @Nullable
+    public static String getIcon(Channel channel) {
+        return channel.f();
+    }
+
+    public static long getId(Channel channel) {
+        return channel.g();
+    }
+
+    public static long getLastMessageId(Channel channel) {
+        return channel.h();
+    }
+
+    public static Integer getMessageCount(Channel channel) {
+        return channel.k();
+    }
+
+    public static String getName(Channel channel) {
+        return channel.l();
+    }
+
+    public static List<ChannelRecipientNick> getNicks(Channel channel) {
+        return channel.m();
+    }
+
+    public static boolean isNsfw(Channel channel) {
+        return channel.n();
+    }
+
+    public static long getParentId(Channel channel) {
+        return channel.q();
+    }
+
+    public static int getPosition(Channel channel) {
+        return channel.s();
+    }
+
+    public static int getRateLimitPerUser(Channel channel) {
+        return channel.t();
+    }
+
+    public static List<Long> getRecipientIds(Channel channel) {
+        return channel.u();
+    }
+
+    public static List<User> getRecipients(Channel channel) {
+        return channel.v();
+    }
+
+    @Nullable
+    public static String getRtcRegion(Channel channel) {
+        return channel.w();
+    }
+
+    @Nullable
+    public static String getTopic(Channel channel) {
+        return channel.y();
+    }
+
+    public static int getType(Channel channel) {
+        return channel.z();
+    }
+
+    public static int getUserLimit(Channel channel) {
         return channel.A();
     }
 }

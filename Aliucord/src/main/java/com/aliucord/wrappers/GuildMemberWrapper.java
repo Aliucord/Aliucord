@@ -32,40 +32,81 @@ public class GuildMemberWrapper {
 
     @Nullable
     public final String getAvatar() {
-        return guildMember.b();
+        return getAvatar(guildMember);
     }
 
     public final long getGuildId() {
-        return guildMember.c();
+        return getGuildId(guildMember);
     }
 
     public final UtcDateTime getJoinedAt() {
-        return guildMember.d();
+        return getJoinedAt(guildMember);
     }
 
     @Nullable
     public final String getNick() {
-        return guildMember.e();
+        return getNick(guildMember);
     }
 
     public final boolean getIsPending() {
-        return guildMember.f();
+        return getIsPending(guildMember);
     }
 
     @Nullable
     public final String getPremiumSince() {
-        return guildMember.g();
+        return getPremiumSince(guildMember);
     }
 
     public final List<Long> getRoles() {
-        return guildMember.i();
+        return getRoles(guildMember);
     }
 
     public final User getUser() {
-        return guildMember.j();
+        return getUser(guildMember);
     }
 
     public final Long getUserId() {
+        return getUserId(guildMember);
+    }
+
+
+
+    @Nullable
+    public static String getAvatar(GuildMember guildMember) {
+        return guildMember.b();
+    }
+
+    public static long getGuildId(GuildMember guildMember) {
+        return guildMember.c();
+    }
+
+    public static UtcDateTime getJoinedAt(GuildMember guildMember) {
+        return guildMember.d();
+    }
+
+    @Nullable
+    public static String getNick(GuildMember guildMember) {
+        return guildMember.e();
+    }
+
+    public static boolean getIsPending(GuildMember guildMember) {
+        return guildMember.f();
+    }
+
+    @Nullable
+    public static String getPremiumSince(GuildMember guildMember) {
+        return guildMember.g();
+    }
+
+    public static List<Long> getRoles(GuildMember guildMember) {
+        return guildMember.i();
+    }
+
+    public static User getUser(GuildMember guildMember) {
+        return guildMember.j();
+    }
+
+    public final Long getUserId(GuildMember guildMember) {
         return guildMember.k();
     }
 }
