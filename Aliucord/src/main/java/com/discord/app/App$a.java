@@ -7,6 +7,11 @@ package com.discord.app;
 
 import com.aliucord.patcher.Patcher;
 
-public final class AppActivity$Main extends AppActivity {
+import kotlin.jvm.internal.DefaultConstructorMarker;
+
+@SuppressWarnings("unused")
+public final class App$a {
     static { Patcher.init(); }
+
+    public App$a(DefaultConstructorMarker defaultConstructorMarker) {}
 }
