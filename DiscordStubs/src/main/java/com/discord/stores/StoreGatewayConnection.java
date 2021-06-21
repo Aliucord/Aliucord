@@ -26,5 +26,5 @@ public final class StoreGatewayConnection {
     public final SerializedSubject<ModelMessage, ModelMessage> getMessageUpdate() { return new SerializedSubject<>(); }
     public final SerializedSubject<User, User> getUserUpdate() { return new SerializedSubject<>(); }
 
-    public boolean requestGuildMembers(List<Long> guildIds, String query, List<Long> userIds) { return false; }
+    public boolean requestGuildMembers(long guildId, String query, List<Long> userIds) { return false; }
 }
