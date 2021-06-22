@@ -153,8 +153,6 @@ public class Main {
             })
         );
 
-        PluginManager.startCorePlugins(activity);
-
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             new Thread() {
                 @Override
@@ -162,7 +160,7 @@ public class Main {
                     Looper.prepare();
                     File folder = new File(Constants.BASE_PATH, "crashlogs");
                     if (folder.exists() || folder.mkdir()) {
-                        File file = new File(folder, new Timestamp(System.currentTimeMillis()).toString());
+                        File file = new File(folder, new Timestamp(System.currentTimeMillis()).toString().replaceAll(":", "_") + ".txt");
                         try (PrintStream ps = new PrintStream(file)) {
                             throwable.printStackTrace(ps);
                         } catch (FileNotFoundException ignored) {}
@@ -176,6 +174,8 @@ public class Main {
             } catch (InterruptedException ignored) {}
             System.exit(2);
         });
+
+        PluginManager.startCorePlugins(activity);
 
         for (String name : PluginManager.plugins.keySet()) {
             try {

@@ -32,9 +32,9 @@ jobs:
 
     - name: Setup
       run: |
-        echo "$ANDROID_HOME/build-tools/29.0.2" >> $GITHUB_PATH
+        echo "$ANDROID_HOME/build-tools/30.0.3" >> $GITHUB_PATH
         mkdir -p ~/bin
-        wget https://github.com/Aliucord/buildtool/releases/download/v0.1.0/buildtool -P ~/bin
+        wget https://github.com/Aliucord/buildtool/releases/download/v0.1.1/buildtool -P ~/bin
         chmod +x ~/bin/buildtool
         chmod +x $GITHUB_WORKSPACE/src/gradlew
         echo "{\"aliucord\":\"$GITHUB_WORKSPACE/src\",\"outputs\":\"$GITHUB_WORKSPACE/builds\"}" > ~/config.json

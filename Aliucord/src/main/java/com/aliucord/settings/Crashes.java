@@ -164,7 +164,7 @@ public class Crashes extends SettingsPage {
                 existing.times += 1;
             } else {
                 CrashLog crash = new CrashLog();
-                crash.timestamp = file.getName().replace(".txt", "");
+                crash.timestamp = file.getName().replace(".txt", "").replaceAll("_", ":");
                 crash.stacktrace = content;
                 crash.times = 1;
                 res.put(hashCode, crash);
