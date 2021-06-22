@@ -5,6 +5,8 @@
 
 package com.aliucord;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
@@ -55,6 +57,16 @@ public class Utils {
     public static final ExecutorService threadPool = Executors.newCachedThreadPool();
     public static AppActivity appActivity;
     public static Context appContext;
+
+    /**
+     * Sets the clipboard content
+     * @param label User-visible label for the clip data
+     * @param text The actual text
+     */
+    public static void setClipboard(CharSequence label, CharSequence text) {
+        ClipboardManager clipboard = (ClipboardManager) getAppContext().getSystemService(Context.CLIPBOARD_SERVICE);
+        clipboard.setPrimaryClip(ClipData.newPlainText(label, text));
+    }
 
     /**
      * Converts the singular term of the <code>noun</code> into plural.

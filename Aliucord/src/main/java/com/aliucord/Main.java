@@ -10,8 +10,10 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.os.Looper;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.LinearLayoutCompat;
@@ -22,6 +24,7 @@ import androidx.core.widget.NestedScrollView;
 
 import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.PinePatchFn;
+import com.aliucord.settings.Crashes;
 import com.aliucord.settings.Plugins;
 import com.aliucord.settings.Updater;
 import com.aliucord.updater.PluginUpdater;
@@ -35,9 +38,14 @@ import com.lytefast.flexinput.R$d;
 import com.lytefast.flexinput.R$h;
 
 import java.io.File;
-import java.util.*;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
+import java.sql.Timestamp;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
-@SuppressWarnings({"unchecked"})
 public class Main {
     public static boolean preInitialized = false;
     public static boolean initialized = false;
@@ -116,6 +124,18 @@ public class Main {
             updater.setOnClickListener(e -> Utils.openPage(e.getContext(), Updater.class));
             v.addView(updater, baseIndex + 3);
 
+            TextView crashes = new TextView(context, null, 0, R$h.UiKit_Settings_Item_Icon);
+            crashes.setText("Crashes");
+            crashes.setTypeface(font);
+            icon = ContextCompat.getDrawable(context, R$d.ic_history_white_24dp);
+            if (icon != null) {
+                Drawable copy = icon.mutate();
+                copy.setTint(iconColor);
+                crashes.setCompoundDrawablesRelativeWithIntrinsicBounds(copy, null, null, null);
+            }
+            crashes.setOnClickListener(e -> Utils.openPage(e.getContext(), Crashes.class));
+            v.addView(crashes, baseIndex + 4);
+
             TextView version = v.findViewById(Utils.getResId("app_info_header", "id"));
             version.setText(version.getText() + " | Aliucord " + BuildConfig.GIT_REVISION);
 
@@ -135,11 +155,36 @@ public class Main {
 
         PluginManager.startCorePlugins(activity);
 
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            new Thread() {
+                @Override
+                public void run() {
+                    Looper.prepare();
+                    File folder = new File(Constants.BASE_PATH, "crashlogs");
+                    if (folder.exists() || folder.mkdir()) {
+                        File file = new File(folder, new Timestamp(System.currentTimeMillis()).toString());
+                        try (PrintStream ps = new PrintStream(file)) {
+                            throwable.printStackTrace(ps);
+                        } catch (FileNotFoundException ignored) {}
+                    }
+                    Toast.makeText(Utils.getAppContext(),"An unrecoverable crash occurred. Check the crashes section in the settings for more info", Toast.LENGTH_LONG).show();
+                    Looper.loop();
+                }
+            }.start();
+            try {
+                Thread.sleep(4200); // Wait for toast to end
+            } catch (InterruptedException ignored) {}
+            System.exit(2);
+        });
+
         for (String name : PluginManager.plugins.keySet()) {
             try {
-                if (!PluginManager.isPluginEnabled(name)) continue;
-                PluginManager.startPlugin(name);
-            } catch (Throwable e) { PluginManager.logger.error("Exception while starting plugin: " + name, e); }
+                if (PluginManager.isPluginEnabled(name))
+                    PluginManager.startPlugin(name);
+            } catch (Throwable e) {
+                PluginManager.logger.error("Exception while starting plugin: " + name, e);
+                PluginManager.stopPlugin(name);
+            }
         }
 
         Utils.threadPool.execute(() -> PluginUpdater.checkUpdates(true));
