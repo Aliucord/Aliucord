@@ -32,7 +32,7 @@ Aliucord does not support the `x86` or `x86_64` architectures, because Pine only
 3. Open the newly installed "Aliucord Installer" app from your app drawer
 4. Click "Install", then choose the "Download" option
 
-  - *psst... only choose the other options if you know what you're doing!*
+    - *psst... only choose the other options if you know what you're doing!*
 
 5. Wait for it to finish patching the Discord APK
 6. Click "Install" once prompted by Android and wait for Aliucord to finish installing
@@ -75,12 +75,12 @@ If you wish to port Aliucord to a newer version of Discord, follow these steps..
 1. Acquire the version of the Discord APK you'd like to port Aliucord to
 2. Decompile it using [Apktool](https://github.com/iBotPeaches/Apktool)
 
-  - e.g `apktool d discord-n.apk` (replace n with build number)
+    - e.g `apktool d discord-n.apk` (replace n with build number)
 
 3. Apply `manifest.patch` to the `AndroidManifest.xml` file
 4. Rebuild the Discord APK using Apktool
 
-  - e.g `apktool b discord-n.apk` (replace n with build number)
+    - e.g `apktool b discord-n.apk` (replace n with build number)
 
 5. Copy `build/apk/AndroidManifest.xml` to `.assets/AndroidManifest.xml` and to `Aliucord/AndroidManifest.xml` on your Android device
 6. Build Aliucord using [buildtool](https://github.com/Aliucord/buildtool) and copy to `Aliucord/Aliucord.dex` on your Android device
