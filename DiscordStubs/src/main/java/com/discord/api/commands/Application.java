@@ -1,13 +1,35 @@
 package com.discord.api.commands;
 
-import com.discord.api.user.User;
-
+/**
+ * Obfuscated class with regularly changing method names.
+ * Do not use this directly, use {@link com.aliucord.wrappers.CommandApplicationWrapper} instead.
+ */
 @SuppressWarnings("unused")
 public final class Application {
     private final int commandCount = 0;
 
-    public Application(long id, String name, String icon, int commandCount, User bot, boolean builtIn) {}
-
-    /** getCommandCount */
-    public final int c() { return 0; }
+    /**
+     * getCommandCount
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.CommandApplicationWrapper} instead.
+     */
+    @Deprecated
+    public final int a() { return 0; }
+    /**
+     * getIcon
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.CommandApplicationWrapper} instead.
+     */
+    @Deprecated
+    public final String b() { return null; }
+    /**
+     * getId
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.CommandApplicationWrapper} instead.
+     */
+    @Deprecated
+    public final long c() { return 0; }
+    /**
+     * getName
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.CommandApplicationWrapper} instead.
+     */
+    @Deprecated
+    public final String d() { return ""; }
 }

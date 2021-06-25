@@ -6,6 +6,7 @@
 package com.discord.app;
 
 import com.aliucord.patcher.Patcher;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import kotlin.jvm.internal.DefaultConstructorMarker;
 

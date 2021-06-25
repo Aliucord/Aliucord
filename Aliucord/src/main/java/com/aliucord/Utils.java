@@ -41,7 +41,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import c.a.d.l;
-import c.a.k.b;
+import c.a.l.b;
 import rx.Subscriber;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -280,7 +280,10 @@ public class Utils {
     public static String toJsonPretty(Object obj) { return gsonPretty.m(obj); }
 
     public static CharSequence renderMD(CharSequence source) {
-        return b.k(source, new Object[0], null, 2);
+        try {
+            return b.k(source, new Object[0], null, 2);
+        } catch (Throwable e) { Main.logger.error("Failed to render markdown", e); }
+        return source;
     }
 
     @Deprecated

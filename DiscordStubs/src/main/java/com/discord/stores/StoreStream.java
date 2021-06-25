@@ -1,6 +1,6 @@
 package com.discord.stores;
 
-import com.discord.models.domain.ModelMessage;
+import com.discord.api.message.Message;
 
 @SuppressWarnings({"unused"})
 public final class StoreStream {
@@ -18,7 +18,7 @@ public final class StoreStream {
     public static StoreUserSettingsSystem getUserSettingsSystem() { return new StoreUserSettingsSystem(); }
     public static StorePermissions getPermissions() { return new StorePermissions(); }
 
-    public static void handleMessageUpdate(StoreStream instance, ModelMessage message) {}
+    public static void access$handleMessageUpdate(StoreStream instance, Message message) {}
 
     public static final Companion Companion = new Companion();
     public static final class Companion {

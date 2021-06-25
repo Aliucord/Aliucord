@@ -2,7 +2,7 @@ package com.discord.widgets.chat.list.adapter;
 
 import android.content.Context;
 
-import com.discord.models.domain.ModelMessage;
+import com.discord.api.message.Message;
 import com.discord.stores.StoreMessageState;
 import com.discord.utilities.textprocessing.MessagePreprocessor;
 import com.discord.utilities.textprocessing.MessageRenderContext;
@@ -20,7 +20,7 @@ public final class WidgetChatListAdapterItemMessage extends WidgetChatListItem {
 
     private boolean shouldLinkify(String content) { return false; }
 
-    private MessagePreprocessor getMessagePreprocessor(long myUserId, ModelMessage message, StoreMessageState.State state) {
+    private MessagePreprocessor getMessagePreprocessor(long myUserId, Message message, StoreMessageState.State state) {
         return new MessagePreprocessor();
     }
 
@@ -28,7 +28,7 @@ public final class WidgetChatListAdapterItemMessage extends WidgetChatListItem {
         return null;
     }
 
-    private Function1<SpoilerNode<?>, Unit> getSpoilerClickHandler(ModelMessage message) {
+    private Function1<SpoilerNode<?>, Unit> getSpoilerClickHandler(Message message) {
         return s -> null;
     }
 }
