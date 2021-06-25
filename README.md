@@ -36,12 +36,12 @@ Aliucord does not support the `x86` or `x86_64` architectures, because Pine only
 
 5. Wait for it to finish patching the Discord APK
 6. Click "Install" once prompted by Android and wait for Aliucord to finish installing
-7. If Google Play warns you about this application being unverified, ignore it¹
+7. If Google Play warns you about this application being unverified, ignore it as it triggers thanks to an unverified signature¹
 8. Open Aliucord, grant access to files (it needs this for finding plugins), log in to your account, and voila! Aliucord is at your fingertips!
 
 ### Plugin Installation
 
-1. Open your preferred files viewing app of choice
+1. Open your preferred files viewing app
 2. Navigate to `/storage/emulated/0/`, your device/app may call it something else like "Internal Storage" or
 `/sdcard/`
 3. Look for the folder named "Aliucord" and if you can't find it, you're probably looking in the wrong spot
@@ -60,7 +60,10 @@ If you had troubles with these processes, such as plugins not loading...
 
 ...and if none of these work, please visit our [support server](https://discord.gg/EsNDvBaHVU) and go to `#support` for help!
 
-¹If you'd like, you can disable this warning by turning off Play Protect in Google Play's settings, it's mostly useless but if you'd rather be safe, ignore this.
+¹If you'd like, you can disable this warning by turning off Play Protect in Google Play's settings, it's mostly useless.
+
+*Play Protect can be turned off by tapping on your user icon in the top right of Google Play, tapping on "Play Protect," tapping on the cog icon in the top right, and finally toggling
+"Scan apps with Play Protect" to off. This may result in Google Play "nagging" you to re-enable it sometimes when sideloading apps.*
 
 ²There is a more automated installation process available that is linked in these Discord channels
 
