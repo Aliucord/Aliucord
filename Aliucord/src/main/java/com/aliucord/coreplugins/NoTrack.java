@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import com.aliucord.CollectionUtils;
 import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.*;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -27,6 +28,8 @@ public final class NoTrack extends Plugin {
 
     @Override
     public void load(Context context) throws Throwable {
+        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false);
+
         Map<String, String[]> map = new HashMap<>();
 
         // com.google.firebase.crashlytics.internal.common.CommonUtils getMappingFileId
@@ -43,7 +46,6 @@ public final class NoTrack extends Plugin {
         map.put("com.discord.utilities.analytics.AnalyticsUtils$Tracker", new String[]{ "drainEventsQueue", "setTrackingData", "track", "trackFireBase" });
         map.put("com.discord.utilities.integrations.SpotifyHelper$openPlayStoreForSpotify$1", new String[]{ "run" });
 
-        final MethodReplacement patch = MethodReplacement.returnConstant(null);
         final ClassLoader cl = Objects.requireNonNull(NoTrack.class.getClassLoader());
 
         for (Map.Entry<String, String[]> entry : map.entrySet()) {
@@ -51,7 +53,7 @@ public final class NoTrack extends Plugin {
             Method[] methods = cl.loadClass(className).getDeclaredMethods();
             for (String fn : entry.getValue()) {
                 Method m = CollectionUtils.find(Arrays.asList(methods), method -> method.getName().equals(fn));
-                if (m != null) Patcher.addPatch(m, patch);
+                if (m != null) Patcher.addPatch(m, MethodReplacement.DO_NOTHING);
             }
         }
     }

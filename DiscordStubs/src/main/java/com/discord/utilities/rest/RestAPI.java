@@ -4,12 +4,12 @@ import com.discord.api.application.Application;
 import com.discord.api.channel.Channel;
 import com.discord.api.commands.ApplicationCommandData;
 import com.discord.api.guild.Guild;
+import com.discord.api.message.Message;
 import com.discord.api.role.GuildRole;
 import com.discord.models.domain.ModelAuditLog;
 import com.discord.models.domain.ModelBan;
 import com.discord.models.domain.ModelConnectedAccount;
 import com.discord.models.domain.ModelInvite;
-import com.discord.models.domain.ModelMessage;
 import com.discord.models.domain.ModelSearchResponse;
 import com.discord.models.domain.ModelUserProfile;
 import com.discord.models.domain.emoji.ModelEmojiGuild;
@@ -109,7 +109,7 @@ public final class RestAPI {
 
     public Observable<Channel> editGroupDM(long channelId, RestAPIParams.GroupDM groupDM) { return new Observable<>(); }
 
-    public Observable<ModelMessage> editMessage(long channelId, long messageId, RestAPIParams.Message message) { return new Observable<>(); }
+    public Observable<Message> editMessage(long channelId, long messageId, RestAPIParams.Message message) { return new Observable<>(); }
 
     public Observable<Channel> editTextChannel(long channelId, RestAPIParams.TextChannel textChannel) { return new Observable<>(); }
 
@@ -136,11 +136,11 @@ public final class RestAPI {
 
     public Observable<List<ModelBan>> getBans(long guildId) { return new Observable<>(); }
 
-    public Observable<List<ModelMessage>> getChannelMessages(long channelId, Long before, Long after, Integer limit) { return new Observable<>(); }
+    public Observable<List<Message>> getChannelMessages(long channelId, Long before, Long after, Integer limit) { return new Observable<>(); }
 
-    public Observable<List<ModelMessage>> getChannelMessagesAround(long channelId, int limit, long around) { return new Observable<>(); }
+    public Observable<List<Message>> getChannelMessagesAround(long channelId, int limit, long around) { return new Observable<>(); }
 
-    public Observable<List<ModelMessage>> getChannelPins(long channelId) { return new Observable<>(); }
+    public Observable<List<Message>> getChannelPins(long channelId) { return new Observable<>(); }
 
     public final Observable<Integer> getClientVersion() { return new Observable<>(); }
 
@@ -158,7 +158,7 @@ public final class RestAPI {
 
     public Observable<ModelInvite> getInviteCode(String code, boolean withCounts) { return new Observable<>(); }
 
-    public Observable<List<ModelMessage>> getMentions(int limit, boolean includeRoleMentions, boolean includeAtEveryone, Long guildId, Long before) { return new Observable<>(); }
+    public Observable<List<Message>> getMentions(int limit, boolean includeRoleMentions, boolean includeAtEveryone, Long guildId, Long before) { return new Observable<>(); }
 
     /**
      * The emoji must be URL-Encoded (see {@link java.net.URLEncoder}) or the request will fail with 10014: Unknown Emoji.
@@ -224,7 +224,7 @@ public final class RestAPI {
 
     public Observable<ModelSearchResponse> searchGuildMessages(long guildId, Long maxId, List<String> authorIds, List<String> mentions, List<String> channelIds, List<String> has, List<String> content, Integer attempts, Boolean includeNsfw) { return new Observable<>(); }
 
-    public Observable<ModelMessage> sendMessage(long channelId, RestAPIParams.Message message) { return new Observable<>(); }
+    public Observable<Message> sendMessage(long channelId, RestAPIParams.Message message) { return new Observable<>(); }
 
     /** Location is something like ContextMenu telling discord via which menu you added the user */
     public final Observable<Void> sendRelationshipRequest(String location, String username, int discriminator) { return new Observable<>(); }

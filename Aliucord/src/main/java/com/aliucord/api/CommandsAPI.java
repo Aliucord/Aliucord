@@ -14,20 +14,19 @@ import com.aliucord.*;
 import com.aliucord.entities.Plugin;
 import com.aliucord.utils.ReflectUtils;
 import com.aliucord.wrappers.ChannelWrapper;
-import com.discord.api.commands.Application;
+import com.aliucord.wrappers.messages.MessageWrapper;
 import com.discord.api.commands.ApplicationCommandData;
 import com.discord.api.commands.ApplicationCommandType;
+import com.discord.api.message.*;
 import com.discord.api.message.embed.MessageEmbed;
-import com.discord.models.commands.ApplicationCommand;
-import com.discord.models.commands.ApplicationCommandOption;
-import com.discord.models.commands.RemoteApplicationCommand;
-import com.discord.models.domain.ModelMessage;
+import com.discord.models.commands.*;
 import com.discord.models.domain.NonceGenerator;
 import com.discord.models.user.User;
 import com.discord.stores.StoreApplicationInteractions;
 import com.discord.stores.StoreMessages;
 import com.discord.stores.StoreStream;
 import com.discord.utilities.SnowflakeUtils;
+import com.discord.utilities.message.LocalMessageCreatorsKt;
 import com.discord.utilities.time.Clock;
 import com.discord.utilities.time.ClockFactory;
 import com.discord.utilities.user.UserUtils;
@@ -36,10 +35,10 @@ import com.discord.widgets.chat.input.ChatInputViewModel;
 import com.discord.widgets.chat.input.WidgetChatInput;
 import com.discord.widgets.chat.input.WidgetChatInput$configureSendListeners$2;
 import com.discord.widgets.chat.list.sheet.WidgetApplicationCommandBottomSheetViewModel;
+import com.lytefast.flexinput.R$d;
 import com.lytefast.flexinput.R$g;
 import com.lytefast.flexinput.model.Attachment;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 import kotlin.Unit;
@@ -112,7 +111,7 @@ public class CommandsAPI {
 
     public static final long ALIUCORD_APP_ID = generateId();
     public static final String DONT_SEND_RESULT = "{ALIUCORD_COMMAND}";
-    private static final Application aliucordApplication = new Application(ALIUCORD_APP_ID, "Aliucord", null, 0, null, true);
+    private static final Application aliucordApplication = new Application(ALIUCORD_APP_ID, "Aliucord", null, R$d.ic_slash_command_24dp, 0, null, true);
     public static Map<String, RemoteApplicationCommand> commands = new HashMap<>();
     public static Map<String, String> commandsAndPlugins = new HashMap<>();
     public static Map<Long, WidgetApplicationCommandBottomSheetViewModel.StoreState> interactionsStore = new HashMap<>();
@@ -133,12 +132,12 @@ public class CommandsAPI {
             long id = NonceGenerator.computeNonce(clock);
             long channelId = StoreStream.getChannelsSelected().getId();
             User me = StoreStream.getUsers().getMe();
-            ModelMessage thinkingMsg = ModelMessage.createLocalApplicationCommandMessage(
+            Message thinkingMsg = LocalMessageCreatorsKt.createLocalApplicationCommandMessage(
                     id, name, channelId, UserUtils.INSTANCE.synthesizeApiUser(me), Utils.buildClyde(null, null), false, true, id, clock);
-            Class<ModelMessage> c = ModelMessage.class;
+            Class<Message> c = Message.class;
             try {
-                ReflectUtils.setField(c, thinkingMsg, "flags", 192L, true);
-                ReflectUtils.setField(c, thinkingMsg, "type", ModelMessage.TYPE_LOCAL, true);
+                ReflectUtils.setField(c, thinkingMsg, "flags", MessageFlags.EPHEMERAL | MessageFlags.LOADING, true);
+                ReflectUtils.setField(c, thinkingMsg, "type", MessageTypes.LOCAL, true);
             } catch (Throwable ignored) {}
             StoreMessages storeMessages = StoreStream.getMessages();
             StoreMessages.access$handleLocalMessageCreate(storeMessages, thinkingMsg);
@@ -167,29 +166,31 @@ public class CommandsAPI {
                             return;
                         }
 
-                        // TODO: add arguments
-                        long guildId = ChannelWrapper.getGuildId(StoreStream.getChannels().getChannel(channelId));
-                        interactionsStore.put(id, new WidgetApplicationCommandBottomSheetViewModel.StoreState(
+                        try {
+                            Message commandMessage = LocalMessageCreatorsKt.createLocalMessage(res.content == null ? "" : res.content, channelId, Utils.buildClyde(res.username, res.avatarUrl), null, false, false, null, null, clock, null, null, null, null, null, null, null);
+
+                            ReflectUtils.setField(c, commandMessage, "embeds", res.embeds, true);
+                            ReflectUtils.setField(c, commandMessage, "flags", MessageFlags.EPHEMERAL, true);
+                            ReflectUtils.setField(c, commandMessage, "interaction", MessageWrapper.getInteraction(thinkingMsg), true);
+
+                            // TODO: add arguments
+                            long guildId = ChannelWrapper.getGuildId(StoreStream.getChannels().getChannel(channelId));
+                            interactionsStore.put(id, new WidgetApplicationCommandBottomSheetViewModel.StoreState(
                                 me,
                                 guildId == 0 ? null : StoreStream.getGuilds().getMembers().get(guildId).get(me.getId()),
                                 new StoreApplicationInteractions.State.Loaded(new ApplicationCommandData("", "", "", name, Collections.emptyList())),
                                 CommandsAPI.getAliucordApplication(),
                                 Collections.emptySet(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(),
                                 Collections.emptyMap()
-                        ));
-                        try {
-                            ModelMessage commandMessage = ModelMessage.createLocalMessage(res.content, channelId, Utils.buildClyde(res.username, res.avatarUrl), null, false, false, null, null, clock, null, null, null, null, null, null, null);
-
-                            ReflectUtils.setField(c, commandMessage, "embeds", res.embeds, true);
-                            ReflectUtils.setField(c, commandMessage, "flags", 64L, true);
+                            ));
 
                             StoreMessages.access$handleLocalMessageCreate(storeMessages, commandMessage);
-                        } catch (Throwable ignored) {
-                        }
+                        } catch (Throwable e) { logger.error((String) null, e); }
                     } else {
                         if (hasEmbeds)
                             logger.error(String.format("[%s]", name), new IllegalArgumentException("Embeds may not be specified when send is set to true"));
-                        if (!hasContent) {
+                        List<? extends Attachment<?>> attachments = (List<? extends Attachment<?>>) _args[0];
+                        if (!hasContent && attachments.size() == 0) {
                             storeMessages.deleteMessage(thinkingMsg);
                             return;
                         }
@@ -199,7 +200,7 @@ public class CommandsAPI {
                                 _this.$context,
                                 _this.$messageManager,
                                 new MessageContent(res.content, content != null ? content.getMentionedUsers() : Collections.emptyList()),
-                                (List<? extends Attachment<?>>) _args[0],
+                                attachments,
                                 false,
                                 (Function1<? super Boolean, Unit>) _args[2],
                                 16,
@@ -225,7 +226,7 @@ public class CommandsAPI {
                             "Oops! Something went wrong while running this command:\n```java\n%s```\n" +
                             "Please search for this error on the Aliucord server to see if it's a known issue. " +
                             "If it isn't, report it to the plugin author%s.\n\n" +
-                            "Debug:```\nCommand: %s\nPlugin: %s v%s\nDiscord v%s\nAndroid %s (SDK %d)```\nArguments:```\n%s```\n",
+                            "Debug:```\nCommand: %s\nPlugin: %s v%s\nDiscord v%s\nAndroid %s (SDK %d)\nAliucord %s```\nArguments:```\n%s```\n",
                             t.toString(),
                             manifest.authors.length != 0 ? " (" + manifest.authors[0].name + ")" : "",
                             name,
@@ -234,12 +235,13 @@ public class CommandsAPI {
                             Constants.DISCORD_VERSION,
                             Build.VERSION.RELEASE,
                             Build.VERSION.SDK_INT,
+                            BuildConfig.GIT_REVISION,
                             argString.length() != 0 ? argString : "-"
                     );
-                    ModelMessage commandMessage = ModelMessage.createLocalMessage(detailedError, channelId, Utils.buildClyde(null, null), null, false, false, null, null, clock, null, null, null, null, null, null, null);
+                    Message commandMessage = LocalMessageCreatorsKt.createLocalMessage(detailedError, channelId, Utils.buildClyde(null, null), null, false, false, null, null, clock, null, null, null, null, null, null, null);
 
                     try {
-                        ReflectUtils.setField(c, commandMessage, "flags", 64L, true);
+                        ReflectUtils.setField(c, commandMessage, "flags", MessageFlags.EPHEMERAL, true);
                     } catch (Throwable ignored) {}
                     StoreMessages.access$handleLocalMessageCreate(storeMessages, commandMessage);
                 }
@@ -264,12 +266,10 @@ public class CommandsAPI {
     }
 
     private static void updateCommandCount() {
-        if (aliucordApplication.c() != commands.size()) {
+        if (aliucordApplication.getCommandCount() != commands.size()) {
             try {
-                Field commandsField = Application.class.getDeclaredField("commandCount");
-                commandsField.setAccessible(true);
-                commandsField.setInt(aliucordApplication, commands.size());
-            } catch (Exception ignored) {}
+                ReflectUtils.setField(aliucordApplication, "commandCount", commands.size(), true);
+            } catch (Throwable ignored) {}
         }
     }
 

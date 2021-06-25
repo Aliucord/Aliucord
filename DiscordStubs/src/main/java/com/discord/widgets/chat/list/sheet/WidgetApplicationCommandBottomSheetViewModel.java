@@ -1,8 +1,8 @@
 package com.discord.widgets.chat.list.sheet;
 
 import com.discord.api.channel.Channel;
-import com.discord.api.commands.Application;
 import com.discord.api.role.GuildRole;
+import com.discord.models.commands.Application;
 import com.discord.models.member.GuildMember;
 import com.discord.models.user.User;
 import com.discord.stores.StoreApplicationInteractions;

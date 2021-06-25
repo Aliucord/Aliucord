@@ -17,14 +17,14 @@ import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.PinePatchFn;
 import com.aliucord.patcher.PinePrePatchFn;
-import com.discord.api.commands.Application;
-import com.discord.models.commands.ApplicationCommand;
-import com.discord.models.commands.ApplicationSubCommand;
-import com.discord.models.commands.RemoteApplicationCommand;
-import com.discord.models.domain.ModelMessage;
+import com.aliucord.wrappers.messages.MessageWrapper;
+import com.discord.api.message.Message;
+import com.discord.api.message.MessageTypes;
+import com.discord.models.commands.*;
 import com.discord.models.user.CoreUser;
 import com.discord.stores.StoreApplicationCommands;
 import com.discord.stores.StoreStream;
+import com.discord.utilities.message.MessageUtils;
 import com.discord.utilities.view.text.SimpleDraweeSpanTextView;
 import com.discord.widgets.chat.input.*;
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemMessage;
@@ -34,9 +34,6 @@ import com.discord.widgets.chat.list.sheet.WidgetApplicationCommandBottomSheetVi
 import java.util.*;
 
 import kotlin.jvm.functions.Function1;
-import top.canyie.pine.Pine;
-import top.canyie.pine.callback.MethodHook;
-import top.canyie.pine.callback.MethodReplacement;
 
 public final class CommandHandler extends Plugin {
     @NonNull
@@ -83,9 +80,9 @@ public final class CommandHandler extends Plugin {
         }));
 
         Patcher.addPatch("com.discord.stores.StoreLocalMessagesHolder", "getFlattenedMessages", new Class<?>[0], new PinePatchFn(callFrame -> {
-            List<ModelMessage> list = (List<ModelMessage>) callFrame.getResult();
+            List<Message> list = (List<Message>) callFrame.getResult();
             CollectionUtils.removeIf(list, m -> {
-                CoreUser author = new CoreUser(m.getAuthor());
+                CoreUser author = new CoreUser(MessageWrapper.getAuthor(m));
                 boolean r = author.getId() == -1 || author.getId() == 0;
                 if (r) StoreStream.getMessages().deleteMessage(m);
                 return r;
@@ -136,28 +133,21 @@ public final class CommandHandler extends Plugin {
             })
         );
 
-        Patcher.addPatch(WidgetChatListAdapterItemMessage.class, "configureInteractionMessage", new Class<?>[]{ MessageEntry.class }, new MethodHook() {
-            private Runnable unpatch;
-
-            public void beforeCall(Pine.CallFrame callFrame) throws Throwable {
-                ModelMessage message = ((MessageEntry) callFrame.args[0]).getMessage();
-                if (message != null && message.isLoading() && !message.isLocalApplicationCommand())
-                    unpatch = Patcher.addPatch(ModelMessage.class.getDeclaredMethod("isLocalApplicationCommand"), MethodReplacement.returnConstant(true));
-            }
-
-            public void afterCall(Pine.CallFrame callFrame) {
-                if (unpatch != null) {
-                    unpatch.run();
-                    unpatch = null;
-                }
-            }
-        });
+        Patcher.addPatch(MessageUtils.class.getDeclaredMethod("isLocalApplicationCommand", Message.class), new PinePrePatchFn(callFrame -> {
+            Message message;
+            @SuppressWarnings("WrapperTypeMayBePrimitive") Integer type;
+            //noinspection ConstantConditions
+            if ((message = (Message) callFrame.args[0]) == null || (type = MessageWrapper.getType(message)) == null) return;
+            MessageUtils messageUtils = (MessageUtils) callFrame.thisObject;
+            if (messageUtils.isLoading(message) && type != MessageTypes.LOCAL_APPLICATION_COMMAND && type != MessageTypes.LOCAL_APPLICATION_COMMAND_SEND_FAILED)
+                callFrame.setResult(true);
+        }));
 
         // don't mark Aliucord command messages as sending
         Patcher.addPatch(WidgetChatListAdapterItemMessage.class, "processMessageText", new Class<?>[]{ SimpleDraweeSpanTextView.class, MessageEntry.class },
             new PinePatchFn(callFrame -> {
-                ModelMessage message = ((MessageEntry) callFrame.args[1]).getMessage();
-                if (message != null && message.getType() == ModelMessage.TYPE_LOCAL && new CoreUser(message.getAuthor()).getId() == -1) {
+                Message message = ((MessageEntry) callFrame.args[1]).getMessage();
+                if (message != null && MessageWrapper.getType(message) == MessageTypes.LOCAL && new CoreUser(MessageWrapper.getAuthor(message)).getId() == -1) {
                     TextView textView = (TextView) callFrame.args[0];
                     if (textView.getAlpha() != 1.0f) textView.setAlpha(1.0f);
                 }
