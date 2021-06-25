@@ -34,10 +34,10 @@ Aliucord does not support the `x86` or `x86_64` architectures, because Pine only
 
 - *psst... only choose the other options if you know what you're doing!*
 
-4. Wait for it to finish patching the Discord APK
-5. Click "Install" once prompted by Android and wait for Aliucord to finish installing
-6. If Google Play warns you about this application being unverified, ignore it¹
-7. Open Aliucord, grant access to files (it needs this for finding plugins), log in to your account, and voila! Aliucord is at your fingertips!
+5. Wait for it to finish patching the Discord APK
+6. Click "Install" once prompted by Android and wait for Aliucord to finish installing
+7. If Google Play warns you about this application being unverified, ignore it¹
+8. Open Aliucord, grant access to files (it needs this for finding plugins), log in to your account, and voila! Aliucord is at your fingertips!
 
 ### Plugin Installation
 
@@ -74,14 +74,15 @@ If you wish to port Aliucord to a newer version of Discord, follow these steps..
 
 - e.g `apktool d discord-n.apk` (replace n with build number)
 
-2. Apply `manifest.patch` to the `AndroidManifest.xml` file
-3. Rebuild the Discord APK using Apktool
+3. Apply `manifest.patch` to the `AndroidManifest.xml` file
+4. Rebuild the Discord APK using Apktool
 
 - e.g `apktool b discord-n.apk` (replace n with build number)
 
-4. Copy `build/apk/AndroidManifest.xml` to `.assets/AndroidManifest.xml` and to `Aliucord/AndroidManifest.xml` on your Android device
-5. Build Aliucord using [buildtool](https://github.com/Aliucord/buildtool) and copy to `Aliucord/Aliucord.dex` on your Android device
-6. Open Aliucord Installer, open the app settings, clear cache, and enable "Use Aliucord.dex from storage"
-7. Install Aliucord
-8. Ensure you've got a `logcat` catcher ready to go
-9. Open Aliucord and fix any errors that show in `logcat`
+5. Copy `build/apk/AndroidManifest.xml` to `.assets/AndroidManifest.xml` and to `Aliucord/AndroidManifest.xml` on your Android device
+6. Build Aliucord using [buildtool](https://github.com/Aliucord/buildtool) and copy to `Aliucord/Aliucord.dex` on your Android device
+6
+7. Open Aliucord Installer, open the app settings, clear cache, and enable "Use Aliucord.dex from storage"
+8. Install Aliucord
+9. Ensure you've got a `logcat` catcher ready to go
+10. Open Aliucord and fix any errors that show in `logcat`
