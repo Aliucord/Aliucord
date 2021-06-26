@@ -21,7 +21,7 @@ Unlike other Android Discord app modifications, you don't need to rebuild the AP
 
 ## 📃 Table of contents
 
-- [Important Information](#-important-information)
+- [Important Information](#%EF%B8%8F-important-information)
   - [Supported Architectures](#supported-architectures)
   - [Supported Android version(s)](#supported-android-versions)
   - [Supported Discord version(s)](#supported-discord-versions)
