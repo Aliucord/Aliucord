@@ -2,14 +2,12 @@
 <p align="center">
   <a href="https://discord.gg/EsNDvBaHVU">
     <img alt="Discord" src="https://img.shields.io/discord/811255666990907402?color=%2300C853&label=Support%20Server&logo=discord&logoColor=%2300C853&style=for-the-badge">
-    <img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/Aliucord/Aliucord/Build%20Installer?label=Installer%20Build&logo=githubactions&logoColor=white&style=for-the-badge">
   </a>
 </p>
 <p align="center">
   <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/Aliucord/Aliucord?color=181717&logo=github&style=for-the-badge">
   <img alt="GitHub forks" src="https://img.shields.io/github/forks/Aliucord/Aliucord?color=181717&logo=github&style=for-the-badge">
   <img alt="License" src="https://img.shields.io/badge/LICENSE-OSL--3.0-0099E5?style=for-the-badge">
-  <img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/Aliucord/Aliucord/Build?label=App%20Build&logo=githubactions&logoColor=white&style=for-the-badge">
 </p>
 
 <p align="center">
@@ -67,6 +65,13 @@ Pine does not support `x86` or `x86_64` frameworks, and thus Aliucord does not e
     - Allows you to provide your own `Aliucord.dex` so you can develop your own additions, fixes etc. for Aliucord and test them yourself
 
 ## 📲 Installation
+
+<a href="https://github.com/Aliucord/Aliucord/actions/workflows/build-installer.yml">
+  <img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/Aliucord/Aliucord/Build%20Installer?label=Installer%20Build&logo=githubactions&logoColor=white&style=flat-square">
+</a>
+<a href="https://github.com/Aliucord/Aliucord/actions/workflows/build.yml">
+  <img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/Aliucord/Aliucord/Build?label=App%20Build&logo=githubactions&logoColor=white&style=flat-square">
+</a>
 
 1. Download and install [Installer-release.apk](https://github.com/Aliucord/Aliucord/raw/builds/Installer-release.apk) from the `builds` branch
 2. Open the newly installed "Aliucord Installer" app from your app drawer
