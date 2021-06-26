@@ -7,11 +7,15 @@ package com.aliucord.settings;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
+import android.net.Uri;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -20,13 +24,17 @@ import android.widget.Filterable;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.AppCompatImageButton;
+import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.content.ContextCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.aliucord.Constants;
 import com.aliucord.Main;
 import com.aliucord.PluginManager;
 import com.aliucord.Utils;
@@ -34,8 +42,13 @@ import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.SettingsPage;
 import com.aliucord.views.TextInput;
 import com.aliucord.widgets.PluginCard;
+import com.discord.utilities.color.ColorCompat;
+import com.google.android.material.appbar.AppBarLayout;
+import com.lytefast.flexinput.R$b;
+import com.lytefast.flexinput.R$d;
 import com.lytefast.flexinput.R$g;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -117,12 +130,36 @@ public class Plugins extends SettingsPage {
         //noinspection ResultOfMethodCallIgnored
         setActionBarTitle("Plugins");
 
+        Context context = requireContext();
         int padding = Utils.getDefaultPadding();
+
         LinearLayout v = (LinearLayout) ((NestedScrollView) ((CoordinatorLayout)
-                view).getChildAt(1)).getChildAt(0);
+            view).getChildAt(1)).getChildAt(0);
         v.setPadding(padding, padding, padding, padding);
 
-        Context context = requireContext();
+        Toolbar toolbar = (Toolbar) ((AppBarLayout) ((CoordinatorLayout) view).getChildAt(0)).getChildAt(0);
+
+        AppCompatImageButton pluginFolderBtn = new AppCompatImageButton(context);
+        int ic1 = R$d.ic_open_in_new_white_24dp;
+
+        pluginFolderBtn.setImageDrawable(ContextCompat.getDrawable(context, ic1));
+        Drawable pluginFolder = ContextCompat.getDrawable(context, ic1).mutate();
+        pluginFolder.setTint(ColorCompat.getThemedColor(context, R$b.colorCompoundButton));
+        pluginFolder.setAlpha(255);
+        pluginFolderBtn.setImageDrawable(ContextCompat.getDrawable(context, ic1));
+        Toolbar.LayoutParams pluginFolderParams = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
+        pluginFolderParams.gravity = Gravity.END;
+        pluginFolderBtn.setPadding(padding, padding, padding, padding);
+        pluginFolderBtn.setBackgroundColor(Color.TRANSPARENT);
+        pluginFolderBtn.setLayoutParams(pluginFolderParams);
+        pluginFolderBtn.setOnClickListener(e -> {
+            File folder = new File(Constants.BASE_PATH, "plugins");
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(Uri.parse(String.valueOf(folder)), "resource/folder");
+            startActivity(Intent.createChooser(intent, "Open folder"));
+        });
+        toolbar.addView(pluginFolderBtn);
+
         TextInput input = new TextInput(context);
         input.setHint(context.getString(R$g.search));
         EditText editText = input.getEditText();
