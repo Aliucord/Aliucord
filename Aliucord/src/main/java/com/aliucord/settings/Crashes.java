@@ -26,7 +26,6 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.core.widget.NestedScrollView;
 
 import com.aliucord.Constants;
-import com.aliucord.Logger;
 import com.aliucord.Utils;
 import com.aliucord.fragments.SettingsPage;
 import com.aliucord.views.DangerButton;
@@ -72,7 +71,6 @@ public class Crashes extends SettingsPage {
     public void onViewBound(View view) {
         super.onViewBound(view);
 
-        Logger logger = new Logger("SettingsCrashes");
 
         setActionBarTitle("Crash Logs");
 
@@ -127,9 +125,8 @@ public class Crashes extends SettingsPage {
                 file.delete();
             }
             v.removeAllViews();
-            clearLogs.setAlpha(40);
+            clearLogs.setAlpha(92);
             clearLogsBtn.setImageDrawable(clearLogs);
-            clearLogsBtn.setClickable(false);
         });
 
         toolbar.addView(crashFolderBtn);
@@ -152,8 +149,10 @@ public class Crashes extends SettingsPage {
             v.addView(crashBtn);
         } else {
             TextView hint = new TextView(context, null, 0, R$h.UiKit_Settings_Item_SubText);
-            hint.setText("Hint: You can find these crash logs in the Aliucord/crashlogs folder!");
-            // v.addView(hint);
+            hint.setText("Crashlogs are located in Aliucord/crashlogs");
+            hint.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium));
+            hint.setGravity(Gravity.CENTER);
+            v.addView(hint);
 
             for (CrashLog crash : crashes.values()) {
                 TextView header = new TextView(context, null, 0, R$h.UiKit_Settings_Item_Header);
