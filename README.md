@@ -1,34 +1,45 @@
 <h1 align="center">Aliucord</h1>
-<p align= "center">
+<p align="center">
   <a href="https://discord.gg/EsNDvBaHVU">
     <img alt="Discord" src="https://img.shields.io/discord/811255666990907402?color=%2300C853&label=Support%20Server&logo=discord&logoColor=%2300C853&style=for-the-badge">
   </a>
 </p>
+<p align="center">
+  <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/Aliucord/Aliucord?color=181717&logo=github&style=for-the-badge">
+  <img alt="GitHub forks" src="https://img.shields.io/github/forks/Aliucord/Aliucord?color=181717&logo=github&style=for-the-badge">
+  <a href="https://github.com/Aliucord/Aliucord/blob/main/LICENSE">
+    <img alt="License" src="https://img.shields.io/badge/LICENSE-OSL--3.0-0099E5?style=for-the-badge">
+  </a>
+</p>
 
+<p align="center">
 Aliucord is a modification for the Android Discord app inspired by desktop client modifications.
+</p>
+<p align="center">
+Unlike other Android Discord app modifications, you don't need to rebuild the APK when adding or removing plugins, because Aliucord hooks at runtime using the <a href="https://github.com/canyie/pine">Pine</a> java method hook framework.
+</p>
 
-Unlike other Android Discord app modifications, you don't need to rebuild the APK when adding or removing plugins, because Aliucord hooks at runtime using the [Pine](https://github.com/canyie/pine) java method hook framework.
+## 📃 Table of contents
 
-## Table of contents
-
-- [Important Information](#important-information)
+- [Important Information](#%EF%B8%8F-important-information)
   - [Supported Architectures](#supported-architectures)
   - [Supported Android version(s)](#supported-android-versions)
   - [Supported Discord version(s)](#supported-discord-versions)
-- [Installation](#installation)
-- [Plugin Installation](#plugin-installation)
+- [Features](#-features)
+- [Installation](#-installation)
+- [Plugin Installation](#-plugin-installation)
   - [Troubleshooting](#troubleshooting)
-- [Building from source](#building-from-source)
-  - [Porting Aliucord to the latest Discord version](#porting-aliucord-to-the-latest-discord-version)
+- [Building from source](#-building-from-source)
+  - [Porting Aliucord to the latest Discord version](#-porting-aliucord-to-the-latest-discord-version)
 
-## Important Information
+## ⚠️ Important Information
 
 ### Supported Architectures
 
-- arm
-- arm64
+- `arm`
+- `arm64`
 
-This is due to pine only supporting `arm` and `arm64`. Thus Aliucord will not work on x86_64 or similar architectures. This means that it will not work in most desktop emulators
+Pine does not support `x86` or `x86_64` frameworks, and thus Aliucord does not either.
 
 ### Supported Android version(s)
 
@@ -36,9 +47,33 @@ This is due to pine only supporting `arm` and `arm64`. Thus Aliucord will not wo
 
 ### Supported Discord version(s)
 
-- 81.1 - Alpha (81100)
+- 81.10 - Beta (81110)
 
-## Installation
+## 🎨 Features
+
+- Rootless! Aliucord itself does not require a rooted device in order to use it
+- Robust plugin system using Pine!
+    - Allows swapping in and out your plugins without needing to rebuild Aliucord
+    - Toggle on and off, configure or uninstall your plugins via the plugins page
+    - In-app updater to keep your plugins up-to-date
+    - Minimum Discord versions for plugins so no breaking changes are sent out to outdated Discord versions
+- Crash logging!
+    - In-app crash log page to give a more native feel
+    - Logs are also saved to `Aliucord/crashlogs` for easy access outside of the app
+    - Clear all logs at the click of a button!
+- Installer app with multiple features!
+    - Helps you keep track of which updates to this repository require you to update
+    - Automatically downloads the latest files for Aliucord, so you can get busy updating
+    - Allows you to provide your own `Aliucord.dex` so you can develop your own additions, fixes etc. for Aliucord and test them yourself
+
+## 📲 Installation
+
+<a href="https://github.com/Aliucord/Aliucord/actions/workflows/build-installer.yml">
+  <img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/Aliucord/Aliucord/Build%20Installer?label=Installer%20Build&logo=githubactions&logoColor=white&style=flat-square">
+</a>
+<a href="https://github.com/Aliucord/Aliucord/actions/workflows/build.yml">
+  <img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/Aliucord/Aliucord/Build?label=App%20Build&logo=githubactions&logoColor=white&style=flat-square">
+</a>
 
 1. Download and install [Installer-release.apk](https://github.com/Aliucord/Aliucord/raw/builds/Installer-release.apk) from the `builds` branch
 2. Open the newly installed "Aliucord Installer" app from your app drawer
@@ -54,7 +89,7 @@ This is due to pine only supporting `arm` and `arm64`. Thus Aliucord will not wo
 > Play Protect can be turned off by tapping on your user icon in the top right of Google Play, tapping on "Play Protect," tapping on the cog icon in the top right, and finally toggling "Scan apps with Play Protect" to off. This may result in Google Play "nagging" you to re-enable it sometimes when sideloading apps.*
 
 
-## Plugin Installation
+## 🔌 Plugin Installation
 
 1. Open your preferred file manager
 2. Navigate to your internal storage (likely `/storage/emulated/0/` or `/sdcard/`)
@@ -77,10 +112,10 @@ This is due to pine only supporting `arm` and `arm64`. Thus Aliucord will not wo
 ...and if none of these work, please visit our [support server](https://discord.gg/EsNDvBaHVU) and go to `#support` for help!
 
 
-## Building from source
+## 🧱 Building from source
 See `.github/workflows/build.yml` for all build steps.
 
-## Porting Aliucord to the latest Discord version
+## ⏭️ Porting Aliucord to the latest Discord version
 
 1. Acquire the version of the Discord APK you'd like to port Aliucord to
 2. Decompile it using [Apktool](https://github.com/iBotPeaches/Apktool)
