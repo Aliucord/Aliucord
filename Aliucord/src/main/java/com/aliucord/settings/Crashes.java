@@ -90,8 +90,8 @@ public class Crashes extends SettingsPage {
 
         Toolbar.LayoutParams crashFolderBtnParams = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
         crashFolderBtnParams.gravity = Gravity.END;
-        crashFolderBtn.setLayoutParams(crashFolderBtnParams);
         crashFolderBtnParams.setMarginEnd(p);
+        crashFolderBtn.setLayoutParams(crashFolderBtnParams);
         Toolbar.LayoutParams clearLogsParams = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
         clearLogsParams.gravity = Gravity.END;
         clearLogsBtn.setLayoutParams(clearLogsParams);
@@ -99,7 +99,6 @@ public class Crashes extends SettingsPage {
         clearLogsBtn.setPadding(p, p, p, p);
 
         crashFolderBtn.setBackgroundColor(Color.TRANSPARENT);
-        crashFolderBtn.setClickable(true);
         clearLogsBtn.setBackgroundColor(Color.TRANSPARENT);
         if (files != null) crashFolderBtn.setClickable(true);
 
