@@ -88,7 +88,7 @@ public class Crashes extends SettingsPage {
         AppCompatImageButton crashFolderBtn = new AppCompatImageButton(context);
         int ic1 = R$d.ic_open_in_new_white_24dp;
         AppCompatImageButton clearLogsBtn = new AppCompatImageButton(context);
-        int ic2 = R$d.ic_clear_all_white_24dp;
+        int ic2 = R$d.ic_delete_white_24dp;
 
         Toolbar.LayoutParams crashFolderBtnParams = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
         crashFolderBtnParams.gravity = Gravity.END;
