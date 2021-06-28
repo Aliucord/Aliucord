@@ -14,6 +14,7 @@ import androidx.core.widget.NestedScrollView;
 import com.discord.app.AppBottomSheet;
 import com.discord.widgets.channels.WidgetChannelSelector;
 
+@SuppressWarnings("unused")
 public class BottomSheet extends AppBottomSheet {
     private static int id = 0;
 

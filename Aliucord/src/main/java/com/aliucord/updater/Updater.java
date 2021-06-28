@@ -6,19 +6,19 @@
 package com.aliucord.updater;
 
 public class Updater {
-    public static boolean isOutdated(String version, String newVersion) {
-        if (version == null || newVersion == null) return false;
-        String[] currentVersion = version.split("\\.");
-        if (currentVersion.length != 3) return false;
-        String[] remoteVersion = newVersion.split("\\.");
-        if (remoteVersion.length != 3) return false;
+    public static boolean isOutdated(String plugin, String version, String newVersion) {
+        try {
+            String[] versions = version.split("\\.");
+            String[] newVersions = newVersion.split("\\.");
+            int len = versions.length;
+            if (len != newVersions.length) return false;
+            for (int i = 0; i < len; i++) {
+                if (Integer.parseInt(newVersions[i]) > Integer.parseInt(versions[i])) return true;
+            }
+        } catch (NullPointerException | NumberFormatException th) {
+            PluginUpdater.logger.error(String.format("Failed to check updates for plugin %s due to an invalid updater/manifest version", plugin), th);
+        }
 
-        if (Integer.parseInt(remoteVersion[0]) > Integer.parseInt(currentVersion[0])) return true;
-        if (remoteVersion[0].equals(currentVersion[0]) &&
-                Integer.parseInt(remoteVersion[1]) > Integer.parseInt(currentVersion[1])) return true;
-
-        return remoteVersion[0].equals(currentVersion[0]) &&
-                remoteVersion[1].equals(currentVersion[1]) &&
-                Integer.parseInt(remoteVersion[2]) > Integer.parseInt(currentVersion[2]);
+        return false;
     }
 }
