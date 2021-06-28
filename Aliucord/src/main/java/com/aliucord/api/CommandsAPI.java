@@ -44,7 +44,7 @@ import java.util.*;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 
-@SuppressWarnings({"unchecked", "unused"})
+@SuppressWarnings("unused")
 public class CommandsAPI {
     private static final Logger logger = new Logger("CommandsAPI");
     public static class CommandResult {
@@ -276,6 +276,7 @@ public class CommandsAPI {
     public static long generateId() {
         return -SnowflakeUtils.fromTimestamp(System.currentTimeMillis() * 100);
     }
+
     public static String generateIdString() {
         return String.valueOf(generateId());
     }

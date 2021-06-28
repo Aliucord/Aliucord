@@ -183,7 +183,6 @@ public class MessageEmbedBuilder {
      * @see MessageEmbedBuilder#addField(String, String, boolean)
      * @see MessageEmbedBuilder#createField(String, String, Boolean)
      */
-    @SuppressWarnings("unchecked")
     public MessageEmbedBuilder addField(EmbedField field) {
         try {
             List<EmbedField> o = (List<EmbedField>) fieldsField.get(embed);

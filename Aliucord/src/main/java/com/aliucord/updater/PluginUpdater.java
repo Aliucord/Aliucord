@@ -46,12 +46,12 @@ public class PluginUpdater {
 
     private static final Type resType = TypeToken.getParameterized(Map.class, String.class, UpdateInfo.class).getType();
 
-    public static void checkUpdates(boolean notif) {
+    public static void checkUpdates(boolean notify) {
         updates.clear();
         for (Map.Entry<String, Plugin> plugin : PluginManager.plugins.entrySet()) {
             if (checkPluginUpdate(plugin.getValue())) updates.add(plugin.getKey());
         }
-        if (!notif || updates.size() == 0) return;
+        if (!notify || updates.size() == 0) return;
         NotificationData notificationData = new NotificationData()
                 .setTitle("Updater")
                 .setBody(Utils.renderMD("Updates for plugins are available: **" + TextUtils.join("**, **", updates.toArray()) + "**"))
@@ -73,9 +73,9 @@ public class PluginUpdater {
             if (updateInfo == null || updateInfo.minimumDiscordVersion > Constants.DISCORD_VERSION) return false;
 
             String updatedVer = updated.get(plugin.getClass().getSimpleName());
-            if (updatedVer != null && !Updater.isOutdated(updateInfo.version, updatedVer)) return false;
+            if (updatedVer != null && !Updater.isOutdated(plugin.name, updateInfo.version, updatedVer)) return false;
 
-            return Updater.isOutdated(manifest.version, updateInfo.version);
+            return Updater.isOutdated(plugin.name, manifest.version, updateInfo.version);
         } catch (Throwable e) { logger.error("Failed to check update for: " + plugin.getClass().getSimpleName(), e); }
         return false;
     }

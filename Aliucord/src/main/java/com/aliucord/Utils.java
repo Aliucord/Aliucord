@@ -186,6 +186,9 @@ public class Utils {
         return choice;
     }
 
+    public static User buildClyde() {
+        return buildClyde(null, null);
+    }
     /**
      * Clyde builder
      * @param name Name of Clyde

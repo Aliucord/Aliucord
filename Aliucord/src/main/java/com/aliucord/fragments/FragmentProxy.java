@@ -512,9 +512,12 @@ public class FragmentProxy extends Fragment implements AppComponent {
 
     public Fragment getmFragment() {
         if (mFragment == null) {
-            String id = getArguments().getString("AC_FRAGMENT_ID");
-            mFragment = fragments.get(id);
-            fragments.remove(id);
+            Bundle bundle = getArguments();
+            if (bundle != null) {
+                String id = bundle.getString("AC_FRAGMENT_ID");
+                mFragment = fragments.get(id);
+                fragments.remove(id);
+            }
         }
         return mFragment;
     }
