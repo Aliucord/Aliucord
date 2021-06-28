@@ -6,6 +6,7 @@
 package com.aliucord.settings;
 
 import android.annotation.SuppressLint;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -35,6 +36,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.aliucord.Constants;
+import com.aliucord.Logger;
 import com.aliucord.Main;
 import com.aliucord.PluginManager;
 import com.aliucord.Utils;
@@ -132,6 +134,7 @@ public class Plugins extends SettingsPage {
 
         Context context = requireContext();
         int padding = Utils.getDefaultPadding();
+        int p = padding / 2;
 
         LinearLayout v = (LinearLayout) ((NestedScrollView) ((CoordinatorLayout)
             view).getChildAt(1)).getChildAt(0);
@@ -142,22 +145,25 @@ public class Plugins extends SettingsPage {
         AppCompatImageButton pluginFolderBtn = new AppCompatImageButton(context);
         int ic1 = R$d.ic_open_in_new_white_24dp;
 
-        pluginFolderBtn.setImageDrawable(ContextCompat.getDrawable(context, ic1));
-        Drawable pluginFolder = ContextCompat.getDrawable(context, ic1).mutate();
-        pluginFolder.setTint(ColorCompat.getThemedColor(context, R$b.colorCompoundButton));
-        pluginFolder.setAlpha(255);
-        pluginFolderBtn.setImageDrawable(ContextCompat.getDrawable(context, ic1));
         Toolbar.LayoutParams pluginFolderParams = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
         pluginFolderParams.gravity = Gravity.END;
-        pluginFolderBtn.setPadding(padding, padding, padding, padding);
-        pluginFolderBtn.setBackgroundColor(Color.TRANSPARENT);
+        pluginFolderParams.setMarginEnd(p);
         pluginFolderBtn.setLayoutParams(pluginFolderParams);
+        pluginFolderBtn.setPadding(p, p, p, p);
+
+        pluginFolderBtn.setBackgroundColor(Color.TRANSPARENT);
+
+        Drawable pluginFolder = ContextCompat.getDrawable(context, ic1).mutate();
+        pluginFolder.setAlpha(200);
+        pluginFolderBtn.setImageDrawable(pluginFolder);
+
         pluginFolderBtn.setOnClickListener(e -> {
             File folder = new File(Constants.BASE_PATH, "plugins");
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(Uri.parse(String.valueOf(folder)), "resource/folder");
+            intent.setDataAndType(Uri.parse(toString().valueOf(folder)), "resource/folder");
             startActivity(Intent.createChooser(intent, "Open folder"));
         });
+
         toolbar.addView(pluginFolderBtn);
 
         TextInput input = new TextInput(context);
