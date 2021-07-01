@@ -133,7 +133,6 @@ public class Plugins extends SettingsPage {
         int p = padding / 2;
 
         AppCompatImageButton pluginFolderBtn = new AppCompatImageButton(context);
-        int ic1 = R$d.ic_open_in_new_white_24dp;
 
         Toolbar.LayoutParams pluginFolderParams = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
         pluginFolderParams.gravity = Gravity.END;
@@ -144,7 +143,7 @@ public class Plugins extends SettingsPage {
         pluginFolderBtn.setBackgroundColor(Color.TRANSPARENT);
 
         //noinspection ConstantConditions
-        Drawable pluginFolder = ContextCompat.getDrawable(context, ic1).mutate();
+        Drawable pluginFolder = ContextCompat.getDrawable(context, R$d.ic_open_in_new_white_24dp).mutate();
         pluginFolder.setAlpha(185);
         pluginFolderBtn.setImageDrawable(pluginFolder);
 
