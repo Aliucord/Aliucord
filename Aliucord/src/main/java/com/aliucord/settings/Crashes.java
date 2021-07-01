@@ -103,10 +103,12 @@ public class Crashes extends SettingsPage {
         crashFolderBtn.setBackgroundColor(Color.TRANSPARENT);
         clearLogsBtn.setBackgroundColor(Color.TRANSPARENT);
 
+        //noinspection ConstantConditions
         Drawable openCrashesExternal = ContextCompat.getDrawable(context, ic1).mutate();
         if (folder.exists()) openCrashesExternal.setAlpha(185);
         if (!folder.exists()) openCrashesExternal.setAlpha(92);
         crashFolderBtn.setImageDrawable(openCrashesExternal);
+        //noinspection ConstantConditions
         Drawable clearLogs = ContextCompat.getDrawable(context, ic2).mutate();
         if (files != null) clearLogs.setAlpha(185);
         if (files == null) clearLogs.setAlpha(92);
@@ -160,6 +162,7 @@ public class Crashes extends SettingsPage {
                 header.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
 
                 TextView body = new TextView(context);
+                //noinspection unchecked
                 BlockBackgroundNode<BasicRenderContext> node = new BlockBackgroundNode<>(false, new CodeNode<BasicRenderContext>(
                     new CodeNode$a.b<>(crash.stacktrace), "", Rules$createCodeBlockRule$codeStyleProviders$1.INSTANCE
                 ));

@@ -6,7 +6,6 @@
 package com.aliucord.settings;
 
 import android.annotation.SuppressLint;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -36,7 +35,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.aliucord.Constants;
-import com.aliucord.Logger;
 import com.aliucord.Main;
 import com.aliucord.PluginManager;
 import com.aliucord.Utils;
@@ -44,9 +42,7 @@ import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.SettingsPage;
 import com.aliucord.views.TextInput;
 import com.aliucord.widgets.PluginCard;
-import com.discord.utilities.color.ColorCompat;
 import com.google.android.material.appbar.AppBarLayout;
-import com.lytefast.flexinput.R$b;
 import com.lytefast.flexinput.R$d;
 import com.lytefast.flexinput.R$g;
 
@@ -155,6 +151,7 @@ public class Plugins extends SettingsPage {
 
         pluginFolderBtn.setBackgroundColor(Color.TRANSPARENT);
 
+        //noinspection ConstantConditions
         Drawable pluginFolder = ContextCompat.getDrawable(context, ic1).mutate();
         pluginFolder.setAlpha(185);
         pluginFolderBtn.setImageDrawable(pluginFolder);
