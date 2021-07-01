@@ -66,7 +66,6 @@ public abstract class Plugin {
             page = settings;
         }
 
-        @SuppressWarnings("unchecked")
         public Settings(Class<?> settings, Type type) {
             this.type = type;
             if (type == Type.PAGE) page = (Class<? extends AppFragment>) settings;
@@ -80,7 +79,6 @@ public abstract class Plugin {
     @NonNull
     public abstract Manifest getManifest();
 
-    @SuppressWarnings("RedundantThrows")
     public void load(Context context) throws Throwable {}
     @SuppressWarnings("RedundantThrows")
     public void unload(Context context) throws Throwable {} // not used now

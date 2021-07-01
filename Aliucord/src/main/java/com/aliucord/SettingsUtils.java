@@ -39,7 +39,6 @@ public class SettingsUtils {
 
     private static final Map<String, Object> cache = new HashMap<>();
 
-    @SuppressWarnings("unchecked")
     public static <T> T getObject(String key, T d, Type type) {
         Object cached = cache.get(key);
         if (cached != null) return (T) cached;

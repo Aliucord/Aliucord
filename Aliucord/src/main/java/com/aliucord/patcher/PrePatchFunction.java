@@ -10,4 +10,5 @@ import java.util.List;
 import kotlin.jvm.functions.Function2;
 
 @Deprecated
+@SuppressWarnings("DeprecatedIsStillUsed")
 public interface PrePatchFunction extends Function2<Object, List<Object>, PrePatchRes> {}

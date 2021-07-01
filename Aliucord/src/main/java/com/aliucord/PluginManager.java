@@ -26,7 +26,7 @@ public class PluginManager {
     public static final Map<String, Plugin> corePlugins = new HashMap<>();
     public static final Logger logger = new Logger("PM");
 
-    @SuppressWarnings({"unchecked", "JavaReflectionMemberAccess"})
+    @SuppressWarnings("JavaReflectionMemberAccess")
     public static void loadPlugin(Context context, File f) {
         String name = f.getName().replace(".zip", "");
         logger.info("Loading plugin: " + name);
@@ -125,5 +125,6 @@ public class PluginManager {
     public static String getPluginPrefKey(String name) { return "AC_PM_" + name; }
 
     public static boolean isPluginEnabled(String name) { return SettingsUtils.getBool(getPluginPrefKey(name), true); }
+    @SuppressWarnings("unused")
     public static boolean isPluginEnabled(Plugin p) { return isPluginEnabled(Utils.getMapKey(plugins, p)); }
 }
