@@ -33,6 +33,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.aliucord.Constants;
+import com.aliucord.Logger;
 import com.aliucord.Main;
 import com.aliucord.PluginManager;
 import com.aliucord.Utils;
@@ -50,6 +51,8 @@ import java.util.List;
 import java.util.Map;
 
 public class Plugins extends SettingsPage {
+    Logger logger = new Logger();
+
     public static class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements Filterable {
         public static class ViewHolder extends RecyclerView.ViewHolder {
             public ViewHolder(@NonNull View itemView) { super(itemView); }
@@ -128,7 +131,6 @@ public class Plugins extends SettingsPage {
         Context context = requireContext();
         int padding = Utils.getDefaultPadding();
         int p = padding / 2;
-        File folder = new File(Constants.BASE_PATH, "plugins");
 
         AppCompatImageButton pluginFolderBtn = new AppCompatImageButton(context);
         int ic1 = R$d.ic_open_in_new_white_24dp;
@@ -147,8 +149,13 @@ public class Plugins extends SettingsPage {
         pluginFolderBtn.setImageDrawable(pluginFolder);
 
         pluginFolderBtn.setOnClickListener(e -> {
+            File dir = new File(Constants.PLUGINS_PATH);
+            if (!dir.exists()) {
+                boolean res = dir.mkdir();
+                if (!res) logger.error("Failed to create plugins directory!", null);
+            }
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(Uri.parse(String.valueOf(folder)), "resource/folder");
+            intent.setDataAndType(Uri.parse(Constants.PLUGINS_PATH), "resource/folder");
             startActivity(Intent.createChooser(intent, "Open folder"));
         });
 
