@@ -14,16 +14,13 @@ import android.net.Uri;
 import android.text.SpannableStringBuilder;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.appcompat.widget.Toolbar;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
-import androidx.core.widget.NestedScrollView;
 
 import com.aliucord.Constants;
 import com.aliucord.Utils;
@@ -34,7 +31,6 @@ import com.discord.simpleast.code.CodeNode$a;
 import com.discord.utilities.textprocessing.Rules$createCodeBlockRule$codeStyleProviders$1;
 import com.discord.utilities.textprocessing.node.BasicRenderContext;
 import com.discord.utilities.textprocessing.node.BlockBackgroundNode;
-import com.google.android.material.appbar.AppBarLayout;
 import com.lytefast.flexinput.R$d;
 import com.lytefast.flexinput.R$h;
 
@@ -70,20 +66,19 @@ public class Crashes extends SettingsPage {
     @SuppressLint("SetTextI18n")
     public void onViewBound(View view) {
         super.onViewBound(view);
-
-
         setActionBarTitle("Crash Logs");
 
         Context context = requireContext();
-        int p = Utils.getDefaultPadding() / 2;
-
+        int padding = Utils.getDefaultPadding();
+        int p = padding / 2;
         File folder = new File(Constants.BASE_PATH, "crashlogs");
         File[] files = folder.listFiles();
+        assert files != null;
 
-        LinearLayout v = (LinearLayout) ((NestedScrollView) ((CoordinatorLayout) view).getChildAt(1)).getChildAt(0);
-        v.setPadding(p, p, p, p);
-
-        Toolbar toolbar = (Toolbar) ((AppBarLayout) ((CoordinatorLayout) view).getChildAt(0)).getChildAt(0);
+        getLinearLayout();
+        setPadding(padding);
+        getHeaderBar();
+        getHeaderBar();
 
         AppCompatImageButton crashFolderBtn = new AppCompatImageButton(context);
         int ic1 = R$d.ic_open_in_new_white_24dp;
@@ -110,8 +105,8 @@ public class Crashes extends SettingsPage {
         crashFolderBtn.setImageDrawable(openCrashesExternal);
         //noinspection ConstantConditions
         Drawable clearLogs = ContextCompat.getDrawable(context, ic2).mutate();
-        if (files != null) clearLogs.setAlpha(185);
-        if (files == null) clearLogs.setAlpha(92);
+        clearLogs.setAlpha(185);
+        if (files.length == 0) clearLogs.setAlpha(92);
         clearLogsBtn.setImageDrawable(clearLogs);
 
         crashFolderBtn.setOnClickListener(e -> {
@@ -121,18 +116,18 @@ public class Crashes extends SettingsPage {
             startActivity(Intent.createChooser(intent, "Open folder"));
         });
         clearLogsBtn.setOnClickListener(e -> {
-            if (files == null) return;
+            if (files.length == 0) return;
             for (File file : files) {
                 //noinspection ResultOfMethodCallIgnored
                 file.delete();
             }
-            v.removeAllViews();
+            getLinearLayout().removeAllViews();
             clearLogs.setAlpha(92);
             clearLogsBtn.setImageDrawable(clearLogs);
         });
 
-        toolbar.addView(crashFolderBtn);
-        toolbar.addView(clearLogsBtn);
+        addHeaderButton(crashFolderBtn);
+        addHeaderButton(clearLogsBtn);
 
         Map<Integer, CrashLog> crashes = getCrashes();
         if (crashes == null || crashes.size() == 0) {
@@ -147,14 +142,14 @@ public class Crashes extends SettingsPage {
             crashBtn.setOnClickListener(e -> {
                 throw new RuntimeException("You fool...");
             });
-            v.addView(header);
-            v.addView(crashBtn);
+            addView(header);
+            addView(crashBtn);
         } else {
             TextView hint = new TextView(context, null, 0, R$h.UiKit_Settings_Item_SubText);
             hint.setText("Crashlogs are located in Aliucord/crashlogs");
             hint.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium));
             hint.setGravity(Gravity.CENTER);
-            v.addView(hint);
+            addView(hint);
 
             for (CrashLog crash : crashes.values()) {
                 TextView header = new TextView(context, null, 0, R$h.UiKit_Settings_Item_Header);
@@ -174,8 +169,8 @@ public class Crashes extends SettingsPage {
                     Utils.showToast(context, "Copied to clipboard");
                 });
 
-                v.addView(header);
-                v.addView(body);
+                addView(header);
+                addView(body);
             }
         }
     }

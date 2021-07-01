@@ -26,9 +26,7 @@ import android.widget.LinearLayout;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.appcompat.widget.Toolbar;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
-import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -42,7 +40,6 @@ import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.SettingsPage;
 import com.aliucord.views.TextInput;
 import com.aliucord.widgets.PluginCard;
-import com.google.android.material.appbar.AppBarLayout;
 import com.lytefast.flexinput.R$d;
 import com.lytefast.flexinput.R$g;
 
@@ -131,14 +128,11 @@ public class Plugins extends SettingsPage {
         Context context = requireContext();
         int padding = Utils.getDefaultPadding();
         int p = padding / 2;
-
         File folder = new File(Constants.BASE_PATH, "plugins");
 
-        LinearLayout v = (LinearLayout) ((NestedScrollView) ((CoordinatorLayout)
-            view).getChildAt(1)).getChildAt(0);
-        v.setPadding(padding, padding, padding, padding);
-
-        Toolbar toolbar = (Toolbar) ((AppBarLayout) ((CoordinatorLayout) view).getChildAt(0)).getChildAt(0);
+        getLinearLayout();
+        setPadding(padding);
+        getHeaderBar();
 
         AppCompatImageButton pluginFolderBtn = new AppCompatImageButton(context);
         int ic1 = R$d.ic_open_in_new_white_24dp;
@@ -162,13 +156,13 @@ public class Plugins extends SettingsPage {
             startActivity(Intent.createChooser(intent, "Open folder"));
         });
 
-        toolbar.addView(pluginFolderBtn);
+        addHeaderButton(pluginFolderBtn);
 
         TextInput input = new TextInput(context);
         input.setHint(context.getString(R$g.search));
         EditText editText = input.getEditText();
         if (editText != null) editText.setMaxLines(1);
-        v.addView(input);
+        addView(input);
 
         Utils.threadPool.execute(() -> {
             FragmentManager fragmentManager = getParentFragmentManager();
@@ -191,7 +185,7 @@ public class Plugins extends SettingsPage {
                 recyclerView.addItemDecoration(decoration);
                 recyclerView.setPadding(0, padding, 0, 0);
 
-                v.addView(recyclerView);
+                addView(recyclerView);
 
                 if (editText != null) editText.addTextChangedListener(new TextWatcher() {
                     public void afterTextChanged(Editable s) {
