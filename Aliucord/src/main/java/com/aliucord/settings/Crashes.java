@@ -75,11 +75,6 @@ public class Crashes extends SettingsPage {
         File[] files = folder.listFiles();
         assert files != null;
 
-        getLinearLayout();
-        setPadding(padding);
-        getHeaderBar();
-        getHeaderBar();
-
         AppCompatImageButton crashFolderBtn = new AppCompatImageButton(context);
         int ic1 = R$d.ic_open_in_new_white_24dp;
         AppCompatImageButton clearLogsBtn = new AppCompatImageButton(context);

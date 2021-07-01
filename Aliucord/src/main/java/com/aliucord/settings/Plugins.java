@@ -130,10 +130,6 @@ public class Plugins extends SettingsPage {
         int p = padding / 2;
         File folder = new File(Constants.BASE_PATH, "plugins");
 
-        getLinearLayout();
-        setPadding(padding);
-        getHeaderBar();
-
         AppCompatImageButton pluginFolderBtn = new AppCompatImageButton(context);
         int ic1 = R$d.ic_open_in_new_white_24dp;
 
