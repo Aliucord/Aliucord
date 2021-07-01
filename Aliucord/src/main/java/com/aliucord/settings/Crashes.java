@@ -23,6 +23,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
 import com.aliucord.Constants;
+import com.aliucord.Logger;
 import com.aliucord.Utils;
 import com.aliucord.fragments.SettingsPage;
 import com.aliucord.views.DangerButton;
@@ -43,6 +44,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Crashes extends SettingsPage {
+    Logger logger = new Logger();
+
     private static class CrashLog {
         public String timestamp;
         public String stacktrace;
@@ -71,14 +74,17 @@ public class Crashes extends SettingsPage {
         Context context = requireContext();
         int padding = Utils.getDefaultPadding();
         int p = padding / 2;
-        File folder = new File(Constants.BASE_PATH, "crashlogs");
-        File[] files = folder.listFiles();
+
+        File dir = new File(Constants.CRASHLOGS_PATH);
+        if (!dir.exists()) {
+            boolean res = dir.mkdir();
+            if (!res) logger.error("Failed to create crashlogs directory!", null);
+        }
+        File[] files = dir.listFiles();
         assert files != null;
 
         AppCompatImageButton crashFolderBtn = new AppCompatImageButton(context);
-        int ic1 = R$d.ic_open_in_new_white_24dp;
         AppCompatImageButton clearLogsBtn = new AppCompatImageButton(context);
-        int ic2 = R$d.ic_delete_white_24dp;
 
         Toolbar.LayoutParams crashFolderBtnParams = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
         crashFolderBtnParams.gravity = Gravity.END;
@@ -94,20 +100,18 @@ public class Crashes extends SettingsPage {
         clearLogsBtn.setBackgroundColor(Color.TRANSPARENT);
 
         //noinspection ConstantConditions
-        Drawable openCrashesExternal = ContextCompat.getDrawable(context, ic1).mutate();
-        if (folder.exists()) openCrashesExternal.setAlpha(185);
-        if (!folder.exists()) openCrashesExternal.setAlpha(92);
+        Drawable openCrashesExternal = ContextCompat.getDrawable(context, R$d.ic_open_in_new_white_24dp).mutate();
+        openCrashesExternal.setAlpha(185);
         crashFolderBtn.setImageDrawable(openCrashesExternal);
         //noinspection ConstantConditions
-        Drawable clearLogs = ContextCompat.getDrawable(context, ic2).mutate();
+        Drawable clearLogs = ContextCompat.getDrawable(context, R$d.ic_delete_white_24dp).mutate();
         clearLogs.setAlpha(185);
         if (files.length == 0) clearLogs.setAlpha(92);
         clearLogsBtn.setImageDrawable(clearLogs);
 
         crashFolderBtn.setOnClickListener(e -> {
-            if (!folder.exists()) return;
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(Uri.parse(String.valueOf(folder)), "resource/folder");
+            intent.setDataAndType(Uri.parse(Constants.CRASHLOGS_PATH), "resource/folder");
             startActivity(Intent.createChooser(intent, "Open folder"));
         });
         clearLogsBtn.setOnClickListener(e -> {
@@ -116,7 +120,7 @@ public class Crashes extends SettingsPage {
                 //noinspection ResultOfMethodCallIgnored
                 file.delete();
             }
-            getLinearLayout().removeAllViews();
+            clear();
             clearLogs.setAlpha(92);
             clearLogsBtn.setImageDrawable(clearLogs);
         });
