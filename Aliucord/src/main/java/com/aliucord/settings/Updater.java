@@ -28,6 +28,8 @@ import com.discord.views.CheckedSetting;
 import com.lytefast.flexinput.R$d;
 import com.lytefast.flexinput.R$h;
 
+import java.util.Objects;
+
 public class Updater extends SettingsPage {
     public static class UpdaterSettings extends BottomSheet {
         public static final String AUTO_UPDATE_KEY = "AC_auto_update_enabled";
@@ -48,8 +50,8 @@ public class Updater extends SettingsPage {
     private static final int id = View.generateViewId();
     private String stateText = "No new updates found";
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @SuppressLint("SetTextI18n")
     public void onViewBound(View view) {
         super.onViewBound(view);
@@ -86,10 +88,22 @@ public class Updater extends SettingsPage {
             updateAllButton.setBackgroundColor(Color.TRANSPARENT);
             settingsButton.setBackgroundColor(Color.TRANSPARENT);
 
-            Drawable refreshDrawable = ContextCompat.getDrawable(context, R$d.ic_refresh_white_a60_24dp).mutate();
-            refreshButton.setImageDrawable(refreshDrawable);
-            updateAllButton.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_file_download_white_24dp));
-            settingsButton.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_guild_settings_24dp));
+            refreshButton.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_refresh_white_a60_24dp));
+            Drawable updateDrawable = Objects.requireNonNull(
+                    ContextCompat.getDrawable(context, R$d.ic_file_download_white_24dp),
+                    "ic_file_download_white_24dp: No such Drawable."
+            ).mutate();
+            // ic_refresh_white_a60_24dp has alpha of 0x99 hardcoded in its color. However adding a tint of 0xFF...
+            // to make it have full alpha doesn't work for some reason, so instead change alpha of other two drawables
+            // because who doesn't love hacky solutions!!
+            updateDrawable.setAlpha(0x99);
+            updateAllButton.setImageDrawable(updateDrawable);
+            Drawable settingsDrawable = Objects.requireNonNull(
+                    ContextCompat.getDrawable(context, R$d.ic_guild_settings_24dp),
+                    "ic_guild_settings_24dp: No such Drawable."
+            ).mutate();
+            settingsDrawable.setAlpha(0x99);
+            settingsButton.setImageDrawable(settingsDrawable);
 
             updateAllButton.setOnClickListener(e -> {
                 setActionBarSubtitle("Updating...");
