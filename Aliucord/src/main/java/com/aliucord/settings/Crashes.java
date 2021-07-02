@@ -76,12 +76,12 @@ public class Crashes extends SettingsPage {
         int p = padding / 2;
 
         File dir = new File(Constants.CRASHLOGS_PATH);
-        if (!dir.exists()) {
+        if (!dir.exists() && !dir.mkdir()) {
             boolean res = dir.mkdir();
             if (!res) logger.error("Failed to create crashlogs directory!", null);
         }
         File[] files = dir.listFiles();
-        assert files != null;
+        if (files == null) files = new File[0];
 
         AppCompatImageButton crashFolderBtn = new AppCompatImageButton(context);
         AppCompatImageButton clearLogsBtn = new AppCompatImageButton(context);
@@ -114,9 +114,10 @@ public class Crashes extends SettingsPage {
             intent.setDataAndType(Uri.parse(Constants.CRASHLOGS_PATH), "resource/folder");
             startActivity(Intent.createChooser(intent, "Open folder"));
         });
+        File[] finalFiles = files;
         clearLogsBtn.setOnClickListener(e -> {
-            if (files.length == 0) return;
-            for (File file : files) {
+            if (finalFiles.length == 0) return;
+            for (File file : finalFiles) {
                 //noinspection ResultOfMethodCallIgnored
                 file.delete();
             }
@@ -145,7 +146,7 @@ public class Crashes extends SettingsPage {
             addView(crashBtn);
         } else {
             TextView hint = new TextView(context, null, 0, R$h.UiKit_Settings_Item_SubText);
-            hint.setText("Crashlogs are located in Aliucord/crashlogs");
+            hint.setText("Hint: Crashlogs are accesible via your file explorer at Aliucord/crashlogs");
             hint.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium));
             hint.setGravity(Gravity.CENTER);
             addView(hint);
