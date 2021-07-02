@@ -158,14 +158,29 @@ public class Main {
                 @Override
                 public void run() {
                     Looper.prepare();
-                    File folder = new File(Constants.BASE_PATH, "crashlogs");
+                    String badPlugin = null;
+                    for (StackTraceElement ele : throwable.getStackTrace()) {
+                        String className = ele.getClassName();
+                        if (!className.startsWith("com.aliucord.plugins.")) continue;
+                        String plugin = className.replace("com.aliucord.plugins.", "").replaceAll("\\..+", "");
+                        if (PluginManager.plugins.containsKey(plugin)) {
+                            badPlugin = plugin;
+                            SettingsUtils.setBool(PluginManager.getPluginPrefKey(plugin), false);
+                            break;
+                        }
+                    }
+                    File folder = new File(Constants.CRASHLOGS_PATH);
                     if (folder.exists() || folder.mkdir()) {
                         File file = new File(folder, new Timestamp(System.currentTimeMillis()).toString().replaceAll(":", "_") + ".txt");
                         try (PrintStream ps = new PrintStream(file)) {
                             throwable.printStackTrace(ps);
                         } catch (FileNotFoundException ignored) {}
                     }
-                    Toast.makeText(Utils.getAppContext(),"An unrecoverable crash occurred. Check the crashes section in the settings for more info", Toast.LENGTH_LONG).show();
+
+                    String moreInfo = badPlugin != null ?
+                            String.format("This crash was caused by %s, so I automatically disabled it for you.", badPlugin) :
+                            "Check the crashes section in the settings for more info";
+                    Toast.makeText(Utils.getAppContext(),"An unrecoverable crash occurred. " + moreInfo, Toast.LENGTH_LONG).show();
                     Looper.loop();
                 }
             }.start();

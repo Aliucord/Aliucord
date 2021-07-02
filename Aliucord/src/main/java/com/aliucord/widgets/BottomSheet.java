@@ -11,7 +11,6 @@ import android.widget.LinearLayout;
 
 import androidx.core.widget.NestedScrollView;
 
-import com.aliucord.Utils;
 import com.discord.app.AppBottomSheet;
 import com.discord.widgets.channels.WidgetChannelSelector;
 
@@ -34,7 +33,6 @@ public class BottomSheet extends AppBottomSheet {
         this.view = (NestedScrollView) view;
 
         clear();
-        setPadding(Utils.getDefaultPadding());
     }
 
     /** Returns the LinearLayout associated with this BottomSheet */
