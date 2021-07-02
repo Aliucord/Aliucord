@@ -33,7 +33,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.aliucord.Constants;
-import com.aliucord.Logger;
 import com.aliucord.Main;
 import com.aliucord.PluginManager;
 import com.aliucord.Utils;
@@ -51,7 +50,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Plugins extends SettingsPage {
-    Logger logger = new Logger();
+    private static final int uniqueId = View.generateViewId();
 
     public static class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements Filterable {
         public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -132,33 +131,36 @@ public class Plugins extends SettingsPage {
         int padding = Utils.getDefaultPadding();
         int p = padding / 2;
 
-        AppCompatImageButton pluginFolderBtn = new AppCompatImageButton(context);
+        if (getHeaderBar().findViewById(uniqueId) == null) {
+            AppCompatImageButton pluginFolderBtn = new AppCompatImageButton(context);
+            pluginFolderBtn.setId(uniqueId);
 
-        Toolbar.LayoutParams pluginFolderParams = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
-        pluginFolderParams.gravity = Gravity.END;
-        pluginFolderParams.setMarginEnd(p);
-        pluginFolderBtn.setLayoutParams(pluginFolderParams);
-        pluginFolderBtn.setPadding(p, p, p, p);
+            Toolbar.LayoutParams pluginFolderParams = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
+            pluginFolderParams.gravity = Gravity.END;
+            pluginFolderParams.setMarginEnd(p);
+            pluginFolderBtn.setLayoutParams(pluginFolderParams);
+            pluginFolderBtn.setPadding(p, p, p, p);
 
-        pluginFolderBtn.setBackgroundColor(Color.TRANSPARENT);
+            pluginFolderBtn.setBackgroundColor(Color.TRANSPARENT);
 
-        //noinspection ConstantConditions
-        Drawable pluginFolder = ContextCompat.getDrawable(context, R$d.ic_open_in_new_white_24dp).mutate();
-        pluginFolder.setAlpha(185);
-        pluginFolderBtn.setImageDrawable(pluginFolder);
+            //noinspection ConstantConditions
+            Drawable pluginFolder = ContextCompat.getDrawable(context, R$d.ic_open_in_new_white_24dp).mutate();
+            pluginFolder.setAlpha(185);
+            pluginFolderBtn.setImageDrawable(pluginFolder);
 
-        pluginFolderBtn.setOnClickListener(e -> {
-            File dir = new File(Constants.PLUGINS_PATH);
-            if (!dir.exists() && !dir.mkdir()) {
-                Utils.showToast(context, "Failed to create plugins directory!", true);
-                return;
-            }
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(Uri.parse(Constants.PLUGINS_PATH), "resource/folder");
-            startActivity(Intent.createChooser(intent, "Open folder"));
-        });
+            pluginFolderBtn.setOnClickListener(e -> {
+                File dir = new File(Constants.PLUGINS_PATH);
+                if (!dir.exists() && !dir.mkdir()) {
+                    Utils.showToast(context, "Failed to create plugins directory!", true);
+                    return;
+                }
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.parse(Constants.PLUGINS_PATH), "resource/folder");
+                startActivity(Intent.createChooser(intent, "Open folder"));
+            });
 
-        addHeaderButton(pluginFolderBtn);
+            addHeaderButton(pluginFolderBtn);
+        }
 
         TextInput input = new TextInput(context);
         input.setHint(context.getString(R$g.search));
