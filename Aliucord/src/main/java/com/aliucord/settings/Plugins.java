@@ -150,11 +150,8 @@ public class Plugins extends SettingsPage {
         pluginFolderBtn.setOnClickListener(e -> {
             File dir = new File(Constants.PLUGINS_PATH);
             if (!dir.exists() && !dir.mkdir()) {
-                boolean res = dir.mkdir();
-                if (!res) {
-                    logger.error(context, "Failed to create plugins directory!", null);
-                    return;
-                }
+                Utils.showToast(context, "Failed to create plugins directory!", true);
+                return;
             }
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setDataAndType(Uri.parse(Constants.PLUGINS_PATH), "resource/folder");

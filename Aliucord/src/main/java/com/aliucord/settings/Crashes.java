@@ -76,12 +76,8 @@ public class Crashes extends SettingsPage {
         int p = padding / 2;
 
         File dir = new File(Constants.CRASHLOGS_PATH);
-        if (!dir.exists() && !dir.mkdir()) {
-            boolean res = dir.mkdir();
-            if (!res) logger.error("Failed to create crashlogs directory!", null);
-        }
         File[] files = dir.listFiles();
-        if (files == null) files = new File[0];
+        boolean hasCrashes = files != null && files.length > 0;
 
         AppCompatImageButton crashFolderBtn = new AppCompatImageButton(context);
         AppCompatImageButton clearLogsBtn = new AppCompatImageButton(context);
@@ -105,25 +101,26 @@ public class Crashes extends SettingsPage {
         crashFolderBtn.setImageDrawable(openCrashesExternal);
         //noinspection ConstantConditions
         Drawable clearLogs = ContextCompat.getDrawable(context, R$d.ic_delete_white_24dp).mutate();
-        clearLogs.setAlpha(185);
-        if (files.length == 0) clearLogs.setAlpha(92);
+        clearLogs.setAlpha(hasCrashes ? 185 : 92);
         clearLogsBtn.setImageDrawable(clearLogs);
+        clearLogsBtn.setClickable(hasCrashes);
 
         crashFolderBtn.setOnClickListener(e -> {
+            if (!dir.exists() && !dir.mkdir()) {
+                Utils.showToast(context, "Failed to create crashlogs directory!", true);
+                return;
+            }
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setDataAndType(Uri.parse(Constants.CRASHLOGS_PATH), "resource/folder");
             startActivity(Intent.createChooser(intent, "Open folder"));
         });
-        File[] finalFiles = files;
+
         clearLogsBtn.setOnClickListener(e -> {
-            if (finalFiles.length == 0) return;
-            for (File file : finalFiles) {
+            for (File file : files) {
                 //noinspection ResultOfMethodCallIgnored
                 file.delete();
             }
-            clear();
-            clearLogs.setAlpha(92);
-            clearLogsBtn.setImageDrawable(clearLogs);
+            reRender();
         });
 
         addHeaderButton(crashFolderBtn);
@@ -132,6 +129,7 @@ public class Crashes extends SettingsPage {
         Map<Integer, CrashLog> crashes = getCrashes();
         if (crashes == null || crashes.size() == 0) {
             TextView header = new TextView(context, null, 0, R$h.UiKit_Settings_Item_Header);
+            header.setAllCaps(false);
             header.setText("Woah, no crashes :O");
             header.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
             header.setGravity(Gravity.CENTER);
@@ -142,6 +140,7 @@ public class Crashes extends SettingsPage {
             crashBtn.setOnClickListener(e -> {
                 throw new RuntimeException("You fool...");
             });
+
             addView(header);
             addView(crashBtn);
         } else {
@@ -180,7 +179,7 @@ public class Crashes extends SettingsPage {
         File folder = new File(Constants.BASE_PATH, "crashlogs");
         File[] files = folder.listFiles();
         if (files == null) return null;
-        Arrays.sort(files, Comparator.comparingLong(File::lastModified));
+        Arrays.sort(files, Comparator.comparingLong(File::lastModified).reversed());
 
         Map<Integer, CrashLog> res = new HashMap<>();
         for (File file : files) {
