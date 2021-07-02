@@ -11,6 +11,7 @@ import com.aliucord.Constants;
 import com.aliucord.Http;
 import com.aliucord.Logger;
 import com.aliucord.PluginManager;
+import com.aliucord.SettingsUtils;
 import com.aliucord.Utils;
 import com.aliucord.api.NotificationsAPI;
 import com.aliucord.entities.NotificationData;
@@ -19,7 +20,10 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.FileOutputStream;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import kotlin.Unit;
@@ -49,17 +53,32 @@ public class PluginUpdater {
     public static void checkUpdates(boolean notify) {
         updates.clear();
         for (Map.Entry<String, Plugin> plugin : PluginManager.plugins.entrySet()) {
-            if (checkPluginUpdate(plugin.getValue())) updates.add(plugin.getKey());
+            if (checkPluginUpdate(plugin.getValue()))
+                updates.add(plugin.getKey());
         }
-        if (!notify || updates.size() == 0) return;
+        if (updates.size() == 0 || !notify) return;
+
         NotificationData notificationData = new NotificationData()
                 .setTitle("Updater")
-                .setBody(Utils.renderMD("Updates for plugins are available: **" + TextUtils.join("**, **", updates.toArray()) + "**"))
                 .setAutoDismissPeriodSecs(10)
                 .setOnClick(view -> {
                     Utils.openPage(Utils.appActivity, com.aliucord.settings.Updater.class);
                     return Unit.a;
                 });
+
+        String updatablePlugins = String.format("**%s**", TextUtils.join("**, **", updates.toArray()));
+        if (SettingsUtils.getBool(com.aliucord.settings.Updater.UpdaterSettings.AUTO_UPDATE_KEY, false)) {
+            int res = PluginUpdater.updateAll();
+            if (res == 0) return;
+            if (res == -1) {
+                notificationData.setBody("Something went wrong while auto updating. Check the debug log for more info.");
+            } else {
+                String body = String.format("Automatically updated %s: %s", Utils.pluralise(res, "plugin"), updatablePlugins);
+                notificationData.setBody(Utils.renderMD(body));
+            }
+        } else {
+            notificationData.setBody(Utils.renderMD("Updates for plugins are available: " + updatablePlugins));
+        }
 
         NotificationsAPI.display(notificationData);
     }
