@@ -37,6 +37,8 @@ public final class Constants {
     public static final long THEMES_CHANNEL_ID = 824357609778708580L;
 
     public static final String BASE_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Aliucord";
+    public static final String PLUGINS_PATH = BASE_PATH + "/plugins";
+    public static final String CRASHLOGS_PATH = BASE_PATH + "/crashlogs";
 
     public static final String NAMESPACE_ANDROID = "http://schemas.android.com/apk/res/android";
     public static final String NAMESPACE_APP = "http://schemas.android.com/apk/res-auto";

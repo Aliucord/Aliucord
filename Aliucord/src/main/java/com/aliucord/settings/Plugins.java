@@ -7,11 +7,15 @@ package com.aliucord.settings;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
+import android.net.Uri;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -20,13 +24,15 @@ import android.widget.Filterable;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.core.widget.NestedScrollView;
+import androidx.appcompat.widget.AppCompatImageButton;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.aliucord.Constants;
 import com.aliucord.Main;
 import com.aliucord.PluginManager;
 import com.aliucord.Utils;
@@ -34,14 +40,18 @@ import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.SettingsPage;
 import com.aliucord.views.TextInput;
 import com.aliucord.widgets.PluginCard;
+import com.lytefast.flexinput.R$d;
 import com.lytefast.flexinput.R$g;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
 public class Plugins extends SettingsPage {
+    private static final int uniqueId = View.generateViewId();
+
     public static class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements Filterable {
         public static class ViewHolder extends RecyclerView.ViewHolder {
             public ViewHolder(@NonNull View itemView) { super(itemView); }
@@ -87,7 +97,7 @@ public class Plugins extends SettingsPage {
                     resultsList = new ArrayList<>();
                     for (PluginCard card : items) {
                         if (
-                                card.titleView != null &&
+                            card.titleView != null &&
                                 card.titleView.getText().toString().toLowerCase().contains(constraint.toString().toLowerCase().trim())
                         ) resultsList.add(card);
                     }
@@ -117,17 +127,46 @@ public class Plugins extends SettingsPage {
         //noinspection ResultOfMethodCallIgnored
         setActionBarTitle("Plugins");
 
-        int padding = Utils.getDefaultPadding();
-        LinearLayout v = (LinearLayout) ((NestedScrollView) ((CoordinatorLayout)
-                view).getChildAt(1)).getChildAt(0);
-        v.setPadding(padding, padding, padding, padding);
-
         Context context = requireContext();
+        int padding = Utils.getDefaultPadding();
+        int p = padding / 2;
+
+        if (getHeaderBar().findViewById(uniqueId) == null) {
+            AppCompatImageButton pluginFolderBtn = new AppCompatImageButton(context);
+            pluginFolderBtn.setId(uniqueId);
+
+            Toolbar.LayoutParams pluginFolderParams = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
+            pluginFolderParams.gravity = Gravity.END;
+            pluginFolderParams.setMarginEnd(p);
+            pluginFolderBtn.setLayoutParams(pluginFolderParams);
+            pluginFolderBtn.setPadding(p, p, p, p);
+
+            pluginFolderBtn.setBackgroundColor(Color.TRANSPARENT);
+
+            //noinspection ConstantConditions
+            Drawable pluginFolder = ContextCompat.getDrawable(context, R$d.ic_open_in_new_white_24dp).mutate();
+            pluginFolder.setAlpha(185);
+            pluginFolderBtn.setImageDrawable(pluginFolder);
+
+            pluginFolderBtn.setOnClickListener(e -> {
+                File dir = new File(Constants.PLUGINS_PATH);
+                if (!dir.exists() && !dir.mkdir()) {
+                    Utils.showToast(context, "Failed to create plugins directory!", true);
+                    return;
+                }
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.parse(Constants.PLUGINS_PATH), "resource/folder");
+                startActivity(Intent.createChooser(intent, "Open folder"));
+            });
+
+            addHeaderButton(pluginFolderBtn);
+        }
+
         TextInput input = new TextInput(context);
         input.setHint(context.getString(R$g.search));
         EditText editText = input.getEditText();
         if (editText != null) editText.setMaxLines(1);
-        v.addView(input);
+        addView(input);
 
         Utils.threadPool.execute(() -> {
             FragmentManager fragmentManager = getParentFragmentManager();
@@ -150,7 +189,7 @@ public class Plugins extends SettingsPage {
                 recyclerView.addItemDecoration(decoration);
                 recyclerView.setPadding(0, padding, 0, 0);
 
-                v.addView(recyclerView);
+                addView(recyclerView);
 
                 if (editText != null) editText.addTextChangedListener(new TextWatcher() {
                     public void afterTextChanged(Editable s) {

@@ -9,7 +9,7 @@ import android.annotation.SuppressLint;
 import android.view.View;
 import android.widget.LinearLayout;
 
-import androidx.appcompat.widget.AppCompatButton;
+import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.widget.NestedScrollView;
@@ -67,12 +67,12 @@ public class SettingsPage extends AppFragment {
     }
 
     /** Removes a button from the Toolbar associated with this Page */
-    public final void addHeaderButton(AppCompatButton button) {
+    public final void addHeaderButton(AppCompatImageButton button) {
         getHeaderBar().addView(button);
     }
 
     /** Adds a button to the Toolbar associated with this Page */
-    public final void removeHeaderButton(AppCompatButton button) {
+    public final void removeHeaderButton(AppCompatImageButton button) {
         getHeaderBar().removeView(button);
     }
 

@@ -7,18 +7,20 @@ package com.aliucord.settings;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.text.SpannableStringBuilder;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.appcompat.widget.AppCompatImageButton;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
-import androidx.core.widget.NestedScrollView;
 
 import com.aliucord.Constants;
 import com.aliucord.Utils;
@@ -41,6 +43,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Crashes extends SettingsPage {
+    private static final int uniqueId = View.generateViewId();
+
     private static class CrashLog {
         public String timestamp;
         public String stacktrace;
@@ -64,45 +68,92 @@ public class Crashes extends SettingsPage {
     @SuppressLint("SetTextI18n")
     public void onViewBound(View view) {
         super.onViewBound(view);
-
         setActionBarTitle("Crash Logs");
 
         Context context = requireContext();
-        LinearLayout layout = (LinearLayout) ((NestedScrollView) ((CoordinatorLayout) view).getChildAt(1)).getChildAt(0);
+        int padding = Utils.getDefaultPadding();
+        int p = padding / 2;
 
-        int p = Utils.getDefaultPadding() / 2;
-        layout.setPadding(p, p, p, p);
+        File dir = new File(Constants.CRASHLOGS_PATH);
+        File[] files = dir.listFiles();
+        boolean hasCrashes = files != null && files.length > 0;
+
+        if (getHeaderBar().findViewById(uniqueId) == null) {
+            AppCompatImageButton crashFolderBtn = new AppCompatImageButton(context);
+            crashFolderBtn.setId(uniqueId);
+            AppCompatImageButton clearLogsBtn = new AppCompatImageButton(context);
+
+            Toolbar.LayoutParams crashFolderBtnParams = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
+            crashFolderBtnParams.gravity = Gravity.END;
+            crashFolderBtnParams.setMarginEnd(p);
+            crashFolderBtn.setLayoutParams(crashFolderBtnParams);
+            Toolbar.LayoutParams clearLogsParams = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
+            clearLogsParams.gravity = Gravity.END;
+            clearLogsBtn.setLayoutParams(clearLogsParams);
+            crashFolderBtn.setPadding(p, p, p, p);
+            clearLogsBtn.setPadding(p, p, p, p);
+
+            crashFolderBtn.setBackgroundColor(Color.TRANSPARENT);
+            clearLogsBtn.setBackgroundColor(Color.TRANSPARENT);
+
+            //noinspection ConstantConditions
+            Drawable openCrashesExternal = ContextCompat.getDrawable(context, R$d.ic_open_in_new_white_24dp).mutate();
+            openCrashesExternal.setAlpha(185);
+            crashFolderBtn.setImageDrawable(openCrashesExternal);
+            //noinspection ConstantConditions
+            Drawable clearLogs = ContextCompat.getDrawable(context, R$d.ic_delete_white_24dp).mutate();
+            clearLogs.setAlpha(hasCrashes ? 185 : 92);
+            clearLogsBtn.setImageDrawable(clearLogs);
+            clearLogsBtn.setClickable(hasCrashes);
+
+            crashFolderBtn.setOnClickListener(e -> {
+                if (!dir.exists() && !dir.mkdir()) {
+                    Utils.showToast(context, "Failed to create crashlogs directory!", true);
+                    return;
+                }
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.parse(Constants.CRASHLOGS_PATH), "resource/folder");
+                startActivity(Intent.createChooser(intent, "Open folder"));
+            });
+
+            clearLogsBtn.setOnClickListener(e -> {
+                for (File file : files) {
+                    //noinspection ResultOfMethodCallIgnored
+                    file.delete();
+                }
+                clearLogs.setAlpha(92);
+                clearLogsBtn.setImageDrawable(clearLogs);
+                clearLogsBtn.setClickable(false);
+                reRender();
+            });
+
+            addHeaderButton(crashFolderBtn);
+            addHeaderButton(clearLogsBtn);
+        }
 
         Map<Integer, CrashLog> crashes = getCrashes();
         if (crashes == null || crashes.size() == 0) {
             TextView header = new TextView(context, null, 0, R$h.UiKit_Settings_Item_Header);
+            header.setAllCaps(false);
             header.setText("Woah, no crashes :O");
             header.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
             header.setGravity(Gravity.CENTER);
 
-            Button crashBtn = new DangerButton(context);
+            DangerButton crashBtn = new DangerButton(context);
             crashBtn.setText("LET'S CHANGE THAT");
             crashBtn.setPadding(p, p, p, p);
             crashBtn.setOnClickListener(e -> {
                 throw new RuntimeException("You fool...");
             });
-            layout.addView(header);
-            layout.addView(crashBtn);
+
+            addView(header);
+            addView(crashBtn);
         } else {
             TextView hint = new TextView(context, null, 0, R$h.UiKit_Settings_Item_SubText);
-            hint.setText("Hint: You can find these crash logs in the Aliucord/crashlogs folder!");
-            layout.addView(hint);
-
-            Button clearBtn = new DangerButton(context);
-            clearBtn.setCompoundDrawablesRelativeWithIntrinsicBounds(ContextCompat.getDrawable(context, R$d.ic_clear_all_white_24dp), null, null, null);
-            clearBtn.setOnClickListener(e -> {
-                clearCrashes();
-                layout.removeAllViews();
-                onViewBound(view);
-            });
-            clearBtn.setText("Clear logs");
-            clearBtn.setPadding(p, p, p, p);
-            layout.addView(clearBtn);
+            hint.setText("Hint: Crashlogs are accesible via your file explorer at Aliucord/crashlogs");
+            hint.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium));
+            hint.setGravity(Gravity.CENTER);
+            addView(hint);
 
             for (CrashLog crash : crashes.values()) {
                 TextView header = new TextView(context, null, 0, R$h.UiKit_Settings_Item_Header);
@@ -110,8 +161,9 @@ public class Crashes extends SettingsPage {
                 header.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
 
                 TextView body = new TextView(context);
+                //noinspection unchecked
                 BlockBackgroundNode<BasicRenderContext> node = new BlockBackgroundNode<>(false, new CodeNode<BasicRenderContext>(
-                        new CodeNode$a.b<>(crash.stacktrace), "", Rules$createCodeBlockRule$codeStyleProviders$1.INSTANCE
+                    new CodeNode$a.b<>(crash.stacktrace), "", Rules$createCodeBlockRule$codeStyleProviders$1.INSTANCE
                 ));
                 SpannableStringBuilder builder = new SpannableStringBuilder();
                 node.render(builder, new RenderContext(context));
@@ -121,20 +173,8 @@ public class Crashes extends SettingsPage {
                     Utils.showToast(context, "Copied to clipboard");
                 });
 
-                layout.addView(header);
-                layout.addView(body);
-            }
-
-        }
-    }
-
-    private void clearCrashes() {
-        File folder = new File(Constants.BASE_PATH, "crashlogs");
-        File[] files = folder.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                //noinspection ResultOfMethodCallIgnored
-                file.delete();
+                addView(header);
+                addView(body);
             }
         }
     }
@@ -144,7 +184,7 @@ public class Crashes extends SettingsPage {
         File folder = new File(Constants.BASE_PATH, "crashlogs");
         File[] files = folder.listFiles();
         if (files == null) return null;
-        Arrays.sort(files, Comparator.comparingLong(File::lastModified));
+        Arrays.sort(files, Comparator.comparingLong(File::lastModified).reversed());
 
         Map<Integer, CrashLog> res = new HashMap<>();
         for (File file : files) {
