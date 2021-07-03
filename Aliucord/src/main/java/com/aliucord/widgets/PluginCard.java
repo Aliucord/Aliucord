@@ -7,18 +7,24 @@ package com.aliucord.widgets;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Looper;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.GridLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.AppCompatImageButton;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import com.aliucord.Constants;
@@ -30,11 +36,13 @@ import com.aliucord.entities.Plugin.Settings.Type;
 import com.aliucord.views.Button;
 import com.aliucord.views.DangerButton;
 import com.aliucord.views.Divider;
+import com.aliucord.views.ToolbarButton;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.views.CheckedSetting;
 import com.discord.widgets.user.usersheet.WidgetUserSheet;
 import com.google.android.material.card.MaterialCardView;
 import com.lytefast.flexinput.R$b;
+import com.lytefast.flexinput.R$d;
 import com.lytefast.flexinput.R$h;
 
 import java.io.File;
@@ -43,7 +51,7 @@ import java.io.File;
 public final class PluginCard extends MaterialCardView {
     public final String pluginName;
     public final TextView titleView;
-    public PluginCard(Context context, String name, Plugin p, FragmentManager fragmentManager) {
+    public PluginCard(Context context, String name, Plugin p, FragmentManager fragmentManager, Fragment caller) {
         super(context);
         pluginName = name;
         int padding = Utils.getDefaultPadding();
@@ -57,7 +65,7 @@ public final class PluginCard extends MaterialCardView {
         LinearLayout pluginLayout = new LinearLayout(context);
 
         Button settings = new Button(context);
-        String title = name + " v" + manifest.version + " by " + TextUtils.join(", ", manifest.authors);
+        String title = String.format("%s v%s by %s", name, manifest.version, TextUtils.join(", ", manifest.authors));
         SpannableString spannableTitle = new SpannableString(title);
         for (Plugin.Manifest.Author author : manifest.authors) {
             if (author.id < 1) continue;
@@ -74,25 +82,25 @@ public final class PluginCard extends MaterialCardView {
         titleView = cs.k.a();
         titleView.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
         titleView.setMovementMethod(LinkMovementMethod.getInstance());
+        cs.k.b().setBackgroundColor(ColorCompat.getThemedColor(context, R$b.colorBackgroundSecondaryAlt));
         cs.setChecked(enabled);
         cs.setOnCheckedListener(e -> {
             PluginManager.togglePlugin(name);
             if (p.settings != null) settings.setEnabled(!settings.isEnabled());
         });
         pluginLayout.addView(cs);
-        pluginLayout.addView(new Divider(context));
 
         TextView t = new TextView(context, null, 0, R$h.UiKit_Settings_Item_Addition);
         t.setText(manifest.description);
-        t.setPadding(padding, padding2, padding, padding2);
-        pluginLayout.addView(t);
+        t.setPadding(padding, padding, padding, padding2);
         pluginLayout.addView(new Divider(context));
+        pluginLayout.addView(t);
 
         GridLayout buttons = new GridLayout(context);
         buttons.setRowCount(1);
         buttons.setColumnCount(4);
         buttons.setUseDefaultMargins(true);
-        buttons.setPadding(0, 0, padding2, 0);
+        buttons.setPadding(padding2, 0, padding2, 0);
 
         if (p.settings != null) {
             settings.setText("Settings");
@@ -128,6 +136,18 @@ public final class PluginCard extends MaterialCardView {
             setVisibility(GONE);
         });
         buttons.addView(uninstall, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(3)));
+
+        AppCompatImageButton openRepo = new ToolbarButton(context);
+        openRepo.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_github_white));
+        openRepo.setOnClickListener(e -> {
+            String url = manifest.updateUrl.replace("raw.githubusercontent.com", "github.com").replaceFirst("/builds.*", "");
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse(url));
+            caller.startActivity(intent);
+        });
+        GridLayout.LayoutParams params = new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(0));
+        params.setGravity(Gravity.CENTER_VERTICAL);
+        buttons.addView(openRepo, params);
 
         pluginLayout.addView(buttons);
 
