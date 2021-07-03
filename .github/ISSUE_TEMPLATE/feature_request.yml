@@ -1,0 +1,36 @@
+name: Aliucord Feature Request
+description: Create a feature request for Aliucord itself, to request new plugins please go to Aliucord/plugin-requests.
+labels: [enhancement]
+body:
+  - type: input
+    id: discord
+    attributes:
+      label: Discord Account
+      description: Who on Discord is making this request? Not required.
+      placeholder: username#0000
+    validations:
+      required: false
+  - type: textarea
+    id: feature-basic-description
+    attributes:
+      label: What is it that you'd like to see?
+      description: Also, you'd like to, give us a bit more information on what you'd like this feature to do and/or how you want it to work.
+      placeholder: I think ... would be a cool feature to add. This would be awesome, thanks!
+    validations:
+      required: true
+  - type: textarea
+    id: feature-verbose-description
+    attributes:
+      label: Go into more detail...
+      description: If you want to, you can be more descriptive about your request here. Not required.
+      placeholder: This would be really awesome, but I think if you would do it this way, by doing ..., it'd be cooler.
+    validations:
+      required: false
+  - type: checkboxes
+    id: agreement-check
+    attributes:
+      label: Request Agreement
+      description: Did you check to make sure your feature has not already been requested?
+      options:
+        - label: I did indeed check to make sure my feature request is original!
+          required: true

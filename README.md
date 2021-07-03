@@ -30,7 +30,7 @@ Unlike other Android Discord app modifications, you don't need to rebuild the AP
 - [Plugin Installation](#-plugin-installation)
   - [Troubleshooting](#troubleshooting)
 - [Building from source](#-building-from-source)
-  - [Porting Aliucord to the latest Discord version](#-porting-aliucord-to-the-latest-discord-version)
+- [Porting Aliucord to the latest Discord version](#-porting-aliucord-to-the-latest-discord-version)
 
 ## ⚠️ Important Information
 
@@ -39,7 +39,7 @@ Unlike other Android Discord app modifications, you don't need to rebuild the AP
 - `arm`
 - `arm64`
 
-Pine does not support `x86` or `x86_64` frameworks, and thus Aliucord does not either.
+Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does not either.
 
 ### Supported Android version(s)
 
