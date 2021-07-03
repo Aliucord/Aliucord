@@ -3,6 +3,7 @@ package com.lytefast.flexinput;
 @SuppressWarnings("unused")
 public class R$h {
     public static int UiKit_CheckedSetting_Themed = 0;
+    public static int UiKit_ImageView_Clickable = 0;
     public static int UiKit_Material_Button = 0;
     public static int UiKit_Material_Button_Red = 0;
     public static int UiKit_Settings_Divider = 0;

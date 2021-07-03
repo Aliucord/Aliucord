@@ -8,7 +8,6 @@ package com.aliucord.settings;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.text.SpannableStringBuilder;
@@ -17,7 +16,6 @@ import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
@@ -26,6 +24,7 @@ import com.aliucord.Constants;
 import com.aliucord.Utils;
 import com.aliucord.fragments.SettingsPage;
 import com.aliucord.views.DangerButton;
+import com.aliucord.views.ToolbarButton;
 import com.discord.simpleast.code.CodeNode;
 import com.discord.simpleast.code.CodeNode$a;
 import com.discord.utilities.textprocessing.Rules$createCodeBlockRule$codeStyleProviders$1;
@@ -79,9 +78,9 @@ public class Crashes extends SettingsPage {
         boolean hasCrashes = files != null && files.length > 0;
 
         if (getHeaderBar().findViewById(uniqueId) == null) {
-            AppCompatImageButton crashFolderBtn = new AppCompatImageButton(context);
+            ToolbarButton crashFolderBtn = new ToolbarButton(context);
             crashFolderBtn.setId(uniqueId);
-            AppCompatImageButton clearLogsBtn = new AppCompatImageButton(context);
+            ToolbarButton clearLogsBtn = new ToolbarButton(context);
 
             Toolbar.LayoutParams crashFolderBtnParams = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
             crashFolderBtnParams.gravity = Gravity.END;
@@ -92,9 +91,6 @@ public class Crashes extends SettingsPage {
             clearLogsBtn.setLayoutParams(clearLogsParams);
             crashFolderBtn.setPadding(p, p, p, p);
             clearLogsBtn.setPadding(p, p, p, p);
-
-            crashFolderBtn.setBackgroundColor(Color.TRANSPARENT);
-            clearLogsBtn.setBackgroundColor(Color.TRANSPARENT);
 
             //noinspection ConstantConditions
             Drawable openCrashesExternal = ContextCompat.getDrawable(context, R$d.ic_open_in_new_white_24dp).mutate();

@@ -7,14 +7,12 @@ package com.aliucord.settings;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
 
-import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 
@@ -22,6 +20,7 @@ import com.aliucord.SettingsUtils;
 import com.aliucord.Utils;
 import com.aliucord.fragments.SettingsPage;
 import com.aliucord.updater.PluginUpdater;
+import com.aliucord.views.ToolbarButton;
 import com.aliucord.widgets.BottomSheet;
 import com.aliucord.widgets.UpdaterPluginCard;
 import com.discord.views.CheckedSetting;
@@ -65,14 +64,10 @@ public class Updater extends SettingsPage {
         if (getHeaderBar().findViewById(id) == null) {
             int p = padding / 2;
 
-            AppCompatImageButton refreshButton = new AppCompatImageButton(context);
+            ToolbarButton refreshButton = new ToolbarButton(context);
             refreshButton.setId(id);
-            AppCompatImageButton updateAllButton = new AppCompatImageButton(context);
-            AppCompatImageButton settingsButton = new AppCompatImageButton(context);
-
-            refreshButton.setPadding(p, p, p, p);
-            updateAllButton.setPadding(p, p, p, p);
-            settingsButton.setPadding(p, p, p, p);
+            ToolbarButton updateAllButton = new ToolbarButton(context);
+            ToolbarButton settingsButton = new ToolbarButton(context);
 
             Toolbar.LayoutParams childParams = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
             childParams.gravity = Gravity.END;
@@ -83,10 +78,9 @@ public class Updater extends SettingsPage {
             marginEndParams.gravity = Gravity.END;
             marginEndParams.setMarginEnd(p);
             settingsButton.setLayoutParams(marginEndParams);
-
-            refreshButton.setBackgroundColor(Color.TRANSPARENT);
-            updateAllButton.setBackgroundColor(Color.TRANSPARENT);
-            settingsButton.setBackgroundColor(Color.TRANSPARENT);
+            refreshButton.setPadding(p, p, p, p);
+            settingsButton.setPadding(p, p, p, p);
+            updateAllButton.setPadding(p, p, p, p);
 
             refreshButton.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_refresh_white_a60_24dp));
             Drawable updateDrawable = Objects.requireNonNull(

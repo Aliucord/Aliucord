@@ -24,7 +24,6 @@ import android.widget.Filterable;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
@@ -39,6 +38,7 @@ import com.aliucord.Utils;
 import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.SettingsPage;
 import com.aliucord.views.TextInput;
+import com.aliucord.views.ToolbarButton;
 import com.aliucord.widgets.PluginCard;
 import com.lytefast.flexinput.R$d;
 import com.lytefast.flexinput.R$g;
@@ -132,16 +132,14 @@ public class Plugins extends SettingsPage {
         int p = padding / 2;
 
         if (getHeaderBar().findViewById(uniqueId) == null) {
-            AppCompatImageButton pluginFolderBtn = new AppCompatImageButton(context);
+            ToolbarButton pluginFolderBtn = new ToolbarButton(context);
             pluginFolderBtn.setId(uniqueId);
 
-            Toolbar.LayoutParams pluginFolderParams = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
-            pluginFolderParams.gravity = Gravity.END;
-            pluginFolderParams.setMarginEnd(p);
-            pluginFolderBtn.setLayoutParams(pluginFolderParams);
+            Toolbar.LayoutParams params = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
+            params.gravity = Gravity.END;
+            params.setMarginEnd(p);
+            pluginFolderBtn.setLayoutParams(params);
             pluginFolderBtn.setPadding(p, p, p, p);
-
-            pluginFolderBtn.setBackgroundColor(Color.TRANSPARENT);
 
             //noinspection ConstantConditions
             Drawable pluginFolder = ContextCompat.getDrawable(context, R$d.ic_open_in_new_white_24dp).mutate();
@@ -172,7 +170,7 @@ public class Plugins extends SettingsPage {
             FragmentManager fragmentManager = getParentFragmentManager();
             List<PluginCard> list = new ArrayList<>();
             for (Map.Entry<String, Plugin> entry : PluginManager.plugins.entrySet()) try {
-                list.add(new PluginCard(context, entry.getKey(), entry.getValue(), fragmentManager));
+                list.add(new PluginCard(context, entry.getKey(), entry.getValue(), fragmentManager, this));
             } catch (Throwable e) { Main.logger.error("Exception while rendering plugin settings", e); }
             list.sort(Comparator.comparing(a -> a.pluginName));
 
