@@ -1,4 +1,4 @@
-name: Aliucord Feature Request
+name: Feature Request
 description: Create a feature request for Aliucord itself, to request new plugins please go to Aliucord/plugin-requests.
 labels: [enhancement]
 body:

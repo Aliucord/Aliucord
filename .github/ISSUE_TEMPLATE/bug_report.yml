@@ -1,4 +1,4 @@
-name: Aliucord Bug Report
+name: Bug Report
 description: Create a bug report for Aliucord itself, to report bugs in plugins please go to our support server or the plugin's repository and make an issue there instead.
 labels: [bug]
 body:
