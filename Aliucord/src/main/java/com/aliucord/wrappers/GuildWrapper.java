@@ -9,9 +9,13 @@ import androidx.annotation.Nullable;
 
 import com.discord.api.channel.Channel;
 import com.discord.api.emoji.GuildEmoji;
-import com.discord.api.guild.*;
+import com.discord.api.guild.Guild;
+import com.discord.api.guild.GuildExplicitContentFilter;
+import com.discord.api.guild.GuildFeature;
+import com.discord.api.guild.GuildVerificationLevel;
 import com.discord.api.guildmember.GuildMember;
 import com.discord.api.role.GuildRole;
+import com.discord.api.sticker.Sticker;
 
 import java.util.List;
 
@@ -151,6 +155,10 @@ public class GuildWrapper {
     @Nullable
     public final String getSplash() {
         return getSplash(guild);
+    }
+
+    public final List<Sticker> getStickers() {
+        return getStickers(guild);
     }
 
     public final int getSystemChannelFlags() {
@@ -303,29 +311,33 @@ public class GuildWrapper {
         return guild.F();
     }
 
-    public static int getSystemChannelFlags(Guild guild) {
+    public static List<Sticker> getStickers(Guild guild) {
         return guild.H();
+    }
+
+    public static int getSystemChannelFlags(Guild guild) {
+        return guild.I();
     }
 
     @Nullable
     public static Long getSystemChannelId(Guild guild) {
-        return guild.I();
-    }
-
-    public static List<Channel> getThreads(Guild guild) {
         return guild.J();
     }
 
-    public static boolean isUnavailable(Guild guild) {
+    public static List<Channel> getThreads(Guild guild) {
         return guild.K();
+    }
+
+    public static boolean isUnavailable(Guild guild) {
+        return guild.L();
     }
 
     @Nullable
     public static String getVanityUrlCode(Guild guild) {
-        return guild.L();
+        return guild.M();
     }
 
     public static GuildVerificationLevel getVerificationLevel(Guild guild) {
-        return guild.M();
+        return guild.N();
     }
 }
