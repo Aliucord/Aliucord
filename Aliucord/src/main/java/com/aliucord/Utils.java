@@ -220,7 +220,7 @@ public class Utils {
             null,
             null,
             null,
-            null,
+            new NullSerializable.a<>(),
             null
         );
     }

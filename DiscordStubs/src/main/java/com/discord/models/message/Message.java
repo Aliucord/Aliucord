@@ -104,7 +104,7 @@ public final class Message {
 
     public final Boolean getTts() { return false; }
 
-    public final Integer getType() { return 0; }
+    public final Integer getType() { return null; }
 
     public final Long getWebhookId() { return null; }
 

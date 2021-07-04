@@ -11,32 +11,32 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 
 import com.aliucord.CollectionUtils;
-import com.aliucord.Utils;
 import com.aliucord.api.CommandsAPI;
 import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.PinePatchFn;
 import com.aliucord.patcher.PinePrePatchFn;
 import com.discord.api.message.MessageTypes;
+import com.discord.databinding.WidgetChatInputAutocompleteItemBinding;
 import com.discord.models.commands.Application;
 import com.discord.models.commands.ApplicationCommand;
-import com.discord.models.commands.ApplicationSubCommand;
 import com.discord.models.commands.RemoteApplicationCommand;
 import com.discord.models.message.Message;
 import com.discord.models.user.CoreUser;
 import com.discord.stores.StoreApplicationCommands;
 import com.discord.stores.StoreStream;
-import com.discord.utilities.message.MessageUtils;
 import com.discord.utilities.view.text.SimpleDraweeSpanTextView;
+import com.discord.widgets.chat.input.UserAndSelectedGuildRoles;
+import com.discord.widgets.chat.input.WidgetChatInput$configureSendListeners$2;
+import com.discord.widgets.chat.input.autocomplete.ApplicationCommandAutocompletable;
+import com.discord.widgets.chat.input.autocomplete.adapter.AutocompleteItemViewHolder;
 import com.discord.widgets.chat.input.models.ApplicationCommandData;
 import com.discord.widgets.chat.input.models.ApplicationCommandValue;
-import com.discord.widgets.chat.input.WidgetChatInput$configureSendListeners$2;
-import com.discord.widgets.chat.input.WidgetChatInputCommandsAdapter;
-import com.discord.widgets.chat.input.WidgetChatInputCommandsModel;
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemMessage;
 import com.discord.widgets.chat.list.entries.MessageEntry;
 import com.discord.widgets.chat.list.sheet.WidgetApplicationCommandBottomSheetViewModel;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -51,6 +51,7 @@ public final class CommandHandler extends Plugin {
     public Manifest getManifest() { return new Manifest(); }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void load(Context context) throws Throwable {
         Patcher.addPatch("com.discord.stores.BuiltInCommands", "getBuiltInCommands", new Class<?>[0], new PinePatchFn(callFrame -> {
             List<ApplicationCommand> list = (List<ApplicationCommand>) callFrame.getResult();
@@ -124,31 +125,26 @@ public final class CommandHandler extends Plugin {
             }
         }));
 
-        // display plugin name instead of "Aliucord" in command autocomplete
-        Patcher.addPatch(WidgetChatInputCommandsAdapter.Item.class.getDeclaredMethod("onConfigure", int.class, WidgetChatInputCommandsModel.class),
-            new PinePatchFn(callFrame -> {
-                WidgetChatInputCommandsModel model = (WidgetChatInputCommandsModel) callFrame.args[1];
-                ApplicationCommand command = model.getCommand();
-                String plugin = null;
-                if (command instanceof ApplicationSubCommand && ((ApplicationSubCommand) command).getRootCommand().getBuiltIn()) {
-                    plugin = CommandsAPI.commandsAndPlugins.get(((ApplicationSubCommand) command).getRootCommand().getName());
-                } else if (command instanceof RemoteApplicationCommand && command.getBuiltIn()) {
-                    plugin = CommandsAPI.commandsAndPlugins.get(command.getName());
-                }
-                if (plugin == null) return;
-                TextView itemNameRight = ((WidgetChatInputCommandsAdapter.Item) callFrame.thisObject).itemView
-                    .findViewById(Utils.getResId("chat_input_item_name_right", "id"));
-                itemNameRight.setText(plugin.toUpperCase());
-            })
-        );
+        // Show Plugin name instead of 'Aliucord' in the command list
+        Field bindingField = AutocompleteItemViewHolder.class.getDeclaredField("binding");
+        bindingField.setAccessible(true);
+        Patcher.addPatch(AutocompleteItemViewHolder.class.getDeclaredMethod("bindCommand", ApplicationCommandAutocompletable.class, boolean.class, UserAndSelectedGuildRoles.class), new PinePatchFn(callFrame -> {
+            ApplicationCommand cmd = ((ApplicationCommandAutocompletable) callFrame.args[0]).getCommand();
+            if (!cmd.getBuiltIn()) return;
+            String plugin = CommandsAPI.commandsAndPlugins.get(cmd.getName());
+            if (plugin == null) return;
+            try {
+                WidgetChatInputAutocompleteItemBinding binding = (WidgetChatInputAutocompleteItemBinding) bindingField.get(callFrame.thisObject);
+                if (binding != null)
+                    binding.f.setText(plugin.toUpperCase());
+            } catch (Throwable ignored) {}
+        }));
 
-        Patcher.addPatch(MessageUtils.class.getDeclaredMethod("isLocalApplicationCommand", Message.class), new PinePrePatchFn(callFrame -> {
-            Message message;
-            @SuppressWarnings("WrapperTypeMayBePrimitive") Integer type;
-            //noinspection ConstantConditions
-            if ((message = (Message) callFrame.args[0]) == null || (type = message.getType()) == null) return;
-            MessageUtils messageUtils = (MessageUtils) callFrame.thisObject;
-            if (message.isLoading() && type != MessageTypes.LOCAL_APPLICATION_COMMAND && type != MessageTypes.LOCAL_APPLICATION_COMMAND_SEND_FAILED)
+        Patcher.addPatch(Message.class.getDeclaredMethod("isLocalApplicationCommand"), new PinePrePatchFn(callFrame -> {
+            Message message = (Message) callFrame.thisObject;
+            Integer type = message.getType();
+            if (type == null || !message.isLoading()) return;
+            if (type != MessageTypes.LOCAL_APPLICATION_COMMAND && type != MessageTypes.LOCAL_APPLICATION_COMMAND_SEND_FAILED)
                 callFrame.setResult(true);
         }));
 
@@ -162,7 +158,6 @@ public final class CommandHandler extends Plugin {
                 }
             })
         );
-
 
         Patcher.addPatch(WidgetApplicationCommandBottomSheetViewModel.class, "requestInteractionData", new Class<?>[0], new PinePrePatchFn(callFrame -> {
             WidgetApplicationCommandBottomSheetViewModel _this = (WidgetApplicationCommandBottomSheetViewModel) callFrame.thisObject;
