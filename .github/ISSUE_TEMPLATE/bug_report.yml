@@ -1,5 +1,5 @@
-name: Bug Report
-description: Create a bug report for Aliucord itself. To report bugs in plugins, please go to our support server, or the plugin's repository and make an issue there instead.
+name: Bug/Crash Report
+description: Create a bug or crash report for Aliucord itself. To report bugs or crashes related to plugins, please go to our support server, or the plugin's repository and make an issue there instead.
 labels: [bug]
 body:
   - type: input
@@ -13,9 +13,9 @@ body:
   - type: textarea
     id: bug-description
     attributes:
-      label: What happens when the bug occurs?
-      description: Where does this bug occur, when does it occur, etc.
-      placeholder: The bug happens sometimes when I do ..., causing the app to crash. I think it happens because of ..., I hope that can help!
+      label: What happens when the bug or crash occurs?
+      description: Where does this bug or crash occur, when does it occur, etc.
+      placeholder: The bug/crash happens sometimes when I do ..., causing this to not work/the app to crash. I think it happens because of ..., I hope that can help!
     validations:
       required: true
   - type: textarea
@@ -29,20 +29,31 @@ body:
   - type: textarea
     id: steps-to-take
     attributes:
-      label: How do you recreate this bug?
-      description: Give us a list of steps in order to recreate the bug.
+      label: How do you recreate this bug or crash?
+      description: Give us a list of steps in order to recreate the bug or crash.
       placeholder: |
         1. Do ...
         2. Then ...
         3. Do this ..., ... and then ...
-        4. Observe "the bug"
+        4. Observe "the bug" or "the crash"
     validations:
       required: true
+  - type: textarea
+    id: crash-log
+    attributes:
+      label: Crash-log
+      description: Paste the crash-log for your plugin between the two sections of "```".
+      value: |
+        ```
+        Replace this text with your crash-log.
+        ```
+      validations:
+        required: true
   - type: checkboxes
     id: agreement-check
     attributes:
       label: Request Agreement
-      description: Did you check to make sure the bug you've found has not already been reported? Keep in mind that bugs can resurface, so if it's been reported before maybe it's come back!
+      description: Did you check to make sure the bug or crash you've found has not already been reported? Keep in mind that bugs and crashes can resurface, so if it's been reported before maybe it's come back!
       options:
-        - label: I did indeed check to make sure the bug report is applicable!
+        - label: I did indeed check to make sure the bug or crash report is applicable!
           required: true
