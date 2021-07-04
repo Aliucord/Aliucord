@@ -4,7 +4,9 @@ import com.discord.api.channel.Channel;
 import com.discord.api.emoji.GuildEmoji;
 import com.discord.api.guildmember.GuildMember;
 import com.discord.api.role.GuildRole;
+import com.discord.api.sticker.Sticker;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -43,40 +45,45 @@ public final class Guild {
     @Deprecated
     public final String F() { return null; }
     /**
+     * getStickers
+     * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.GuildWrapper} instead.
+     */
+    public final List<Sticker> H() { return new ArrayList<>(); }
+    /**
      * getSystemChannelFlags
      * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.GuildWrapper} instead.
      */
-    public final int H() { return 0; }
+    public final int I() { return 0; }
     /**
      * getSystemChannelId
      * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.GuildWrapper} instead.
      */
     @Deprecated
-    public final Long I() { return null; }
+    public final Long J() { return null; }
     /**
      * getThreads
      * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.GuildWrapper} instead.
      */
     @Deprecated
-    public final List<Channel> J() { return null; }
+    public final List<Channel> K() { return null; }
     /**
      * isUnavailable
      * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.GuildWrapper} instead.
      */
     @Deprecated
-    public final boolean K() { return false; }
+    public final boolean L() { return false; }
     /**
      * getVanityUrlCode
      * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.GuildWrapper} instead.
      */
     @Deprecated
-    public final String L() { return null; }
+    public final String M() { return null; }
     /**
      * getVerificationLevel
      * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.GuildWrapper} instead.
      */
     @Deprecated
-    public final GuildVerificationLevel M() { return null; }
+    public final GuildVerificationLevel N() { return null; }
     /**
      * getAfkChannelId
      * @deprecated Do not use this directly, use {@link com.aliucord.wrappers.GuildWrapper} instead.
