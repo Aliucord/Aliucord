@@ -2,12 +2,12 @@ package com.discord.utilities.message;
 
 import com.discord.api.application.Application;
 import com.discord.api.message.LocalAttachment;
-import com.discord.api.message.Message;
 import com.discord.api.message.MessageReference;
 import com.discord.api.message.activity.MessageActivity;
 import com.discord.api.message.allowedmentions.MessageAllowedMentions;
 import com.discord.api.sticker.Sticker;
 import com.discord.api.user.User;
+import com.discord.models.message.Message;
 import com.discord.utilities.time.Clock;
 
 import java.util.List;
@@ -24,7 +24,7 @@ public final class LocalMessageCreatorsKt {
         boolean loading,
         Long interactionId,
         Clock clock
-    ) { return new Message(); }
+    ) { return new Message(null); }
 
     public static Message createLocalApplicationCommandMessage(
         Message other,
@@ -51,5 +51,5 @@ public final class LocalMessageCreatorsKt {
         List<Sticker> stickers,
         MessageReference messageReference,
         MessageAllowedMentions allowedMentions
-    ) { return new Message(); }
+    ) { return new Message(null); }
 }

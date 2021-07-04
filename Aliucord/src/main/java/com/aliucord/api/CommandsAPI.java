@@ -10,17 +10,25 @@ import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.aliucord.*;
+import com.aliucord.BuildConfig;
+import com.aliucord.Constants;
+import com.aliucord.Logger;
+import com.aliucord.PluginManager;
+import com.aliucord.Utils;
 import com.aliucord.entities.Plugin;
 import com.aliucord.utils.ReflectUtils;
 import com.aliucord.wrappers.ChannelWrapper;
-import com.aliucord.wrappers.messages.MessageWrapper;
 import com.discord.api.commands.ApplicationCommandData;
 import com.discord.api.commands.ApplicationCommandType;
-import com.discord.api.message.*;
+import com.discord.api.message.MessageFlags;
+import com.discord.api.message.MessageTypes;
 import com.discord.api.message.embed.MessageEmbed;
-import com.discord.models.commands.*;
+import com.discord.models.commands.Application;
+import com.discord.models.commands.ApplicationCommand;
+import com.discord.models.commands.ApplicationCommandOption;
+import com.discord.models.commands.RemoteApplicationCommand;
 import com.discord.models.domain.NonceGenerator;
+import com.discord.models.message.Message;
 import com.discord.models.user.User;
 import com.discord.stores.StoreApplicationInteractions;
 import com.discord.stores.StoreMessages;
@@ -39,7 +47,13 @@ import com.lytefast.flexinput.R$d;
 import com.lytefast.flexinput.R$g;
 import com.lytefast.flexinput.model.Attachment;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
@@ -171,7 +185,7 @@ public class CommandsAPI {
 
                             ReflectUtils.setField(c, commandMessage, "embeds", res.embeds, true);
                             ReflectUtils.setField(c, commandMessage, "flags", MessageFlags.EPHEMERAL, true);
-                            ReflectUtils.setField(c, commandMessage, "interaction", MessageWrapper.getInteraction(thinkingMsg), true);
+                            ReflectUtils.setField(c, commandMessage, "interaction", thinkingMsg.getInteraction(), true);
 
                             // TODO: add arguments
                             long guildId = ChannelWrapper.getGuildId(StoreStream.getChannels().getChannel(channelId));

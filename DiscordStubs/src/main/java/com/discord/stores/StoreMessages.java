@@ -1,7 +1,7 @@
 package com.discord.stores;
 
-import com.discord.api.message.Message;
 import com.discord.api.message.allowedmentions.MessageAllowedMentions;
+import com.discord.models.message.Message;
 
 @SuppressWarnings("unused")
 public final class StoreMessages {

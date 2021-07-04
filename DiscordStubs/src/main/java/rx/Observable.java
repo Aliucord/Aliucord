@@ -6,5 +6,5 @@ public class Observable<T> {
     /** onBackpressureBuffer */
     public final Observable<T> K() { return this; }
     /** subscribe */
-    public final Subscription V(Subscriber<? super T> subscriber) { return subscriber; }
+    public final Subscription U(Subscriber<? super T> subscriber) { return subscriber; }
 }

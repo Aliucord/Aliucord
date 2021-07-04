@@ -17,21 +17,31 @@ import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.PinePatchFn;
 import com.aliucord.patcher.PinePrePatchFn;
-import com.aliucord.wrappers.messages.MessageWrapper;
-import com.discord.api.message.Message;
 import com.discord.api.message.MessageTypes;
-import com.discord.models.commands.*;
+import com.discord.models.commands.Application;
+import com.discord.models.commands.ApplicationCommand;
+import com.discord.models.commands.ApplicationSubCommand;
+import com.discord.models.commands.RemoteApplicationCommand;
+import com.discord.models.message.Message;
 import com.discord.models.user.CoreUser;
 import com.discord.stores.StoreApplicationCommands;
 import com.discord.stores.StoreStream;
 import com.discord.utilities.message.MessageUtils;
 import com.discord.utilities.view.text.SimpleDraweeSpanTextView;
-import com.discord.widgets.chat.input.*;
+import com.discord.widgets.chat.input.models.ApplicationCommandData;
+import com.discord.widgets.chat.input.models.ApplicationCommandValue;
+import com.discord.widgets.chat.input.WidgetChatInput$configureSendListeners$2;
+import com.discord.widgets.chat.input.WidgetChatInputCommandsAdapter;
+import com.discord.widgets.chat.input.WidgetChatInputCommandsModel;
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemMessage;
 import com.discord.widgets.chat.list.entries.MessageEntry;
 import com.discord.widgets.chat.list.sheet.WidgetApplicationCommandBottomSheetViewModel;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import kotlin.jvm.functions.Function1;
 
@@ -81,7 +91,7 @@ public final class CommandHandler extends Plugin {
         Patcher.addPatch("com.discord.stores.StoreLocalMessagesHolder", "getFlattenedMessages", new Class<?>[0], new PinePatchFn(callFrame -> {
             List<Message> list = (List<Message>) callFrame.getResult();
             CollectionUtils.removeIf(list, m -> {
-                CoreUser author = new CoreUser(MessageWrapper.getAuthor(m));
+                CoreUser author = new CoreUser(m.getAuthor());
                 boolean r = author.getId() == -1 || author.getId() == 0;
                 if (r) StoreStream.getMessages().deleteMessage(m);
                 return r;
@@ -136,9 +146,9 @@ public final class CommandHandler extends Plugin {
             Message message;
             @SuppressWarnings("WrapperTypeMayBePrimitive") Integer type;
             //noinspection ConstantConditions
-            if ((message = (Message) callFrame.args[0]) == null || (type = MessageWrapper.getType(message)) == null) return;
+            if ((message = (Message) callFrame.args[0]) == null || (type = message.getType()) == null) return;
             MessageUtils messageUtils = (MessageUtils) callFrame.thisObject;
-            if (messageUtils.isLoading(message) && type != MessageTypes.LOCAL_APPLICATION_COMMAND && type != MessageTypes.LOCAL_APPLICATION_COMMAND_SEND_FAILED)
+            if (message.isLoading() && type != MessageTypes.LOCAL_APPLICATION_COMMAND && type != MessageTypes.LOCAL_APPLICATION_COMMAND_SEND_FAILED)
                 callFrame.setResult(true);
         }));
 
@@ -146,7 +156,7 @@ public final class CommandHandler extends Plugin {
         Patcher.addPatch(WidgetChatListAdapterItemMessage.class, "processMessageText", new Class<?>[]{ SimpleDraweeSpanTextView.class, MessageEntry.class },
             new PinePatchFn(callFrame -> {
                 Message message = ((MessageEntry) callFrame.args[1]).getMessage();
-                if (message != null && MessageWrapper.getType(message) == MessageTypes.LOCAL && new CoreUser(MessageWrapper.getAuthor(message)).getId() == -1) {
+                if (message != null && message.isLocal() && new CoreUser(message.getAuthor()).getId() == -1) {
                     TextView textView = (TextView) callFrame.args[0];
                     if (textView.getAlpha() != 1.0f) textView.setAlpha(1.0f);
                 }

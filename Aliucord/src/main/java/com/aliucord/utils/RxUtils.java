@@ -21,7 +21,7 @@ public class RxUtils {
     }
 
     public static <T> Subscription subscribe(Observable<T> observable, Subscriber<? super T> subscriber) {
-        return observable.V(subscriber);
+        return observable.U(subscriber);
     }
 
     /**

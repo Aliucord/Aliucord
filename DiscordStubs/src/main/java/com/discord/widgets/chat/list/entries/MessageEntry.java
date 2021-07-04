@@ -1,6 +1,6 @@
 package com.discord.widgets.chat.list.entries;
 
-import com.discord.api.message.Message;
+import com.discord.models.message.Message;
 import com.discord.stores.StoreMessageState;
 
 @SuppressWarnings("unused")
