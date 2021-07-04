@@ -47,8 +47,8 @@ body:
         ```
         Replace this text with your crash-log.
         ```
-      validations:
-        required: true
+    validations:
+      required: false
   - type: checkboxes
     id: agreement-check
     attributes:
