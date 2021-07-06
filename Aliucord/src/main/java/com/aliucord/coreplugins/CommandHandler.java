@@ -20,6 +20,7 @@ import com.discord.api.message.MessageTypes;
 import com.discord.databinding.WidgetChatInputAutocompleteItemBinding;
 import com.discord.models.commands.Application;
 import com.discord.models.commands.ApplicationCommand;
+import com.discord.models.commands.ApplicationSubCommand;
 import com.discord.models.commands.RemoteApplicationCommand;
 import com.discord.models.message.Message;
 import com.discord.models.user.CoreUser;
@@ -131,6 +132,7 @@ public final class CommandHandler extends Plugin {
         Patcher.addPatch(AutocompleteItemViewHolder.class.getDeclaredMethod("bindCommand", ApplicationCommandAutocompletable.class, boolean.class, UserAndSelectedGuildRoles.class), new PinePatchFn(callFrame -> {
             ApplicationCommand cmd = ((ApplicationCommandAutocompletable) callFrame.args[0]).getCommand();
             if (!cmd.getBuiltIn()) return;
+            if (cmd instanceof ApplicationSubCommand) cmd = ((ApplicationSubCommand) cmd).getRootCommand();
             String plugin = CommandsAPI.commandsAndPlugins.get(cmd.getName());
             if (plugin == null) return;
             try {

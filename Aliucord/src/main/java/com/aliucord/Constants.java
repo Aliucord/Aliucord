@@ -12,6 +12,10 @@ import com.discord.stores.StoreStream;
 
 @SuppressWarnings("unused")
 public final class Constants {
+    public static final class Icons {
+        public static final String CLYDE = "https://canary.discord.com/assets/f78426a064bc9dd24847519259bc42af.png";
+    }
+
     // Font resource ids, they're not defined by any generated package but they seem to be constant so i made this class.
     public static final class Fonts {
         private static final int base = 0x7f090000;

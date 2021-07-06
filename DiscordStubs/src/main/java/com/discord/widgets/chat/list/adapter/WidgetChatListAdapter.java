@@ -32,7 +32,5 @@ public final class WidgetChatListAdapter extends MGRecyclerAdapterSimple<ChatLis
 
     @NonNull
     @Override
-    public MGRecyclerViewHolder<?, ChatListEntry> onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return null;
-    }
+    public MGRecyclerViewHolder<?, ChatListEntry> onCreateViewHolder(@NonNull ViewGroup parent, int viewType) { return onCreateViewHolder(parent, 0); }
 }

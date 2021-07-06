@@ -25,6 +25,14 @@ public class ChannelWrapper {
         this.channel = channel;
     }
 
+    public final boolean isDM() {
+        return isDM(channel);
+    }
+
+    public final boolean isGuild() {
+        return isGuild(channel);
+    }
+
     /** Returns the raw (obfuscated) {@link Channel} Object associated with this wrapper */
     public final Channel raw() {
         return channel;
@@ -126,6 +134,14 @@ public class ChannelWrapper {
     }
 
 
+
+    public static boolean isDM(Channel channel) {
+        return getGuildId(channel) == 0;
+    }
+
+    public static boolean isGuild(Channel channel) {
+        return !isDM(channel);
+    }
 
     public static long getApplicationId(Channel channel) {
         return channel.b();

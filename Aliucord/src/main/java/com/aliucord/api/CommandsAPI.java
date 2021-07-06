@@ -11,10 +11,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.aliucord.BuildConfig;
+import com.aliucord.CollectionUtils;
 import com.aliucord.Constants;
 import com.aliucord.Logger;
 import com.aliucord.PluginManager;
 import com.aliucord.Utils;
+import com.aliucord.entities.CommandContext;
 import com.aliucord.entities.Plugin;
 import com.aliucord.utils.ReflectUtils;
 import com.aliucord.wrappers.ChannelWrapper;
@@ -34,6 +36,7 @@ import com.discord.stores.StoreApplicationInteractions;
 import com.discord.stores.StoreMessages;
 import com.discord.stores.StoreStream;
 import com.discord.utilities.SnowflakeUtils;
+import com.discord.utilities.attachments.AttachmentUtilsKt;
 import com.discord.utilities.message.LocalMessageCreatorsKt;
 import com.discord.utilities.time.Clock;
 import com.discord.utilities.time.ClockFactory;
@@ -129,17 +132,18 @@ public class CommandsAPI {
     public static Map<String, RemoteApplicationCommand> commands = new HashMap<>();
     public static Map<String, String> commandsAndPlugins = new HashMap<>();
     public static Map<Long, WidgetApplicationCommandBottomSheetViewModel.StoreState> interactionsStore = new HashMap<>();
-    public static ApplicationCommandOption messageOption
-            = new ApplicationCommandOption(ApplicationCommandType.STRING, "message", null, R$g.command_shrug_message_description, false, false, null, null);
-    public static ApplicationCommandOption requiredMessageOption
-            = new ApplicationCommandOption(ApplicationCommandType.STRING, "message", null, R$g.command_shrug_message_description, true, false, null, null);
+    public static ApplicationCommandOption messageOption =
+            new ApplicationCommandOption(ApplicationCommandType.STRING, "message", null, R$g.command_shrug_message_description, false, false, null, null);
+    public static ApplicationCommandOption requiredMessageOption =
+            new ApplicationCommandOption(ApplicationCommandType.STRING, "message", null, R$g.command_shrug_message_description, true, false, null, null);
 
+    @SuppressWarnings("unchecked")
     private static void _registerCommand(
             String pluginName,
             String name,
             String description,
             List<ApplicationCommandOption> options,
-            Function1<? super Map<String, ?>, CommandResult> execute
+            Function1<CommandContext, CommandResult> execute
     ) {
         RemoteApplicationCommand command = new RemoteApplicationCommand(generateIdString(), ALIUCORD_APP_ID, name, description, options, null, null, null, null, args -> {
             Clock clock = ClockFactory.get();
@@ -165,9 +169,10 @@ public class CommandsAPI {
             MessageContent content = _this.$chatInput.getMatchedContentWithMetaData();
             WidgetChatInput.clearInput$default(_this.this$0, false, true, 0, null);
 
+            CommandContext ctx = new CommandContext(args, _this, _args);
             Utils.threadPool.execute(() -> {
                 try {
-                    CommandResult res = execute.invoke(args);
+                    CommandResult res = execute.invoke(ctx);
                     if (res == null) {
                         storeMessages.deleteMessage(thinkingMsg);
                         return;
@@ -175,13 +180,30 @@ public class CommandsAPI {
                     boolean hasContent = res.content != null && !res.content.equals("");
                     boolean hasEmbeds = res.embeds != null && res.embeds.size() != 0;
                     if (!res.send) {
-                        if (!hasContent && !hasEmbeds) {
+                        if (!hasContent && !hasEmbeds && ctx.getAttachments().isEmpty()) {
                             storeMessages.deleteMessage(thinkingMsg);
                             return;
                         }
 
                         try {
-                            Message commandMessage = LocalMessageCreatorsKt.createLocalMessage(res.content == null ? "" : res.content, channelId, Utils.buildClyde(res.username, res.avatarUrl), null, false, false, null, null, clock, null, null, null, null, null, null, null);
+                            Message commandMessage = LocalMessageCreatorsKt.createLocalMessage(
+                                    res.content == null ? "" : res.content,
+                                    channelId,
+                                    Utils.buildClyde(res.username, res.avatarUrl),
+                                    null,
+                                    false,
+                                    false, // TODO: Make local uploads work and set this to true
+                                    null,
+                                    null,
+                                    clock,
+                                    CollectionUtils.map(ctx.getAttachments(), AttachmentUtilsKt::toLocalAttachment),
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    ctx.getMessageReference(),
+                                    null
+                            );
 
                             ReflectUtils.setField(c, commandMessage, "embeds", res.embeds, true);
                             ReflectUtils.setField(c, commandMessage, "flags", MessageFlags.EPHEMERAL, true);
@@ -203,7 +225,7 @@ public class CommandsAPI {
                     } else {
                         if (hasEmbeds)
                             logger.error(String.format("[%s]", name), new IllegalArgumentException("Embeds may not be specified when send is set to true"));
-                        List<? extends Attachment<?>> attachments = (List<? extends Attachment<?>>) _args[0];
+                        List<? extends Attachment<?>> attachments = ctx.getAttachments();
                         if (!hasContent && attachments.size() == 0) {
                             storeMessages.deleteMessage(thinkingMsg);
                             return;
@@ -312,7 +334,7 @@ public class CommandsAPI {
             @NonNull String name,
             @NonNull String description,
             @NonNull List<ApplicationCommandOption> options,
-            @NonNull Function1<? super Map<String, ?>, CommandResult> execute
+            @NonNull Function1<CommandContext, CommandResult> execute
     ) {
         _registerCommand(pluginName, name, description, options, execute);
         commandsAndPlugins.put(name, pluginName);

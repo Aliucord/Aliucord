@@ -25,14 +25,14 @@ public final class CoreCommands extends Plugin {
                 "echo",
                 "Creates Clyde message",
                 Collections.singletonList(CommandsAPI.requiredMessageOption),
-                args -> new CommandsAPI.CommandResult((String) args.get("message"), null, false)
+                ctx -> new CommandsAPI.CommandResult(ctx.getRequiredString("message"), null, false)
         );
 
         commands.registerCommand(
                 "say",
                 "Sends message",
                 Collections.singletonList(CommandsAPI.requiredMessageOption),
-                args -> new CommandsAPI.CommandResult((String) args.get("message"))
+                ctx -> new CommandsAPI.CommandResult(ctx.getRequiredString("message"))
         );
     }
 
