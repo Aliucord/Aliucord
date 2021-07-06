@@ -27,7 +27,7 @@ import com.lytefast.flexinput.model.Attachment;
 
 import java.util.*;
 
-@SuppressWarnings({ "unused", "unchecked" })
+@SuppressWarnings({ "unused"})
 public class CommandContext {
     private final Map<String, ?> args;
     private final WidgetChatInput$configureSendListeners$2 _this;
@@ -194,7 +194,7 @@ public class CommandContext {
         if (val == null) return null;
         if (val instanceof Integer) return (Integer) val;
         if (val instanceof String) return Integer.valueOf((String) val);
-        throw new IllegalArgumentException(String.format("Argument %s is of type %s which cannot be cast to Integer.", key, val.getClass().getSimpleName()));
+        throw new ClassCastException(String.format("Argument %s is of type %s which cannot be cast to Integer.", key, val.getClass().getSimpleName()));
     }
 
     public int getRequiredInt(String key) {
@@ -212,8 +212,7 @@ public class CommandContext {
         if (val == null) return null;
         if (val instanceof Long) return (Long) val;
         if (val instanceof String) return Long.valueOf((String) val);
-        throw new IllegalArgumentException(String.format("Argument %s is of type %s which cannot be cast to Long.", key, val.getClass().getSimpleName()));
-
+        throw new ClassCastException(String.format("Argument %s is of type %s which cannot be cast to Long.", key, val.getClass().getSimpleName()));
     }
 
     public long getRequiredLong(String key) {
@@ -231,7 +230,7 @@ public class CommandContext {
         if (val == null) return null;
         if (val instanceof Boolean) return (Boolean) val;
         if (val instanceof String) return Boolean.valueOf((String) val);
-        throw new IllegalArgumentException(String.format("Argument %s is of type %s which cannot be cast to Boolean.", key, val.getClass().getSimpleName()));
+        throw new ClassCastException(String.format("Argument %s is of type %s which cannot be cast to Boolean.", key, val.getClass().getSimpleName()));
 
     }
 
