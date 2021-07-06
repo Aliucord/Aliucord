@@ -18,10 +18,7 @@ import com.aliucord.patcher.PinePatchFn;
 import com.aliucord.patcher.PinePrePatchFn;
 import com.discord.api.message.MessageTypes;
 import com.discord.databinding.WidgetChatInputAutocompleteItemBinding;
-import com.discord.models.commands.Application;
-import com.discord.models.commands.ApplicationCommand;
-import com.discord.models.commands.ApplicationSubCommand;
-import com.discord.models.commands.RemoteApplicationCommand;
+import com.discord.models.commands.*;
 import com.discord.models.message.Message;
 import com.discord.models.user.CoreUser;
 import com.discord.stores.StoreApplicationCommands;
@@ -38,11 +35,7 @@ import com.discord.widgets.chat.list.entries.MessageEntry;
 import com.discord.widgets.chat.list.sheet.WidgetApplicationCommandBottomSheetViewModel;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import kotlin.jvm.functions.Function1;
 

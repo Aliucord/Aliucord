@@ -19,10 +19,7 @@ import com.discord.api.sticker.StickerPartial;
 import com.discord.api.user.User;
 import com.discord.api.utcdatetime.UtcDateTime;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @SuppressWarnings("unused")
 public final class Message {

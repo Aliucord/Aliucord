@@ -25,11 +25,7 @@ import com.discord.widgets.chat.input.WidgetChatInput$configureSendListeners$2;
 import com.discord.widgets.chat.input.WidgetChatInput$configureSendListeners$6$1;
 import com.lytefast.flexinput.model.Attachment;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @SuppressWarnings("unused")
 public class CommandContext {
