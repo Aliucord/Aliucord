@@ -9,6 +9,6 @@ public final class StoreMessages {
 
     public final void deleteMessage(Message message) {}
     public final Message getMessage(long channelId, long id) { return null; }
-    public final void handleMessageUpdate(Message message) {}
+    public final void handleMessageUpdate(com.discord.api.message.Message message) {}
     public final void editMessage(long messageId, long channelId, String content, MessageAllowedMentions allowedMentions) {}
 }

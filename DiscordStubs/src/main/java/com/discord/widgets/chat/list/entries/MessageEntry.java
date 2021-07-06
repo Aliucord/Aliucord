@@ -5,6 +5,6 @@ import com.discord.stores.StoreMessageState;
 
 @SuppressWarnings("unused")
 public final class MessageEntry {
-    public final Message getMessage() { return null; }
-    public final StoreMessageState.State getMessageState() { return null; }
+    public final Message getMessage() { return getMessage(); }
+    public final StoreMessageState.State getMessageState() { return getMessageState(); }
 }

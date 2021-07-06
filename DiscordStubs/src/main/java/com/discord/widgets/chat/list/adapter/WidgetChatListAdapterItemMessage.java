@@ -2,7 +2,7 @@ package com.discord.widgets.chat.list.adapter;
 
 import android.content.Context;
 
-import com.discord.api.message.Message;
+import com.discord.models.message.Message;
 import com.discord.stores.StoreMessageState;
 import com.discord.utilities.textprocessing.MessagePreprocessor;
 import com.discord.utilities.textprocessing.MessageRenderContext;
