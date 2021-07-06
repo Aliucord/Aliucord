@@ -266,7 +266,7 @@ public class MessageEmbedBuilder {
      * @see MessageEmbedBuilder#setImage(String, String, Integer, Integer)
      */
     public MessageEmbedBuilder setImage(String imageUrl) {
-        return setImage(imageUrl, imageUrl, -1, -1);
+        return setImage(imageUrl, imageUrl, 512, 512);
     }
 
     /**
@@ -277,7 +277,7 @@ public class MessageEmbedBuilder {
      * @see MessageEmbedBuilder#setImage(String, String, Integer, Integer)
      */
     public MessageEmbedBuilder setImage(String imageUrl, String proxyImageUrl) {
-        return setImage(imageUrl, proxyImageUrl, -1, -1);
+        return setImage(imageUrl, proxyImageUrl, 512, 512);
     }
 
     /**
@@ -333,7 +333,7 @@ public class MessageEmbedBuilder {
      * @see MessageEmbedBuilder#setThumbnail(String, String, Integer, Integer)
      */
     public MessageEmbedBuilder setThumbnail(String imageUrl) {
-        return setThumbnail(imageUrl, imageUrl, -1, -1);
+        return setThumbnail(imageUrl, imageUrl, 512, 512);
     }
 
     /**
@@ -344,7 +344,7 @@ public class MessageEmbedBuilder {
      * @see MessageEmbedBuilder#setThumbnail(String, String, Integer, Integer)
      */
     public MessageEmbedBuilder setThumbnail(String imageUrl, String proxyImageUrl) {
-        return setThumbnail(imageUrl, proxyImageUrl, -1, -1);
+        return setThumbnail(imageUrl, proxyImageUrl, 512, 512);
     }
 
     /**
@@ -452,7 +452,7 @@ public class MessageEmbedBuilder {
      * @return {@link MessageEmbedBuilder} for chaining.
      */
     public MessageEmbedBuilder setVideo(String videoUrl) {
-        return setVideo(videoUrl, videoUrl, -1, -1);
+        return setVideo(videoUrl, videoUrl, 512, 512);
     }
 
     /**
@@ -461,7 +461,7 @@ public class MessageEmbedBuilder {
      * @return {@link MessageEmbedBuilder} for chaining.
      */
     public MessageEmbedBuilder setVideo(String videoUrl, String proxyVideoUrl) {
-        return setVideo(videoUrl, proxyVideoUrl, -1, -1);
+        return setVideo(videoUrl, proxyVideoUrl, 512, 512);
     }
 
     /**

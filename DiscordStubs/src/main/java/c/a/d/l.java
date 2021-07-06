@@ -1,11 +1,11 @@
 package c.a.d;
 
 import android.content.Context;
-import android.content.Intent;
+import android.os.Parcelable;
 
 import com.discord.app.AppComponent;
 
 @SuppressWarnings("unused")
 public final class l {
-    public static final void d(Context context, Class<? extends AppComponent> c, Intent intent) {}
+    public static void d(Context context, Class<? extends AppComponent> c, Parcelable parcelable) { }
 }

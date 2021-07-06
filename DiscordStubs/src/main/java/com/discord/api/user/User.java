@@ -32,7 +32,7 @@ public final class User {
         PremiumTier premiumTier,
         Integer approximateGuildCount,
         GuildMember guildMember,
-        String bio,
+        NullSerializable<String> bio,
         String bannerColor
     ) {}
 
@@ -59,7 +59,7 @@ public final class User {
      * @deprecated Do not use this directly, use {@link com.discord.models.user.CoreUser} instead.
      */
     @Deprecated
-    public final String d() { return null; }
+    public final NullSerializable<String> d() { return null; }
     /**
      * getBot
      * @deprecated Do not use this directly, use {@link com.discord.models.user.CoreUser} instead.

@@ -47,7 +47,7 @@ Pine does not support `x86` or `x86_64` frameworks, and thus Aliucord does not e
 
 ### Supported Discord version(s)
 
-- 81.10 - Beta (81110)
+- 83.10 - Alpha (83210)
 
 ## 🎨 Features
 

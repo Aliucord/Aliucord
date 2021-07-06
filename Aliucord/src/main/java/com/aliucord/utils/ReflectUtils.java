@@ -5,9 +5,43 @@
 
 package com.aliucord.utils;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 
 public final class ReflectUtils {
+    /**
+     * Gets the constructor for class T matching the specified arguments
+     * @param clazz T.class
+     * @param args The arguments that should be passed to the constructor. arguments [ "hello", 12 ] would match constructor(String s, int i)
+     * @param <T> The class
+     * @return The found constructor
+     * @throws NoSuchMethodException No such constructor found
+     */
+    public static <T> Constructor<T> getConstructorByArgs(Class<T> clazz, Object... args) throws NoSuchMethodException {
+        if (args.length == 0) return clazz.getDeclaredConstructor();
+
+        Class<?>[] argTypes = new Class<?>[args.length];
+        for (int i = 0; i < args.length; i++) {
+            argTypes[i] = args[i].getClass();
+        }
+        return clazz.getDeclaredConstructor(argTypes);
+    }
+
+    /**
+     * Attempts to find and invoke the constructor of class T matching the specified arguments
+     * @param clazz T.class
+     * @param args The arguments to invoke the constructor with. arguments [ "hello", 12 ] would match constructor(String s, int i)
+     * @param <T> The class
+     * @return The constructed Object
+     * @throws NoSuchMethodException No such constructor found
+     * @throws IllegalAccessException This constructor is private
+     * @throws InvocationTargetException An exception occurred while invoking this constructor
+     * @throws InstantiationException This class cannot be constructed (is abstract, interface, etc)
+     */
+    public static <T> T invokeConstructorWithArgs(Class<T> clazz, Object... args) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        return getConstructorByArgs(clazz, args).newInstance(args);
+    }
 
     /**
      * Gets a field declared in the class.

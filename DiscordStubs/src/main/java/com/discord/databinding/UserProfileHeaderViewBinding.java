@@ -17,20 +17,24 @@ import com.facebook.drawee.view.SimpleDraweeView;
 public final class UserProfileHeaderViewBinding implements ViewBinding {
     /** root */
     public ConstraintLayout a;
+    /** avatar edit */
+    public CardView b;
     /** banner */
-    public SimpleDraweeView b;
+    public SimpleDraweeView c;
+    /** banner edit */
+    public CardView d;
     /** betaTag */
-    public CardView c;
+    public CardView e;
     /** avatar */
-    public UserAvatarPresenceView d;
+    public UserAvatarPresenceView f;
     /** badges */
-    public RecyclerView e;
+    public RecyclerView g;
     /** custom status */
-    public SimpleDraweeSpanTextView f;
-    /** username */
-    public UsernameView g;
-    /** secondary name */
     public SimpleDraweeSpanTextView h;
+    /** username */
+    public UsernameView i;
+    /** secondary name */
+    public SimpleDraweeSpanTextView j;
 
     @NonNull
     @Override
