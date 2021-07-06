@@ -15,11 +15,11 @@ public class AnimatableValueParser {
     /** ChannelUtils.getRecipients */
     public static List<User> G0(Channel channel) { return Collections.emptyList(); }
     /** ChannelUtils.isGuildTextyChannel */
-    public static boolean j1(Channel channel) { return true; }
+    public static boolean k1(Channel channel) { return true; }
     /** ChannelUtils.getDMRecipient */
     public static User v0(Channel channel) { return null; }
     /** ChannelUtils.isTextChannel */
-    public static boolean x1(Channel channel) { return true; }
+    public static boolean y1(Channel channel) { return true; }
     /** ChannelUtils.getDisplayName */
     public static String y0(Channel channel) { return ""; }
     /** ChannelUtils.getDisplayNameOrDefault */
