@@ -27,7 +27,7 @@ import com.lytefast.flexinput.model.Attachment;
 
 import java.util.*;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({ "unused", "unchecked" })
 public class CommandContext {
     private final Map<String, ?> args;
     private final WidgetChatInput$configureSendListeners$2 _this;
@@ -145,6 +145,15 @@ public class CommandContext {
     @NonNull
     public Map<String, ?> getRawArgs() {
         return args;
+    }
+
+    public boolean containsArg(String key) {
+        return args.containsKey(key);
+    }
+
+    @Nullable
+    public Map<String, ?> getSubCommandArgs(String key) {
+        return (Map<String, ?>) args.get(key);
     }
 
     @Nullable
