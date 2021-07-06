@@ -190,7 +190,11 @@ public class CommandContext {
 
     @Nullable
     public Integer getInt(String key) {
-        return (Integer) args.get(key);
+        Object val = get(key);
+        if (val == null) return null;
+        if (val instanceof Integer) return (Integer) val;
+        if (val instanceof String) return Integer.valueOf((String) val);
+        throw new IllegalArgumentException(String.format("Argument %s is of type %s which cannot be cast to Integer.", key, val.getClass().getSimpleName()));
     }
 
     public int getRequiredInt(String key) {
@@ -204,7 +208,12 @@ public class CommandContext {
 
     @Nullable
     public Long getLong(String key) {
-        return (Long) args.get(key);
+        Object val = get(key);
+        if (val == null) return null;
+        if (val instanceof Long) return (Long) val;
+        if (val instanceof String) return Long.valueOf((String) val);
+        throw new IllegalArgumentException(String.format("Argument %s is of type %s which cannot be cast to Long.", key, val.getClass().getSimpleName()));
+
     }
 
     public long getRequiredLong(String key) {
@@ -218,7 +227,12 @@ public class CommandContext {
 
     @Nullable
     public Boolean getBool(String key) {
-        return (Boolean) args.get(key);
+        Object val = get(key);
+        if (val == null) return null;
+        if (val instanceof Boolean) return (Boolean) val;
+        if (val instanceof String) return Boolean.valueOf((String) val);
+        throw new IllegalArgumentException(String.format("Argument %s is of type %s which cannot be cast to Boolean.", key, val.getClass().getSimpleName()));
+
     }
 
     public boolean getRequiredBool(String key) {
@@ -232,8 +246,8 @@ public class CommandContext {
 
     @Nullable
     public User getUser(String key) {
-        Long l = getLong(key);
-        return l != null ? StoreStream.getUsers().getUsers().get(l) : null;
+        Long id = getLong(key);
+        return id != null ? StoreStream.getUsers().getUsers().get(id) : null;
     }
 
     @NonNull
