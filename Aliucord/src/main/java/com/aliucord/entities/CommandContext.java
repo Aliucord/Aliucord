@@ -232,7 +232,7 @@ public class CommandContext {
     }
 
     /**
-     * Gets the <bold>required</bold> String argument with the specified key
+     * Gets the <strong>required</strong> String argument with the specified key
      * @param key The key of the argument
      */
     @NonNull

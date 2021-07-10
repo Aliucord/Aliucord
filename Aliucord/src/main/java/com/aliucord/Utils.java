@@ -368,7 +368,7 @@ public class Utils {
     }
 
     /**
-     * @deprecated Use {@link RxUtils::createActionSubscriber}
+     * @deprecated Use {@link RxUtils#createActionSubscriber(Action1)}
      */
     @Deprecated
     public static <T> Subscriber<T> createActionSubscriber(Action1<? super T> onNext) {
@@ -376,7 +376,7 @@ public class Utils {
     }
 
     /**
-     * @deprecated Use {@link RxUtils::createActionSubscriber}
+     * @deprecated Use {@link RxUtils#createActionSubscriber(Action1, Action1, Action0)}
      */
     @Deprecated
     public static <T> Subscriber<T> createActionSubscriber(Action1<? super T> onNext, Action1<Throwable> onError, Action0 onCompleted) {
