@@ -17,7 +17,6 @@ import top.canyie.pine.callback.MethodHook;
 
 @SuppressWarnings({"unused", "deprecation"})
 public class PatcherAPI {
-
     /**
      * @deprecated Use {@link PatcherAPI#patch(String, String, Class[], MethodHook)}, {@link PatcherAPI#patch(Class, String, Class[], MethodHook)} or {@link PatcherAPI#patch(Member, MethodHook)} instead.
      */

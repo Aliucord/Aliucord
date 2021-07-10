@@ -7,13 +7,13 @@ package com.aliucord.views;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.os.Build;
 import android.view.ContextThemeWrapper;
 
 import com.google.android.material.button.MaterialButton;
 import com.lytefast.flexinput.R$c;
 import com.lytefast.flexinput.R$h;
 
+/** Brand-themed MaterialButton */
 public class Button extends MaterialButton {
 
     /**

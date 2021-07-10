@@ -13,6 +13,7 @@ import com.aliucord.Utils;
 import com.discord.utilities.color.ColorCompat;
 import com.lytefast.flexinput.R$b;
 
+/** Discord style Divider as seen in its settings */
 public class Divider extends View {
     public Divider(Context context) {
         super(context);

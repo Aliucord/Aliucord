@@ -8,18 +8,18 @@ package com.aliucord.utils;
 import android.os.Looper;
 import android.util.Pair;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.Subscription;
+import rx.*;
 import rx.functions.Action0;
 import rx.functions.Action1;
 
+/** Utility class to deal with Observables */
 @SuppressWarnings("unused")
 public class RxUtils {
     public static <T> Observable<T> onBackpressureBuffer(Observable<T> observable) {
         return observable.K();
     }
 
+    /** Subscribe to the Observable */
     public static <T> Subscription subscribe(Observable<T> observable, Subscriber<? super T> subscriber) {
         return observable.U(subscriber);
     }

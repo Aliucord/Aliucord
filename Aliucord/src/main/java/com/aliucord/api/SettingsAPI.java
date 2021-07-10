@@ -11,8 +11,10 @@ import java.lang.reflect.Type;
 
 @SuppressWarnings("unused")
 public class SettingsAPI {
+    /** Prefix for all settings keys: AC_{PLUGIN_NAME}_ */
     public final String keyPrefix;
 
+    /** Creates a SettingsAPI for the specified plugin */
     public SettingsAPI(String plugin) {
         keyPrefix = "AC_" + plugin + "_";
     }

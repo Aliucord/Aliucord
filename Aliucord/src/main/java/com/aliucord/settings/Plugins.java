@@ -15,26 +15,16 @@ import android.graphics.drawable.shapes.RectShape;
 import android.net.Uri;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.Gravity;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.Filter;
-import android.widget.Filterable;
-import android.widget.LinearLayout;
+import android.view.*;
+import android.widget.*;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.*;
 
-import com.aliucord.Constants;
-import com.aliucord.Main;
-import com.aliucord.PluginManager;
-import com.aliucord.Utils;
+import com.aliucord.*;
 import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.SettingsPage;
 import com.aliucord.views.TextInput;
@@ -44,10 +34,7 @@ import com.lytefast.flexinput.R$d;
 import com.lytefast.flexinput.R$g;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Plugins extends SettingsPage {
     private static final int uniqueId = View.generateViewId();
@@ -171,7 +158,7 @@ public class Plugins extends SettingsPage {
             List<PluginCard> list = new ArrayList<>();
             for (Map.Entry<String, Plugin> entry : PluginManager.plugins.entrySet()) try {
                 list.add(new PluginCard(context, entry.getKey(), entry.getValue(), fragmentManager, this));
-            } catch (Throwable e) { Main.logger.error("Exception while rendering plugin settings", e); }
+            } catch (Throwable e) { PluginManager.logger.error("Exception while rendering plugin settings", e); }
             list.sort(Comparator.comparing(a -> a.pluginName));
 
             Utils.mainThread.post(() -> {

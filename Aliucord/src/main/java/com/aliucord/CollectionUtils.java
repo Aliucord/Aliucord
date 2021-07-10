@@ -14,6 +14,7 @@ import java.util.*;
 
 import kotlin.jvm.functions.Function1;
 
+/** Utility class to work with collections, inspired by Javascript array methods */
 @SuppressWarnings("unused")
 public class CollectionUtils {
     /**
@@ -72,14 +73,10 @@ public class CollectionUtils {
      * @return Index if found, otherwise -1
      */
     public static <E> int findLastIndex(@NonNull List<E> list, @NonNull Function1<E, Boolean> filter) {
-        Iterator<E> iterator = list.iterator();
-        int last = -1;
-        int i = 0;
-        while(iterator.hasNext()){
-            if(filter.invoke(iterator.next())) last = i;
-            i++;
+        for (int i = list.size() - 1; i >= 0; i--) {
+            if (filter.invoke(list.get(i))) return i;
         }
-        return last;
+        return -1;
     }
 
     /**

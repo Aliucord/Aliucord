@@ -94,6 +94,9 @@ public class Patcher {
         };
     }
 
+    /**
+     * @deprecated Use {@link #addPatch(Class, String, Class[], MethodHook)}
+     */
     @Deprecated
     @SuppressWarnings("deprecation")
     public static Runnable addPrePatch(String forClass, String fn, PrePatchFunction patch) {
@@ -110,6 +113,9 @@ public class Patcher {
         };
     }
 
+    /**
+     * @deprecated Use {@link #addPatch(Class, String, Class[], MethodHook)}
+     */
     @Deprecated
     @SuppressWarnings("deprecation")
     public static Runnable addPatch(String forClass, String fn, PatchFunction patch) {

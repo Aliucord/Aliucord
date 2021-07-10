@@ -13,6 +13,7 @@ import com.discord.stores.StoreStream;
 @SuppressWarnings("unused")
 public final class Constants {
     public static final class Icons {
+        /** Clyde avatar */
         public static final String CLYDE = "https://canary.discord.com/assets/f78426a064bc9dd24847519259bc42af.png";
     }
 
@@ -30,7 +31,9 @@ public final class Constants {
         public static final int whitney_semibold = base + 7;
     }
 
+    /** Link to the Aliucord github repo */
     public static final String ALIUCORD_GITHUB_REPO = "https://github.com/Aliucord/Aliucord";
+    /** Code of the Aliucord discord server */
     public static final String ALIUCORD_SUPPORT = "EsNDvBaHVU";
     public static final long ALIUCORD_GUILD_ID = 811255666990907402L;
     public static final long SUPPORT_CHANNEL_ID = 811261298997460992L;
@@ -40,8 +43,11 @@ public final class Constants {
     public static final long PLUGIN_REQUESTS_CHANNEL_ID = 811275334342541353L;
     public static final long THEMES_CHANNEL_ID = 824357609778708580L;
 
+    /** Path of Aliucord folder */
     public static final String BASE_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Aliucord";
+    /** Path of Plugin folder */
     public static final String PLUGINS_PATH = BASE_PATH + "/plugins";
+    /** Path of Crashlog folder */
     public static final String CRASHLOGS_PATH = BASE_PATH + "/crashlogs";
 
     public static final String NAMESPACE_ANDROID = "http://schemas.android.com/apk/res/android";

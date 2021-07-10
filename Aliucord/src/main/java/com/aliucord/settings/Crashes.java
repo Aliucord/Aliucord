@@ -33,13 +33,8 @@ import com.discord.utilities.textprocessing.node.BlockBackgroundNode;
 import com.lytefast.flexinput.R$d;
 import com.lytefast.flexinput.R$h;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 
 public class Crashes extends SettingsPage {
     private static final int uniqueId = View.generateViewId();

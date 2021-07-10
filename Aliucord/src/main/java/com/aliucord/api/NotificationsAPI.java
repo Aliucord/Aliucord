@@ -13,7 +13,6 @@ import com.discord.widgets.notice.NoticePopup;
 import kotlin.Unit;
 
 public class NotificationsAPI {
-
     /**
      * Displays a notification to the user.
      * @param data {@link NotificationData}
