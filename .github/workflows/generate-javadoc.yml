@@ -1,4 +1,4 @@
-name: Build
+name: Javadoc
 
 on:
   push:
@@ -31,9 +31,9 @@ jobs:
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_PAT_GITHUB }}
         with:
-          source-directory: 'Aliucord/build/docs/javadoc'
-          destination-github-username: 'Vendicated'
-          destination-repository-name: 'JavadocTest'
+          source-directory: Aliucord/build/docs/javadoc
+          destination-github-username: Aliucord
+          destination-repository-name: Javadoc
           user-email: actions@github.com
           user-name: GitHub Actions
           commit-message: Generate Javadoc for ORIGIN_COMMIT
