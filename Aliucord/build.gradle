@@ -41,9 +41,21 @@ android {
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.3.0'
-    implementation 'com.google.android.material:material:1.3.0'
+    implementation 'com.google.android.material:material:1.4.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
 
     api fileTree(include: '*.aar', dir: './libs')
     api project(':DiscordStubs')
+}
+
+// https://www.stkent.com/2016/06/10/adventures-with-javadocs-part-3.html
+android.libraryVariants.all { variant ->
+    if (variant.name == 'release') {
+        task javadoc(type: Javadoc) {
+            var compiler = variant.javaCompileProvider.get()
+            source = compiler.source
+            classpath = files(android.bootClasspath.join(File.pathSeparator))
+            classpath += compiler.classpath
+        }
+    }
 }
