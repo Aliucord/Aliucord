@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 
-import com.aliucord.coreplugins.*;
 import com.aliucord.entities.Plugin;
 
 import java.io.File;
@@ -23,7 +22,6 @@ import dalvik.system.PathClassLoader;
 
 public class PluginManager {
     public static final Map<String, Plugin> plugins = new HashMap<>();
-    public static final Map<String, Plugin> corePlugins = new HashMap<>();
     public static final Logger logger = new Logger("PM");
 
     @SuppressWarnings("JavaReflectionMemberAccess")
@@ -91,35 +89,6 @@ public class PluginManager {
         try {
             Objects.requireNonNull(plugins.get(name)).stop(Utils.getAppContext());
         } catch (Throwable e) { logger.error("Exception while stopping plugin " + name, e); }
-    }
-
-    public static void loadCorePlugins(Context context) {
-        corePlugins.put("CommandHandler", new CommandHandler());
-        corePlugins.put("CoreCommands", new CoreCommands());
-        corePlugins.put("NoTrack", new NoTrack());
-        corePlugins.put("TokenLogin", new TokenLogin());
-
-        for (Map.Entry<String, Plugin> entry : corePlugins.entrySet()) {
-            Plugin p = entry.getValue();
-            logger.info("Loading coreplugin: " + entry.getKey());
-            try {
-                p.load(context);
-            } catch (Throwable e) {
-                logger.error(context,"Failed to load core plugin " + p.name, e);
-            }
-        }
-    }
-
-    public static void startCorePlugins(Context context) {
-        for (Map.Entry<String, Plugin> entry : corePlugins.entrySet()) {
-            Plugin p = entry.getValue();
-            logger.info("Starting coreplugin: " + entry.getKey());
-            try {
-                p.start(context);
-            } catch (Throwable e) {
-                logger.error(context, "Failed to start core plugin " + p.name, e);
-            }
-        }
     }
 
     public static String getPluginPrefKey(String name) { return "AC_PM_" + name; }
