@@ -56,6 +56,8 @@ android.libraryVariants.all { variant ->
             source = compiler.source
             classpath = files(android.bootClasspath.join(File.pathSeparator))
             classpath += compiler.classpath
+
+            exclude 'com/discord/app/**'
         }
     }
 }
