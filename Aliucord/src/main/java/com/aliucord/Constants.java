@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Juby210
+ * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
 
@@ -12,6 +12,10 @@ import com.discord.stores.StoreStream;
 
 @SuppressWarnings("unused")
 public final class Constants {
+    public static final class Icons {
+        public static final String CLYDE = "https://canary.discord.com/assets/f78426a064bc9dd24847519259bc42af.png";
+    }
+
     // Font resource ids, they're not defined by any generated package but they seem to be constant so i made this class.
     public static final class Fonts {
         private static final int base = 0x7f090000;
@@ -43,7 +47,7 @@ public final class Constants {
     public static final String NAMESPACE_ANDROID = "http://schemas.android.com/apk/res/android";
     public static final String NAMESPACE_APP = "http://schemas.android.com/apk/res-auto";
 
-    public static final String RELEASE_SUFFIX = "app_productionBetaRelease";
+    public static final String RELEASE_SUFFIX = "app_productionCanaryRelease";
 
     public static final int DISCORD_VERSION;
 

@@ -1,6 +1,6 @@
 package com.discord.stores;
 
-import com.discord.api.message.Message;
+import com.discord.models.message.Message;
 
 import java.util.TreeMap;
 

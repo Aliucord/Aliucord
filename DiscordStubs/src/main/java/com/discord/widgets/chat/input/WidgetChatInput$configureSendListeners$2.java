@@ -3,6 +3,7 @@ package com.discord.widgets.chat.input;
 import android.content.Context;
 
 import com.discord.widgets.chat.MessageManager;
+import com.discord.widgets.chat.input.models.ApplicationCommandData;
 import com.lytefast.flexinput.model.Attachment;
 
 import java.util.List;

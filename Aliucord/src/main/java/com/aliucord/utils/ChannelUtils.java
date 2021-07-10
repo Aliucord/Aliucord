@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Juby210
+ * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
 
@@ -20,7 +20,7 @@ public class ChannelUtils {
     }
 
     public static boolean isGuildTextyChannel(Channel channel) {
-        return AnimatableValueParser.j1(channel);
+        return AnimatableValueParser.k1(channel);
     }
 
     public static User getDMRecipient(Channel channel) {
@@ -28,7 +28,7 @@ public class ChannelUtils {
     }
 
     public static boolean isTextChannel(Channel channel) {
-        return AnimatableValueParser.x1(channel);
+        return AnimatableValueParser.y1(channel);
     }
 
     public static String getDisplayName(Channel channel) {

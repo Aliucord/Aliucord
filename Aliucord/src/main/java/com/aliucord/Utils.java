@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Juby210
+ * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
 
@@ -197,7 +197,7 @@ public class Utils {
      */
     public static User buildClyde(@Nullable String name, @Nullable String avatarUrl) {
         if (name == null) name = "Clyde";
-        if (avatarUrl == null) avatarUrl = "https://canary.discord.com/assets/f78426a064bc9dd24847519259bc42af.png";
+        if (avatarUrl == null) avatarUrl = Constants.Icons.CLYDE;
 
         return new User(
             -1,
@@ -220,7 +220,7 @@ public class Utils {
             null,
             null,
             null,
-            null,
+            new NullSerializable.a<>(),
             null
         );
     }

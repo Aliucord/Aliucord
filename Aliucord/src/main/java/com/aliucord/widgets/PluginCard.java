@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Juby210
+ * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
 
@@ -32,11 +32,10 @@ import com.aliucord.Main;
 import com.aliucord.PluginManager;
 import com.aliucord.Utils;
 import com.aliucord.entities.Plugin;
-import com.aliucord.entities.Plugin.Settings.Type;
-import com.aliucord.views.Button;
-import com.aliucord.views.DangerButton;
-import com.aliucord.views.Divider;
-import com.aliucord.views.ToolbarButton;
+import com.aliucord.entities.Plugin.SettingsTab.Type;
+import com.aliucord.utils.ReflectUtils;
+import com.aliucord.views.*;
+import com.discord.app.AppBottomSheet;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.views.CheckedSetting;
 import com.discord.widgets.user.usersheet.WidgetUserSheet;
@@ -102,24 +101,32 @@ public final class PluginCard extends MaterialCardView {
         buttons.setUseDefaultMargins(true);
         buttons.setPadding(padding2, 0, padding2, 0);
 
-        if (p.settings != null) {
+        if (p.settingsTab != null) {
             settings.setText("Settings");
 
             if (!enabled) {
                 if (Looper.myLooper() == Looper.getMainLooper()) settings.setEnabled(false);
                 else Utils.mainThread.post(() -> settings.setEnabled(false));
             }
-            if (p.settings.type == Type.PAGE && p.settings.page != null)
+            if (p.settingsTab.type == Type.PAGE && p.settingsTab.page != null)
                 settings.setOnClickListener(v -> {
                     try {
-                        Utils.openPageWithProxy(v.getContext(), p.settings.page.newInstance());
-                    } catch (Throwable e) { Main.logger.error(e); }
+                        Utils.openPageWithProxy(
+                                v.getContext(),
+                                p.settingsTab.args != null
+                                        ? ReflectUtils.invokeConstructorWithArgs(p.settingsTab.page, p.settingsTab.args)
+                                        : p.settingsTab.page.newInstance());
+                    } catch (Throwable e) { PluginManager.logger.error(context, "Failed to open settings page for " + p.name, e); }
                 });
-            else if (p.settings.type == Type.BOTTOMSHEET && p.settings.bottomSheet != null)
+            else if (p.settingsTab.type == Type.BOTTOM_SHEET && p.settingsTab.bottomSheet != null)
                 settings.setOnClickListener(v -> {
                     try {
-                        p.settings.bottomSheet.newInstance().show(fragmentManager, name + "Settings");
-                    } catch (Throwable e) { Main.logger.error(e); }
+                        AppBottomSheet sheet = p.settingsTab.args != null
+                                ? ReflectUtils.invokeConstructorWithArgs(p.settingsTab.bottomSheet, p.settingsTab.args)
+                                : p.settingsTab.bottomSheet.newInstance();
+
+                        sheet.show(fragmentManager, name + "Settings");
+                    } catch (Throwable e) { PluginManager.logger.error(context, "Failed to open settings page for " + p.name, e); }
                 });
 
             buttons.addView(settings, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(2)));

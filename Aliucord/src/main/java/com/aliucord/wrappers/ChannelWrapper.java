@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Juby210
+ * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
 
@@ -25,6 +25,14 @@ public class ChannelWrapper {
         this.channel = channel;
     }
 
+    public final boolean isDM() {
+        return isDM(channel);
+    }
+
+    public final boolean isGuild() {
+        return isGuild(channel);
+    }
+
     /** Returns the raw (obfuscated) {@link Channel} Object associated with this wrapper */
     public final Channel raw() {
         return channel;
@@ -36,6 +44,10 @@ public class ChannelWrapper {
 
     public final int getBitrate() {
         return getBitrate(channel);
+    }
+
+    public final Integer getDefaultAutoArchiveDuration() {
+        return getDefaultAutoArchiveDuration(channel);
     }
 
     public final long getGuildId() {
@@ -55,6 +67,10 @@ public class ChannelWrapper {
         return getLastMessageId(channel);
     }
 
+    public String getMemberListId() {
+        return getMemberListId(channel);
+    }
+
     public final Integer getMessageCount() {
         return getMessageCount(channel);
     }
@@ -69,6 +85,14 @@ public class ChannelWrapper {
 
     public final boolean isNsfw() {
         return isNsfw(channel);
+    }
+
+    public final long getOriginChannelId() {
+        return getOriginChannelId(channel);
+    }
+
+    public final long getOwnerId() {
+        return getOwnerId(channel);
     }
 
     public final long getParentId() {
@@ -111,6 +135,14 @@ public class ChannelWrapper {
 
 
 
+    public static boolean isDM(Channel channel) {
+        return getGuildId(channel) == 0;
+    }
+
+    public static boolean isGuild(Channel channel) {
+        return !isDM(channel);
+    }
+
     public static long getApplicationId(Channel channel) {
         return channel.b();
     }
@@ -119,74 +151,90 @@ public class ChannelWrapper {
         return channel.c();
     }
 
+    public static Integer getDefaultAutoArchiveDuration(Channel channel) {
+        return channel.d();
+    }
+
     public static long getGuildId(Channel channel) {
-        return channel.e();
+        return channel.f();
     }
 
     @Nullable
     public static String getIcon(Channel channel) {
-        return channel.f();
-    }
-
-    public static long getId(Channel channel) {
         return channel.g();
     }
 
-    public static long getLastMessageId(Channel channel) {
+    public static long getId(Channel channel) {
         return channel.h();
     }
 
-    public static Integer getMessageCount(Channel channel) {
+    public static long getLastMessageId(Channel channel) {
+        return channel.i();
+    }
+
+    public static String getMemberListId(Channel channel) {
         return channel.k();
     }
 
-    public static String getName(Channel channel) {
+    public static Integer getMessageCount(Channel channel) {
         return channel.l();
     }
 
-    public static List<ChannelRecipientNick> getNicks(Channel channel) {
+    public static String getName(Channel channel) {
         return channel.m();
     }
 
-    public static boolean isNsfw(Channel channel) {
+    public static List<ChannelRecipientNick> getNicks(Channel channel) {
         return channel.n();
     }
 
-    public static long getParentId(Channel channel) {
+    public static boolean isNsfw(Channel channel) {
+        return channel.o();
+    }
+
+    public static long getOriginChannelId(Channel channel) {
+        return channel.p();
+    }
+
+    public static long getOwnerId(Channel channel) {
         return channel.q();
     }
 
-    public static int getPosition(Channel channel) {
-        return channel.s();
+    public static long getParentId(Channel channel) {
+        return channel.r();
     }
 
-    public static int getRateLimitPerUser(Channel channel) {
+    public static int getPosition(Channel channel) {
         return channel.t();
     }
 
-    public static List<Long> getRecipientIds(Channel channel) {
+    public static int getRateLimitPerUser(Channel channel) {
         return channel.u();
     }
 
-    public static List<User> getRecipients(Channel channel) {
+    public static List<Long> getRecipientIds(Channel channel) {
         return channel.v();
     }
 
-    @Nullable
-    public static String getRtcRegion(Channel channel) {
+    public static List<User> getRecipients(Channel channel) {
         return channel.w();
     }
 
     @Nullable
-    public static String getTopic(Channel channel) {
-        return channel.y();
+    public static String getRtcRegion(Channel channel) {
+        return channel.x();
     }
 
-    public static int getType(Channel channel) {
+    @Nullable
+    public static String getTopic(Channel channel) {
         return channel.z();
     }
 
-    public static int getUserLimit(Channel channel) {
+    public static int getType(Channel channel) {
         return channel.A();
+    }
+
+    public static int getUserLimit(Channel channel) {
+        return channel.B();
     }
 }

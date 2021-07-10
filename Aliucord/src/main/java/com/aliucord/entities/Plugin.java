@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Juby210
+ * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
 
@@ -16,10 +16,6 @@ import com.aliucord.api.PatcherAPI;
 import com.aliucord.api.SettingsAPI;
 import com.discord.app.AppBottomSheet;
 import com.discord.app.AppFragment;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @SuppressWarnings("unused")
 public abstract class Plugin {
@@ -48,8 +44,8 @@ public abstract class Plugin {
         public String updateUrl;
     }
 
-    public static class Settings {
-        public enum Type { PAGE, BOTTOMSHEET }
+    public static class SettingsTab {
+        public enum Type { PAGE, BOTTOM_SHEET }
 
         public interface SettingsPage {
             void onViewBound(View view);
@@ -58,23 +54,29 @@ public abstract class Plugin {
         public Type type;
         public Class<? extends AppFragment> page;
         public Class<AppBottomSheet> bottomSheet;
+        public boolean needsPlugin;
+        public Object[] args;
 
         // TODO: public boolean addTab = false;
 
-        public Settings(Class<? extends AppFragment> settings) {
+        public SettingsTab(Class<? extends AppFragment> settings) {
             type = Type.PAGE;
             page = settings;
         }
 
-        public Settings(Class<?> settings, Type type) {
+        @SuppressWarnings("unchecked")
+        public SettingsTab(Class<?> settings, Type type) {
             this.type = type;
             if (type == Type.PAGE) page = (Class<? extends AppFragment>) settings;
             else bottomSheet = (Class<AppBottomSheet>) settings;
         }
-    }
 
-    @Deprecated
-    public static Map<String, List<String>> getClassesToPatch() { return new HashMap<>(); }
+        /** Sets the constructor args that will be passed to this SettingsTab */
+        public SettingsTab withArgs(Object... args) {
+            this.args = args;
+            return this;
+        }
+    }
 
     @NonNull
     public abstract Manifest getManifest();
@@ -88,7 +90,7 @@ public abstract class Plugin {
 
     public String name = this.getClass().getSimpleName();
 
-    public Settings settings;
+    public SettingsTab settingsTab;
 
     public Resources resources;
     public boolean needsResources = false;
@@ -98,5 +100,5 @@ public abstract class Plugin {
     // api
     protected CommandsAPI commands = new CommandsAPI(name);
     protected PatcherAPI patcher = new PatcherAPI();
-    public SettingsAPI sets = new SettingsAPI(name);
+    public SettingsAPI settings = new SettingsAPI(name);
 }

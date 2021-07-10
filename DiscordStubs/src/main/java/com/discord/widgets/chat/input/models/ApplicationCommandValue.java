@@ -1,4 +1,4 @@
-package com.discord.widgets.chat.input;
+package com.discord.widgets.chat.input.models;
 
 import java.util.List;
 

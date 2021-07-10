@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Juby210
+ * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
 
@@ -94,7 +94,7 @@ public class SettingsPage extends AppFragment {
     /** Removes all views from the LinearLayout associated with this Page and calls onViewBound */
     public final void reRender() {
         clear();
-        onViewBound(requireView());
+        onViewBound(view);
     }
 
     /** Closes this SettingsPage by simulating a back press */

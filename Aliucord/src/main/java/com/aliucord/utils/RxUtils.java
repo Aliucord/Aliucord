@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Juby210
+ * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
 
@@ -21,7 +21,7 @@ public class RxUtils {
     }
 
     public static <T> Subscription subscribe(Observable<T> observable, Subscriber<? super T> subscriber) {
-        return observable.V(subscriber);
+        return observable.U(subscriber);
     }
 
     /**
