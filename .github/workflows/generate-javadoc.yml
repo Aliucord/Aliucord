@@ -25,9 +25,10 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew Aliucord:javadoc
+          wget https://raw.githubusercontent.com/Aliucord/Javadoc/fd2c6e4fdc3d3f4a2934bc19f2ce1d8e34cfa251/README.md -O Aliucord/build/docs/javadoc/README.md
 
       - name: Push Javadoc
-        uses: cpina/github-action-push-to-another-repository@main
+        uses: cpina/github-action-push-to-another-repository@2ebe0cc15fc6a8e63c3658c119525bf1aead4418
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_PAT_GITHUB }}
         with:
