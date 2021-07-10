@@ -1,0 +1,40 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - Aliucord/**
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Setup JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Generate Javadoc
+        run: |
+          chmod +x ./gradlew
+          ./gradlew Aliucord:javadoc
+
+      - name: Push Javadoc
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_PAT_GITHUB }}
+        with:
+          source-directory: 'Aliucord/build/docs/javadoc'
+          destination-github-username: 'Vendicated'
+          destination-repository-name: 'JavadocTest'
+          user-email: actions@github.com
+          user-name: GitHub Actions
+          commit-message: Generate Javadoc for ORIGIN_COMMIT
+          target-branch: main
