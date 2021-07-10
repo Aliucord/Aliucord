@@ -8,9 +8,11 @@ import com.aliucord.entities.Plugin;
 import java.util.HashMap;
 import java.util.Map;
 
+/** CorePlugins Manager */
 public final class CorePlugins {
     private static final Map<String, Plugin> corePlugins = new HashMap<>();
 
+    /** Loads all core plugins */
     public static void loadAll(Context context) {
         corePlugins.put("CommandHandler", new CommandHandler());
         corePlugins.put("CoreCommands", new CoreCommands());
@@ -28,6 +30,7 @@ public final class CorePlugins {
         }
     }
 
+    /** Starts all core plugins */
     public static void startAll(Context context) {
         for (Map.Entry<String, Plugin> entry : corePlugins.entrySet()) {
             Plugin p = entry.getValue();

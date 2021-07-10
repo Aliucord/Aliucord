@@ -44,7 +44,7 @@ import java.io.PrintStream;
 import java.sql.Timestamp;
 import java.util.Objects;
 
-public class Main {
+public final class Main {
     public static boolean preInitialized = false;
     public static boolean initialized = false;
     public static final Logger logger = new Logger();

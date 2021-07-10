@@ -13,9 +13,7 @@ import android.widget.TextView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 
-import com.aliucord.Main;
-import com.aliucord.PluginManager;
-import com.aliucord.Utils;
+import com.aliucord.*;
 import com.aliucord.entities.Plugin;
 import com.aliucord.updater.PluginUpdater;
 import com.aliucord.views.Button;
@@ -59,7 +57,7 @@ public class UpdaterPluginCard extends MaterialCardView {
         try {
             PluginUpdater.UpdateInfo info = PluginUpdater.getUpdateInfo(p);
             tv.setText(String.format("%s -> v%s", p.getManifest().version, info != null ? info.version : "?"));
-        } catch (Throwable e) { Main.logger.error(e); }
+        } catch (Throwable e) { PluginManager.logger.error(e); }
         int verid = View.generateViewId();
         tv.setId(verid);
         layout.addView(tv);
@@ -80,9 +78,9 @@ public class UpdaterPluginCard extends MaterialCardView {
                 try {
                     PluginUpdater.update(plugin);
                     PluginUpdater.updates.remove(plugin);
-                    Main.logger.info(context, "Successfully updated " + p.name);
+                    PluginManager.logger.info(context, "Successfully updated " + p.name);
                 } catch (Throwable t) {
-                    Main.logger.error(context, "Sorry, something went wrong while updating " + p.name, t);
+                    PluginManager.logger.error(context, "Sorry, something went wrong while updating " + p.name, t);
                 } finally {
                     Utils.mainThread.post(forceUpdate);
                 }

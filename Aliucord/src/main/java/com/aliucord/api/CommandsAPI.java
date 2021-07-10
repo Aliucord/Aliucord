@@ -50,11 +50,17 @@ import kotlin.jvm.functions.Function1;
 @SuppressWarnings("unused")
 public class CommandsAPI {
     private static final Logger logger = new Logger("CommandsAPI");
+    /** Command result */
     public static class CommandResult {
+        /** The message content */
         public String content;
+        /** The embeds */
         public List<MessageEmbed> embeds;
+        /** Whether the result should be sent visible for everyone */
         public boolean send;
+        /** The username of the pseudo clyde associated with this CommandResult */
         public String username;
+        /** The avatar url of the pseudo clyde associated with this CommandResult */
         public String avatarUrl;
 
         /**
@@ -112,14 +118,20 @@ public class CommandsAPI {
         }
     }
 
+    /** ID of the Aliucord Application */
     public static final long ALIUCORD_APP_ID = generateId();
     public static final String DONT_SEND_RESULT = "{ALIUCORD_COMMAND}";
     private static final Application aliucordApplication = new Application(ALIUCORD_APP_ID, "Aliucord", null, R$d.ic_slash_command_24dp, 0, null, true);
+    /** List of all registered commands */
     public static Map<String, RemoteApplicationCommand> commands = new HashMap<>();
+    /** Mapping of all registered commands to the plugin that registered them */
     public static Map<String, String> commandsAndPlugins = new HashMap<>();
+    /** InteractionsStore */
     public static Map<Long, WidgetApplicationCommandBottomSheetViewModel.StoreState> interactionsStore = new HashMap<>();
+    /** Optional CommandOption of type String */
     public static ApplicationCommandOption messageOption =
             new ApplicationCommandOption(ApplicationCommandType.STRING, "message", null, R$g.command_shrug_message_description, false, false, null, null);
+    /** Required CommandOption of type String */
     public static ApplicationCommandOption requiredMessageOption =
             new ApplicationCommandOption(ApplicationCommandType.STRING, "message", null, R$g.command_shrug_message_description, true, false, null, null);
 
@@ -282,6 +294,7 @@ public class CommandsAPI {
         updateCommandCount();
     }
 
+    /** Returns the Aliucord Application */
     public static Application getAliucordApplication() {
         updateCommandCount();
         return aliucordApplication;
@@ -295,16 +308,22 @@ public class CommandsAPI {
         }
     }
 
+    /** Generate a fake Snowflake */
     public static long generateId() {
         return -SnowflakeUtils.fromTimestamp(System.currentTimeMillis() * 100);
     }
 
+    /** Generate a fake Snowflake String */
     public static String generateIdString() {
         return String.valueOf(generateId());
     }
 
+    /** Name of the plugin associated with this CommandsAPI */
     public final String pluginName;
+    /** Command List of the plugin associated with this CommandsAPI */
     public final List<String> pluginCommands = new ArrayList<>();
+
+    /** Create a CommandsAPI for the specified plugin */
     public CommandsAPI(String plugin) {
         pluginName = plugin;
     }

@@ -10,9 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Looper;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.TextUtils;
+import android.text.*;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.view.Gravity;
@@ -27,10 +25,7 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
-import com.aliucord.Constants;
-import com.aliucord.Main;
-import com.aliucord.PluginManager;
-import com.aliucord.Utils;
+import com.aliucord.*;
 import com.aliucord.entities.Plugin;
 import com.aliucord.entities.Plugin.SettingsTab.Type;
 import com.aliucord.utils.ReflectUtils;
@@ -40,9 +35,7 @@ import com.discord.utilities.color.ColorCompat;
 import com.discord.views.CheckedSetting;
 import com.discord.widgets.user.usersheet.WidgetUserSheet;
 import com.google.android.material.card.MaterialCardView;
-import com.lytefast.flexinput.R$b;
-import com.lytefast.flexinput.R$d;
-import com.lytefast.flexinput.R$h;
+import com.lytefast.flexinput.*;
 
 import java.io.File;
 
@@ -136,10 +129,10 @@ public final class PluginCard extends MaterialCardView {
         uninstall.setText("Uninstall");
         uninstall.setOnClickListener(e -> {
             File pluginFile = new File(Constants.BASE_PATH + "/plugins/" + p.__filename + ".zip");
-            if (pluginFile.exists() && !pluginFile.delete()) Main.logger.error(context, "Failed to delete plugin " + p.name, null);
+            if (pluginFile.exists() && !pluginFile.delete()) PluginManager.logger.error(context, "Failed to delete plugin " + p.name, null);
             PluginManager.stopPlugin(name);
             PluginManager.plugins.remove(name);
-            Main.logger.info(context, "Successfully deleted " + p.name);
+            PluginManager.logger.info(context, "Successfully deleted " + p.name);
             setVisibility(GONE);
         });
         buttons.addView(uninstall, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(3)));

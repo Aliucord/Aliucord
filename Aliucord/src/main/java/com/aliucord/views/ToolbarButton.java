@@ -7,6 +7,7 @@ import androidx.appcompat.widget.AppCompatImageButton;
 
 import com.lytefast.flexinput.R$h;
 
+/** Settings Header Toolbar Button */
 public class ToolbarButton extends AppCompatImageButton {
     /**
      * Creates a header-toolbar button
