@@ -39,7 +39,7 @@ import java.util.*;
 
 import kotlin.jvm.functions.Function1;
 
-public final class CommandHandler extends Plugin {
+final class CommandHandler extends Plugin {
     @NonNull
     @Override
     public Manifest getManifest() { return new Manifest(); }

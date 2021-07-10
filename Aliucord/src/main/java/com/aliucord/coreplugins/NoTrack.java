@@ -21,7 +21,7 @@ import java.util.*;
 
 import top.canyie.pine.callback.MethodReplacement;
 
-public final class NoTrack extends Plugin {
+final class NoTrack extends Plugin {
     @NonNull
     @Override
     public Manifest getManifest() { return new Manifest(); }

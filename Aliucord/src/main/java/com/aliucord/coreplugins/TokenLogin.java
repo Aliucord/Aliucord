@@ -33,7 +33,7 @@ import java.util.List;
 
 import kotlin.Unit;
 
-public final class TokenLogin extends Plugin {
+final class TokenLogin extends Plugin {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static class Page extends AppFragment {
         public Page() {

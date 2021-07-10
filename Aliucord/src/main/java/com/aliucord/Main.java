@@ -22,6 +22,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.widget.NestedScrollView;
 
+import com.aliucord.coreplugins.CorePlugins;
 import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.PinePatchFn;
 import com.aliucord.settings.Crashes;
@@ -41,9 +42,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.sql.Timestamp;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 public class Main {
@@ -51,23 +49,12 @@ public class Main {
     public static boolean initialized = false;
     public static final Logger logger = new Logger();
 
-    @Deprecated
-    @SuppressWarnings("deprecation")
-    public static Map<String, List<String>> getClassesToPatch() {
-        return getClassesToPatch(true);
-    }
-
-    @Deprecated
-    public static Map<String, List<String>> getClassesToPatch(boolean loadPlugins) {
-        return Collections.emptyMap();
-    }
-
     public static void preInit(AppActivity activity) {
         if (preInitialized) return;
         preInitialized = true;
 
         Utils.appActivity = activity;
-        PluginManager.loadCorePlugins(activity);
+        CorePlugins.loadAll(activity);
 
         if (checkPermissions(activity)) {
             File dir = new File(Constants.BASE_PATH + "/plugins");
@@ -190,7 +177,7 @@ public class Main {
             System.exit(2);
         });
 
-        PluginManager.startCorePlugins(activity);
+        CorePlugins.startAll(activity);
 
         for (String name : PluginManager.plugins.keySet()) {
             try {
