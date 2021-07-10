@@ -19,7 +19,7 @@ jobs:
           java-version: 1.8
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v2
+        uses: android-actions/setup-android@3404b45d4c43e74e30dcad1a47fb89a0573f5a7e # v2.0.6
 
       - name: Generate Javadoc
         run: |
