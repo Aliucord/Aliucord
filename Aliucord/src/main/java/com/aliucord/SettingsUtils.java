@@ -18,7 +18,7 @@ public class SettingsUtils {
     private static final SharedPreferences prefs = Utils.getAppContext().getSharedPreferences("aliucord", Context.MODE_PRIVATE);
 
     /**
-     * Get a boolean value from the preferences
+     * Get a {@link boolean} from the preferences
      * @param key Key of the value
      * @param defValue Default value
      * @return Value if found, else the defValue
@@ -28,7 +28,7 @@ public class SettingsUtils {
     }
 
     /**
-     * Set a boolean item
+     * Set a {@link boolean} item
      * @param key Key of the item
      * @param val Value
      */
@@ -37,7 +37,7 @@ public class SettingsUtils {
     }
 
     /**
-     * Get an int value from the preferences
+     * Get an {@link int} from the preferences
      * @param key Key of the value
      * @param defValue Default value
      * @return Value if found, else the defValue
@@ -47,7 +47,7 @@ public class SettingsUtils {
     }
 
     /**
-     * Set an int item
+     * Set an {@link int} item
      * @param key Key of the item
      * @param val Value
      */
@@ -56,7 +56,7 @@ public class SettingsUtils {
     }
 
     /**
-     * Get a float value from the preferences
+     * Get a {@link float} from the preferences
      * @param key Key of the value
      * @param defValue Default value
      * @return Value if found, else the defValue
@@ -66,7 +66,7 @@ public class SettingsUtils {
     }
 
     /**
-     * Set a float item
+     * Set a {@link float} item
      * @param key Key of the item
      * @param val Value
      */
@@ -75,7 +75,7 @@ public class SettingsUtils {
     }
 
     /**
-     * Get a long value from the preferences
+     * Get a {@link long} from the preferences
      * @param key Key of the value
      * @param defValue Default value
      * @return Value if found, else the defValue
@@ -85,7 +85,7 @@ public class SettingsUtils {
     }
 
     /**
-     * Set a long item
+     * Set a {@link long} item
      * @param key Key of the item
      * @param val Value
      */
@@ -94,7 +94,7 @@ public class SettingsUtils {
     }
 
     /**
-     * Get a String value from the preferences
+     * Get a {@link String} from the preferences
      * @param key Key of the value
      * @param defValue Default value
      * @return Value if found, else the defValue
@@ -104,7 +104,7 @@ public class SettingsUtils {
     }
 
     /**
-     * Set a String item
+     * Set a {@link String} item
      * @param key Key of the item
      * @param val Value
      */
@@ -115,7 +115,7 @@ public class SettingsUtils {
     private static final Map<String, Object> cache = new HashMap<>();
 
     /**
-     * Get an Object value from the preferences
+     * Get an {@link Object} from the preferences
      * @param key Key of the value
      * @param defValue Default value
      * @return Value if found, else the defValue
@@ -125,7 +125,7 @@ public class SettingsUtils {
     }
 
     /**
-     * Get an Object value from the preferences
+     * Get an {@link Object} from the preferences
      * @param key Key of the value
      * @param defValue Default value
      * @param type Type of the object
@@ -143,7 +143,7 @@ public class SettingsUtils {
     }
 
     /**
-     * Set an Object item
+     * Set an {@link Object} item
      * @param key Key of the item
      * @param val Value
      */
