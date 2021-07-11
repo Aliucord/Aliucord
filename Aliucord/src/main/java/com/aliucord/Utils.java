@@ -5,10 +5,7 @@
 
 package com.aliucord;
 
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.content.Context;
-import android.content.Intent;
+import android.content.*;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
@@ -31,13 +28,15 @@ import com.discord.nullserializable.NullSerializable;
 import com.discord.utilities.SnowflakeUtils;
 import com.discord.utilities.fcm.NotificationClient;
 import com.discord.views.CheckedSetting;
+import com.discord.widgets.chat.list.WidgetChatList;
+import com.discord.widgets.chat.list.adapter.WidgetChatListAdapter;
+import com.discord.widgets.chat.list.entries.ChatListEntry;
+import com.discord.widgets.chat.list.entries.MessageEntry;
 import com.google.gson.Gson;
 
 import java.io.InputStream;
 import java.lang.reflect.Type;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -365,6 +364,24 @@ public class Utils {
             return b.k(source, new Object[0], null, 2);
         } catch (Throwable e) { Main.logger.error("Failed to render markdown", e); }
         return source;
+    }
+
+    /**
+     * Instance of WidgetChatList
+     */
+    @Nullable
+    public static WidgetChatList widgetChatList;
+
+    /**
+     * Rerenders message by id
+     * @param id message id
+     */
+    public static void rerenderMessage(long id) {
+        if (widgetChatList == null) return;
+        WidgetChatListAdapter adapter = WidgetChatList.access$getAdapter$p(widgetChatList);
+        List<ChatListEntry> data = adapter.getInternalData();
+        int i = CollectionUtils.findIndex(data, e -> e instanceof MessageEntry && ((MessageEntry) e).getMessage().getId() == id);
+        if (i != -1) adapter.notifyItemChanged(i);
     }
 
     /**

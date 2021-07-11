@@ -32,6 +32,7 @@ import com.aliucord.updater.PluginUpdater;
 import com.aliucord.views.Divider;
 import com.discord.app.AppActivity;
 import com.discord.utilities.color.ColorCompat;
+import com.discord.widgets.chat.list.WidgetChatList;
 import com.discord.widgets.guilds.invite.WidgetGuildInvite;
 import com.discord.widgets.settings.WidgetSettings;
 import com.lytefast.flexinput.R$b;
@@ -139,6 +140,11 @@ public final class Main {
                 callFrame.setResult("res:///" + Utils.getResId(name, "raw"));
             })
         );
+
+        try {
+            Patcher.addPatch(WidgetChatList.class.getDeclaredConstructor(),
+                new PinePatchFn(callFrame -> Utils.widgetChatList = (WidgetChatList) callFrame.thisObject));
+        } catch (Throwable e) { logger.error(e); }
 
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             new Thread() {

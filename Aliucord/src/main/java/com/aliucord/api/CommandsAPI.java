@@ -24,9 +24,7 @@ import com.discord.models.commands.*;
 import com.discord.models.domain.NonceGenerator;
 import com.discord.models.message.Message;
 import com.discord.models.user.User;
-import com.discord.stores.StoreApplicationInteractions;
-import com.discord.stores.StoreMessages;
-import com.discord.stores.StoreStream;
+import com.discord.stores.*;
 import com.discord.utilities.SnowflakeUtils;
 import com.discord.utilities.attachments.AttachmentUtilsKt;
 import com.discord.utilities.message.LocalMessageCreatorsKt;
@@ -34,9 +32,7 @@ import com.discord.utilities.time.Clock;
 import com.discord.utilities.time.ClockFactory;
 import com.discord.utilities.user.UserUtils;
 import com.discord.widgets.chat.MessageContent;
-import com.discord.widgets.chat.input.ChatInputViewModel;
-import com.discord.widgets.chat.input.WidgetChatInput;
-import com.discord.widgets.chat.input.WidgetChatInput$configureSendListeners$2;
+import com.discord.widgets.chat.input.*;
 import com.discord.widgets.chat.list.sheet.WidgetApplicationCommandBottomSheetViewModel;
 import com.lytefast.flexinput.R$d;
 import com.lytefast.flexinput.R$g;
@@ -148,15 +144,15 @@ public class CommandsAPI {
             long id = NonceGenerator.computeNonce(clock);
             long channelId = StoreStream.getChannelsSelected().getId();
             User me = StoreStream.getUsers().getMe();
-            Message thinkingMsg = LocalMessageCreatorsKt.createLocalApplicationCommandMessage(
+            Message message = LocalMessageCreatorsKt.createLocalApplicationCommandMessage(
                     id, name, channelId, UserUtils.INSTANCE.synthesizeApiUser(me), Utils.buildClyde(null, null), false, true, id, clock);
             Class<Message> c = Message.class;
             try {
-                ReflectUtils.setField(c, thinkingMsg, "flags", MessageFlags.EPHEMERAL | MessageFlags.LOADING, true);
-                ReflectUtils.setField(c, thinkingMsg, "type", MessageTypes.LOCAL, true);
+                ReflectUtils.setField(c, message, "flags", MessageFlags.EPHEMERAL | MessageFlags.LOADING, true);
+                ReflectUtils.setField(c, message, "type", MessageTypes.LOCAL, true);
             } catch (Throwable ignored) {}
             StoreMessages storeMessages = StoreStream.getMessages();
-            StoreMessages.access$handleLocalMessageCreate(storeMessages, thinkingMsg);
+            StoreMessages.access$handleLocalMessageCreate(storeMessages, message);
 
             WidgetChatInput$configureSendListeners$2 _this = (WidgetChatInput$configureSendListeners$2) args.get("__this");
             Object[] _args = (Object[]) args.get("__args");
@@ -172,43 +168,21 @@ public class CommandsAPI {
                 try {
                     CommandResult res = execute.invoke(ctx);
                     if (res == null) {
-                        storeMessages.deleteMessage(thinkingMsg);
+                        storeMessages.deleteMessage(message);
                         return;
                     }
                     boolean hasContent = res.content != null && !res.content.equals("");
                     boolean hasEmbeds = res.embeds != null && res.embeds.size() != 0;
                     if (!res.send) {
                         if (!hasContent && !hasEmbeds && ctx.getAttachments().isEmpty()) {
-                            storeMessages.deleteMessage(thinkingMsg);
+                            storeMessages.deleteMessage(message);
                             return;
                         }
 
                         try {
-                            Message commandMessage = LocalMessageCreatorsKt.createLocalMessage(
-                                    res.content == null ? "" : res.content,
-                                    channelId,
-                                    Utils.buildClyde(res.username, res.avatarUrl),
-                                    null,
-                                    false,
-                                    false, // TODO: Make local uploads work and set this to true
-                                    null,
-                                    null,
-                                    clock,
-                                    CollectionUtils.map(ctx.getAttachments(), AttachmentUtilsKt::toLocalAttachment),
-                                    null,
-                                    null,
-                                    null,
-                                    null,
-                                    ctx.getMessageReference(),
-                                    null
-                            );
-
-                            ReflectUtils.setField(c, commandMessage, "embeds", res.embeds, true);
-                            ReflectUtils.setField(c, commandMessage, "flags", MessageFlags.EPHEMERAL, true);
-                            ReflectUtils.setField(c, commandMessage, "interaction", thinkingMsg.getInteraction(), true);
-
                             // TODO: add arguments
                             long guildId = ChannelWrapper.getGuildId(StoreStream.getChannels().getChannel(channelId));
+                            //noinspection ConstantConditions
                             interactionsStore.put(id, new WidgetApplicationCommandBottomSheetViewModel.StoreState(
                                 me,
                                 guildId == 0 ? null : StoreStream.getGuilds().getMembers().get(guildId).get(me.getId()),
@@ -218,33 +192,42 @@ public class CommandsAPI {
                                 Collections.emptyMap()
                             ));
 
-                            StoreMessages.access$handleLocalMessageCreate(storeMessages, commandMessage);
-                        } catch (Throwable e) { logger.error((String) null, e); }
+                            ReflectUtils.setField(c, message, "author", Utils.buildClyde(res.username, res.avatarUrl), true);
+                            ReflectUtils.setField(c, message, "content", res.content == null ? "" : res.content, true);
+                            ReflectUtils.setField(c, message, "embeds", res.embeds, true);
+                            ReflectUtils.setField(c, message, "flags", MessageFlags.EPHEMERAL, true);
+                            ReflectUtils.setField(c, message, "messageReference", ctx.getMessageReference(), true);
+
+                            // TODO: Make local uploads work
+                            ReflectUtils.setField(c, message, "localAttachments", CollectionUtils.map(ctx.getAttachments(), AttachmentUtilsKt::toLocalAttachment), true);
+
+                            Utils.rerenderMessage(id);
+                        } catch (Throwable e) { logger.error(e); }
                     } else {
                         if (hasEmbeds)
                             logger.error(String.format("[%s]", name), new IllegalArgumentException("Embeds may not be specified when send is set to true"));
                         List<? extends Attachment<?>> attachments = ctx.getAttachments();
                         if (!hasContent && attachments.size() == 0) {
-                            storeMessages.deleteMessage(thinkingMsg);
+                            storeMessages.deleteMessage(message);
                             return;
                         }
 
+                        //noinspection ConstantConditions
                         Utils.mainThread.post(() -> ChatInputViewModel.sendMessage$default(
                                 WidgetChatInput.access$getViewModel$p(_this.this$0),
                                 _this.$context,
                                 _this.$messageManager,
-                                new MessageContent(res.content, content != null ? content.getMentionedUsers() : Collections.emptyList()),
+                                new MessageContent(res.content == null ? "" : res.content, content != null ? content.getMentionedUsers() : Collections.emptyList()),
                                 attachments,
                                 false,
                                 (Function1<? super Boolean, Unit>) _args[2],
                                 16,
                                 null
                         ));
+                        storeMessages.deleteMessage(message);
                     }
-                    storeMessages.deleteMessage(thinkingMsg);
                 } catch (Throwable t) {
                     t.printStackTrace();
-                    storeMessages.deleteMessage(thinkingMsg);
                     logger.error(String.format("[%s]", name), t);
 
                     StringBuilder argStringB = new StringBuilder();
@@ -272,12 +255,12 @@ public class CommandsAPI {
                             BuildConfig.GIT_REVISION,
                             argString.length() != 0 ? argString : "-"
                     );
-                    Message commandMessage = LocalMessageCreatorsKt.createLocalMessage(detailedError, channelId, Utils.buildClyde(null, null), null, false, false, null, null, clock, null, null, null, null, null, null, null);
 
                     try {
-                        ReflectUtils.setField(c, commandMessage, "flags", MessageFlags.EPHEMERAL, true);
+                        ReflectUtils.setField(c, message, "content", detailedError, true);
+                        ReflectUtils.setField(c, message, "flags", MessageFlags.EPHEMERAL, true);
                     } catch (Throwable ignored) {}
-                    StoreMessages.access$handleLocalMessageCreate(storeMessages, commandMessage);
+                    Utils.rerenderMessage(id);
                 }
             });
             return null;
