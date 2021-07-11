@@ -56,6 +56,44 @@ public class SettingsUtils {
     }
 
     /**
+     * Get a float value from the preferences
+     * @param key Key of the value
+     * @param defValue Default value
+     * @return Value if found, else the defValue
+     */
+    public static float getFloat(String key, float defValue) {
+        return prefs.getFloat(key, defValue);
+    }
+
+    /**
+     * Set a float item
+     * @param key Key of the item
+     * @param val Value
+     */
+    public static void setFloat(String key, float val) {
+        prefs.edit().putFloat(key, val).apply();
+    }
+
+    /**
+     * Get a long value from the preferences
+     * @param key Key of the value
+     * @param defValue Default value
+     * @return Value if found, else the defValue
+     */
+    public static long getLong(String key, long defValue) {
+        return prefs.getLong(key, defValue);
+    }
+
+    /**
+     * Set a long item
+     * @param key Key of the item
+     * @param val Value
+     */
+    public static void setLong(String key, long val) {
+        prefs.edit().putLong(key, val).apply();
+    }
+
+    /**
      * Get a String value from the preferences
      * @param key Key of the value
      * @param defValue Default value

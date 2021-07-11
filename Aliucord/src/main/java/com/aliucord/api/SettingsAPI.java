@@ -58,6 +58,44 @@ public class SettingsAPI {
     }
 
     /**
+     * Gets a {@link float} stored in the settings.
+     * @param key Key of the setting.
+     * @param d Default value of the setting.
+     * @return Stored value, or default value if it doesn't exist.
+     */
+    public float getFloat(String key, float d) {
+        return SettingsUtils.getFloat(keyPrefix + key, d);
+    }
+
+    /**
+     * Writes a {@link float} to the settings.
+     * @param key Key of the setting.
+     * @param v Value of the setting.
+     */
+    public void setFloat(String key, float v) {
+        SettingsUtils.setFloat(keyPrefix + key, v);
+    }
+
+    /**
+     * Gets a {@link long} stored in the settings.
+     * @param key Key of the setting.
+     * @param d Default value of the setting.
+     * @return Stored value, or default value if it doesn't exist.
+     */
+    public long getLong(String key, long d) {
+        return SettingsUtils.getLong(keyPrefix + key, d);
+    }
+
+    /**
+     * Writes a {@link long} to the settings.
+     * @param key Key of the setting.
+     * @param v Value of the setting.
+     */
+    public void setLong(String key, long v) {
+        SettingsUtils.setLong(keyPrefix + key, v);
+    }
+
+    /**
      * Gets a {@link String} stored in the settings.
      * @param key Key of the setting.
      * @param d Default value of the setting.
