@@ -5,9 +5,8 @@
 
 package com.aliucord.patcher;
 
-import android.os.Looper;
-
-import com.aliucord.*;
+import com.aliucord.Logger;
+import com.aliucord.Main;
 import com.discord.app.AppActivity;
 
 import java.lang.reflect.Member;
@@ -34,11 +33,9 @@ public class Patcher {
         try {
             unhook = Pine.hook(AppActivity.class.getDeclaredMethod("b", String.class, boolean.class), new PinePatchFn(callFrame -> {
                 new Thread(() -> {
-                    // Need to prepare & loop Looper to make Handlers work in plugins
-                    Looper.prepare();
-                    Main.preInit((AppActivity) callFrame.thisObject);
-                    Main.init((AppActivity) callFrame.thisObject);
-                    Looper.loop();
+                    AppActivity a = (AppActivity) callFrame.thisObject;
+                    Main.preInit(a);
+                    Main.init(a);
                 }).start();
                 unhook.unhook();
             }));
