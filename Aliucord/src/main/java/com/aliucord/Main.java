@@ -189,7 +189,7 @@ public final class Main {
             }
         }
 
-        Utils.threadPool.execute(() -> PluginUpdater.checkUpdates(true));
+        PluginUpdater.checkUpdates(true);
     }
 
     private static boolean checkPermissions(AppCompatActivity activity) {
