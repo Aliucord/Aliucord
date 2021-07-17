@@ -17,7 +17,7 @@ import com.discord.widgets.guilds.leave.WidgetLeaveGuildDialog$binding$2;
 import com.google.android.material.button.MaterialButton;
 
 /**
- * Creates a Confirmation Dialog similar to the <bold>Leave Guild</bold> dialog.
+ * Creates a Confirmation Dialog similar to the <strong>Leave Guild</strong> dialog.
  * This class offers convenient builder methods so you should usually not have to do any layouts manually.
  */
 @SuppressWarnings("unused")

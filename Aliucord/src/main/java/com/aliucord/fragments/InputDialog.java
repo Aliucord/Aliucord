@@ -18,7 +18,7 @@ import com.lytefast.flexinput.R$b;
 import java.util.Objects;
 
 /**
- * Creates a Input Dialog similar to the <bold>Kick User</bold> dialog.
+ * Creates a Input Dialog similar to the <strong>Kick User</strong> dialog.
  * This class offers convenient builder methods so you should usually not have to do any layouts manually.
  */
 @SuppressWarnings("unused")
