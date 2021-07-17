@@ -6,6 +6,7 @@
 package com.aliucord.fragments;
 
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.aliucord.Utils;
@@ -15,6 +16,10 @@ import com.discord.views.LoadingButton;
 import com.discord.widgets.guilds.leave.WidgetLeaveGuildDialog$binding$2;
 import com.google.android.material.button.MaterialButton;
 
+/**
+ * Creates a Confirmation Dialog similar to the <bold>Leave Guild</bold> dialog.
+ * This class offers convenient builder methods so you should usually not have to do any layouts manually.
+ */
 @SuppressWarnings("unused")
 public class ConfirmDialog extends AppDialog {
     public ConfirmDialog() {
@@ -22,6 +27,10 @@ public class ConfirmDialog extends AppDialog {
     }
 
     private LeaveGuildDialogBinding binding;
+    private CharSequence title;
+    private CharSequence description;
+    private View.OnClickListener onCancelListener;
+    private View.OnClickListener onOkListener;
 
     @Override
     public void onViewBound(View view) {
@@ -31,11 +40,86 @@ public class ConfirmDialog extends AppDialog {
         LoadingButton okButton = getOKButton();
         okButton.setText("OK");
         okButton.setIsLoading(false);
-        okButton.setOnClickListener(e -> dismiss());
+        okButton.setOnClickListener(onOkListener != null ? onOkListener : e -> dismiss());
+
+        if (title != null) getHeader().setText(title);
+        if (description != null) getBody().setText(description);
+        if (onCancelListener != null) getCancelButton().setOnClickListener(onCancelListener);
+
     }
 
+    /**
+     * Returns the root layout of this dialog.
+     * Should only be called from within onClickHandlers or onViewBound as it will likely throw a {@link NullPointerException} in other cases
+     */
+    public final LinearLayout getRoot() { return binding.a; }
+
+    /**
+     * Returns the cancel button of this dialog.
+     * Should only be called from within onClickHandlers or onViewBound as it will likely throw a {@link NullPointerException} in other cases
+     * @see #setOnOkListener(View.OnClickListener)
+     */
     public final MaterialButton getCancelButton() { return binding.b; }
+
+    /**
+     * Returns the OK button of this dialog.
+     * Should only be called from within onClickHandlers or onViewBound as it will likely throw a {@link NullPointerException} in other cases
+     * @see #setOnOkListener(View.OnClickListener)
+     */
     public final LoadingButton getOKButton() { return binding.c; }
+
+    /**
+     * Returns the body of this dialog.
+     * Should only be called from within onClickHandlers or onViewBound as it will likely throw a {@link NullPointerException} in other cases
+     * @see #setDescription(CharSequence)
+     */
     public final TextView getBody() { return binding.d; }
+
+    /**
+     * Returns the header of this dialog.
+     * Should only be called from within onClickHandlers or onViewBound as it will likely throw a {@link NullPointerException} in other cases
+     * @see #setTitle(CharSequence)
+     */
     public final TextView getHeader() { return binding.e; }
+
+
+    /**
+     * Sets the title of this dialog
+     * @param title The description
+     * @return Builder for chaining
+     */
+    public ConfirmDialog setTitle(CharSequence title) {
+        this.title = title;
+        return this;
+    }
+
+    /**
+     * Sets the description of this dialog
+     * @param description The description
+     * @return Builder for chaining
+     */
+    public ConfirmDialog setDescription(CharSequence description) {
+        this.description = description;
+        return this;
+    }
+
+    /**
+     * Sets the {@link View.OnClickListener} that will be called when the OK button is pressed (By default simply closes this dialog)
+     * @param listener The listener
+     * @return Builder for chaining
+     */
+    public ConfirmDialog setOnOkListener(View.OnClickListener listener) {
+        onOkListener = listener;
+        return this;
+    }
+
+    /**
+     * Sets the {@link View.OnClickListener} that will be called when the cancel button is pressed (By default simply closes this dialog)
+     * @param listener The listener
+     * @return Builder for chaining
+     */
+    public ConfirmDialog setOnCancelListener(View.OnClickListener listener) {
+        onCancelListener = listener;
+        return this;
+    }
 }
