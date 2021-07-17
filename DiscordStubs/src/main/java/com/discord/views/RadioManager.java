@@ -10,6 +10,8 @@ public class RadioManager {
 
     public RadioManager(List<? extends Checkable> buttons) {}
 
+    /** setActiveCheckable */
     public void a(Checkable checkable) {}
+    /** getSelectedIndex */
     public int b() { return 0; }
 }
