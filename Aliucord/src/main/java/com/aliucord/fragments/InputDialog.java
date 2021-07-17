@@ -45,8 +45,8 @@ public class InputDialog extends AppDialog {
         // Hide ugly redundant secondary "REASON FOR KICK" header
         ((LinearLayout) ((ScrollView) ((LinearLayout) view).getChildAt(2)).getChildAt(0)).getChildAt(1).setVisibility(View.GONE);
 
-        if (title != null) getHeader().setText(title);
-        if (description != null) getBody().setText(description);
+        getHeader().setText(title != null ? title : "Input");
+        getBody().setText(description != null ? description : "Please enter some text");
 
         TextInputLayout inputLayout = getInputLayout();
         if (placeholder != null) inputLayout.setHint(placeholder);

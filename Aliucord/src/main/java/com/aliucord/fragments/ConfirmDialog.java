@@ -42,10 +42,9 @@ public class ConfirmDialog extends AppDialog {
         okButton.setIsLoading(false);
         okButton.setOnClickListener(onOkListener != null ? onOkListener : e -> dismiss());
 
-        if (title != null) getHeader().setText(title);
-        if (description != null) getBody().setText(description);
-        if (onCancelListener != null) getCancelButton().setOnClickListener(onCancelListener);
-
+        getCancelButton().setOnClickListener(onCancelListener != null ? onCancelListener : e -> dismiss());
+        getHeader().setText(title != null ? title : "Confirm");
+        getBody().setText(description != null ? description : "Are you sure?");
     }
 
     /**
