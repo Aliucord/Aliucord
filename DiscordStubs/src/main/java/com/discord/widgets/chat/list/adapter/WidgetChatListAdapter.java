@@ -3,23 +3,16 @@ package com.discord.widgets.chat.list.adapter;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.discord.models.guild.Guild;
 import com.discord.utilities.mg_recycler.MGRecyclerAdapterSimple;
 import com.discord.utilities.mg_recycler.MGRecyclerViewHolder;
 import com.discord.widgets.chat.list.entries.ChatListEntry;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @SuppressWarnings("unused")
 public final class WidgetChatListAdapter extends MGRecyclerAdapterSimple<ChatListEntry> {
-    public WidgetChatListAdapter(RecyclerView recyclerView, boolean z2) {
-        super(recyclerView, z2);
-    }
-
     public interface Data {
         long getChannelId();
         Map<Long, String> getChannelNames();
