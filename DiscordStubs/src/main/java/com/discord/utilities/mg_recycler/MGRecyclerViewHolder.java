@@ -18,4 +18,6 @@ public class MGRecyclerViewHolder<T extends MGRecyclerAdapter<D>, D> extends Rec
     public MGRecyclerViewHolder(@LayoutRes int id, T t) {
         this(new View(null), t);
     }
+
+    public void onConfigure(int i, D pluginItem) { }
 }

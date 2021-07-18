@@ -27,8 +27,9 @@ import java.util.Objects;
  */
 @SuppressWarnings("unused")
 public class InputDialog extends AppDialog {
+    private static final int resId = Utils.getResId("widget_kick_user", "layout");
     public InputDialog() {
-        super(Utils.getResId("widget_kick_user", "layout"));
+        super(resId);
     }
 
     private WidgetKickUserBinding binding;

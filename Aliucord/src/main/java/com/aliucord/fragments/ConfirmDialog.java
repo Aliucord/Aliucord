@@ -15,6 +15,7 @@ import com.discord.databinding.LeaveGuildDialogBinding;
 import com.discord.views.LoadingButton;
 import com.discord.widgets.guilds.leave.WidgetLeaveGuildDialog$binding$2;
 import com.google.android.material.button.MaterialButton;
+import com.lytefast.flexinput.R$c;
 
 /**
  * Creates a Confirmation Dialog similar to the <strong>Leave Guild</strong> dialog.
@@ -22,13 +23,15 @@ import com.google.android.material.button.MaterialButton;
  */
 @SuppressWarnings("unused")
 public class ConfirmDialog extends AppDialog {
+    private static final int resId = Utils.getResId("leave_guild_dialog", "layout");
     public ConfirmDialog() {
-        super(Utils.getResId("leave_guild_dialog", "layout"));
+        super(resId);
     }
 
     private LeaveGuildDialogBinding binding;
     private CharSequence title;
     private CharSequence description;
+    private boolean isDangerous = false;
     private View.OnClickListener onCancelListener;
     private View.OnClickListener onOkListener;
 
@@ -41,6 +44,7 @@ public class ConfirmDialog extends AppDialog {
         okButton.setText("OK");
         okButton.setIsLoading(false);
         okButton.setOnClickListener(onOkListener != null ? onOkListener : e -> dismiss());
+        if (isDangerous) okButton.setBackgroundColor(view.getResources().getColor(R$c.uikit_btn_bg_color_selector_red, view.getContext().getTheme()));
 
         getCancelButton().setOnClickListener(onCancelListener != null ? onCancelListener : e -> dismiss());
         getHeader().setText(title != null ? title : "Confirm");
@@ -119,6 +123,16 @@ public class ConfirmDialog extends AppDialog {
      */
     public ConfirmDialog setOnCancelListener(View.OnClickListener listener) {
         onCancelListener = listener;
+        return this;
+    }
+
+    /**
+     * Indicates that this confirm dialog is for a dangerous action by making the OK button Red
+     * @param isDangerous Whether this action is dangerous
+     * @return Builder for chaining
+     */
+    public ConfirmDialog setIsDangerous(boolean isDangerous) {
+        this.isDangerous = isDangerous;
         return this;
     }
 }
