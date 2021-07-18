@@ -97,7 +97,7 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
 4. Open the "plugins" folder, or if it doesn't exist, create it yourself. Remember: LOWERCASE "p"
 5. Either search GitHub or join our [support server](https://discord.gg/EsNDvBaHVU) and visit the `#plugin-links` channel for plugins to download
 6. Visit the `builds` branch of any GitHub repositories you get linked to and download the ZIP files of the plugins you wish to load with Aliucord
-7. Once you've downloaded the plugins, move them into the `Aliucord/plugins` folder
+7. Once you've downloaded the plugins, move them into the `Aliucord/plugins` folder (Do not extract the zip)
 8. Open Aliucord, check the plugins tab and hopefully see your plugin(s) listed!
 
 > Hint: There is a [PluginDownloader plugin](https://github.com/Vendicated/AliucordPlugins/blob/builds/PluginDownloader.zip?raw=true) that makes installing plugins a lot easier by adding download buttons to messages in either of the plugin channels
