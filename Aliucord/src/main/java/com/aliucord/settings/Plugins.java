@@ -188,7 +188,7 @@ public class Plugins extends SettingsPage {
                                 sheet.show(adapter.fragment.getParentFragmentManager(), name + "Settings");
                             } catch (Throwable e) { PluginManager.logger.error(ctx, "Failed to open settings page for " + p.name, e); }
                         });
-                }
+                } else extraInfo.setVisibility(View.GONE);
             }
         }
 
@@ -217,7 +217,8 @@ public class Plugins extends SettingsPage {
             @Override
             protected FilterResults performFiltering(CharSequence constraint) {
                 List<PluginItem> resultsList;
-                if (constraint == null || constraint.equals("")) resultsList = items;
+                if (constraint == null || constraint.equals(""))
+                    resultsList = items;
                 else {
                     String search = constraint.toString().toLowerCase().trim();
                     resultsList = CollectionUtils.filter(items, p -> p.plugin.name.toLowerCase().contains(search));
@@ -229,7 +230,10 @@ public class Plugins extends SettingsPage {
 
             @Override
             protected void publishResults(CharSequence constraint, FilterResults results) {
-                access$dispatchUpdates(_this, null, _this.getInternalData(), (List<PluginItem>) results.values);
+                List<PluginItem> res = (List<PluginItem>) results.values;
+                int size = res.size();
+                if (size != items.size() || size > getInternalData().size())
+                    access$dispatchUpdates(_this, null, getInternalData(), res);
             }
         };
 
@@ -281,23 +285,30 @@ public class Plugins extends SettingsPage {
 
         TextInput input = new TextInput(context);
         input.setHint(context.getString(R$g.search));
-        EditText editText = input.getEditText();
-        if (editText != null) editText.setMaxLines(1);
-        addView(input);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        p = (int) (padding * 1.5);
+        params.setMargins(p, p, p, p);
+        input.setLayoutParams(params);
 
         RecyclerView recyclerView = new RecyclerView(context);
         recyclerView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
         Adapter adapter = new Adapter(this, recyclerView, PluginManager.plugins.values());
         recyclerView.setAdapter(adapter);
+
+        addView(input);
         addView(recyclerView);
 
-        if (editText != null) editText.addTextChangedListener(new TextWatcher() {
-            public void afterTextChanged(Editable s) {
-                adapter.getFilter().filter(s);
-            }
+        EditText editText = input.getEditText();
+        if (editText != null) {
+            editText.setMaxLines(1);
+            editText.addTextChangedListener(new TextWatcher() {
+                public void afterTextChanged(Editable s) {
+                    adapter.getFilter().filter(s);
+                }
 
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-        });
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            });
+        }
     }
 }
