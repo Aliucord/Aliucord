@@ -7,155 +7,89 @@ package com.aliucord.widgets;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
-import android.os.Looper;
-import android.text.*;
 import android.text.method.LinkMovementMethod;
-import android.text.style.ClickableSpan;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.GridLayout;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 
-import com.aliucord.*;
-import com.aliucord.entities.Plugin;
-import com.aliucord.entities.Plugin.SettingsTab.Type;
-import com.aliucord.utils.ReflectUtils;
+import com.aliucord.Constants;
+import com.aliucord.Utils;
 import com.aliucord.views.*;
-import com.discord.app.AppBottomSheet;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.views.CheckedSetting;
-import com.discord.widgets.user.usersheet.WidgetUserSheet;
 import com.google.android.material.card.MaterialCardView;
 import com.lytefast.flexinput.*;
 
-import java.io.File;
-
-@SuppressLint({"SetTextI18n", "ViewConstructor"})
-public final class PluginCard extends MaterialCardView {
-    public final String pluginName;
+public class PluginCard extends MaterialCardView {
+    public final LinearLayout root;
+    public final CheckedSetting switchHeader;
     public final TextView titleView;
-    public PluginCard(Context context, String name, Plugin p, FragmentManager fragmentManager, Fragment caller) {
-        super(context);
-        pluginName = name;
-        int padding = Utils.getDefaultPadding();
-        int padding2 = padding / 2;
-        boolean enabled = PluginManager.isPluginEnabled(name);
+    public final TextView descriptionView;
+    public final GridLayout buttonLayout;
+    public final Button settingsButton;
+    public final DangerButton uninstallButton;
+    public final ToolbarButton repoButton;
+
+    @SuppressLint("SetTextI18n")
+    public PluginCard(Context ctx) {
+        super(ctx);
         setRadius(Utils.getDefaultCardRadius());
-        setCardBackgroundColor(ColorCompat.getThemedColor(context, R$b.colorBackgroundSecondary));
+        setCardBackgroundColor(ColorCompat.getThemedColor(ctx, R$b.colorBackgroundSecondary));
         setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 
-        Plugin.Manifest manifest = p.getManifest();
-        LinearLayout pluginLayout = new LinearLayout(context);
+        int p = Utils.getDefaultPadding();
+        int p2 = p / 2;
 
-        Button settings = new Button(context);
-        String title = String.format("%s v%s by %s", name, manifest.version, TextUtils.join(", ", manifest.authors));
-        SpannableString spannableTitle = new SpannableString(title);
-        for (Plugin.Manifest.Author author : manifest.authors) {
-            if (author.id < 1) continue;
-            int i = title.indexOf(author.name, name.length() + 2 + manifest.version.length() + 3);
-            spannableTitle.setSpan(new ClickableSpan() {
-                @Override
-                public void onClick(@NonNull View widget) {
-                    WidgetUserSheet.Companion.show(author.id, fragmentManager);
-                }
-            }, i, i + author.name.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        }
-        CheckedSetting cs = Utils.createCheckedSetting(context, CheckedSetting.ViewType.SWITCH,
-                spannableTitle, null);
-        titleView = cs.k.a();
-        titleView.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
+        root = new LinearLayout(ctx);
+        switchHeader = new CheckedSetting(ctx, null);
+        switchHeader.removeAllViews();
+        switchHeader.f(CheckedSetting.ViewType.SWITCH);
+
+        View headerRoot = switchHeader.k.b();
+        headerRoot.setPadding(0, headerRoot.getPaddingTop(), headerRoot.getPaddingRight(), headerRoot.getPaddingBottom());
+        headerRoot.setBackgroundColor(ColorCompat.getThemedColor(ctx, R$b.colorBackgroundSecondaryAlt));
+
+        switchHeader.setSubtext(null);
+        titleView = switchHeader.k.a();
+        titleView.setTextSize(16.0f);
+        titleView.setTypeface(ResourcesCompat.getFont(ctx, Constants.Fonts.whitney_semibold));
         titleView.setMovementMethod(LinkMovementMethod.getInstance());
-        cs.k.b().setBackgroundColor(ColorCompat.getThemedColor(context, R$b.colorBackgroundSecondaryAlt));
-        cs.setChecked(enabled);
-        cs.setOnCheckedListener(e -> {
-            PluginManager.togglePlugin(name);
-            if (p.settings != null) settings.setEnabled(!settings.isEnabled());
-        });
-        pluginLayout.addView(cs);
 
-        TextView t = new TextView(context, null, 0, R$h.UiKit_Settings_Item_Addition);
-        t.setText(manifest.description);
-        t.setPadding(padding, padding, padding, padding2);
-        pluginLayout.addView(new Divider(context));
-        pluginLayout.addView(t);
+        root.addView(switchHeader);
+        root.addView(new Divider(ctx));
 
-        GridLayout buttons = new GridLayout(context);
-        buttons.setRowCount(1);
-        buttons.setColumnCount(4);
-        buttons.setUseDefaultMargins(true);
-        buttons.setPadding(padding2, 0, padding2, 0);
+        descriptionView = new TextView(ctx, null, 0, R$h.UiKit_Settings_Item_Addition);
+        descriptionView.setPadding(p, p, p, p2);
+        root.addView(descriptionView);
 
-        if (p.settingsTab != null) {
-            settings.setText("Settings");
+        buttonLayout = new GridLayout(ctx);
+        buttonLayout.setRowCount(1);
+        buttonLayout.setColumnCount(4);
+        buttonLayout.setUseDefaultMargins(true);
+        buttonLayout.setPadding(p2, 0, p2, 0);
 
-            if (!enabled) {
-                if (Looper.myLooper() == Looper.getMainLooper()) settings.setEnabled(false);
-                else Utils.mainThread.post(() -> settings.setEnabled(false));
-            }
-            if (p.settingsTab.type == Type.PAGE && p.settingsTab.page != null)
-                settings.setOnClickListener(v -> {
-                    try {
-                        Utils.openPageWithProxy(
-                                v.getContext(),
-                                p.settingsTab.args != null
-                                        ? ReflectUtils.invokeConstructorWithArgs(p.settingsTab.page, p.settingsTab.args)
-                                        : p.settingsTab.page.newInstance());
-                    } catch (Throwable e) { PluginManager.logger.error(context, "Failed to open settings page for " + p.name, e); }
-                });
-            else if (p.settingsTab.type == Type.BOTTOM_SHEET && p.settingsTab.bottomSheet != null)
-                settings.setOnClickListener(v -> {
-                    try {
-                        AppBottomSheet sheet = p.settingsTab.args != null
-                                ? ReflectUtils.invokeConstructorWithArgs(p.settingsTab.bottomSheet, p.settingsTab.args)
-                                : p.settingsTab.bottomSheet.newInstance();
+        settingsButton = new Button(ctx);
+        settingsButton.setText("Settings");
 
-                        sheet.show(fragmentManager, name + "Settings");
-                    } catch (Throwable e) { PluginManager.logger.error(context, "Failed to open settings page for " + p.name, e); }
-                });
+        uninstallButton = new DangerButton(ctx);
+        uninstallButton.setText("Uninstall");
 
-            buttons.addView(settings, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(2)));
-        }
+        repoButton = new ToolbarButton(ctx);
+        repoButton.setImageDrawable(ContextCompat.getDrawable(ctx, R$d.ic_github_white));
 
-        DangerButton uninstall = new DangerButton(context);
-        uninstall.setText("Uninstall");
-        uninstall.setOnClickListener(e -> {
-            File pluginFile = new File(Constants.BASE_PATH + "/plugins/" + p.__filename + ".zip");
-            if (pluginFile.exists() && !pluginFile.delete()) PluginManager.logger.error(context, "Failed to delete plugin " + p.name, null);
-            PluginManager.stopPlugin(name);
-            PluginManager.plugins.remove(name);
-            PluginManager.logger.info(context, "Successfully deleted " + p.name);
-            setVisibility(GONE);
-        });
-        buttons.addView(uninstall, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(3)));
+        buttonLayout.addView(settingsButton, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(2)));
+        buttonLayout.addView(uninstallButton, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(3)));
 
-        AppCompatImageButton openRepo = new ToolbarButton(context);
-        openRepo.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_github_white));
-        openRepo.setOnClickListener(e -> {
-            String url = manifest.updateUrl.replace("raw.githubusercontent.com", "github.com").replaceFirst("/builds.*", "");
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse(url));
-            caller.startActivity(intent);
-        });
         GridLayout.LayoutParams params = new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(0));
         params.setGravity(Gravity.CENTER_VERTICAL);
-        buttons.addView(openRepo, params);
+        buttonLayout.addView(repoButton, params);
 
-        pluginLayout.addView(buttons);
+        root.addView(buttonLayout);
 
-        addView(pluginLayout);
-    }
-
-    @Override
-    public String toString() {
-        return "PluginCard, " + titleView.getText();
+        addView(root);
     }
 }
