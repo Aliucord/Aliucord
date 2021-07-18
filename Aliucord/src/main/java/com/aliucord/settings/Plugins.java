@@ -241,8 +241,8 @@ public class Plugins extends SettingsPage {
                 PluginManager.logger.info(ctx, "Successfully deleted " + p.name);
 
                 dialog.dismiss();
-                originalData.remove(p);
                 data.remove(position);
+                if (originalData != data) originalData.remove(p);
                 notifyItemRemoved(position);
             });
 
