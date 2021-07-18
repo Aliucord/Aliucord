@@ -8,7 +8,10 @@ package com.aliucord.settings;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.RectShape;
 import android.net.Uri;
 import android.text.*;
 import android.text.style.ClickableSpan;
@@ -18,6 +21,7 @@ import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.*;
 
 import com.aliucord.*;
@@ -27,11 +31,10 @@ import com.aliucord.fragments.SettingsPage;
 import com.aliucord.utils.ReflectUtils;
 import com.aliucord.views.TextInput;
 import com.aliucord.views.ToolbarButton;
+import com.aliucord.widgets.PluginCard;
 import com.discord.app.AppBottomSheet;
 import com.discord.app.AppFragment;
-import com.discord.utilities.mg_recycler.*;
 import com.discord.widgets.user.usersheet.WidgetUserSheet;
-import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.lytefast.flexinput.R$d;
 import com.lytefast.flexinput.R$g;
 
@@ -41,187 +44,116 @@ import java.util.*;
 public class Plugins extends SettingsPage {
     private static final int uniqueId = View.generateViewId();
 
-    private static final int resId = Utils.getResId("widget_settings_item_connected_account", "layout");
-    private static final int disconnectBtnId = Utils.getResId("connected_account_disconnect", "id");
-    private static final int accountImgId = Utils.getResId("connected_account_img", "id");
-    private static final int accountNameId = Utils.getResId("connected_account_name", "id");
-    private static final int displaySwitchId = Utils.getResId("display_switch", "id");
-    private static final int displayAsStatusSwitchId = Utils.getResId("display_activity_switch", "id");
-    private static final int syncFriendsSwitchId = Utils.getResId("sync_friends_switch", "id");
-    private static final int extraInfoId = Utils.getResId("extra_info", "id");
-
-    public static class Adapter extends MGRecyclerAdapterSimple<Adapter.PluginItem> implements Filterable {
-        public static final class PluginItem implements MGRecyclerDataPayload {
-            public final Plugin plugin;
-            public PluginItem(Plugin plugin) {
-                this.plugin = plugin;
-            }
-
-            @Override
-            public String getKey() { return plugin.name; }
-
-            @Override
-            public int getType() { return 0; }
-        }
-
-        public static final class ViewHolder extends MGRecyclerViewHolder<Adapter, PluginItem> {
-            private final ImageView disconnectBtn;
-            private final ImageView accountImg;
-            private final TextView accountName;
-            private final SwitchMaterial displaySwitch;
-            private final SwitchMaterial displayAsStatusSwitch;
-            private final SwitchMaterial syncFriendsSwitch;
-            private final TextView extraInfo;
-            private final TextView label;
-
-            public ViewHolder(Adapter adapter) {
-                super(resId, adapter);
-                View view = this.itemView;
-                disconnectBtn = view.findViewById(disconnectBtnId);
-                accountImg = view.findViewById(accountImgId);
-                accountName = view.findViewById(accountNameId);
-                displaySwitch = view.findViewById(displaySwitchId);
-                displayAsStatusSwitch = view.findViewById(displayAsStatusSwitchId);
-                syncFriendsSwitch = view.findViewById(syncFriendsSwitchId);
-                extraInfo = view.findViewById(extraInfoId);
-                // LinearLayout integrationsRoot = view.findViewById(Utils.getResId("integrations_root", "id"));
-                label = view.findViewById(Utils.getResId("label", "id"));
-            }
+    public static class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> implements Filterable {
+        public static final class ViewHolder extends RecyclerView.ViewHolder {
+            private final Adapter adapter;
+            public final PluginCard card;
 
             @SuppressLint("SetTextI18n")
-            public void onConfigure(int idx, PluginItem pluginItem) {
-                super.onConfigure(idx, pluginItem);
+            public ViewHolder(Adapter adapter, PluginCard card) {
+                super(card);
+                this.adapter = adapter;
+                this.card = card;
 
-                displayAsStatusSwitch.setVisibility(View.GONE);
-                syncFriendsSwitch.setVisibility(View.GONE);
+                card.repoButton.setOnClickListener(this::onGithubClick);
+                card.uninstallButton.setOnClickListener(this::onUninstallClick);
+                card.switchHeader.setOnCheckedListener(this::onToggleClick);
+                card.settingsButton.setOnClickListener(this::onSettingsClick);
+            }
 
-                Context ctx = disconnectBtn.getContext();
-                Plugin p = pluginItem.plugin;
-                Plugin.Manifest manifest = p.getManifest();
-                String name = p.name;
-                boolean isEnabled = PluginManager.isPluginEnabled(name);
+            public void onGithubClick(View view) {
+                adapter.onGithubClick(getAdapterPosition());
+            }
 
-                accountImg.setImageDrawable(ContextCompat.getDrawable(ctx, R$d.ic_github_white));
-                accountImg.setOnClickListener(e -> {
-                    String url = manifest.updateUrl.replace("raw.githubusercontent.com", "github.com").replaceFirst("/builds.*", "");
-                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setData(Uri.parse(url));
-                    adapter.fragment.startActivity(intent);
-                });
-
-                String title = String.format("%s v%s by %s", name, manifest.version, TextUtils.join(", ", manifest.authors));
-                SpannableString spannableTitle = new SpannableString(title);
-                for (Plugin.Manifest.Author author : manifest.authors) {
-                    if (author.id < 1) continue;
-                    int i = title.indexOf(author.name, name.length() + 2 + manifest.version.length() + 3);
-                    spannableTitle.setSpan(new ClickableSpan() {
-                        @Override
-                        public void onClick(@NonNull View widget) {
-                            WidgetUserSheet.Companion.show(author.id, adapter.fragment.getParentFragmentManager());
-                        }
-                    }, i, i + author.name.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            public void onSettingsClick(View view) {
+                try {
+                    adapter.onSettingsClick(getAdapterPosition());
+                } catch (Throwable th) {
+                    PluginManager.logger.error(view.getContext(), "Failed to launch plugin settings", th);
                 }
-                accountName.setText(spannableTitle);
+            }
 
-                disconnectBtn.setOnClickListener(e -> {
-                    ConfirmDialog confirm = new ConfirmDialog()
-                            .setTitle("Delete " + name)
-                            .setDescription("Are you sure you want to delete this plugin?")
-                            .setIsDangerous(true);
-                    confirm.setOnOkListener(_e -> {
-                                File pluginFile = new File(Constants.BASE_PATH + "/plugins/" + p.__filename + ".zip");
-                                if (pluginFile.exists() && !pluginFile.delete()) {
-                                    PluginManager.logger.error(ctx, "Failed to delete plugin " + p.name, null);
-                                    return;
-                                }
+            public void onToggleClick(boolean checked) {
+                adapter.onToggleClick(this, checked, getAdapterPosition());
+            }
 
-                                PluginManager.stopPlugin(name);
-                                PluginManager.plugins.remove(name);
-                                PluginManager.logger.info(ctx, "Successfully deleted " + p.name);
-
-                                this.itemView.setVisibility(View.GONE);
-
-                                int position = getAdapterPosition();
-                                if (position != RecyclerView.NO_POSITION) {
-                                    adapter.getInternalData().remove(position);
-                                    access$dispatchUpdates(adapter, null, adapter.items, adapter.getInternalData());
-                                }
-
-                                adapter.items.remove(pluginItem);
-
-                                confirm.dismiss();
-                            });
-                    confirm.show(adapter.fragment.getParentFragmentManager(), "Confirm Delete");
-                });
-
-                displaySwitch.setChecked(isEnabled);
-                displaySwitch.setText("Enabled");
-                displaySwitch.setOnClickListener(e -> {
-                    PluginManager.togglePlugin(name);
-                    if (p.settingsTab != null) extraInfo.setEnabled(extraInfo.isEnabled());
-                });
-
-                label.setAllCaps(false);
-                label.setText(manifest.description);
-
-                if (p.settingsTab != null) {
-                    extraInfo.setText("Launch Settings");
-                    extraInfo.setVisibility(View.VISIBLE);
-                    extraInfo.setEnabled(isEnabled);
-                    if (p.settingsTab.type == Plugin.SettingsTab.Type.PAGE && p.settingsTab.page != null)
-                        extraInfo.setOnClickListener(v -> {
-                            try {
-                                Utils.openPageWithProxy(
-                                        v.getContext(),
-                                        p.settingsTab.args != null
-                                                ? ReflectUtils.invokeConstructorWithArgs(p.settingsTab.page, p.settingsTab.args)
-                                                : p.settingsTab.page.newInstance());
-                            } catch (Throwable e) { PluginManager.logger.error(ctx, "Failed to open settings page for " + p.name, e); }
-                        });
-                    else if (p.settingsTab.type == Plugin.SettingsTab.Type.BOTTOM_SHEET && p.settingsTab.bottomSheet != null)
-                        extraInfo.setOnClickListener(v -> {
-                            try {
-                                AppBottomSheet sheet = p.settingsTab.args != null
-                                        ? ReflectUtils.invokeConstructorWithArgs(p.settingsTab.bottomSheet, p.settingsTab.args)
-                                        : p.settingsTab.bottomSheet.newInstance();
-
-                                sheet.show(adapter.fragment.getParentFragmentManager(), name + "Settings");
-                            } catch (Throwable e) { PluginManager.logger.error(ctx, "Failed to open settings page for " + p.name, e); }
-                        });
-                } else extraInfo.setVisibility(View.GONE);
+            public void onUninstallClick(View view) {
+                adapter.onUninstallClick(getAdapterPosition());
             }
         }
 
-        public final AppFragment fragment;
-        public final List<PluginItem> items;
+        private final AppFragment fragment;
+        private final Context ctx;
+        private final List<Plugin> originalData;
+        private List<Plugin> data;
 
-        private final Adapter _this = this;
-
-        public Adapter(AppFragment fragment, RecyclerView rv, Collection<Plugin> plugins) {
-            super(rv, false);
+        public Adapter(AppFragment fragment, Collection<Plugin> plugins) {
+            super();
 
             this.fragment = fragment;
-            this.items = CollectionUtils.map(plugins, PluginItem::new);
-            items.sort(Comparator.comparing(p -> p.plugin.name));
+            ctx = fragment.requireContext();
 
-            setData(new ArrayList<>(items));
+            this.originalData = new ArrayList<>(plugins);
+            originalData.sort(Comparator.comparing(p -> p.name));
+
+            data = originalData;
+        }
+
+        @Override
+        public int getItemCount() {
+            return data.size();
         }
 
         @NonNull
         @Override
-        public MGRecyclerViewHolder<Adapter, PluginItem> onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            return new ViewHolder(this);
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            return new ViewHolder(this, new PluginCard(ctx));
         }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            Plugin p = data.get(position);
+            Plugin.Manifest manifest = p.getManifest();
+
+            holder.card.switchHeader.setChecked(PluginManager.isPluginEnabled(p.name));
+            holder.card.descriptionView.setText(p.getManifest().description);
+            holder.card.settingsButton.setVisibility(p.settingsTab != null ? View.VISIBLE : View.GONE);
+
+            String title = String.format("%s v%s by %s", p.name, manifest.version, TextUtils.join(", ", manifest.authors));
+            SpannableString spannableTitle = new SpannableString(title);
+            for (Plugin.Manifest.Author author : manifest.authors) {
+                if (author.id < 1) continue;
+                int i = title.indexOf(author.name, p.name.length() + 2 + manifest.version.length() + 3);
+                spannableTitle.setSpan(new ClickableSpan() {
+                    @Override
+                    public void onClick(@NonNull View widget) {
+                        WidgetUserSheet.Companion.show(author.id, fragment.getParentFragmentManager());
+                    }
+                }, i, i + author.name.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+
+            holder.card.titleView.setText(spannableTitle);
+        }
+
+        private final Adapter _this = this;
 
         private final Filter filter = new Filter() {
             @Override
             protected FilterResults performFiltering(CharSequence constraint) {
-                List<PluginItem> resultsList;
+                List<Plugin> resultsList;
                 if (constraint == null || constraint.equals(""))
-                    resultsList = items;
+                    resultsList = originalData;
                 else {
                     String search = constraint.toString().toLowerCase().trim();
-                    resultsList = CollectionUtils.filter(items, p -> p.plugin.name.toLowerCase().contains(search));
+                    resultsList = CollectionUtils.filter(originalData, p -> {
+                                if (p.name.toLowerCase().contains(search)) return true;
+                                Plugin.Manifest manifest = p.getManifest();
+                                if (manifest.description.toLowerCase().contains(search)) return true;
+                                for (Plugin.Manifest.Author author : manifest.authors)
+                                    if (author.name.toLowerCase().contains(search)) return true;
+                                return false;
+                            }
+                    );
                 }
                 FilterResults results = new FilterResults();
                 results.values = resultsList;
@@ -230,16 +162,91 @@ public class Plugins extends SettingsPage {
 
             @Override
             protected void publishResults(CharSequence constraint, FilterResults results) {
-                List<PluginItem> res = (List<PluginItem>) results.values;
-                int size = res.size();
-                if (size != items.size() || size > getInternalData().size())
-                    access$dispatchUpdates(_this, null, getInternalData(), res);
+                List<Plugin> res = (List<Plugin>) results.values;
+                DiffUtil.calculateDiff(new DiffUtil.Callback() {
+                    @Override
+                    public int getOldListSize() {
+                        return getItemCount();
+                    }
+                    @Override
+                    public int getNewListSize() {
+                        return res.size();
+                    }
+                    @Override
+                    public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+                        return data.get(oldItemPosition).name.equals(res.get(newItemPosition).name);
+                    }
+                    @Override
+                    public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+                        return true;
+                    }
+                }, false).dispatchUpdatesTo(_this);
+                data = res;
             }
         };
 
         @Override
         public Filter getFilter() {
             return filter;
+        }
+
+        public void onGithubClick(int position) {
+            String url = data.get(position)
+                    .getManifest().updateUrl
+                    .replace("raw.githubusercontent.com", "github.com")
+                    .replaceFirst("/builds.*", "");
+
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse(url));
+            fragment.startActivity(intent);
+        }
+
+        public void onSettingsClick(int position) throws Throwable {
+            Plugin p = data.get(position);
+            if (p.settingsTab.type == Plugin.SettingsTab.Type.PAGE && p.settingsTab.page != null) {
+                Fragment page = p.settingsTab.args != null
+                        ? ReflectUtils.invokeConstructorWithArgs(p.settingsTab.page, p.settingsTab.args)
+                        : p.settingsTab.page.newInstance();
+                Utils.openPageWithProxy(ctx, page);
+            } else if (p.settingsTab.type == Plugin.SettingsTab.Type.BOTTOM_SHEET && p.settingsTab.bottomSheet != null) {
+                AppBottomSheet sheet = p.settingsTab.args != null
+                        ? ReflectUtils.invokeConstructorWithArgs(p.settingsTab.bottomSheet, p.settingsTab.args)
+                        : p.settingsTab.bottomSheet.newInstance();
+
+                sheet.show(fragment.getParentFragmentManager(), p.name + "Settings");
+            }
+        }
+
+        public void onToggleClick(ViewHolder holder, boolean state, int position) {
+            String name = data.get(position).name;
+            PluginManager.togglePlugin(name);
+            holder.card.settingsButton.setEnabled(state);
+        }
+
+        public void onUninstallClick(int position) {
+            Plugin p = data.get(position);
+            ConfirmDialog dialog = new ConfirmDialog()
+                    .setIsDangerous(true)
+                    .setTitle("Delete " + p.name)
+                    .setDescription("Are you sure you want to delete this plugin? This action cannot be undone.");
+            dialog.setOnOkListener(e -> {
+                File pluginFile = new File(Constants.BASE_PATH + "/plugins/" + p.__filename + ".zip");
+                if (pluginFile.exists() && !pluginFile.delete()) {
+                    PluginManager.logger.error(ctx, "Failed to delete plugin " + p.name, null);
+                    return;
+                }
+
+                PluginManager.stopPlugin(p.name);
+                PluginManager.plugins.remove(p.name);
+                PluginManager.logger.info(ctx, "Successfully deleted " + p.name);
+
+                dialog.dismiss();
+                originalData.remove(p);
+                data.remove(position);
+                notifyItemRemoved(position);
+            });
+
+            dialog.show(fragment.getParentFragmentManager(), "Confirm Plugin Uninstall");
         }
     }
 
@@ -285,15 +292,18 @@ public class Plugins extends SettingsPage {
 
         TextInput input = new TextInput(context);
         input.setHint(context.getString(R$g.search));
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        p = (int) (padding * 1.5);
-        params.setMargins(p, p, p, p);
-        input.setLayoutParams(params);
 
         RecyclerView recyclerView = new RecyclerView(context);
         recyclerView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
-        Adapter adapter = new Adapter(this, recyclerView, PluginManager.plugins.values());
+        Adapter adapter = new Adapter(this, PluginManager.plugins.values());
         recyclerView.setAdapter(adapter);
+        ShapeDrawable shape = new ShapeDrawable(new RectShape());
+        shape.setTint(Color.TRANSPARENT);
+        shape.setIntrinsicHeight(padding);
+        DividerItemDecoration decoration = new DividerItemDecoration(context, DividerItemDecoration.VERTICAL);
+        decoration.setDrawable(shape);
+        recyclerView.addItemDecoration(decoration);
+        recyclerView.setPadding(0, padding, 0, 0);
 
         addView(input);
         addView(recyclerView);
@@ -306,8 +316,8 @@ public class Plugins extends SettingsPage {
                     adapter.getFilter().filter(s);
                 }
 
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                public void onTextChanged(CharSequence s, int start, int before, int count) {}
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+                public void onTextChanged(CharSequence s, int start, int before, int count) { }
             });
         }
     }
