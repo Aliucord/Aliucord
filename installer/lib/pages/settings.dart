@@ -27,6 +27,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
   static final List<CheckBoxData> _checkBoxes = [
     CheckBoxData('replace_bg', 'Replace icon background with Aliucord\'s', true),
     CheckBoxData('use_dex_from_storage', 'Use Aliucord.dex from storage', false),
+    CheckBoxData('developer_mode', 'Developer Mode', false),
   ];
   int _theme = 0;
   String _dexLocation = defaultDexLocation;
