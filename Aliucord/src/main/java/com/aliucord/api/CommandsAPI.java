@@ -262,7 +262,7 @@ public class CommandsAPI {
                             "If it isn't, report it to the plugin author%s.\n\n" +
                             "Debug:```\nCommand: %s\nPlugin: %s v%s\nDiscord v%s\nAndroid %s (SDK %d)\nAliucord %s```\nArguments:```\n%s```\n",
                             t.toString(),
-                            manifest.authors.length != 0 ? " (" + manifest.authors.join(", ") + ")" : "",
+                            manifest.authors.length != 0 ? " (" + TextUtils.join(", ", manifest.authors) + ")" : "",
                             name,
                             pluginName,
                             manifest.version,
