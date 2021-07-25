@@ -260,9 +260,10 @@ public class CommandsAPI {
                             Locale.ENGLISH,
                             "Oops! Something went wrong while running this command:\n```java\n%s```\n" +
                             "Please search for this error on the Aliucord server to see if it's a known issue. " +
-                            "If it isn't, report it to the plugin author%s.\n\n" +
+                            "If it isn't, report it to the plugin %s%s.\n\n" +
                             "Debug:```\nCommand: %s\nPlugin: %s v%s\nDiscord v%s\nAndroid %s (SDK %d)\nAliucord %s```\nArguments:```\n%s```\n",
                             t.toString(),
+                            Utils.pluralise(manifest.authors.length, ("author")),
                             manifest.authors.length != 0 ? " (" + TextUtils.join(", ", manifest.authors) + ")" : "",
                             name,
                             pluginName,
