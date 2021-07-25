@@ -6,6 +6,7 @@
 package com.aliucord.api;
 
 import android.os.Build;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -259,10 +260,11 @@ public class CommandsAPI {
                             Locale.ENGLISH,
                             "Oops! Something went wrong while running this command:\n```java\n%s```\n" +
                             "Please search for this error on the Aliucord server to see if it's a known issue. " +
-                            "If it isn't, report it to the plugin author%s.\n\n" +
+                            "If it isn't, report it to the plugin %s%s.\n\n" +
                             "Debug:```\nCommand: %s\nPlugin: %s v%s\nDiscord v%s\nAndroid %s (SDK %d)\nAliucord %s```\nArguments:```\n%s```\n",
                             t.toString(),
-                            manifest.authors.length != 0 ? " (" + manifest.authors[0].name + ")" : "",
+                            manifest.authors.length == 1 ? "author" : "authors",
+                            manifest.authors.length != 0 ? " (" + TextUtils.join(", ", manifest.authors) + ")" : "",
                             name,
                             pluginName,
                             manifest.version,
