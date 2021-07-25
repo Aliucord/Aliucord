@@ -64,50 +64,63 @@ class _InitInstallDialogState extends State<_InitInstallDialog> {
     ));
   }
 
-  Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Select Discord apk'),
-    content: Column(mainAxisSize: MainAxisSize.min, children: [
-      RadioListTile(
-        title: const Text('Download'),
-        value: _InstallOption.download,
-        groupValue: _option,
-        onChanged: (_InstallOption? value) => setState(() {
-          _option = value;
-          _download = true;
-          _apk = null;
-          _package = null;
-        }),
-      ),
-      RadioListTile(
-        title: Text('From installed app ' + (_package == null ? '' : '($_package)')),
-        value: _InstallOption.installed_app,
-        groupValue: _option,
-        onChanged: _selectFromInstalledApp,
-      ),
-      RadioListTile(
-        title: Text('From storage ' + (_package == null && _apk != null ? '(${_apk!.split('/').last})' : '')),
-        value: _InstallOption.storage,
-        groupValue: _option,
-        onChanged: (_InstallOption? value) async {
-          final apk = await pickFile(context, 'Select Discord apk', '.apk');
-          if (apk != null) setState(() {
+  Widget build(BuildContext context) {
+    final children = [
+        RadioListTile(
+          title: const Text('Download'),
+          value: _InstallOption.download,
+          groupValue: _option,
+          onChanged: (_InstallOption? value) => setState(() {
             _option = value;
-            _download = false;
-            _apk = apk;
+            _download = true;
+            _apk = null;
             _package = null;
-          });
-        },
-      ),
-    ]),
-    actions: [
-      TextButton(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [ Icon(Icons.archive_outlined), Text(' Install') ],
+          }),
         ),
-        onPressed: () => Navigator.pushAndRemoveUntil(
-          context, MaterialPageRoute(builder: (context) => InstallPage(apk: _apk, commit: widget.commit, download: _download, supportedVersion: widget.supportedVersion)), (r) => false),
-      ),
-    ],
-  );
+    ];
+
+    if (prefs.getBool('developer_mode') ?? false) {
+      children.add(
+          RadioListTile(
+            title: Text('From installed app ' + (_package == null ? '' : '($_package)')),
+            value: _InstallOption.installed_app,
+            groupValue: _option,
+            onChanged: _selectFromInstalledApp,
+          )
+      );
+      children.add(
+          RadioListTile(
+            title: Text('From storage ' + (_package == null && _apk != null
+              ? '(${_apk!.split('/').last})'
+              : '')),
+            value: _InstallOption.storage,
+            groupValue: _option,
+            onChanged: (_InstallOption? value) async {
+              final apk = await pickFile(context, 'Select Discord apk', '.apk');
+              if (apk != null) setState(() {
+                _option = value;
+                _download = false;
+                _apk = apk;
+                _package = null;
+              });
+            },
+          )
+      );
+    }
+
+    return AlertDialog(
+      title: const Text('Select Discord apk'),
+      content: Column(mainAxisSize: MainAxisSize.min, children: children),
+      actions: [
+        TextButton(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [ Icon(Icons.archive_outlined), Text(' Install') ],
+          ),
+          onPressed: () => Navigator.pushAndRemoveUntil(
+            context, MaterialPageRoute(builder: (context) => InstallPage(apk: _apk, commit: widget.commit, download: _download, supportedVersion: widget.supportedVersion)), (r) => false),
+        ),
+      ],
+    );
+  }
 }
