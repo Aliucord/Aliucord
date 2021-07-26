@@ -18,6 +18,7 @@ import com.aliucord.entities.NotificationData;
 import com.aliucord.entities.Plugin;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -147,7 +148,17 @@ public class PluginUpdater {
         String url = updateInfo.build;
         if (url.contains("%s")) url = String.format(url, plugin);
 
-        try (FileOutputStream out = new FileOutputStream(Constants.BASE_PATH + "/plugins/" + p.__filename + ".zip")) {
+        String pluginPath = Constants.BASE_PATH + "/plugins/" + p.__filename;
+        File zipPlugin = new File(pluginPath + ".zip");
+
+        //Remove the plugin with zip extension to avoid duplicates
+        if (zipPlugin.exists()) {
+            if (!zipPlugin.delete()) {
+                return false;
+            }
+        }
+
+        try(FileOutputStream out = new FileOutputStream(pluginPath + ".aliu")) {
             new Http.Request(url).execute().pipe(out);
         }
 

@@ -31,7 +31,7 @@ public class PluginManager {
      */
     @SuppressWarnings({"JavaReflectionMemberAccess", "unchecked"})
     public static void loadPlugin(Context context, File file) {
-        String name = file.getName().replace(".zip", "");
+        String name = file.getName().replace(".zip", "").replace(".aliu", "");
         logger.info("Loading plugin: " + name);
         try {
             PathClassLoader loader = new PathClassLoader(file.getAbsolutePath(), context.getClassLoader());
