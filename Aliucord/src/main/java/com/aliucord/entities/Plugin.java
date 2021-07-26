@@ -8,6 +8,7 @@ package com.aliucord.entities;
 import android.content.Context;
 import android.content.res.Resources;
 import android.view.View;
+import android.graphics.drawable.Drawable;
 
 import androidx.annotation.NonNull;
 
@@ -60,6 +61,8 @@ public abstract class Plugin {
         // TODO: public String discord;
         /** The updater JSON url */
         public String updateUrl;
+        /** Icon for potential use with DedicatedPluginSettings */
+        public Drawable icon;
     }
 
     /** Plugin SettingsTab */
