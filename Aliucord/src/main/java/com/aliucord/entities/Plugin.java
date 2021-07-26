@@ -61,8 +61,8 @@ public abstract class Plugin {
         // TODO: public String discord;
         /** The updater JSON url */
         public String updateUrl;
-        /** Icon for potential use with DedicatedPluginSettings */
-        public Drawable icon;
+        /** Icon used to represent plugin */
+        public int icon;
     }
 
     /** Plugin SettingsTab */
