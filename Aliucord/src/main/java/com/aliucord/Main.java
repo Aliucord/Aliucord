@@ -62,7 +62,7 @@ public final class Main {
                 boolean res = dir.mkdirs();
                 if (!res) logger.error("Failed to create directories!", null);
             }
-            for (File f : Objects.requireNonNull(dir.listFiles((d, name) -> name.endsWith(".zip") && name.endsWith(".aliu"))))
+            for (File f : Objects.requireNonNull(dir.listFiles((d, name) -> name.endsWith(".zip") || name.endsWith(".aliu"))))
                 PluginManager.loadPlugin(activity, f);
         }
     }
