@@ -41,7 +41,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import c.a.d.l;
+import c.a.e.l;
 import c.a.l.b;
 import rx.Subscriber;
 import rx.functions.Action0;
@@ -362,7 +362,7 @@ public class Utils {
      */
     public static CharSequence renderMD(CharSequence source) {
         try {
-            return b.k(source, new Object[0], null, 2);
+            return b.l(source, new Object[0], null, 2);
         } catch (Throwable e) { Main.logger.error("Failed to render markdown", e); }
         return source;
     }

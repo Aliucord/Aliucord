@@ -33,7 +33,7 @@ public final class User {
         Integer approximateGuildCount,
         GuildMember guildMember,
         NullSerializable<String> bio,
-        String bannerColor
+        NullSerializable<String> bannerColor
     ) {}
 
     /**
@@ -53,7 +53,7 @@ public final class User {
      * @deprecated Do not use this directly, use {@link com.discord.models.user.CoreUser} instead.
      */
     @Deprecated
-    public final String c() { return null; }
+    public final NullSerializable<String> c() { return null; }
     /**
      * getBio
      * @deprecated Do not use this directly, use {@link com.discord.models.user.CoreUser} instead.
