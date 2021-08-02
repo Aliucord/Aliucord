@@ -47,7 +47,7 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
 
 ### Supported Discord version(s)
 
-- 83.10 - Alpha (83210)
+- 86.5 / Alpha 86205 (You don't need the apk, the installer will download it for you)
 
 ## 🎨 Features
 
@@ -60,7 +60,6 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
 - Crash logging!
     - In-app crash log page to give a more native feel
     - Logs are also saved to `Aliucord/crashlogs` for easy access outside of the app
-    - Clear all logs at the click of a button!
 - Installer app with multiple features!
     - Helps you keep track of which updates to this repository require you to update
     - Automatically downloads the latest files for Aliucord, so you can get busy updating
@@ -78,11 +77,11 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
 1. Download and install [Installer-release.apk](https://github.com/Aliucord/Aliucord/raw/builds/Installer-release.apk) from the `builds` branch
 2. Open the newly installed "Aliucord Installer" app from your app drawer
 3. Click "Install", then choose the "Download" option
-    - *psst... only choose the other options if you know what you're doing!*
-5. Wait for it to finish patching the Discord APK
-6. Click "Install" once prompted by Android and wait for Aliucord to finish installing
-7. If Google Play warns you about this application being unverified, ignore it as it triggers thanks to an unverified signature¹
-8. Open Aliucord, grant access to files (it needs this for finding plugins), log in to your account, and voila! Aliucord is at your fingertips!
+    - ⚠️ DO NOT USE "From installed app" OR "From storage" UNLESS YOU KNOW WHAT YOU'RE DOING, OTHERWISE ALIUCORD WILL LIKELY NOT WORK CORRECTLY
+4. Wait for it to finish patching the Discord APK
+5. Click "Install" once prompted by Android and wait for Aliucord to finish installing
+6. If Google Play warns you about this application being unverified, ignore it as it triggers thanks to an unverified signature¹
+7. Open Aliucord, grant access to files (it needs this for finding plugins), log in to your account, and voila! Aliucord is at your fingertips!
 
 > ¹ If you'd like, you can disable this warning by turning off Play Protect in Google Play's settings, it's mostly useless.
 > 
@@ -97,7 +96,7 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
 4. Open the "plugins" folder, or if it doesn't exist, create it yourself. Remember: LOWERCASE "p"
 5. Either search GitHub or join our [support server](https://discord.gg/EsNDvBaHVU) and visit the `#plugin-links` channel for plugins to download
 6. Visit the `builds` branch of any GitHub repositories you get linked to and download the ZIP files of the plugins you wish to load with Aliucord
-7. Once you've downloaded the plugins, move them into the `Aliucord/plugins` folder
+7. Once you've downloaded the plugins, move them into the `Aliucord/plugins` folder (Do not extract the zip)
 8. Open Aliucord, check the plugins tab and hopefully see your plugin(s) listed!
 
 > Hint: There is a [PluginDownloader plugin](https://github.com/Vendicated/AliucordPlugins/blob/builds/PluginDownloader.zip?raw=true) that makes installing plugins a lot easier by adding download buttons to messages in either of the plugin channels

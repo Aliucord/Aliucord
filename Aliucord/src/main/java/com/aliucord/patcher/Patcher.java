@@ -7,16 +7,12 @@ package com.aliucord.patcher;
 
 import android.os.Bundle;
 
-import com.aliucord.Logger;
-import com.aliucord.Main;
+import com.aliucord.*;
 import com.discord.app.AppActivity;
 
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import top.canyie.pine.Pine;
 import top.canyie.pine.PineConfig;
@@ -32,7 +28,6 @@ public class Patcher {
     @SuppressWarnings("JavaReflectionMemberAccess")
     public static void init() {
         PineConfig.debug = false;
-        PineConfig.debuggable = true;
         PineConfig.disableHiddenApiPolicy = false;
         PineConfig.disableHiddenApiPolicyForPlatformDomain = false;
 
@@ -94,6 +89,9 @@ public class Patcher {
         };
     }
 
+    /**
+     * @deprecated Use {@link #addPatch(Class, String, Class[], MethodHook)}
+     */
     @Deprecated
     @SuppressWarnings("deprecation")
     public static Runnable addPrePatch(String forClass, String fn, PrePatchFunction patch) {
@@ -110,6 +108,9 @@ public class Patcher {
         };
     }
 
+    /**
+     * @deprecated Use {@link #addPatch(Class, String, Class[], MethodHook)}
+     */
     @Deprecated
     @SuppressWarnings("deprecation")
     public static Runnable addPatch(String forClass, String fn, PatchFunction patch) {

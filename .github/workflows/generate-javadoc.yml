@@ -1,0 +1,46 @@
+name: Javadoc
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - Aliucord/**
+
+jobs:
+  javadoc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Setup JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Generate Javadoc
+        run: |
+          chmod +x ./gradlew
+          ./gradlew Aliucord:javadoc
+
+      - name: Push Javadoc
+        shell: bash # GLOBIGNORE is a special bash variable so explicitly target bash
+        env:
+          API_TOKEN: ${{ secrets.API_PAT_GITHUB }}
+          USERNAME: Github-Actions
+          REPO: Aliucord/Javadoc
+        run: |
+          git config --global user.name "$USERNAME"
+          git config --global user.email actions@github.com
+
+          git clone https://$USERNAME:$API_TOKEN@github.com/$REPO.git
+          cd Javadoc
+
+          GLOBIGNORE=README.md:.git     # do not glob README and .git
+          rm -rf *
+
+          cp -r ../Aliucord/build/docs/javadoc/* .
+
+          git add .
+          git commit -m "Generate Javadoc for https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
+          git push https://$USERNAME:$API_TOKEN@github.com/$REPO.git

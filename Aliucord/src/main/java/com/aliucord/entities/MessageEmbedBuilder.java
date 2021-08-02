@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/** {@link com.discord.api.message.embed.MessageEmbed} builder */
 @SuppressWarnings({"unused"})
 public class MessageEmbedBuilder {
     // reflect moment
@@ -183,6 +184,7 @@ public class MessageEmbedBuilder {
      * @see MessageEmbedBuilder#addField(String, String, boolean)
      * @see MessageEmbedBuilder#createField(String, String, Boolean)
      */
+    @SuppressWarnings("unchecked")
     public MessageEmbedBuilder addField(EmbedField field) {
         try {
             List<EmbedField> o = (List<EmbedField>) fieldsField.get(embed);

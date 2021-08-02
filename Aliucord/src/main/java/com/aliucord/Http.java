@@ -12,12 +12,34 @@ import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Locale;
 
+/** Http Utilities */
 @SuppressWarnings("unused")
 public class Http {
     public static class HttpException extends IOException {
-        public HttpException(String message) {
-            super(message);
+        /** The url of this request */
+        public final URL url;
+        /** The HTTP method of this request */
+        public final String method;
+        /** The status code of the response */
+        public final int statusCode;
+        /** The status message of the response */
+        public final String statusMessage;
+        /** The raw Request object */
+        public final Request req;
+        /** The raw Response object */
+        public final Response res;
+
+        /** Creates a new HttpException for the specified Request and Response */
+        public HttpException(Request req, Response res) {
+            super(String.format(Locale.ENGLISH, "%d: %s", res.statusCode, res.statusMessage));
+            this.req = req;
+            this.res = res;
+            this.statusCode = res.statusCode;
+            this.statusMessage = res.statusMessage;
+            this.method = req.conn.getRequestMethod();
+            this.url = req.conn.getURL();
         }
     }
 
@@ -59,12 +81,30 @@ public class Http {
         /** The connection of this Request */
         public final HttpURLConnection conn;
 
+        /**
+         * Builds a GET request with the specified QueryBuilder
+         * @param builder QueryBuilder
+         * @throws IOException If an I/O exception occurs
+         */
         public Request(QueryBuilder builder) throws IOException {
             this(builder.toString(), "GET");
         }
+
+        /**
+         * Builds a GET request with the specified url
+         * @param url Url
+         * @throws IOException If an I/O exception occurs
+         */
         public Request(String url) throws IOException {
             this(url, "GET");
         }
+
+        /**
+         * Builds a request with the specified url and method
+         * @param url Url
+         * @param method <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods">HTTP method</a>
+         * @throws IOException If an I/O exception occurs
+         */
         public Request(String url, String method) throws IOException {
             conn = (HttpURLConnection) new URL(url).openConnection();
             conn.setRequestMethod(method.toUpperCase());
@@ -117,7 +157,7 @@ public class Http {
          * @return self
          */
         public Response executeWithBody(String body) throws IOException {
-            if (conn.getRequestMethod().equals("GET")) throw new HttpException("Body may not be specified in GET requests");
+            if (conn.getRequestMethod().equals("GET")) throw new IOException("Body may not be specified in GET requests");
             conn.setDoOutput(true);
             try (OutputStream out = conn.getOutputStream()) {
                 byte[] bytes = body.getBytes();
@@ -145,6 +185,11 @@ public class Http {
         /** The <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status">status message</a> of this response */
         public final String statusMessage;
 
+        /**
+         * Construct a Response
+         * @param req The http request to execute
+         * @throws IOException If an error occurred connecting to the server
+         */
         public Response(Request req) throws IOException {
             this.req = req;
             statusCode = req.conn.getResponseCode();
@@ -158,7 +203,7 @@ public class Http {
 
         /** Throws an HttpException if this request was not successful */
         public void assertOk() throws HttpException {
-            if (!ok()) throw new HttpException(String.format("%d: %s", statusCode, statusMessage));
+            if (!ok()) throw new HttpException(req, this);
         }
 
         /** Get the raw response */
@@ -202,6 +247,17 @@ public class Http {
                 os.flush();
             }
         }
+
+        /**
+         * Saves the received data to the specified file
+         * @param file The file to save the data to
+         * @throws IOException If an I/O error occurred: No such file / file is directory / etc
+         */
+        public void saveToFile(File file) throws IOException {
+            try (FileOutputStream os = new FileOutputStream(file)) {
+                pipe(os);
+            }
+        }
     }
 
     /**
@@ -224,6 +280,16 @@ public class Http {
     public static <T> T simpleJsonGet(String url, Type schema) throws IOException {
         String res = simpleGet(url);
         return Utils.fromJson(res, schema);
+    }
+
+    /**
+     * Send a simple GET request
+     * @param url The url to fetch
+     * @param schema Class to <a href="https://en.wikipedia.org/wiki/Serialization">deserialize</a> the response into
+     * @return Response Object
+     */
+    public static <T> T simpleJsonGet(String url, Class<T> schema) throws IOException {
+        return simpleJsonGet(url, (Type) schema);
     }
 
     /**
@@ -250,6 +316,18 @@ public class Http {
         return Utils.fromJson(res, schema);
     }
 
+    // This is just here for proper Generics so you can do simpleJsonPost(url, body, myClass).myMethod() without having to cast
+    /**
+     * Send a simple POST request and parse the JSON response
+     * @param url The url to fetch
+     * @param body The request body
+     * @param schema Class to <a href="https://en.wikipedia.org/wiki/Serialization">deserialize</a> the response into
+     * @return Response deserialized into the provided Class
+     */
+    public static <T> T simpleJsonPost(String url, String body, Class<T> schema) throws IOException {
+        return simpleJsonPost(url, body, (Type) schema);
+    }
+
     /**
      * Send a simple POST request with JSON body
      * @param url The url to fetch
@@ -259,5 +337,17 @@ public class Http {
      */
     public static <T> T simpleJsonPost(String url, Object body, Type schema) throws IOException {
         return new Request(url).executeWithJson(body).json(schema);
+    }
+
+    // This is just here for proper Generics so you can do simpleJsonPost(url, body, myClass).myMethod() without having to cast
+    /**
+     * Send a simple POST request with JSON body
+     * @param url The url to fetch
+     * @param body The request body
+     * @param schema Class to <a href="https://en.wikipedia.org/wiki/Serialization">deserialize</a> the response into
+     * @return Response deserialized into the provided Class
+     */
+    public static <T> T simpleJsonPost(String url, Object body, Class<T> schema) throws IOException {
+        return simpleJsonPost(url, body, (Type) schema);
     }
 }

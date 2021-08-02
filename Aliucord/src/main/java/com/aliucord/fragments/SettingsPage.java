@@ -18,6 +18,7 @@ import com.aliucord.views.ToolbarButton;
 import com.discord.app.AppFragment;
 import com.google.android.material.appbar.AppBarLayout;
 
+/** Settings Page Fragment */
 @SuppressWarnings("unused")
 public class SettingsPage extends AppFragment {
     private static final int resId = Utils.getResId("widget_settings_behavior", "layout");

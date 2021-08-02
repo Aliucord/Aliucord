@@ -7,8 +7,8 @@ import com.google.android.material.button.MaterialButton;
 
 import com.lytefast.flexinput.R$h;
 
+/** Red MaterialButton */
 public class DangerButton extends MaterialButton {
-
     /**
      * Creates a red Discord styled button.
      * @param context {@link Context}

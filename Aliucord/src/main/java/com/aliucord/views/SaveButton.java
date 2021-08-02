@@ -16,6 +16,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.lytefast.flexinput.R$c;
 import com.lytefast.flexinput.R$d;
 
+/** Discord Style Save Button */
 public class SaveButton extends LinearLayout {
     public SaveButton(Context context) {
         super(context);

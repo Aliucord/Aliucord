@@ -5,10 +5,9 @@
 
 package com.aliucord.utils;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.*;
 
+/** Utility class to ease Reflection */
 public final class ReflectUtils {
     /**
      * Gets the constructor for class T matching the specified arguments

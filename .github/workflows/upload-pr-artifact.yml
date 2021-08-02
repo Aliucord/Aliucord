@@ -1,0 +1,45 @@
+name: PR Artifact
+
+on:
+  pull_request:
+    paths:
+      - Aliucord/**
+      - DiscordStubs/**
+      - gradle/**
+      - settings.gradle
+      - gradlew
+      - gradle.properties
+      - build.gradle
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@3404b45d4c43e74e30dcad1a47fb89a0573f5a7e # v2.0.6
+
+      - name: Setup
+        run: |
+          echo "$ANDROID_HOME/build-tools/30.0.3" >> $GITHUB_PATH
+          mkdir -p ~/bin
+          mkdir -p ~/builds
+          wget https://github.com/Aliucord/buildtool/releases/download/v0.1.1/buildtool -P ~/bin
+          chmod +x ~/bin/buildtool
+          chmod +x $GITHUB_WORKSPACE/gradlew
+          echo "{\"aliucord\":\"$GITHUB_WORKSPACE\",\"outputs\":\"$(realpath ~/builds)\"}" > ~/config.json
+
+      - name: Build Aliucord
+        run: ~/bin/buildtool --config ~/config.json
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: Aliucord
+          path: ~/builds/Aliucord.dex

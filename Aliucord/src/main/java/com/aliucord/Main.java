@@ -7,6 +7,7 @@ package com.aliucord;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -22,52 +23,37 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.widget.NestedScrollView;
 
+import com.aliucord.coreplugins.CorePlugins;
 import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.PinePatchFn;
-import com.aliucord.settings.Crashes;
-import com.aliucord.settings.Plugins;
-import com.aliucord.settings.Updater;
+import com.aliucord.settings.*;
 import com.aliucord.updater.PluginUpdater;
 import com.aliucord.views.Divider;
 import com.discord.app.AppActivity;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.widgets.guilds.invite.WidgetGuildInvite;
 import com.discord.widgets.settings.WidgetSettings;
-import com.lytefast.flexinput.R$b;
-import com.lytefast.flexinput.R$d;
-import com.lytefast.flexinput.R$h;
+import com.lytefast.flexinput.*;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
+import java.io.*;
 import java.sql.Timestamp;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
-public class Main {
+import top.canyie.pine.PineConfig;
+
+public final class Main {
     public static boolean preInitialized = false;
     public static boolean initialized = false;
     public static final Logger logger = new Logger();
-
-    @Deprecated
-    @SuppressWarnings("deprecation")
-    public static Map<String, List<String>> getClassesToPatch() {
-        return getClassesToPatch(true);
-    }
-
-    @Deprecated
-    public static Map<String, List<String>> getClassesToPatch(boolean loadPlugins) {
-        return Collections.emptyMap();
-    }
 
     public static void preInit(AppActivity activity) {
         if (preInitialized) return;
         preInitialized = true;
 
+        PineConfig.debuggable = (activity.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+        Utils.log("App debuggable? " + PineConfig.debuggable);
         Utils.appActivity = activity;
-        PluginManager.loadCorePlugins(activity);
+        CorePlugins.loadAll(activity);
 
         if (checkPermissions(activity)) {
             File dir = new File(Constants.BASE_PATH + "/plugins");
@@ -190,7 +176,7 @@ public class Main {
             System.exit(2);
         });
 
-        PluginManager.startCorePlugins(activity);
+        CorePlugins.startAll(activity);
 
         for (String name : PluginManager.plugins.keySet()) {
             try {

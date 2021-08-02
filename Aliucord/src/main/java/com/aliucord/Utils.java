@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
@@ -40,12 +41,13 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import c.a.d.l;
+import c.a.e.l;
 import c.a.l.b;
 import rx.Subscriber;
 import rx.functions.Action0;
 import rx.functions.Action1;
 
+/** Utility class that holds miscellaneous Utilities */
 @SuppressWarnings("unused")
 public class Utils {
     /** The main (UI) thread */
@@ -147,7 +149,7 @@ public class Utils {
     private static int defaultCardRadius = 0;
 
     /**
-     * Gets the default padding for the items.
+     * Gets the default padding for the items. (16 DP)
      * @return default padding
      * @see Utils#dpToPx(int)
      * @see Utils#dpToPx(float)
@@ -157,26 +159,49 @@ public class Utils {
         return defaultPadding;
     }
 
+    /**
+     * Gets the default radius for cards. (8 DP)
+     * @return default padding
+     * @see Utils#dpToPx(int)
+     * @see Utils#dpToPx(float)
+     */
     public static int getDefaultCardRadius() {
         if (defaultCardRadius == 0) defaultCardRadius = Utils.dpToPx(8);
         return defaultCardRadius;
     }
 
-    public static <K, V> K getMapKey(Map<K, V> map, V val) {
+    /**
+     * Finds the mapping key for Object val where Objects.equals(val, entry.value)
+     * @param map The map to find the Object in
+     * @param val The object to find the key of
+     * @return Key of mapping or null if no such mapping exists
+     */
+    @Nullable
+    public static <K, V> K getMapKey(@NonNull Map<K, V> map, @Nullable V val) {
         for (Map.Entry<K, V> entry : map.entrySet()) {
             if (Objects.equals(val, entry.getValue())) return entry.getKey();
         }
         return null;
     }
 
-    public static void openPage(Context context, Class<? extends AppComponent> clazz) { Utils.openPage(context, clazz, null); }
-    public static void openPage(Context context, Class<? extends AppComponent> clazz, Intent intent) { l.d(context, clazz, intent); }
+    public static void openPage(Context context, Class<? extends AppComponent> clazz, Intent intent) {
+        l.d(context, clazz, intent);
+    }
+    public static void openPage(Context context, Class<? extends AppComponent> clazz) {
+        Utils.openPage(context, clazz, null);
+    }
     public static void openPageWithProxy(Context context, Fragment fragment) {
         String id = String.valueOf(SnowflakeUtils.fromTimestamp(System.currentTimeMillis() * 100));
         AppFragmentProxy.fragments.put(id, fragment);
         Utils.openPage(context, AppFragmentProxy.class, new Intent().putExtra("AC_FRAGMENT_ID", id));
     }
 
+    /**
+     * Creates a CommandChoice that can be used inside Command args
+     * @param name The name of the choice
+     * @param value The value representing this choice
+     * @return CommandChoice
+     */
     public static CommandChoice createCommandChoice(String name, String value) {
         CommandChoice choice = new CommandChoice();
         try {
@@ -186,15 +211,22 @@ public class Utils {
         return choice;
     }
 
+    /**
+     * Builds Clyde User
+     * @return Built Clyde
+     */
+    @NonNull
     public static User buildClyde() {
         return buildClyde(null, null);
     }
+
     /**
-     * Clyde builder
-     * @param name Name of Clyde
-     * @param avatarUrl Avatar URL of Clyde
-     * @return Customized Clyde
+     * Builds a Pseudo Clyde User
+     * @param name Name of user
+     * @param avatarUrl Avatar URL of user
+     * @return Built user
      */
+    @NonNull
     public static User buildClyde(@Nullable String name, @Nullable String avatarUrl) {
         if (name == null) name = "Clyde";
         if (avatarUrl == null) avatarUrl = Constants.Icons.CLYDE;
@@ -267,6 +299,12 @@ public class Utils {
         return cs;
     }
 
+    /**
+     * Reads the InputStream into a byte[]
+     * @param stream The stream to read
+     * @return The read bytes
+     * @throws Throwable if an I/O error occurs
+     */
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static byte[] readBytes(InputStream stream) throws Throwable {
         int len = stream.available();
@@ -276,31 +314,77 @@ public class Utils {
         return buf;
     }
 
+    /** <a href="https://github.com/google/gson">Gson</a> instance */
     public final static Gson gson = new Gson();
+    /** Pretty <a href="https://github.com/google/gson">Gson</a> instance */
     public final static Gson gsonPretty = new Gson();
-    public static <T> T fromJson(String json, Type type) { return gson.g(json, type); }
-    public static String toJson(Object obj) { return gson.m(obj); }
-    public static String toJsonPretty(Object obj) { return gsonPretty.m(obj); }
 
+    /**
+     * Deserializes a JSON string into the specified class
+     * @param json The JSON string to deserialize
+     * @param clazz The class to deserialize the JSON into
+     * @return Deserialized JSON
+     */
+    public static <T> T fromJson(String json, Class<T> clazz) {
+        return gson.g(json, clazz);
+    }
+    /**
+     * Deserializes a JSON string into the specified object
+     * @param json The JSON string to deserialize
+     * @param type The type of the object to deserialize the JSON into
+     * @return Deserialized JSON
+     */
+    public static <T> T fromJson(String json, Type type) {
+        return gson.g(json, type);
+    }
+
+    /**
+     * Serializes an Object to JSON
+     * @param obj The object to serialize
+     * @return Serialized JSON
+     */
+    public static String toJson(Object obj) {
+        return gson.m(obj);
+    }
+    /**
+     * Serializes an Object to pretty printed JSON
+     * @param obj The object to serialize
+     * @return Serialized JSON
+     */
+    public static String toJsonPretty(Object obj) {
+        return gsonPretty.m(obj);
+    }
+
+    /**
+     * Renders discord spice markdown
+     * @param source The markdown to render
+     * @return Rendered markdown
+     */
     public static CharSequence renderMD(CharSequence source) {
         try {
-            return b.k(source, new Object[0], null, 2);
+            return b.l(source, new Object[0], null, 2);
         } catch (Throwable e) { Main.logger.error("Failed to render markdown", e); }
         return source;
     }
 
+    /**
+     * @deprecated Use {@link RxUtils#createActionSubscriber(Action1)}
+     */
     @Deprecated
     public static <T> Subscriber<T> createActionSubscriber(Action1<? super T> onNext) {
         return RxUtils.createActionSubscriber(onNext);
     }
 
+    /**
+     * @deprecated Use {@link RxUtils#createActionSubscriber(Action1, Action1, Action0)}
+     */
     @Deprecated
     public static <T> Subscriber<T> createActionSubscriber(Action1<? super T> onNext, Action1<Throwable> onError, Action0 onCompleted) {
         return RxUtils.createActionSubscriber(onNext, onError, onCompleted);
     }
 
     /**
-     * Logs a message.
+     * Logs a message on debug level.
      * @param msg Message to log.
      */
     public static void log(String msg) { Main.logger.debug(msg); }
