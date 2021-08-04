@@ -17,6 +17,7 @@ public final class StoreStream {
     public static StoreUserSettings getUserSettings() { return new StoreUserSettings(); }
     public static StoreUserSettingsSystem getUserSettingsSystem() { return new StoreUserSettingsSystem(); }
     public static StorePermissions getPermissions() { return new StorePermissions(); }
+    public static StoreMessageReplies getRepliedMessages() { return new StoreMessageReplies(); }
 
     public static void access$handleMessageUpdate(StoreStream instance, Message message) {}
 
