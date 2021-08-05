@@ -91,7 +91,9 @@ public class PluginCard extends MaterialCardView {
         GridLayout.LayoutParams params = new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(0));
         params.setGravity(Gravity.CENTER_VERTICAL);
         buttonLayout.addView(repoButton, params);
-        buttonLayout.addView(changeLogButton, params);
+        GridLayout.LayoutParams clparams = new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(1));
+        clparams.setGravity(Gravity.CENTER_VERTICAL);
+        buttonLayout.addView(changeLogButton, clparams);
 
         root.addView(buttonLayout);
 
