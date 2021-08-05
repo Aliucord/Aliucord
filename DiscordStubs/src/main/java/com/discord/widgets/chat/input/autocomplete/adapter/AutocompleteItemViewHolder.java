@@ -6,7 +6,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.discord.databinding.WidgetChatInputAutocompleteItemBinding;
-import com.discord.widgets.chat.input.UserAndSelectedGuildRoles;
 import com.discord.widgets.chat.input.autocomplete.ApplicationCommandAutocompletable;
 
 @SuppressWarnings("unused")
@@ -17,5 +16,5 @@ public class AutocompleteItemViewHolder extends RecyclerView.ViewHolder {
         super(itemView);
     }
 
-    public final void bindCommand(ApplicationCommandAutocompletable applicationCommandAutocompletable, boolean z2, UserAndSelectedGuildRoles userAndSelectedGuildRoles) { }
+    public final void bindCommand(ApplicationCommandAutocompletable applicationCommandAutocompletable, boolean z2) { }
 }

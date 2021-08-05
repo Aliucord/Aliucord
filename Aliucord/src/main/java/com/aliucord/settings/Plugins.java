@@ -121,9 +121,11 @@ public class Plugins extends SettingsPage {
             Plugin p = data.get(position);
             Plugin.Manifest manifest = p.getManifest();
 
-            holder.card.switchHeader.setChecked(PluginManager.isPluginEnabled(p.name));
+            boolean enabled = PluginManager.isPluginEnabled(p.name);
+            holder.card.switchHeader.setChecked(enabled);
             holder.card.descriptionView.setText(p.getManifest().description);
             holder.card.settingsButton.setVisibility(p.settingsTab != null ? View.VISIBLE : View.GONE);
+            holder.card.settingsButton.setEnabled(enabled);
             holder.card.changeLogButton.setVisibility(p.getManifest().changelog != null ? View.VISIBLE : View.GONE);
 
             String title = String.format("%s v%s by %s", p.name, manifest.version, TextUtils.join(", ", manifest.authors));

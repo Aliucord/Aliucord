@@ -38,6 +38,7 @@ import com.discord.widgets.chat.MessageContent;
 import com.discord.widgets.chat.input.ChatInputViewModel;
 import com.discord.widgets.chat.input.WidgetChatInput;
 import com.discord.widgets.chat.input.WidgetChatInput$configureSendListeners$2;
+import com.discord.widgets.chat.input.autocomplete.InputAutocomplete;
 import com.discord.widgets.chat.list.sheet.WidgetApplicationCommandBottomSheetViewModel;
 import com.lytefast.flexinput.R$d;
 import com.lytefast.flexinput.R$g;
@@ -165,10 +166,13 @@ public class CommandsAPI {
             args.remove("__args");
 
             if (_this == null || _args == null) return null;
-            MessageContent content = _this.$chatInput.getMatchedContentWithMetaData();
+            InputAutocomplete inputAutocomplete = WidgetChatInput.access$getAutocomplete$p(_this.this$0);
+            MessageContent _content = inputAutocomplete.getInputContent();
+            if (_content == null) _content = new MessageContent(_this.$chatInput.getText(), Collections.emptyList());
+            MessageContent content = _content;
             WidgetChatInput.clearInput$default(_this.this$0, false, true, 0, null);
 
-            CommandContext ctx = new CommandContext(args, _this, _args);
+            CommandContext ctx = new CommandContext(args, _this, _args, content);
             Utils.threadPool.execute(() -> {
                 try {
                     CommandResult res = execute.invoke(ctx);
@@ -234,7 +238,7 @@ public class CommandsAPI {
                                 WidgetChatInput.access$getViewModel$p(_this.this$0),
                                 _this.$context,
                                 _this.$messageManager,
-                                new MessageContent(res.content, content != null ? content.getMentionedUsers() : Collections.emptyList()),
+                                new MessageContent(res.content, content.getMentionedUsers()),
                                 attachments,
                                 false,
                                 (Function1<? super Boolean, Unit>) _args[2],
