@@ -33,6 +33,7 @@ public class PluginCard extends MaterialCardView {
     public final Button settingsButton;
     public final DangerButton uninstallButton;
     public final ToolbarButton repoButton;
+    public final ToolbarButton changeLogButton;
 
     @SuppressLint("SetTextI18n")
     public PluginCard(Context ctx) {
@@ -80,7 +81,7 @@ public class PluginCard extends MaterialCardView {
 
         repoButton = new ToolbarButton(ctx);
         repoButton.setImageDrawable(ContextCompat.getDrawable(ctx, R$d.ic_github_white));
-        
+
         changeLogButton = new ToolbarButton(ctx);
         changeLogButton.setImageDrawable(ContextCompat.getDrawable(ctx, R$d.ic_history_white_24dp));
 

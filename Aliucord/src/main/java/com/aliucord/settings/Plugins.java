@@ -124,7 +124,7 @@ public class Plugins extends SettingsPage {
             holder.card.switchHeader.setChecked(PluginManager.isPluginEnabled(p.name));
             holder.card.descriptionView.setText(p.getManifest().description);
             holder.card.settingsButton.setVisibility(p.settingsTab != null ? View.VISIBLE : View.GONE);
-            holder.card.changeLogButton.setVisibility(p.changelog != null ? View.VISIBLE : View.GONE);
+            holder.card.changeLogButton.setVisibility(p.getManifest().changelog != null ? View.VISIBLE : View.GONE);
 
             String title = String.format("%s v%s by %s", p.name, manifest.version, TextUtils.join(", ", manifest.authors));
             SpannableString spannableTitle = new SpannableString(title);
@@ -210,8 +210,8 @@ public class Plugins extends SettingsPage {
 
         public void onChangeLogClick(int position) {
             Plugin p = data.get(position);
-            var manifest = p.getManifest();
-            if (changelog != null) {
+            Plugin.Manifest manifest = p.getManifest();
+            if (manifest.changelog != null) {
                 WidgetChangeLog.Companion.launch(ctx, p.name + " v" + manifest.version, "1", "https://cdn.discordapp.com/banners/169256939211980800/eda024c8f40a45c88265a176f0926bea.jpg?size=2048", manifest.changelog);
             }
         }   
