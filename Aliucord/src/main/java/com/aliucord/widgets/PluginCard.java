@@ -85,8 +85,8 @@ public class PluginCard extends MaterialCardView {
         changeLogButton = new ToolbarButton(ctx);
         changeLogButton.setImageDrawable(ContextCompat.getDrawable(ctx, R$d.ic_history_white_24dp));
 
-        buttonLayout.addView(settingsButton, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(2)));
-        buttonLayout.addView(uninstallButton, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(3)));
+        buttonLayout.addView(settingsButton, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(3)));
+        buttonLayout.addView(uninstallButton, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(4)));
 
         GridLayout.LayoutParams params = new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(0));
         params.setGravity(Gravity.CENTER_VERTICAL);
