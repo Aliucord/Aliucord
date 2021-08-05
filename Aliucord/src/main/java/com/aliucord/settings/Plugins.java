@@ -212,7 +212,7 @@ public class Plugins extends SettingsPage {
             Plugin p = data.get(position);
             Plugin.Manifest manifest = p.getManifest();
             if (manifest.changelog != null) {
-                WidgetChangeLog.Companion.launch(ctx, p.name + " v" + manifest.version, "1", "https://cdn.discordapp.com/banners/169256939211980800/eda024c8f40a45c88265a176f0926bea.jpg?size=2048", manifest.changelog);
+                WidgetChangeLog.Companion.launch(ctx, p.name + " v" + manifest.version, "1", manifest.changelogMedia, manifest.changelog);
             }
         }   
 

@@ -62,6 +62,8 @@ public abstract class Plugin {
         public String updateUrl;
         /** Changelog featuring recent updates, written in markdown */
         public String changelog;
+        /** Image or video link that will be displayed at the top of the changelog */
+        public String changelogMedia = "https://cdn.discordapp.com/banners/169256939211980800/eda024c8f40a45c88265a176f0926bea.jpg?size=2048";
     }
 
     /** Plugin SettingsTab */
