@@ -33,6 +33,7 @@ public class PluginCard extends MaterialCardView {
     public final Button settingsButton;
     public final DangerButton uninstallButton;
     public final ToolbarButton repoButton;
+    public final ToolbarButton changeLogButton;
 
     @SuppressLint("SetTextI18n")
     public PluginCard(Context ctx) {
@@ -68,7 +69,7 @@ public class PluginCard extends MaterialCardView {
 
         buttonLayout = new GridLayout(ctx);
         buttonLayout.setRowCount(1);
-        buttonLayout.setColumnCount(4);
+        buttonLayout.setColumnCount(5);
         buttonLayout.setUseDefaultMargins(true);
         buttonLayout.setPadding(p2, 0, p2, 0);
 
@@ -81,12 +82,18 @@ public class PluginCard extends MaterialCardView {
         repoButton = new ToolbarButton(ctx);
         repoButton.setImageDrawable(ContextCompat.getDrawable(ctx, R$d.ic_github_white));
 
-        buttonLayout.addView(settingsButton, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(2)));
-        buttonLayout.addView(uninstallButton, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(3)));
+        changeLogButton = new ToolbarButton(ctx);
+        changeLogButton.setImageDrawable(ContextCompat.getDrawable(ctx, R$d.ic_history_white_24dp));
+
+        buttonLayout.addView(settingsButton, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(3)));
+        buttonLayout.addView(uninstallButton, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(4)));
 
         GridLayout.LayoutParams params = new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(0));
         params.setGravity(Gravity.CENTER_VERTICAL);
         buttonLayout.addView(repoButton, params);
+        GridLayout.LayoutParams clparams = new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(1));
+        clparams.setGravity(Gravity.CENTER_VERTICAL);
+        buttonLayout.addView(changeLogButton, clparams);
 
         root.addView(buttonLayout);
 

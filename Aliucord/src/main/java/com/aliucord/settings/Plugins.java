@@ -35,6 +35,7 @@ import com.aliucord.widgets.PluginCard;
 import com.discord.app.AppBottomSheet;
 import com.discord.app.AppFragment;
 import com.discord.widgets.user.usersheet.WidgetUserSheet;
+import com.discord.widgets.changelog.WidgetChangeLog;
 import com.lytefast.flexinput.R$d;
 import com.lytefast.flexinput.R$g;
 
@@ -56,6 +57,7 @@ public class Plugins extends SettingsPage {
                 this.card = card;
 
                 card.repoButton.setOnClickListener(this::onGithubClick);
+                card.changeLogButton.setOnClickListener(this::onChangeLogClick);
                 card.uninstallButton.setOnClickListener(this::onUninstallClick);
                 card.switchHeader.setOnCheckedListener(this::onToggleClick);
                 card.settingsButton.setOnClickListener(this::onSettingsClick);
@@ -63,6 +65,10 @@ public class Plugins extends SettingsPage {
 
             public void onGithubClick(View view) {
                 adapter.onGithubClick(getAdapterPosition());
+            }
+
+            public void onChangeLogClick(View view) {
+                adapter.onChangeLogClick(getAdapterPosition());
             }
 
             public void onSettingsClick(View view) {
@@ -118,6 +124,7 @@ public class Plugins extends SettingsPage {
             holder.card.switchHeader.setChecked(PluginManager.isPluginEnabled(p.name));
             holder.card.descriptionView.setText(p.getManifest().description);
             holder.card.settingsButton.setVisibility(p.settingsTab != null ? View.VISIBLE : View.GONE);
+            holder.card.changeLogButton.setVisibility(p.getManifest().changelog != null ? View.VISIBLE : View.GONE);
 
             String title = String.format("%s v%s by %s", p.name, manifest.version, TextUtils.join(", ", manifest.authors));
             SpannableString spannableTitle = new SpannableString(title);
@@ -200,6 +207,14 @@ public class Plugins extends SettingsPage {
             intent.setData(Uri.parse(url));
             fragment.startActivity(intent);
         }
+
+        public void onChangeLogClick(int position) {
+            Plugin p = data.get(position);
+            Plugin.Manifest manifest = p.getManifest();
+            if (manifest.changelog != null) {
+                WidgetChangeLog.Companion.launch(ctx, p.name + " v" + manifest.version, "1", manifest.changelogMedia, manifest.changelog);
+            }
+        }   
 
         public void onSettingsClick(int position) throws Throwable {
             Plugin p = data.get(position);
