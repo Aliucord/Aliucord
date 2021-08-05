@@ -60,6 +60,8 @@ public abstract class Plugin {
         // TODO: public String discord;
         /** The updater JSON url */
         public String updateUrl;
+
+        public String changelog;
     }
 
     /** Plugin SettingsTab */
