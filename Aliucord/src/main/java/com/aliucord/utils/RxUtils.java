@@ -9,6 +9,7 @@ import android.os.Looper;
 import android.util.Pair;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 import rx.*;
 import rx.functions.Action0;
@@ -36,18 +37,19 @@ public class RxUtils {
         if (Looper.getMainLooper() == Looper.myLooper()) throw new IllegalStateException("getResultBlocking may not be called from the main thread as this would freeze the UI.");
 
         CountDownLatch latch = new CountDownLatch(1);
-        final Object[] result = new Object[2];
+        AtomicReference<T> resRef = new AtomicReference<>();
+        AtomicReference<Throwable> throwableRef = new AtomicReference<>();
 
         subscribe(observable, new Subscriber<T>() {
             public void onCompleted() {
                 latch.countDown();
             }
             public void onError(Throwable th) {
-                result[1] = th;
+                throwableRef.set(th);
                 latch.countDown();
             }
             public void onNext(T val) {
-                result[0] = val;
+                resRef.set(val);
             }
         });
 
@@ -57,11 +59,7 @@ public class RxUtils {
             } catch (InterruptedException ignored) { }
         }
 
-        T res;
-        try {
-            res = (T) result[0];
-        } catch (Throwable ignored) { res = null; }
-        return new Pair<>(res, (Throwable) result[1]);
+        return new Pair<>(resRef.get(), throwableRef.get());
     }
 
     /**
