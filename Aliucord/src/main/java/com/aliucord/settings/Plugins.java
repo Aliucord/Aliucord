@@ -204,10 +204,7 @@ public class Plugins extends SettingsPage {
                     .getManifest().updateUrl
                     .replace("raw.githubusercontent.com", "github.com")
                     .replaceFirst("/builds.*", "");
-
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse(url));
-            fragment.startActivity(intent);
+            Utils.launchUrl(url);
         }
 
         public void onChangeLogClick(int position) {

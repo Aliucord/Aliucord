@@ -42,16 +42,20 @@ import java.util.Objects;
 import top.canyie.pine.PineConfig;
 
 public final class Main {
+    /** Whether Aliucord has been preInitialized */
     public static boolean preInitialized = false;
+    /** Whether Aliucord has been initialized */
     public static boolean initialized = false;
     public static final Logger logger = new Logger();
 
+    /** Aliucord's preInit hook. Plugins are loaded here */
     public static void preInit(AppActivity activity) {
         if (preInitialized) return;
         preInitialized = true;
 
         PineConfig.debuggable = (activity.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
         Utils.log("App debuggable? " + PineConfig.debuggable);
+
         Utils.appActivity = activity;
         CorePlugins.loadAll(activity);
 
@@ -66,6 +70,7 @@ public final class Main {
         }
     }
 
+    /** Aliucord's init hook. Plugins are started here */
     @SuppressLint("SetTextI18n")
     public static void init(AppActivity activity) {
         if (initialized) return;
