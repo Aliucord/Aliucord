@@ -5,10 +5,8 @@
 
 package com.aliucord;
 
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.content.Context;
-import android.content.Intent;
+import android.content.*;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
@@ -33,11 +31,10 @@ import com.discord.utilities.fcm.NotificationClient;
 import com.discord.views.CheckedSetting;
 import com.google.gson.Gson;
 
-import java.io.InputStream;
+import java.io.*;
+import java.lang.reflect.Field;
 import java.lang.reflect.Type;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -59,6 +56,22 @@ public class Utils {
     public static final ExecutorService threadPool = Executors.newCachedThreadPool();
     public static AppActivity appActivity;
     public static Context appContext;
+
+    /**
+     * Launches an URL in the user's preferred Browser
+     * @param url The url to launch
+     */
+    public static void launchUrl(String url) {
+        launchUrl(Uri.parse(url));
+    }
+
+    /**
+     * Launches an URL in the user's preferred Browser
+     * @param url The url to launch
+     */
+    public static void launchUrl(Uri url) {
+        appActivity.startActivity(new Intent(Intent.ACTION_VIEW).setData(url));
+    }
 
     /**
      * Sets the clipboard content
@@ -112,6 +125,7 @@ public class Utils {
         return appContext;
     }
 
+    private static final Map<String, Integer> resIdCache = new HashMap<>();
     /**
      * Get resource id from discord package.
      * @param name Name of the resource.
@@ -121,7 +135,8 @@ public class Utils {
     public static int getResId(String name, String type) {
         Context context = getAppContext();
         if (context == null) return 0;
-        return context.getResources().getIdentifier(name, type, "com.discord");
+
+        return resIdCache.computeIfAbsent(name, k -> context.getResources().getIdentifier(k, type, "com.discord"));
     }
 
     private static float density;
@@ -196,6 +211,8 @@ public class Utils {
         Utils.openPage(context, AppFragmentProxy.class, new Intent().putExtra("AC_FRAGMENT_ID", id));
     }
 
+    private static Field commandChoiceNameField;
+    private static Field commandChoiceValueField;
     /**
      * Creates a CommandChoice that can be used inside Command args
      * @param name The name of the choice
@@ -205,8 +222,14 @@ public class Utils {
     public static CommandChoice createCommandChoice(String name, String value) {
         CommandChoice choice = new CommandChoice();
         try {
-            ReflectUtils.setField(choice, "name", name, true);
-            ReflectUtils.setField(choice, "value", value, true);
+            if (commandChoiceNameField == null) {
+                commandChoiceNameField = CommandChoice.class.getDeclaredField("name");
+                commandChoiceNameField.setAccessible(true);
+                commandChoiceValueField = CommandChoice.class.getDeclaredField("value");
+                commandChoiceValueField.setAccessible(true);
+            }
+            commandChoiceNameField.set(choice, name);
+            commandChoiceValueField.set(choice, value);
         } catch (Throwable e) { Main.logger.error(e); }
         return choice;
     }
@@ -314,6 +337,21 @@ public class Utils {
         return buf;
     }
 
+    /**
+     * Pipe an {@link InputStream} into an {@link OutputStream}
+     * @param is InputStream
+     * @param os OutputStream
+     * @throws IOException if an I/O error occurs
+     */
+    public static void pipe(InputStream is, OutputStream os) throws IOException {
+        int n;
+        byte[] buf = new byte[16384]; // 16 KB
+        while ((n = is.read(buf)) > -1) {
+            os.write(buf, 0, n);
+        }
+        os.flush();
+    }
+
     /** <a href="https://github.com/google/gson">Gson</a> instance */
     public final static Gson gson = new Gson();
     /** Pretty <a href="https://github.com/google/gson">Gson</a> instance */
@@ -391,7 +429,7 @@ public class Utils {
 
     static {
         try {
-            ReflectUtils.setField(gsonPretty, "k", true, true);
+            ReflectUtils.setField(gsonPretty, "k", true);
         } catch (Throwable e) { Main.logger.error(e); }
     }
 }

@@ -9,10 +9,8 @@ import androidx.annotation.NonNull;
 
 import java.io.*;
 import java.lang.reflect.Type;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.util.Locale;
+import java.net.*;
+import java.util.*;
 
 /** Http Utilities */
 @SuppressWarnings("unused")
@@ -77,7 +75,7 @@ public class Http {
     }
 
     /** Request Builder */
-    public static class Request {
+    public static class Request implements Closeable {
         /** The connection of this Request */
         public final HttpURLConnection conn;
 
@@ -154,13 +152,14 @@ public class Http {
         /**
          * Execute the request with the specified body. May not be used in GET requests.
          * @param body The request body
-         * @return self
+         * @return Response
          */
         public Response executeWithBody(String body) throws IOException {
             if (conn.getRequestMethod().equals("GET")) throw new IOException("Body may not be specified in GET requests");
+            byte[] bytes = body.getBytes();
+            setHeader("Content-Length", Integer.toString(bytes.length));
             conn.setDoOutput(true);
             try (OutputStream out = conn.getOutputStream()) {
-                byte[] bytes = body.getBytes();
                 out.write(bytes, 0, bytes.length);
                 out.flush();
             }
@@ -170,10 +169,32 @@ public class Http {
         /**
          * Execute the request with the specified object as json. May not be used in GET requests.
          * @param body The request body
-         * @return self
+         * @return Response
          */
         public Response executeWithJson(Object body) throws IOException {
             return setHeader("Content-Type", "application/json").executeWithBody(Utils.toJson(body));
+        }
+
+        /**
+         * Execute the request with the specified object as
+         * <a href="https://url.spec.whatwg.org/#application/x-www-form-urlencoded">url encoded form data</a>.
+         * May not be used in GET requests.
+         * @param params the form data
+         * @return Response
+         * @throws IOException if an I/O exception occurred
+         */
+        public Response executeWithUrlEncodedForm(Map<String, Object> params) throws IOException {
+            QueryBuilder qb = new QueryBuilder("");
+            for (Map.Entry<String, Object> entry : params.entrySet())
+                qb.append(entry.getKey(), Objects.toString(entry.getValue()));
+
+            return setHeader("Content-Type", "application/x-www-form-urlencoded").executeWithBody(qb.toString().substring(1));
+        }
+
+        /** Closes this request */
+        @Override
+        public void close() {
+            conn.disconnect();
         }
     }
 
@@ -218,10 +239,19 @@ public class Http {
 
         /**
          * Deserializes json response
-         * @param type Class to deserialize into
+         * @param type Type to deserialize into
          * @return Response Object
          */
         public <T> T json(Type type) throws IOException {
+            return Utils.fromJson(text(), type);
+        }
+
+        /**
+         * Deserializes json response
+         * @param type Class to deserialize into
+         * @return Response Object
+         */
+        public <T> T json(Class<T> type) throws IOException {
             return Utils.fromJson(text(), type);
         }
 
@@ -239,12 +269,7 @@ public class Http {
          */
         public void pipe(OutputStream os) throws IOException {
             try (InputStream is = stream()) {
-                int n;
-                byte[] buf = new byte[16384]; // 16 KB
-                while ((n = is.read(buf)) > -1) {
-                    os.write(buf, 0, n);
-                }
-                os.flush();
+                Utils.pipe(is, os);
             }
         }
 

@@ -8,6 +8,8 @@ package com.aliucord.utils;
 import android.os.Looper;
 import android.util.Pair;
 
+import java.util.concurrent.CountDownLatch;
+
 import rx.*;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -33,36 +35,26 @@ public class RxUtils {
     public static <T> Pair<T, Throwable> getResultBlocking(Observable<T> observable) throws IllegalStateException {
         if (Looper.getMainLooper() == Looper.myLooper()) throw new IllegalStateException("getResultBlocking may not be called from the main thread as this would freeze the UI.");
 
-        Object lock = new Object();
-        final Object[] result = new Object[3];
+        CountDownLatch latch = new CountDownLatch(1);
+        final Object[] result = new Object[2];
 
         subscribe(observable, new Subscriber<T>() {
             public void onCompleted() {
-                result[2] = true; // see comment below
-                synchronized (lock) {
-                    lock.notify();
-                }
+                latch.countDown();
             }
             public void onError(Throwable th) {
                 result[1] = th;
-                result[2] = true; // see comment below
-                synchronized (lock) {
-                    lock.notify();
-                }
+                latch.countDown();
             }
             public void onNext(T val) {
                 result[0] = val;
             }
         });
 
-        // Sometimes onCompleted is reached before this point so lock.notify gets called before lock.wait resulting in an infinite lock
-        // so check whether finished already
-        if (result[2] != Boolean.TRUE) {
-            synchronized (lock) {
-                try {
-                    lock.wait();
-                } catch (InterruptedException ignored) { }
-            }
+        if (latch.getCount() != 0) {
+            try {
+                latch.await();
+            } catch (InterruptedException ignored) { }
         }
 
         T res;

@@ -154,8 +154,8 @@ public class CommandsAPI {
                     id, name, channelId, UserUtils.INSTANCE.synthesizeApiUser(me), Utils.buildClyde(null, null), false, true, id, clock);
             Class<Message> c = Message.class;
             try {
-                ReflectUtils.setField(c, thinkingMsg, "flags", MessageFlags.EPHEMERAL | MessageFlags.LOADING, true);
-                ReflectUtils.setField(c, thinkingMsg, "type", MessageTypes.LOCAL, true);
+                ReflectUtils.setField(c, thinkingMsg, "flags", MessageFlags.EPHEMERAL | MessageFlags.LOADING);
+                ReflectUtils.setField(c, thinkingMsg, "type", MessageTypes.LOCAL);
             } catch (Throwable ignored) {}
             StoreMessages storeMessages = StoreStream.getMessages();
             StoreMessages.access$handleLocalMessageCreate(storeMessages, thinkingMsg);
@@ -208,9 +208,9 @@ public class CommandsAPI {
                                     null
                             );
 
-                            ReflectUtils.setField(c, commandMessage, "embeds", res.embeds, true);
-                            ReflectUtils.setField(c, commandMessage, "flags", MessageFlags.EPHEMERAL, true);
-                            ReflectUtils.setField(c, commandMessage, "interaction", thinkingMsg.getInteraction(), true);
+                            ReflectUtils.setField(c, commandMessage, "embeds", res.embeds);
+                            ReflectUtils.setField(c, commandMessage, "flags", MessageFlags.EPHEMERAL);
+                            ReflectUtils.setField(c, commandMessage, "interaction", thinkingMsg.getInteraction());
 
                             // TODO: add arguments
                             long guildId = ChannelWrapper.getGuildId(StoreStream.getChannels().getChannel(channelId));
@@ -281,7 +281,7 @@ public class CommandsAPI {
                     Message commandMessage = LocalMessageCreatorsKt.createLocalMessage(detailedError, channelId, Utils.buildClyde(null, null), null, false, false, null, null, clock, null, null, null, null, null, null, null);
 
                     try {
-                        ReflectUtils.setField(c, commandMessage, "flags", MessageFlags.EPHEMERAL, true);
+                        ReflectUtils.setField(c, commandMessage, "flags", MessageFlags.EPHEMERAL);
                     } catch (Throwable ignored) {}
                     StoreMessages.access$handleLocalMessageCreate(storeMessages, commandMessage);
                 }
@@ -289,7 +289,7 @@ public class CommandsAPI {
             return null;
         });
         try {
-            ReflectUtils.setField(ApplicationCommand.class, command, "builtIn", true, true);
+            ReflectUtils.setField(ApplicationCommand.class, command, "builtIn", true);
         } catch (Throwable e) { logger.error(e); }
         commands.put(name, command);
         updateCommandCount();
@@ -309,7 +309,7 @@ public class CommandsAPI {
     private static void updateCommandCount() {
         if (aliucordApplication.getCommandCount() != commands.size()) {
             try {
-                ReflectUtils.setField(aliucordApplication, "commandCount", commands.size(), true);
+                ReflectUtils.setField(aliucordApplication, "commandCount", commands.size());
             } catch (Throwable ignored) {}
         }
     }
