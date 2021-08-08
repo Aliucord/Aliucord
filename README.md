@@ -78,7 +78,7 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
 2. Open the newly installed "Aliucord Installer" app from your app drawer
 3. Click "Install", then choose the "Download" option
     - ⚠️ DO NOT USE "From installed app" OR "From storage" UNLESS YOU KNOW WHAT YOU'RE DOING, OTHERWISE ALIUCORD WILL LIKELY NOT WORK CORRECTLY
-    - If you get a 404 error change your dns to 1.1.1.1
+    - If you get a 404 error change your dns to 1.1.1.1, if you dont know how here is a guide https://is.gd/aliucorddns
 4. Wait for it to finish patching the Discord APK
 5. Click "Install" once prompted by Android and wait for Aliucord to finish installing
 6. If Google Play warns you about this application being unverified, ignore it as it triggers thanks to an unverified signature¹
