@@ -7,6 +7,8 @@ package com.aliucord.settings;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -24,6 +26,7 @@ import com.aliucord.views.ToolbarButton;
 import com.aliucord.widgets.BottomSheet;
 import com.aliucord.widgets.UpdaterPluginCard;
 import com.discord.views.CheckedSetting;
+import com.google.android.material.snackbar.Snackbar;
 import com.lytefast.flexinput.R$d;
 import com.lytefast.flexinput.R$h;
 
@@ -60,6 +63,27 @@ public class Updater extends SettingsPage {
 
         Context context = requireContext();
         int padding = Utils.getDefaultPadding();
+
+        Utils.threadPool.execute(() -> {
+                Snackbar sb;
+                if (!com.aliucord.updater.Updater.isAliucordOfficial()) {
+                    sb = Snackbar.make(getLinearLayout(), "You're using an unofficial Aliucord build. Please do not report bugs.", Snackbar.LENGTH_INDEFINITE);
+                } else if (com.aliucord.updater.Updater.isAliucordOutdated()) {
+                    sb = Snackbar
+                            .make(getLinearLayout(), "Your Aliucord is outdated. Please update it via the Aliucord Installer.", Snackbar.LENGTH_INDEFINITE)
+                            .setAction("Update", v -> {
+                                Context ctx = v.getContext();
+                                Intent i = ctx.getPackageManager().getLaunchIntentForPackage("com.aliucord.installer");
+                                if (i != null)
+                                    ctx.startActivity(i);
+                                else
+                                    Utils.showToast(ctx, "Please install the Aliucord Installer and try again.");
+                            });
+                } else return;
+
+                // https://developer.android.com/reference/android/R.color#holo_orange_light
+                sb.setBackgroundTint(0xffffbb33).setTextColor(Color.BLACK).show();
+        });
 
         if (getHeaderBar().findViewById(id) == null) {
             int p = padding / 2;
