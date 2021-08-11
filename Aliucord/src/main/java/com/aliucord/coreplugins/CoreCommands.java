@@ -15,6 +15,7 @@ import com.aliucord.api.CommandsAPI;
 import com.aliucord.entities.Plugin;
 
 import java.util.Collections;
+import java.util.Set;
 
 final class CoreCommands extends Plugin {
     @NonNull
