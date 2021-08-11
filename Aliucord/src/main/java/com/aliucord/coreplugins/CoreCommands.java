@@ -41,7 +41,12 @@ final class CoreCommands extends Plugin {
                 "plugins",
                 "Lists installed plugins",
                 Collections.emptyList(),
-                ctx -> new CommandsAPI.CommandResult(TextUtils.join(", ", PluginManager.plugins.keySet().toArray()), null, false)
+                ctx -> {
+                    Set<String> plugins = PluginManager.plugins.keySet();
+                    if (plugins.isEmpty()) return new CommandsAPI.CommandResult("No plugins installed", null, false);
+                    String content = String.format("Installed Plugins (%s): %s", plugins.size(), TextUtils.join(", ", plugins));
+                    return new CommandsAPI.CommandResult(content, null, false);
+                }
         );
     }
 
