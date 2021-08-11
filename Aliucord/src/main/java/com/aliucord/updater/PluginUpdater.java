@@ -42,7 +42,7 @@ public class PluginUpdater {
         public CachedData(Map<String, UpdateInfo> d) { data = d; }
     }
 
-    public static final Logger logger = new Logger("PluginUpdater");
+    public static final Logger logger = new Logger("Updater");
 
     public static final Map<String, CachedData> cache = new HashMap<>();
     public static final Map<String, String> updated = new HashMap<>();
@@ -56,7 +56,7 @@ public class PluginUpdater {
             if (checkPluginUpdate(plugin.getValue()))
                 updates.add(plugin.getKey());
         }
-        if (updates.size() == 0 || !notify) return;
+        if (!notify || (updates.size() == 0 && !(Updater.isAliucordOfficial() && Updater.isAliucordOutdated()))) return;
 
         NotificationData notificationData = new NotificationData()
                 .setTitle("Updater")
@@ -67,19 +67,24 @@ public class PluginUpdater {
                 });
 
         String updatablePlugins = String.format("**%s**", TextUtils.join("**, **", updates.toArray()));
+        String body;
         if (SettingsUtils.getBool(com.aliucord.settings.Updater.UpdaterSettings.AUTO_UPDATE_KEY, false)) {
             int res = PluginUpdater.updateAll();
             if (res == 0) return;
             if (res == -1) {
-                notificationData.setBody("Something went wrong while auto updating. Check the debug log for more info.");
+                body = "Something went wrong while auto updating plugins. Check the debug log for more info.";
             } else {
-                String body = String.format("Automatically updated %s: %s", Utils.pluralise(res, "plugin"), updatablePlugins);
-                notificationData.setBody(Utils.renderMD(body));
+                body = String.format("Automatically updated %s: %s", Utils.pluralise(res, "plugin"), updatablePlugins);
             }
-        } else {
-            notificationData.setBody(Utils.renderMD("Updates for plugins are available: " + updatablePlugins));
+        } else if (updates.size() != 0) {
+            body = "Updates for plugins are available: " + updatablePlugins;
+        } else body = "All plugins up to date!";
+
+        if (Updater.isAliucordOfficial() && Updater.isAliucordOutdated()) {
+            body = "Your Aliucord is outdated. Please update via the Aliucord Installer - " + body;
         }
 
+        notificationData.setBody(Utils.renderMD(body));
         NotificationsAPI.display(notificationData);
     }
 

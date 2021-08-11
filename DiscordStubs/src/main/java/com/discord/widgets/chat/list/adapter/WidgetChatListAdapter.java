@@ -9,9 +9,7 @@ import com.discord.utilities.mg_recycler.MGRecyclerAdapterSimple;
 import com.discord.utilities.mg_recycler.MGRecyclerViewHolder;
 import com.discord.widgets.chat.list.entries.ChatListEntry;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @SuppressWarnings("unused")
 public final class WidgetChatListAdapter extends MGRecyclerAdapterSimple<ChatListEntry> {

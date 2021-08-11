@@ -66,7 +66,7 @@ public class PatcherAPI {
      * @param fn Method to patch.
      * @param paramTypes Parameters of the <code>fn</code>. Useful for patching individual overloads.
      * @param hook Callback for the patch.
-     * @return A {@link Runnable} object.
+     * @return Method that will remove the patch when invoked
      * @see PinePatchFn
      * @see PinePrePatchFn
      */
@@ -78,7 +78,7 @@ public class PatcherAPI {
      * Patches a method or constructor.
      * @param m Method or constructor to patch. see {@link Member}.
      * @param hook Callback for the patch.
-     * @return A {@link Runnable} object.
+     * @return Method that will remove the patch when invoked
      * @see PatcherAPI#patch(String, String, Class[], MethodHook)
      * @see PatcherAPI#patch(Class, String, Class[], MethodHook)
      * @see PinePatchFn

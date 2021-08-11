@@ -6,12 +6,13 @@
 package com.aliucord.wrappers;
 
 import com.discord.api.commands.Application;
+import com.discord.api.user.User;
 
 /**
  * Wraps the obfuscated {@link Application} class to provide nice method names and require only one central
  * update if method names change after an update
  */
-@SuppressWarnings({"unused", "deprecation"})
+@SuppressWarnings({ "unused", "deprecation" })
 public class CommandApplicationWrapper {
     private final Application application;
 
@@ -24,6 +25,10 @@ public class CommandApplicationWrapper {
         return application;
     }
 
+    public final User getBot() {
+        return getBot(application);
+    }
+    
     public final int getCommandCount() {
         return getCommandCount(application);
     }
@@ -41,20 +46,23 @@ public class CommandApplicationWrapper {
     }
 
 
-
-    public static int getCommandCount(Application application) {
+    public static User getBot(Application application) {
         return application.a();
     }
 
-    public static String getIcon(Application application) {
+    public static int getCommandCount(Application application) {
         return application.b();
     }
 
-    public static long getId(Application application) {
+    public static String getIcon(Application application) {
         return application.c();
     }
 
-    public static String getName(Application application) {
+    public static long getId(Application application) {
         return application.d();
+    }
+
+    public static String getName(Application application) {
+        return application.e();
     }
 }

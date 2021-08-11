@@ -7,6 +7,7 @@ package com.aliucord;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -25,33 +26,35 @@ import androidx.core.widget.NestedScrollView;
 import com.aliucord.coreplugins.CorePlugins;
 import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.PinePatchFn;
-import com.aliucord.settings.Crashes;
-import com.aliucord.settings.Plugins;
-import com.aliucord.settings.Updater;
+import com.aliucord.settings.*;
 import com.aliucord.updater.PluginUpdater;
 import com.aliucord.views.Divider;
 import com.discord.app.AppActivity;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.widgets.guilds.invite.WidgetGuildInvite;
 import com.discord.widgets.settings.WidgetSettings;
-import com.lytefast.flexinput.R$b;
-import com.lytefast.flexinput.R$d;
-import com.lytefast.flexinput.R$h;
+import com.lytefast.flexinput.*;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
+import java.io.*;
 import java.sql.Timestamp;
 import java.util.Objects;
 
+import top.canyie.pine.PineConfig;
+
 public final class Main {
+    /** Whether Aliucord has been preInitialized */
     public static boolean preInitialized = false;
+    /** Whether Aliucord has been initialized */
     public static boolean initialized = false;
     public static final Logger logger = new Logger();
 
+    /** Aliucord's preInit hook. Plugins are loaded here */
     public static void preInit(AppActivity activity) {
         if (preInitialized) return;
         preInitialized = true;
+
+        PineConfig.debuggable = (activity.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+        Utils.log("App debuggable? " + PineConfig.debuggable);
 
         Utils.appActivity = activity;
         CorePlugins.loadAll(activity);
@@ -67,6 +70,7 @@ public final class Main {
         }
     }
 
+    /** Aliucord's init hook. Plugins are started here */
     @SuppressLint("SetTextI18n")
     public static void init(AppActivity activity) {
         if (initialized) return;

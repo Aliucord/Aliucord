@@ -8,34 +8,39 @@ on:
       - Aliucord/**
 
 jobs:
-  build:
+  javadoc:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
 
-      - name: Setup JDK 1.8
+      - name: Setup JDK 11
         uses: actions/setup-java@v1
         with:
-          java-version: 1.8
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@3404b45d4c43e74e30dcad1a47fb89a0573f5a7e # v2.0.6
+          java-version: 11
 
       - name: Generate Javadoc
         run: |
           chmod +x ./gradlew
           ./gradlew Aliucord:javadoc
-          wget https://raw.githubusercontent.com/Aliucord/Javadoc/fd2c6e4fdc3d3f4a2934bc19f2ce1d8e34cfa251/README.md -O Aliucord/build/docs/javadoc/README.md
 
       - name: Push Javadoc
-        uses: cpina/github-action-push-to-another-repository@2ebe0cc15fc6a8e63c3658c119525bf1aead4418
+        shell: bash # GLOBIGNORE is a special bash variable so explicitly target bash
         env:
-          API_TOKEN_GITHUB: ${{ secrets.API_PAT_GITHUB }}
-        with:
-          source-directory: Aliucord/build/docs/javadoc
-          destination-github-username: Aliucord
-          destination-repository-name: Javadoc
-          user-email: actions@github.com
-          user-name: GitHub Actions
-          commit-message: Generate Javadoc for ORIGIN_COMMIT
-          target-branch: main
+          API_TOKEN: ${{ secrets.API_PAT_GITHUB }}
+          USERNAME: Github-Actions
+          REPO: Aliucord/Javadoc
+        run: |
+          git config --global user.name "$USERNAME"
+          git config --global user.email actions@github.com
+
+          git clone https://$USERNAME:$API_TOKEN@github.com/$REPO.git
+          cd Javadoc
+
+          GLOBIGNORE=README.md:.git     # do not glob README and .git
+          rm -rf *
+
+          cp -r ../Aliucord/build/docs/javadoc/* .
+
+          git add .
+          git commit -m "Generate Javadoc for https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
+          git push https://$USERNAME:$API_TOKEN@github.com/$REPO.git

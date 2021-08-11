@@ -6,6 +6,7 @@
 package com.aliucord.api;
 
 import android.os.Build;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -37,6 +38,7 @@ import com.discord.widgets.chat.MessageContent;
 import com.discord.widgets.chat.input.ChatInputViewModel;
 import com.discord.widgets.chat.input.WidgetChatInput;
 import com.discord.widgets.chat.input.WidgetChatInput$configureSendListeners$2;
+import com.discord.widgets.chat.input.autocomplete.InputAutocomplete;
 import com.discord.widgets.chat.list.sheet.WidgetApplicationCommandBottomSheetViewModel;
 import com.lytefast.flexinput.R$d;
 import com.lytefast.flexinput.R$g;
@@ -152,8 +154,8 @@ public class CommandsAPI {
                     id, name, channelId, UserUtils.INSTANCE.synthesizeApiUser(me), Utils.buildClyde(null, null), false, true, id, clock);
             Class<Message> c = Message.class;
             try {
-                ReflectUtils.setField(c, thinkingMsg, "flags", MessageFlags.EPHEMERAL | MessageFlags.LOADING, true);
-                ReflectUtils.setField(c, thinkingMsg, "type", MessageTypes.LOCAL, true);
+                ReflectUtils.setField(c, thinkingMsg, "flags", MessageFlags.EPHEMERAL | MessageFlags.LOADING);
+                ReflectUtils.setField(c, thinkingMsg, "type", MessageTypes.LOCAL);
             } catch (Throwable ignored) {}
             StoreMessages storeMessages = StoreStream.getMessages();
             StoreMessages.access$handleLocalMessageCreate(storeMessages, thinkingMsg);
@@ -164,10 +166,13 @@ public class CommandsAPI {
             args.remove("__args");
 
             if (_this == null || _args == null) return null;
-            MessageContent content = _this.$chatInput.getMatchedContentWithMetaData();
+            InputAutocomplete inputAutocomplete = WidgetChatInput.access$getAutocomplete$p(_this.this$0);
+            MessageContent _content = inputAutocomplete.getInputContent();
+            if (_content == null) _content = new MessageContent(_this.$chatInput.getText(), Collections.emptyList());
+            MessageContent content = _content;
             WidgetChatInput.clearInput$default(_this.this$0, false, true, 0, null);
 
-            CommandContext ctx = new CommandContext(args, _this, _args);
+            CommandContext ctx = new CommandContext(args, _this, _args, content);
             Utils.threadPool.execute(() -> {
                 try {
                     CommandResult res = execute.invoke(ctx);
@@ -203,9 +208,9 @@ public class CommandsAPI {
                                     null
                             );
 
-                            ReflectUtils.setField(c, commandMessage, "embeds", res.embeds, true);
-                            ReflectUtils.setField(c, commandMessage, "flags", MessageFlags.EPHEMERAL, true);
-                            ReflectUtils.setField(c, commandMessage, "interaction", thinkingMsg.getInteraction(), true);
+                            ReflectUtils.setField(c, commandMessage, "embeds", res.embeds);
+                            ReflectUtils.setField(c, commandMessage, "flags", MessageFlags.EPHEMERAL);
+                            ReflectUtils.setField(c, commandMessage, "interaction", thinkingMsg.getInteraction());
 
                             // TODO: add arguments
                             long guildId = ChannelWrapper.getGuildId(StoreStream.getChannels().getChannel(channelId));
@@ -233,7 +238,7 @@ public class CommandsAPI {
                                 WidgetChatInput.access$getViewModel$p(_this.this$0),
                                 _this.$context,
                                 _this.$messageManager,
-                                new MessageContent(res.content, content != null ? content.getMentionedUsers() : Collections.emptyList()),
+                                new MessageContent(res.content, content.getMentionedUsers()),
                                 attachments,
                                 false,
                                 (Function1<? super Boolean, Unit>) _args[2],
@@ -259,10 +264,11 @@ public class CommandsAPI {
                             Locale.ENGLISH,
                             "Oops! Something went wrong while running this command:\n```java\n%s```\n" +
                             "Please search for this error on the Aliucord server to see if it's a known issue. " +
-                            "If it isn't, report it to the plugin author%s.\n\n" +
+                            "If it isn't, report it to the plugin %s%s.\n\n" +
                             "Debug:```\nCommand: %s\nPlugin: %s v%s\nDiscord v%s\nAndroid %s (SDK %d)\nAliucord %s```\nArguments:```\n%s```\n",
                             t.toString(),
-                            manifest.authors.length != 0 ? " (" + manifest.authors[0].name + ")" : "",
+                            manifest.authors.length == 1 ? "author" : "authors",
+                            manifest.authors.length != 0 ? " (" + TextUtils.join(", ", manifest.authors) + ")" : "",
                             name,
                             pluginName,
                             manifest.version,
@@ -275,7 +281,7 @@ public class CommandsAPI {
                     Message commandMessage = LocalMessageCreatorsKt.createLocalMessage(detailedError, channelId, Utils.buildClyde(null, null), null, false, false, null, null, clock, null, null, null, null, null, null, null);
 
                     try {
-                        ReflectUtils.setField(c, commandMessage, "flags", MessageFlags.EPHEMERAL, true);
+                        ReflectUtils.setField(c, commandMessage, "flags", MessageFlags.EPHEMERAL);
                     } catch (Throwable ignored) {}
                     StoreMessages.access$handleLocalMessageCreate(storeMessages, commandMessage);
                 }
@@ -283,7 +289,7 @@ public class CommandsAPI {
             return null;
         });
         try {
-            ReflectUtils.setField(ApplicationCommand.class, command, "builtIn", true, true);
+            ReflectUtils.setField(ApplicationCommand.class, command, "builtIn", true);
         } catch (Throwable e) { logger.error(e); }
         commands.put(name, command);
         updateCommandCount();
@@ -303,7 +309,7 @@ public class CommandsAPI {
     private static void updateCommandCount() {
         if (aliucordApplication.getCommandCount() != commands.size()) {
             try {
-                ReflectUtils.setField(aliucordApplication, "commandCount", commands.size(), true);
+                ReflectUtils.setField(aliucordApplication, "commandCount", commands.size());
             } catch (Throwable ignored) {}
         }
     }

@@ -1,9 +1,13 @@
 package com.discord.widgets.chat.input;
 
-import com.discord.widgets.chat.MessageContent;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
 
-public class WidgetChatInputEditText {
-    public final MessageContent getMatchedContentWithMetaData() { return getMatchedContentWithMetaData(); }
+@SuppressWarnings("unused")
+public final class WidgetChatInputEditText {
     public final long getChannelId() { return 0; }
-    public final void setChannelId(long j) { }
+    public final Function0<Unit> getOnSendListener() { return null; }
+    public final String getText() { return null; }
+    public final void saveText() {}
+    public final void setChannelId(long j) {}
 }

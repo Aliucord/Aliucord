@@ -20,6 +20,7 @@ import com.discord.models.user.User;
 import com.discord.stores.StoreStream;
 import com.discord.utilities.SnowflakeUtils;
 import com.discord.utilities.attachments.AttachmentUtilsKt;
+import com.discord.widgets.chat.MessageContent;
 import com.discord.widgets.chat.input.*;
 import com.lytefast.flexinput.model.Attachment;
 
@@ -30,12 +31,15 @@ import java.util.*;
 public class CommandContext {
     private final Map<String, ?> args;
     private final WidgetChatInput$configureSendListeners$2 _this;
+    private final MessageContent messageContent;
     private final ChatInputViewModel.ViewState.Loaded viewState;
     private List<Attachment<?>> attachments;
 
-    public CommandContext(Map<String, ?> args, WidgetChatInput$configureSendListeners$2 _this, Object[] _args) {
+    @SuppressWarnings("unchecked")
+    public CommandContext(Map<String, ?> args, WidgetChatInput$configureSendListeners$2 _this, Object[] _args, MessageContent messageContent) {
         this.args = args;
         this._this = _this;
+        this.messageContent = messageContent;
         this.attachments = (List<Attachment<?>>) _args[0];
         viewState = ((WidgetChatInput$configureSendListeners$6$1) _args[2]).this$0.$viewState;
     }
@@ -123,7 +127,7 @@ public class CommandContext {
 
     /** Returns the raw content of the message that invoked this command */
     public String getRawContent() {
-        return _this.$chatInput.getMatchedContentWithMetaData().getTextContent();
+        return messageContent.getTextContent();
     }
 
     /** Returns the attachments of the message that invoked this command */
@@ -160,7 +164,7 @@ public class CommandContext {
 
     /** Returns the mentioned users */
     public List<User> getMentionedUsers() {
-        return _this.$chatInput.getMatchedContentWithMetaData().getMentionedUsers();
+        return messageContent.getMentionedUsers();
     }
 
     /** Returns the current user */

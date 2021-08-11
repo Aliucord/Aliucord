@@ -13,9 +13,7 @@ import androidx.annotation.NonNull;
 import com.aliucord.CollectionUtils;
 import com.aliucord.api.CommandsAPI;
 import com.aliucord.entities.Plugin;
-import com.aliucord.patcher.Patcher;
-import com.aliucord.patcher.PinePatchFn;
-import com.aliucord.patcher.PinePrePatchFn;
+import com.aliucord.patcher.*;
 import com.discord.api.message.MessageTypes;
 import com.discord.databinding.WidgetChatInputAutocompleteItemBinding;
 import com.discord.models.commands.*;
@@ -24,7 +22,6 @@ import com.discord.models.user.CoreUser;
 import com.discord.stores.StoreApplicationCommands;
 import com.discord.stores.StoreStream;
 import com.discord.utilities.view.text.SimpleDraweeSpanTextView;
-import com.discord.widgets.chat.input.UserAndSelectedGuildRoles;
 import com.discord.widgets.chat.input.WidgetChatInput$configureSendListeners$2;
 import com.discord.widgets.chat.input.autocomplete.ApplicationCommandAutocompletable;
 import com.discord.widgets.chat.input.autocomplete.adapter.AutocompleteItemViewHolder;
@@ -122,10 +119,10 @@ final class CommandHandler extends Plugin {
         // Show Plugin name instead of 'Aliucord' in the command list
         Field bindingField = AutocompleteItemViewHolder.class.getDeclaredField("binding");
         bindingField.setAccessible(true);
-        Patcher.addPatch(AutocompleteItemViewHolder.class.getDeclaredMethod("bindCommand", ApplicationCommandAutocompletable.class, boolean.class, UserAndSelectedGuildRoles.class), new PinePatchFn(callFrame -> {
+        Patcher.addPatch(AutocompleteItemViewHolder.class.getDeclaredMethod("bindCommand", ApplicationCommandAutocompletable.class, boolean.class), new PinePatchFn(callFrame -> {
             ApplicationCommand cmd = ((ApplicationCommandAutocompletable) callFrame.args[0]).getCommand();
-            if (!cmd.getBuiltIn()) return;
             if (cmd instanceof ApplicationSubCommand) cmd = ((ApplicationSubCommand) cmd).getRootCommand();
+            if (!cmd.getBuiltIn()) return;
             String plugin = CommandsAPI.commandsAndPlugins.get(cmd.getName());
             if (plugin == null) return;
             try {

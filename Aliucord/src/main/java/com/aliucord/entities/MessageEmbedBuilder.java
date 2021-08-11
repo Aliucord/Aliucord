@@ -115,9 +115,9 @@ public class MessageEmbedBuilder {
         EmbedAuthor author = new EmbedAuthor();
         Class<EmbedAuthor> c = EmbedAuthor.class;
         try {
-            ReflectUtils.setField(c, author, "name", name, true);
-            ReflectUtils.setField(c, author, "iconUrl", iconUrl, true);
-            ReflectUtils.setField(c, author, "proxyIconUrl", proxyIconUrl, true);
+            ReflectUtils.setField(c, author, "name", name);
+            ReflectUtils.setField(c, author, "iconUrl", iconUrl);
+            ReflectUtils.setField(c, author, "proxyIconUrl", proxyIconUrl);
         } catch (Throwable e) { Main.logger.error(e); }
         return setAuthor(author);
     }
@@ -241,9 +241,9 @@ public class MessageEmbedBuilder {
         EmbedFooter footer = new EmbedFooter();
         Class<EmbedFooter> c = EmbedFooter.class;
         try {
-            ReflectUtils.setField(c, footer, "text", text, true);
-            ReflectUtils.setField(c, footer, "iconUrl", iconUrl, true);
-            ReflectUtils.setField(c, footer, "proxyIconUrl", proxyIconUrl, true);
+            ReflectUtils.setField(c, footer, "text", text);
+            ReflectUtils.setField(c, footer, "iconUrl", iconUrl);
+            ReflectUtils.setField(c, footer, "proxyIconUrl", proxyIconUrl);
         } catch (Throwable e) { Main.logger.error(e); }
         return setFooter(footer);
     }
@@ -295,10 +295,10 @@ public class MessageEmbedBuilder {
         EmbedImage image = new EmbedImage();
         Class<EmbedImage> c = EmbedImage.class;
         try {
-            ReflectUtils.setField(c, image, "url", imageUrl, true);
-            ReflectUtils.setField(c, image, "proxyUrl", proxyImageUrl, true);
-            ReflectUtils.setField(c, image, "height", imageHeight, true);
-            ReflectUtils.setField(c, image, "width", imageWidth, true);
+            ReflectUtils.setField(c, image, "url", imageUrl);
+            ReflectUtils.setField(c, image, "proxyUrl", proxyImageUrl);
+            ReflectUtils.setField(c, image, "height", imageHeight);
+            ReflectUtils.setField(c, image, "width", imageWidth);
         } catch (Throwable e) { Main.logger.error(e); }
         return setImage(image);
     }
@@ -362,10 +362,10 @@ public class MessageEmbedBuilder {
         EmbedThumbnail image = new EmbedThumbnail();
         Class<EmbedThumbnail> c = EmbedThumbnail.class;
         try {
-            ReflectUtils.setField(c, image, "url", imageUrl, true);
-            ReflectUtils.setField(c, image, "proxyUrl", proxyImageUrl, true);
-            ReflectUtils.setField(c, image, "height", imageHeight, true);
-            ReflectUtils.setField(c, image, "width", imageWidth, true);
+            ReflectUtils.setField(c, image, "url", imageUrl);
+            ReflectUtils.setField(c, image, "proxyUrl", proxyImageUrl);
+            ReflectUtils.setField(c, image, "height", imageHeight);
+            ReflectUtils.setField(c, image, "width", imageWidth);
         } catch (Throwable e) { Main.logger.error(e); }
         return setThumbnail(image);
     }
@@ -440,10 +440,10 @@ public class MessageEmbedBuilder {
         EmbedVideo video = new EmbedVideo();
         Class<EmbedVideo> c = EmbedVideo.class;
         try {
-            ReflectUtils.setField(c, video, "url", videoUrl, true);
-            ReflectUtils.setField(c, video, "proxyUrl", proxyVideoUrl, true);
-            ReflectUtils.setField(c, video, "height", height, true);
-            ReflectUtils.setField(c, video, "width", width, true);
+            ReflectUtils.setField(c, video, "url", videoUrl);
+            ReflectUtils.setField(c, video, "proxyUrl", proxyVideoUrl);
+            ReflectUtils.setField(c, video, "height", height);
+            ReflectUtils.setField(c, video, "width", width);
         } catch (Throwable e) { Main.logger.error(e); }
         return setVideo(video);
     }
@@ -490,9 +490,9 @@ public class MessageEmbedBuilder {
         EmbedField field = new EmbedField();
         Class<EmbedField> c = EmbedField.class;
         try {
-            ReflectUtils.setField(c, field, "name", name, true);
-            ReflectUtils.setField(c, field, "value", value, true);
-            ReflectUtils.setField(c, field, "inline", inline, true);
+            ReflectUtils.setField(c, field, "name", name);
+            ReflectUtils.setField(c, field, "value", value);
+            ReflectUtils.setField(c, field, "inline", inline);
         } catch (Throwable e) { Main.logger.error(e); }
         return field;
     }

@@ -6,5 +6,5 @@ public final class UtcDateTime implements Comparable<UtcDateTime> {
 
     public int compareTo(UtcDateTime o) { return 0; }
 
-    public final long f() { return 0; }
+    public final long g() { return 0; }
 }
