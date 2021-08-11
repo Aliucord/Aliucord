@@ -38,8 +38,8 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import c.a.e.l;
-import c.a.l.b;
+import c.a.d.l;
+import c.a.k.b;
 import rx.Subscriber;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -219,6 +219,7 @@ public class Utils {
      * @param value The value representing this choice
      * @return CommandChoice
      */
+    @SuppressWarnings("JavaReflectionMemberAccess")
     public static CommandChoice createCommandChoice(String name, String value) {
         CommandChoice choice = new CommandChoice();
         try {
@@ -285,7 +286,7 @@ public class Utils {
      */
     @Deprecated
     public static Object getPrivateField(Class<?> clazz, Object instance, String fieldName) throws Exception {
-        return ReflectUtils.getField(clazz, instance, fieldName, true);
+        return ReflectUtils.getField(clazz, instance, fieldName);
     }
 
     /**
@@ -293,7 +294,7 @@ public class Utils {
      */
     @Deprecated
     public static void setPrivateField(Class<?> clazz, Object instance, String fieldName, Object v) throws Exception {
-        ReflectUtils.setField(clazz, instance, fieldName, v, true);
+        ReflectUtils.setField(clazz, instance, fieldName, v);
     }
 
     /**

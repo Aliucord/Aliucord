@@ -20,7 +20,7 @@ public class ChannelUtils {
     }
 
     public static boolean isGuildTextyChannel(Channel channel) {
-        return AnimatableValueParser.k1(channel);
+        return AnimatableValueParser.l1(channel);
     }
 
     public static User getDMRecipient(Channel channel) {
@@ -28,7 +28,7 @@ public class ChannelUtils {
     }
 
     public static boolean isTextChannel(Channel channel) {
-        return AnimatableValueParser.y1(channel);
+        return AnimatableValueParser.z1(channel);
     }
 
     public static String getDisplayName(Channel channel) {

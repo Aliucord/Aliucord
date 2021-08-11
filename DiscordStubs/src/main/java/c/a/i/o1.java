@@ -1,4 +1,4 @@
-package c.a.j;
+package c.a.i;
 
 import android.view.View;
 import android.widget.RelativeLayout;
@@ -9,7 +9,7 @@ import androidx.viewbinding.ViewBinding;
 import com.facebook.drawee.view.SimpleDraweeView;
 
 /** UserAvatarPresenceViewBinding */
-public final class p1 implements ViewBinding {
+public final class o1 implements ViewBinding {
     public RelativeLayout a;
     public SimpleDraweeView b;
 
