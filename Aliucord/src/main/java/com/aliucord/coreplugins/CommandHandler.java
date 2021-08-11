@@ -10,7 +10,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
-import com.aliucord.CollectionUtils;
 import com.aliucord.api.CommandsAPI;
 import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.*;
@@ -20,7 +19,7 @@ import com.discord.models.commands.*;
 import com.discord.models.message.Message;
 import com.discord.models.user.CoreUser;
 import com.discord.stores.StoreApplicationCommands;
-import com.discord.stores.StoreStream;
+import com.discord.stores.StoreLocalMessagesHolder;
 import com.discord.utilities.view.text.SimpleDraweeSpanTextView;
 import com.discord.widgets.chat.input.WidgetChatInput$configureSendListeners$2;
 import com.discord.widgets.chat.input.autocomplete.ApplicationCommandAutocompletable;
@@ -35,6 +34,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 import kotlin.jvm.functions.Function1;
+import top.canyie.pine.callback.MethodReplacement;
 
 final class CommandHandler extends Plugin {
     @NonNull
@@ -80,16 +80,7 @@ final class CommandHandler extends Plugin {
             list.add(CommandsAPI.getAliucordApplication());
         }));
 
-        Patcher.addPatch("com.discord.stores.StoreLocalMessagesHolder", "getFlattenedMessages", new Class<?>[0], new PinePatchFn(callFrame -> {
-            List<Message> list = (List<Message>) callFrame.getResult();
-            CollectionUtils.removeIf(list, m -> {
-                CoreUser author = new CoreUser(m.getAuthor());
-                boolean r = author.getId() == -1 || author.getId() == 0;
-                if (r) StoreStream.getMessages().deleteMessage(m);
-                return r;
-            });
-            callFrame.setResult(list);
-        }));
+        Patcher.addPatch(StoreLocalMessagesHolder.class, "messageCacheTryPersist", new Class<?>[0], MethodReplacement.DO_NOTHING);
 
         // needed to reimplement this to:
         // 1. don't send command result if not needed
