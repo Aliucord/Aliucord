@@ -67,7 +67,7 @@ public class UpdaterPluginCard extends MaterialCardView {
             tv.setText(String.format("%s -> v%s", p.getManifest().version, info != null ? info.version : "?"));
             changeLogButton.setOnClickListener(e -> {
                 if(info.changelog != null) {
-                    WidgetChangeLog.Companion.launch(context, p.name + " v" + info.version, "1", info.changelogMedia ? info.changelogMedia : "https://cdn.discordapp.com/banners/169256939211980800/eda024c8f40a45c88265a176f0926bea.jpg?size=2048", info.changelog);
+                    WidgetChangeLog.Companion.launch(context, p.name + " v" + info.version, "1", info.changelogMedia != null ? info.changelogMedia : "https://cdn.discordapp.com/banners/169256939211980800/eda024c8f40a45c88265a176f0926bea.jpg?size=2048", info.changelog);
                 }
             });
         } catch (Throwable e) { PluginManager.logger.error(e); }
