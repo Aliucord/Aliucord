@@ -87,14 +87,11 @@ public class Crashes extends SettingsPage {
             crashFolderBtn.setPadding(p, p, p, p);
             clearLogsBtn.setPadding(p, p, p, p);
 
-            //noinspection ConstantConditions
-            Drawable openCrashesExternal = ContextCompat.getDrawable(context, R$d.ic_open_in_new_white_24dp).mutate();
-            openCrashesExternal.setAlpha(185);
-            crashFolderBtn.setImageDrawable(openCrashesExternal);
+            crashFolderBtn.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_open_in_new_white_24dp));
             //noinspection ConstantConditions
             Drawable clearLogs = ContextCompat.getDrawable(context, R$d.ic_delete_white_24dp).mutate();
-            clearLogs.setAlpha(hasCrashes ? 185 : 92);
-            clearLogsBtn.setImageDrawable(clearLogs);
+            Utils.tintToTheme(clearLogs).setAlpha(hasCrashes ? 185 : 92);
+            clearLogsBtn.setImageDrawable(clearLogs, false);
             clearLogsBtn.setClickable(hasCrashes);
 
             crashFolderBtn.setOnClickListener(e -> {

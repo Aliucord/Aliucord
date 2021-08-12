@@ -5,8 +5,7 @@
 
 package com.aliucord.updater;
 
-import com.aliucord.BuildConfig;
-import com.aliucord.Http;
+import com.aliucord.*;
 
 import java.io.IOException;
 
@@ -29,6 +28,7 @@ public class Updater {
 
     private static Boolean isOfficial = null;
     public static boolean isAliucordOfficial() {
+        if (SettingsUtils.getBool("disableAliucordUpdater", false)) return true;
         if (isOfficial == null) {
             final String url = "https://github.com/Aliucord/Aliucord/tree/" + BuildConfig.GIT_REVISION;
             // Check if commit hash is valid commit of the Aliucord/Aliucord repo
@@ -51,6 +51,7 @@ public class Updater {
 
     private static Boolean isOutdated = null;
     public static boolean isAliucordOutdated() {
+        if (SettingsUtils.getBool("disableAliucordUpdater", false)) return false;
         if (isOutdated == null) {
             try (Http.Request req = new Http.Request("https://api.github.com/repos/Aliucord/Aliucord/commits/builds")) {
                 String commitMsg = req.execute().json(GithubApiInfo.class).commit.message;

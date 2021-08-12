@@ -9,7 +9,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
 import android.net.Uri;
@@ -34,8 +33,8 @@ import com.aliucord.views.ToolbarButton;
 import com.aliucord.widgets.PluginCard;
 import com.discord.app.AppBottomSheet;
 import com.discord.app.AppFragment;
-import com.discord.widgets.user.usersheet.WidgetUserSheet;
 import com.discord.widgets.changelog.WidgetChangeLog;
+import com.discord.widgets.user.usersheet.WidgetUserSheet;
 import com.lytefast.flexinput.R$d;
 import com.lytefast.flexinput.R$g;
 
@@ -284,11 +283,7 @@ public class Plugins extends SettingsPage {
             params.setMarginEnd(p);
             pluginFolderBtn.setLayoutParams(params);
             pluginFolderBtn.setPadding(p, p, p, p);
-
-            //noinspection ConstantConditions
-            Drawable pluginFolder = ContextCompat.getDrawable(context, R$d.ic_open_in_new_white_24dp).mutate();
-            pluginFolder.setAlpha(185);
-            pluginFolderBtn.setImageDrawable(pluginFolder);
+            pluginFolderBtn.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_open_in_new_white_24dp));
 
             pluginFolderBtn.setOnClickListener(e -> {
                 File dir = new File(Constants.PLUGINS_PATH);

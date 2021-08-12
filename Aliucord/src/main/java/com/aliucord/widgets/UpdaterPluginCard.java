@@ -7,19 +7,20 @@ package com.aliucord.widgets;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.view.*;
-import android.widget.TextView;
+import android.view.Gravity;
+import android.view.View;
 import android.widget.GridLayout;
-import android.graphics.drawable.Drawable;
+import android.widget.TextView;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.content.ContextCompat;
 
-import com.aliucord.*;
+import com.aliucord.PluginManager;
+import com.aliucord.Utils;
 import com.aliucord.entities.Plugin;
 import com.aliucord.updater.PluginUpdater;
-import com.aliucord.views.*;
+import com.aliucord.views.ToolbarButton;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.widgets.changelog.WidgetChangeLog;
 import com.google.android.material.card.MaterialCardView;
@@ -71,10 +72,7 @@ public class UpdaterPluginCard extends MaterialCardView {
             tv.setText(String.format("%s -> v%s", p.getManifest().version, info != null ? info.version : "?"));
             if (info != null && info.changelog != null) {
                 ToolbarButton changeLogButton = new ToolbarButton(context);
-                Drawable changeLogIcon = ContextCompat.getDrawable(context, R$d.ic_history_white_24dp);
-                changeLogIcon = changeLogIcon.mutate();
-                changeLogIcon.setTint(ColorCompat.getThemedColor(context, R$b.colorInteractiveNormal));
-                changeLogButton.setImageDrawable(changeLogIcon);
+                changeLogButton.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_history_white_24dp));
                 changeLogButton.setPadding(paddingHalf, paddingHalf, paddingHalf, paddingHalf);
                 changeLogButton.setOnClickListener(e ->
                     WidgetChangeLog.Companion.launch(context, p.name + " v" + info.version, "1", info.changelogMedia != null ? info.changelogMedia : "https://cdn.discordapp.com/banners/169256939211980800/eda024c8f40a45c88265a176f0926bea.jpg?size=2048", info.changelog));
@@ -96,10 +94,7 @@ public class UpdaterPluginCard extends MaterialCardView {
         set.applyTo(layout);
 
         ToolbarButton update = new ToolbarButton(context);
-        Drawable updateIcon = ContextCompat.getDrawable(context, R$d.ic_file_download_white_24dp);
-        updateIcon = updateIcon.mutate();
-        updateIcon.setTint(ColorCompat.getThemedColor(context, R$b.colorInteractiveNormal));
-        update.setImageDrawable(updateIcon);
+        update.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_file_download_white_24dp));
         update.setPadding(paddingHalf, paddingHalf, 0, paddingHalf);
         update.setOnClickListener(e -> {
             update.setEnabled(false);

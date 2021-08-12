@@ -9,7 +9,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
@@ -26,11 +25,9 @@ import com.aliucord.views.ToolbarButton;
 import com.aliucord.widgets.BottomSheet;
 import com.aliucord.widgets.UpdaterPluginCard;
 import com.discord.views.CheckedSetting;
-import com.discord.utilities.color.ColorCompat;
 import com.google.android.material.snackbar.Snackbar;
-import com.lytefast.flexinput.*;
-
-import java.util.Objects;
+import com.lytefast.flexinput.R$d;
+import com.lytefast.flexinput.R$h;
 
 public class Updater extends SettingsPage {
     public static class UpdaterSettings extends BottomSheet {
@@ -105,26 +102,11 @@ public class Updater extends SettingsPage {
             refreshButton.setPadding(p, p, p, p);
             settingsButton.setPadding(p, p, p, p);
             updateAllButton.setPadding(p, p, p, p);
-            Drawable refreshDrawable = ContextCompat.getDrawable(context, R$d.ic_refresh_white_a60_24dp).mutate();
-            refreshDrawable.setTint(ColorCompat.getThemedColor(context, R$b.colorInteractiveNormal));
-            refreshButton.setImageDrawable(refreshDrawable);
-            Drawable updateDrawable = Objects.requireNonNull(
-                    ContextCompat.getDrawable(context, R$d.ic_file_download_white_24dp),
-                    "ic_file_download_white_24dp: No such Drawable."
-            ).mutate();
-            // ic_refresh_white_a60_24dp has alpha of 0x99 hardcoded in its color. However adding a tint of 0xFF...
-            // to make it have full alpha doesn't work for some reason, so instead change alpha of other two drawables
-            // because who doesn't love hacky solutions!!
-            updateDrawable.setAlpha(0x99);
-            updateDrawable.setTint(ColorCompat.getThemedColor(context, R$b.colorInteractiveNormal));
-            updateAllButton.setImageDrawable(updateDrawable);
-            Drawable settingsDrawable = Objects.requireNonNull(
-                    ContextCompat.getDrawable(context, R$d.ic_guild_settings_24dp),
-                    "ic_guild_settings_24dp: No such Drawable."
-            ).mutate();
-            settingsDrawable.setAlpha(0x99);
-            settingsDrawable.setTint(ColorCompat.getThemedColor(context, R$b.colorInteractiveNormal));
-            settingsButton.setImageDrawable(settingsDrawable);
+
+            //noinspection ConstantConditions
+            refreshButton.setImageDrawable(Utils.tintToTheme(ContextCompat.getDrawable(context, R$d.ic_refresh_white_a60_24dp).mutate()), false);
+            updateAllButton.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_file_download_white_24dp));
+            settingsButton.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_guild_settings_24dp));
 
             updateAllButton.setOnClickListener(e -> {
                 setActionBarSubtitle("Updating...");

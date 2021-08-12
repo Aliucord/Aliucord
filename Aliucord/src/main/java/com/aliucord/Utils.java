@@ -6,6 +6,8 @@
 package com.aliucord;
 
 import android.content.*;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -26,6 +28,7 @@ import com.discord.api.user.User;
 import com.discord.app.AppActivity;
 import com.discord.app.AppComponent;
 import com.discord.nullserializable.NullSerializable;
+import com.discord.stores.StoreStream;
 import com.discord.utilities.SnowflakeUtils;
 import com.discord.utilities.fcm.NotificationClient;
 import com.discord.views.CheckedSetting;
@@ -351,6 +354,16 @@ public class Utils {
             os.write(buf, 0, n);
         }
         os.flush();
+    }
+
+    /**
+     * Tints a {@link Drawable} to {@link Color#BLACK} if a user has set light theme.
+     * @param drawable Drawable
+     * @return Drawable for chaining
+     */
+    public static Drawable tintToTheme(Drawable drawable) {
+        if (drawable != null && StoreStream.getUserSettingsSystem().getTheme().equals("light")) drawable.setTint(Color.BLACK);
+        return drawable;
     }
 
     /** <a href="https://github.com/google/gson">Gson</a> instance */
