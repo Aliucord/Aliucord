@@ -33,6 +33,8 @@ public class PluginUpdater {
         public int minimumDiscordVersion;
         public String version;
         public String build;
+        public String changelog;
+        public String changelogMedia;
     }
 
     public static class CachedData {

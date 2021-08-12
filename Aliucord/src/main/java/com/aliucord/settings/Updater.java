@@ -26,9 +26,9 @@ import com.aliucord.views.ToolbarButton;
 import com.aliucord.widgets.BottomSheet;
 import com.aliucord.widgets.UpdaterPluginCard;
 import com.discord.views.CheckedSetting;
+import com.discord.utilities.color.ColorCompat;
 import com.google.android.material.snackbar.Snackbar;
-import com.lytefast.flexinput.R$d;
-import com.lytefast.flexinput.R$h;
+import com.lytefast.flexinput.*;
 
 import java.util.Objects;
 
@@ -105,8 +105,9 @@ public class Updater extends SettingsPage {
             refreshButton.setPadding(p, p, p, p);
             settingsButton.setPadding(p, p, p, p);
             updateAllButton.setPadding(p, p, p, p);
-
-            refreshButton.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_refresh_white_a60_24dp));
+            Drawable refreshDrawable = ContextCompat.getDrawable(context, R$d.ic_refresh_white_a60_24dp).mutate();
+            refreshDrawable.setTint(ColorCompat.getThemedColor(context, R$b.colorInteractiveNormal));
+            refreshButton.setImageDrawable(refreshDrawable);
             Drawable updateDrawable = Objects.requireNonNull(
                     ContextCompat.getDrawable(context, R$d.ic_file_download_white_24dp),
                     "ic_file_download_white_24dp: No such Drawable."
@@ -115,12 +116,14 @@ public class Updater extends SettingsPage {
             // to make it have full alpha doesn't work for some reason, so instead change alpha of other two drawables
             // because who doesn't love hacky solutions!!
             updateDrawable.setAlpha(0x99);
+            updateDrawable.setTint(ColorCompat.getThemedColor(context, R$b.colorInteractiveNormal));
             updateAllButton.setImageDrawable(updateDrawable);
             Drawable settingsDrawable = Objects.requireNonNull(
                     ContextCompat.getDrawable(context, R$d.ic_guild_settings_24dp),
                     "ic_guild_settings_24dp: No such Drawable."
             ).mutate();
             settingsDrawable.setAlpha(0x99);
+            settingsDrawable.setTint(ColorCompat.getThemedColor(context, R$b.colorInteractiveNormal));
             settingsButton.setImageDrawable(settingsDrawable);
 
             updateAllButton.setOnClickListener(e -> {

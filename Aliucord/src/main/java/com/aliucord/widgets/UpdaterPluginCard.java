@@ -7,29 +7,33 @@ package com.aliucord.widgets;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.view.View;
+import android.view.*;
 import android.widget.TextView;
+import android.widget.GridLayout;
+import android.graphics.drawable.Drawable;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
+import androidx.core.content.ContextCompat;
 
 import com.aliucord.*;
 import com.aliucord.entities.Plugin;
 import com.aliucord.updater.PluginUpdater;
-import com.aliucord.views.Button;
+import com.aliucord.views.*;
 import com.discord.utilities.color.ColorCompat;
+import com.discord.widgets.changelog.WidgetChangeLog;
 import com.google.android.material.card.MaterialCardView;
-import com.lytefast.flexinput.R$b;
-import com.lytefast.flexinput.R$h;
+import com.lytefast.flexinput.*;
 
 @SuppressLint({"SetTextI18n", "ViewConstructor"})
 public class UpdaterPluginCard extends MaterialCardView {
     public UpdaterPluginCard(Context context, String plugin, Runnable forceUpdate) {
         super(context);
         int padding = Utils.getDefaultPadding();
+        int paddingHalf = padding / 2;
 
         LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-        params.setMargins(0, padding / 2, 0, 0);
+        params.setMargins(0, paddingHalf, 0, 0);
         setLayoutParams(params);
         setUseCompatPadding(true);
         setCardBackgroundColor(ColorCompat.getThemedColor(context, R$b.colorBackgroundSecondary));
@@ -53,10 +57,32 @@ public class UpdaterPluginCard extends MaterialCardView {
         set.connect(id, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP);
         set.applyTo(layout);
 
+        GridLayout buttonLayout = new GridLayout(context);
+        buttonLayout.setRowCount(1);
+        buttonLayout.setColumnCount(2);
+        buttonLayout.setUseDefaultMargins(true);
+        buttonLayout.setPadding(0, 0, 0, 0);
+        int btnLayoutId = View.generateViewId();
+        buttonLayout.setId(btnLayoutId);
+
         tv = new TextView(context, null, 0, R$h.UiKit_TextView_Subtext);
         try {
             PluginUpdater.UpdateInfo info = PluginUpdater.getUpdateInfo(p);
             tv.setText(String.format("%s -> v%s", p.getManifest().version, info != null ? info.version : "?"));
+            if (info != null && info.changelog != null) {
+                ToolbarButton changeLogButton = new ToolbarButton(context);
+                Drawable changeLogIcon = ContextCompat.getDrawable(context, R$d.ic_history_white_24dp);
+                changeLogIcon = changeLogIcon.mutate();
+                changeLogIcon.setTint(ColorCompat.getThemedColor(context, R$b.colorInteractiveNormal));
+                changeLogButton.setImageDrawable(changeLogIcon);
+                changeLogButton.setPadding(paddingHalf, paddingHalf, paddingHalf, paddingHalf);
+                changeLogButton.setOnClickListener(e ->
+                    WidgetChangeLog.Companion.launch(context, p.name + " v" + info.version, "1", info.changelogMedia != null ? info.changelogMedia : "https://cdn.discordapp.com/banners/169256939211980800/eda024c8f40a45c88265a176f0926bea.jpg?size=2048", info.changelog));
+
+                GridLayout.LayoutParams clParams = new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(0));
+                clParams.setGravity(Gravity.CENTER_VERTICAL);
+                buttonLayout.addView(changeLogButton, clParams);
+            }
         } catch (Throwable e) { PluginManager.logger.error(e); }
         int verid = View.generateViewId();
         tv.setId(verid);
@@ -69,11 +95,14 @@ public class UpdaterPluginCard extends MaterialCardView {
         set.connect(verid, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM);
         set.applyTo(layout);
 
-        Button update = new Button(context);
-        update.setText("Update");
+        ToolbarButton update = new ToolbarButton(context);
+        Drawable updateIcon = ContextCompat.getDrawable(context, R$d.ic_file_download_white_24dp);
+        updateIcon = updateIcon.mutate();
+        updateIcon.setTint(ColorCompat.getThemedColor(context, R$b.colorInteractiveNormal));
+        update.setImageDrawable(updateIcon);
+        update.setPadding(paddingHalf, paddingHalf, 0, paddingHalf);
         update.setOnClickListener(e -> {
             update.setEnabled(false);
-            update.setText("Updating..");
             Utils.threadPool.execute(() -> {
                 try {
                     PluginUpdater.update(plugin);
@@ -86,14 +115,16 @@ public class UpdaterPluginCard extends MaterialCardView {
                 }
             });
         });
-        int updateId = View.generateViewId();
-        update.setId(updateId);
-        layout.addView(update);
 
+        GridLayout.LayoutParams updateParams = new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(1));
+        updateParams.setGravity(Gravity.CENTER_VERTICAL);
+        buttonLayout.addView(update, updateParams);
+        layout.addView(buttonLayout);
+        
         set = new ConstraintSet();
         set.clone(layout);
-        set.connect(updateId, ConstraintSet.RIGHT, ConstraintSet.PARENT_ID, ConstraintSet.RIGHT);
-        set.connect(updateId, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP);
+        set.connect(btnLayoutId, ConstraintSet.RIGHT, ConstraintSet.PARENT_ID, ConstraintSet.RIGHT);
+        set.connect(btnLayoutId, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP);
         set.applyTo(layout);
         addView(layout);
     }
