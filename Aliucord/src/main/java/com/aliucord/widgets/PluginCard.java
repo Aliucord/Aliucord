@@ -7,6 +7,7 @@ package com.aliucord.widgets;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.text.method.LinkMovementMethod;
 import android.view.Gravity;
 import android.view.View;
@@ -79,11 +80,22 @@ public class PluginCard extends MaterialCardView {
         uninstallButton = new DangerButton(ctx);
         uninstallButton.setText("Uninstall");
 
+        int buttonColor = ColorCompat.getThemedColor(ctx, R$b.colorInteractiveNormal);
         repoButton = new ToolbarButton(ctx);
-        repoButton.setImageDrawable(ContextCompat.getDrawable(ctx, R$d.ic_github_white));
+        Drawable githubIcon = ContextCompat.getDrawable(ctx, R$d.ic_github_white);
+        if (githubIcon != null) {
+            githubIcon = githubIcon.mutate();
+            githubIcon.setTint(buttonColor);
+            repoButton.setImageDrawable(githubIcon);
+        }
 
         changeLogButton = new ToolbarButton(ctx);
-        changeLogButton.setImageDrawable(ContextCompat.getDrawable(ctx, R$d.ic_history_white_24dp));
+        Drawable changeLogIcon = ContextCompat.getDrawable(ctx, R$d.ic_history_white_24dp);
+        if (changeLogIcon != null) {
+            changeLogIcon = changeLogIcon.mutate();
+            changeLogIcon.setTint(buttonColor);
+            changeLogButton.setImageDrawable(changeLogIcon);
+        }
 
         buttonLayout.addView(settingsButton, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(3)));
         buttonLayout.addView(uninstallButton, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(4)));

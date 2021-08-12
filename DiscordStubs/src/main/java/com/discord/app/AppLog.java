@@ -1,11 +1,30 @@
 package com.discord.app;
 
 import com.discord.utilities.logging.Logger;
+import com.discord.utilities.mg_recycler.MGRecyclerDataPayload;
 
 import java.util.Map;
 
 @SuppressWarnings("unused")
-public class AppLog extends Logger {
+public final class AppLog extends Logger {
+    public static final class LoggedItem implements MGRecyclerDataPayload {
+        /** message */
+        public final String k;
+        /** throwable */
+        public final Throwable l;
+
+        public LoggedItem(int i, String message, Throwable th) {
+            k = message;
+            l = th;
+        }
+
+        @Override
+        public String getKey() { return null; }
+        @Override
+        public int getType() { return 0; }
+    }
+
+    /** INSTANCE */
     public static final AppLog g = new AppLog();
 
     /** debug */
