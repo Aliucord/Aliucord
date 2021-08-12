@@ -26,13 +26,13 @@ import com.lytefast.flexinput.*;
 
 @SuppressLint({"SetTextI18n", "ViewConstructor"})
 public class UpdaterPluginCard extends MaterialCardView {
-    public PluginUpdater.UpdateInfo info;
     public UpdaterPluginCard(Context context, String plugin, Runnable forceUpdate) {
         super(context);
         int padding = Utils.getDefaultPadding();
-        
+        int paddingHalf = padding / 2;
+
         LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-        params.setMargins(0, padding / 2, 0, 0);
+        params.setMargins(0, paddingHalf, 0, 0);
         setLayoutParams(params);
         setUseCompatPadding(true);
         setCardBackgroundColor(ColorCompat.getThemedColor(context, R$b.colorBackgroundSecondary));
@@ -55,21 +55,30 @@ public class UpdaterPluginCard extends MaterialCardView {
         set.connect(id, ConstraintSet.LEFT, ConstraintSet.PARENT_ID, ConstraintSet.LEFT);
         set.connect(id, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP);
         set.applyTo(layout);
-        ToolbarButton changeLogButton = new ToolbarButton(context);
-        changeLogButton.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_history_white_24dp));
-        int paddingHalf = padding/2;
-        changeLogButton.setPadding(paddingHalf, paddingHalf, paddingHalf, paddingHalf);
 
+        GridLayout buttonLayout = new GridLayout(context);
+        buttonLayout.setRowCount(1);
+        buttonLayout.setColumnCount(2);
+        buttonLayout.setUseDefaultMargins(true);
+        buttonLayout.setPadding(0, 0, 0, 0);
+        int btnLayoutId = View.generateViewId();
+        buttonLayout.setId(btnLayoutId);
 
         tv = new TextView(context, null, 0, R$h.UiKit_TextView_Subtext);
         try {
-            info = PluginUpdater.getUpdateInfo(p);
+            PluginUpdater.UpdateInfo info = PluginUpdater.getUpdateInfo(p);
             tv.setText(String.format("%s -> v%s", p.getManifest().version, info != null ? info.version : "?"));
-            changeLogButton.setOnClickListener(e -> {
-                if(info.changelog != null) {
-                    WidgetChangeLog.Companion.launch(context, p.name + " v" + info.version, "1", info.changelogMedia != null ? info.changelogMedia : "https://cdn.discordapp.com/banners/169256939211980800/eda024c8f40a45c88265a176f0926bea.jpg?size=2048", info.changelog);
-                }
-            });
+            if (info != null && info.changelog != null) {
+                ToolbarButton changeLogButton = new ToolbarButton(context);
+                changeLogButton.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_history_white_24dp));
+                changeLogButton.setPadding(paddingHalf, paddingHalf, paddingHalf, paddingHalf);
+                changeLogButton.setOnClickListener(e ->
+                    WidgetChangeLog.Companion.launch(context, p.name + " v" + info.version, "1", info.changelogMedia != null ? info.changelogMedia : "https://cdn.discordapp.com/banners/169256939211980800/eda024c8f40a45c88265a176f0926bea.jpg?size=2048", info.changelog));
+
+                GridLayout.LayoutParams clParams = new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(0));
+                clParams.setGravity(Gravity.CENTER_VERTICAL);
+                buttonLayout.addView(changeLogButton, clParams);
+            }
         } catch (Throwable e) { PluginManager.logger.error(e); }
         int verid = View.generateViewId();
         tv.setId(verid);
@@ -100,28 +109,15 @@ public class UpdaterPluginCard extends MaterialCardView {
             });
         });
 
-        GridLayout buttonLayout = new GridLayout(context);
-        buttonLayout.setRowCount(1);
-        buttonLayout.setColumnCount(2);
-        buttonLayout.setUseDefaultMargins(true);
-        buttonLayout.setPadding(0, 0, 0, 0);
-        int btnsId = View.generateViewId();
-        buttonLayout.setId(btnsId);
-        if(info.changelog != null) {
-            GridLayout.LayoutParams clParams = new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(0));
-            clParams.setGravity(Gravity.CENTER_VERTICAL);
-            buttonLayout.addView(changeLogButton, clParams);
-        }
         GridLayout.LayoutParams updateParams = new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(1));
         updateParams.setGravity(Gravity.CENTER_VERTICAL);
         buttonLayout.addView(update, updateParams);
         layout.addView(buttonLayout);
         
-        
         set = new ConstraintSet();
         set.clone(layout);
-        set.connect(btnsId, ConstraintSet.RIGHT, ConstraintSet.PARENT_ID, ConstraintSet.RIGHT);
-        set.connect(btnsId, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP);
+        set.connect(btnLayoutId, ConstraintSet.RIGHT, ConstraintSet.PARENT_ID, ConstraintSet.RIGHT);
+        set.connect(btnLayoutId, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP);
         set.applyTo(layout);
         addView(layout);
     }
