@@ -10,6 +10,7 @@ import android.content.Context;
 import android.view.*;
 import android.widget.TextView;
 import android.widget.GridLayout;
+import android.graphics.drawable.Drawable;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
@@ -72,7 +73,7 @@ public class UpdaterPluginCard extends MaterialCardView {
                 ToolbarButton changeLogButton = new ToolbarButton(context);
                 Drawable changeLogIcon = ContextCompat.getDrawable(context, R$d.ic_history_white_24dp);
                 changeLogIcon = changeLogIcon.mutate();
-                changeLogIcon.setTint(ColorCompat.getThemedColor(ctx, R$b.colorInteractiveNormal));
+                changeLogIcon.setTint(ColorCompat.getThemedColor(context, R$b.colorInteractiveNormal));
                 changeLogButton.setImageDrawable(changeLogIcon);
                 changeLogButton.setPadding(paddingHalf, paddingHalf, paddingHalf, paddingHalf);
                 changeLogButton.setOnClickListener(e ->
@@ -97,7 +98,7 @@ public class UpdaterPluginCard extends MaterialCardView {
         ToolbarButton update = new ToolbarButton(context);
         Drawable updateIcon = ContextCompat.getDrawable(context, R$d.ic_file_download_white_24dp);
         updateIcon = updateIcon.mutate();
-        updateIcon.setTint(ColorCompat.getThemedColor(ctx, R$b.colorInteractiveNormal));
+        updateIcon.setTint(ColorCompat.getThemedColor(context, R$b.colorInteractiveNormal));
         update.setImageDrawable(updateIcon);
         update.setPadding(paddingHalf, paddingHalf, 0, paddingHalf);
         update.setOnClickListener(e -> {
