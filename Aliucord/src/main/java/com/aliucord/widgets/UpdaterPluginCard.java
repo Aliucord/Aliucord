@@ -70,7 +70,10 @@ public class UpdaterPluginCard extends MaterialCardView {
             tv.setText(String.format("%s -> v%s", p.getManifest().version, info != null ? info.version : "?"));
             if (info != null && info.changelog != null) {
                 ToolbarButton changeLogButton = new ToolbarButton(context);
-                changeLogButton.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_history_white_24dp));
+                Drawable changeLogIcon = ContextCompat.getDrawable(context, R$d.ic_history_white_24dp);
+                changeLogIcon = changeLogIcon.mutate();
+                changeLogIcon.setTint(ColorCompat.getThemedColor(ctx, R$b.colorInteractiveNormal));
+                changeLogButton.setImageDrawable(changeLogIcon);
                 changeLogButton.setPadding(paddingHalf, paddingHalf, paddingHalf, paddingHalf);
                 changeLogButton.setOnClickListener(e ->
                     WidgetChangeLog.Companion.launch(context, p.name + " v" + info.version, "1", info.changelogMedia != null ? info.changelogMedia : "https://cdn.discordapp.com/banners/169256939211980800/eda024c8f40a45c88265a176f0926bea.jpg?size=2048", info.changelog));
@@ -92,7 +95,10 @@ public class UpdaterPluginCard extends MaterialCardView {
         set.applyTo(layout);
 
         ToolbarButton update = new ToolbarButton(context);
-        update.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_file_download_white_24dp));
+        Drawable updateIcon = ContextCompat.getDrawable(context, R$d.ic_file_download_white_24dp);
+        updateIcon = updateIcon.mutate();
+        updateIcon.setTint(ColorCompat.getThemedColor(ctx, R$b.colorInteractiveNormal));
+        update.setImageDrawable(updateIcon);
         update.setPadding(paddingHalf, paddingHalf, 0, paddingHalf);
         update.setOnClickListener(e -> {
             update.setEnabled(false);
