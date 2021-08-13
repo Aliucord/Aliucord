@@ -1,5 +1,5 @@
 /*
- * This file is part of Aliucord, a Discord Android client mod.
+ * This file is part of Aliucord, an Android Discord client mod.
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
@@ -38,7 +38,7 @@ public final class App$a {
     private static MethodHook.Unhook unhook;
 
     static {
-        Log.d(LOG_TAG, "Initialising Aliucord...");
+        Log.d(LOG_TAG, "Initializing Aliucord...");
 
         PineConfig.debug = false;
         PineConfig.debuggable = false;
@@ -63,7 +63,7 @@ public final class App$a {
                 }
             });
         } catch (Throwable th) {
-            Log.e(LOG_TAG, "Failed to initialise Aliucord", th);
+            Log.e(LOG_TAG, "Failed to initialize Aliucord", th);
         }
     }
 
@@ -83,29 +83,27 @@ public final class App$a {
                 Log.d(LOG_TAG, "Invoking main Aliucord entry point...");
                 preInit.invoke(null, appActivity);
                 init.invoke(null, appActivity);
-                Log.d(LOG_TAG, "Finished initialising Aliucord");
+                Log.d(LOG_TAG, "Finished initializing Aliucord");
             } catch (Throwable th) {
-                Log.e(LOG_TAG, "Failed to initialise Aliucord", th);
+                Log.e(LOG_TAG, "Failed to initialize Aliucord", th);
             }
     }
 
     /** https://gist.github.com/nickcaballero/7045993 */
     private static void addDexToClasspath(File dex, File cacheDir, ClassLoader nativeClassLoader) throws Throwable {
         var mClassLoader = new DexClassLoader(dex.getAbsolutePath(), cacheDir.getAbsolutePath(), null, nativeClassLoader);
-        var arr1 = (Object[]) dexElementsField.get(pathListField.get(mClassLoader));
-        var arr2 = (Object[]) dexElementsField.get(pathListField.get(nativeClassLoader));
 
+        var arr1 = (Object[]) dexElementsField.get(pathListField.get(mClassLoader));
+        var nativeClassLoaderPathList = pathListField.get(nativeClassLoader);
+        var arr2 = (Object[]) dexElementsField.get(nativeClassLoaderPathList);
         int arr1Size = arr1.length;
         int arr2Size = arr2.length;
+
         var joined = (Object[]) Array.newInstance(arr1.getClass().getComponentType(), arr1Size + arr2Size);
+        System.arraycopy(arr1, 0, joined, 0, arr1Size);
+        System.arraycopy(arr2, 0, joined, arr1Size, arr2Size);
 
-        int offset = 0;
-        for (int i = 0; i < arr1Size; i++, offset++)
-            joined[offset] = arr1[i];
-        for (int i = 0; i < arr2Size; i++, offset++)
-            joined[offset] = arr2[i];
-
-        dexElementsField.set(pathListField.get(nativeClassLoader), joined);
+        dexElementsField.set(nativeClassLoaderPathList, joined);
     }
 
     private static void downloadLatestAliucordDex(AppActivity appActivity, File outputFile) throws IOException {
