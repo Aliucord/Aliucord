@@ -1,3 +1,4 @@
 include ':Aliucord'
+include ':Injector'
 include ':DiscordStubs'
 rootProject.name = "Aliucord"
