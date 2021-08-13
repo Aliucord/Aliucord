@@ -86,7 +86,7 @@ public final class ReflectUtils {
      * @throws InvocationTargetException An exception occurred while invoking this method
      */
     @Nullable
-    public static Object invokeMethodWithArgs(@NonNull Class<?> clazz, @Nullable Object instance, @NonNull String methodName, Object... args) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    public static Object invokeMethod(@NonNull Class<?> clazz, @Nullable Object instance, @NonNull String methodName, Object... args) throws ReflectiveOperationException {
         return getMethodByArgs(clazz, methodName, args).invoke(instance, args);
     }
 
@@ -104,7 +104,7 @@ public final class ReflectUtils {
      * @throws InvocationTargetException An exception occurred while invoking this method
      */
     @Nullable
-    public static Object invokeMethodWithArgs(@NonNull Object instance, @NonNull String methodName, Object... args) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    public static Object invokeMethod(@NonNull Object instance, @NonNull String methodName, Object... args) throws ReflectiveOperationException {
         return getMethodByArgs(instance.getClass(), methodName, args).invoke(instance, args);
     }
 
