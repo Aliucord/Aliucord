@@ -13,7 +13,6 @@ import android.util.Log;
 
 import java.io.*;
 import java.lang.reflect.Array;
-import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.zip.ZipEntry;
@@ -32,34 +31,22 @@ public final class App$a {
     private static final String LOG_TAG = "Aliucord Injector";
     private static final String DEX_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/Aliucord.dex";
 
-    private static Field pathListField;
-    private static Field dexElementsField;
-
     private static MethodHook.Unhook unhook;
 
     static {
-        Log.d(LOG_TAG, "Initializing Aliucord...");
-
         PineConfig.debug = false;
         PineConfig.debuggable = false;
         PineConfig.disableHiddenApiPolicy = false;
         PineConfig.disableHiddenApiPolicyForPlatformDomain = false;
 
         try {
-            Log.d(LOG_TAG, "Retrieving internal ClassLoader via reflection...");
-            // https://android.googlesource.com/platform/libcore/+/58b4e5dbb06579bec9a8fc892012093b6f4fbe20/dalvik/src/main/java/dalvik/system/BaseDexClassLoader.java#59
-            pathListField = BaseDexClassLoader.class.getDeclaredField("pathList");
-            pathListField.setAccessible(true);
-            // https://android.googlesource.com/platform/libcore/+/58b4e5dbb06579bec9a8fc892012093b6f4fbe20/dalvik/src/main/java/dalvik/system/DexPathList.java#71
-            // "Should be called pathElements, but the Facebook app uses reflection to modify 'dexElements' (http://b/7726934)." LOL
-            dexElementsField = Class.forName("dalvik.system.DexPathList").getDeclaredField("dexElements");
-            dexElementsField.setAccessible(true);
-
+            Log.d(LOG_TAG, "Hooking AppActivity.onCreate...");
             unhook = Pine.hook(AppActivity.class.getDeclaredMethod("onCreate", Bundle.class), new MethodHook() {
                 @Override
                 public void beforeCall(Pine.CallFrame callFrame) {
                     init((AppActivity) callFrame.thisObject);
                     unhook.unhook();
+                    unhook = null;
                 }
             });
         } catch (Throwable th) {
@@ -68,30 +55,40 @@ public final class App$a {
     }
 
     private static void init(AppActivity appActivity) {
-            try {
-                var aliucordDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), "Aliucord");
-                if (!aliucordDir.exists() && !aliucordDir.mkdirs()) throw new RuntimeException("Failed to create Aliucord folder");
+        Log.d(LOG_TAG, "Initializing Aliucord...");
+        try {
+            var aliucordDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), "Aliucord");
+            if (!aliucordDir.exists() && !aliucordDir.mkdirs()) throw new RuntimeException("Failed to create Aliucord folder");
 
-                var dexFile = new File(aliucordDir, "Aliucord.zip");
+            var dexFile = new File(aliucordDir, "Aliucord.zip");
 
-                Log.d(LOG_TAG, "Loading Aliucord dex...");
-                addDexToClasspath(dexFile, appActivity.getCodeCacheDir(), appActivity.getClassLoader());
-                var c = Class.forName("com.aliucord.Main");
-                var preInit = c.getDeclaredMethod("preInit", AppActivity.class);
-                var init = c.getDeclaredMethod("init", AppActivity.class);
+            Log.d(LOG_TAG, "Loading Aliucord dex...");
+            addDexToClasspath(dexFile, appActivity.getCodeCacheDir(), appActivity.getClassLoader());
+            var c = Class.forName("com.aliucord.Main");
+            var preInit = c.getDeclaredMethod("preInit", AppActivity.class);
+            var init = c.getDeclaredMethod("init", AppActivity.class);
 
-                Log.d(LOG_TAG, "Invoking main Aliucord entry point...");
-                preInit.invoke(null, appActivity);
-                init.invoke(null, appActivity);
-                Log.d(LOG_TAG, "Finished initializing Aliucord");
-            } catch (Throwable th) {
-                Log.e(LOG_TAG, "Failed to initialize Aliucord", th);
-            }
+            Log.d(LOG_TAG, "Invoking main Aliucord entry point...");
+            preInit.invoke(null, appActivity);
+            init.invoke(null, appActivity);
+            Log.d(LOG_TAG, "Finished initializing Aliucord");
+        } catch (Throwable th) {
+            Log.e(LOG_TAG, "Failed to initialize Aliucord", th);
+        }
     }
 
     /** https://gist.github.com/nickcaballero/7045993 */
     private static void addDexToClasspath(File dex, File cacheDir, ClassLoader nativeClassLoader) throws Throwable {
+        Log.d(LOG_TAG, "Adding Aliucord.dex to the classpath...");
         var mClassLoader = new DexClassLoader(dex.getAbsolutePath(), cacheDir.getAbsolutePath(), null, nativeClassLoader);
+
+        // https://android.googlesource.com/platform/libcore/+/58b4e5dbb06579bec9a8fc892012093b6f4fbe20/dalvik/src/main/java/dalvik/system/BaseDexClassLoader.java#59
+        var pathListField = BaseDexClassLoader.class.getDeclaredField("pathList");
+        pathListField.setAccessible(true);
+        // https://android.googlesource.com/platform/libcore/+/58b4e5dbb06579bec9a8fc892012093b6f4fbe20/dalvik/src/main/java/dalvik/system/DexPathList.java#71
+        // "Should be called pathElements, but the Facebook app uses reflection to modify 'dexElements' (http://b/7726934)." LOL
+        var dexElementsField = Class.forName("dalvik.system.DexPathList").getDeclaredField("dexElements");
+        dexElementsField.setAccessible(true);
 
         var arr1 = (Object[]) dexElementsField.get(pathListField.get(mClassLoader));
         var nativeClassLoaderPathList = pathListField.get(nativeClassLoader);
@@ -104,6 +101,7 @@ public final class App$a {
         System.arraycopy(arr2, 0, joined, arr1Size, arr2Size);
 
         dexElementsField.set(nativeClassLoaderPathList, joined);
+        Log.d(LOG_TAG, "Successfully added Aliucord.dex to the classpath");
     }
 
     private static void downloadLatestAliucordDex(AppActivity appActivity, File outputFile) throws IOException {
