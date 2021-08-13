@@ -105,7 +105,7 @@ public final class ReflectUtils {
      */
     @Nullable
     public static Object invokeMethod(@NonNull Object instance, @NonNull String methodName, Object... args) throws ReflectiveOperationException {
-        return getMethodByArgs(instance.getClass(), methodName, args).invoke(instance, args);
+        return invokeMethod(instance.getClass(), instance, methodName, args);
     }
 
     /**
