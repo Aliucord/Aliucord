@@ -135,8 +135,8 @@ public final class App$a {
 
         var nativeClassLoaderPathList = pathListField.get(nativeClassLoader);
 
-        var dexElements1 = (Object[]) dexElementsField.get(pathListField.get(mClassLoader));
-        var dexElements2 = (Object[]) dexElementsField.get(nativeClassLoaderPathList);
+        var dexElements1 = (Object[]) dexElementsField.get(nativeClassLoaderPathList);
+        var dexElements2 = (Object[]) dexElementsField.get(pathListField.get(mClassLoader));
         int dexElements1Size = dexElements1.length;
         int dexElements2Size = dexElements2.length;
 
@@ -165,6 +165,5 @@ public final class App$a {
         Log.d(LOG_TAG, "Finished building zip");
     }
 
-    // Part of the normal discord class, best to keep it around
     public App$a(DefaultConstructorMarker defaultConstructorMarker) {}
 }
