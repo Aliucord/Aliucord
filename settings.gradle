@@ -1,3 +1,2 @@
 include ':Aliucord'
-include ':DiscordStubs'
 rootProject.name = "Aliucord"

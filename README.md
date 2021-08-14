@@ -124,8 +124,10 @@ See `.github/workflows/build.yml` for all build steps.
 4. Rebuild the Discord APK using Apktool
     - e.g `apktool b discord-n.apk` (replace n with build number)
 5. Copy `build/apk/AndroidManifest.xml` to `.assets/AndroidManifest.xml` and to `Aliucord/AndroidManifest.xml` on your Android device
-6. Build Aliucord using [buildtool](https://github.com/Aliucord/buildtool) and copy to `Aliucord/Aliucord.dex` on your Android device
-7. Open Aliucord Installer, open the app settings, clear cache, and enable "Use Aliucord.dex from storage"
-8. Install Aliucord
-9. Ensure you've got a `logcat` catcher ready to go
-10. Open Aliucord and fix any errors that show in `logcat`
+6. Use [Aliucord's dex2jar fork](https://github.com/Aliucord/dex2jar/releases) to generate stubs jar
+    - e.g `java -jar dex2jar.jar -nc -f -o repo/Aliucord/libs/discord.jar discord-n.apk`
+7. Build Aliucord using [buildtool](https://github.com/Aliucord/buildtool) and copy to `Aliucord/Aliucord.dex` on your Android device
+8. Open Aliucord Installer, open the app settings, clear cache, and enable "Use Aliucord.dex from storage"
+9. Install Aliucord
+10. Ensure you've got a `logcat` catcher ready to go
+11. Open Aliucord and fix any errors that show in `logcat`

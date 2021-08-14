@@ -40,8 +40,7 @@ import com.discord.widgets.chat.input.WidgetChatInput;
 import com.discord.widgets.chat.input.WidgetChatInput$configureSendListeners$2;
 import com.discord.widgets.chat.input.autocomplete.InputAutocomplete;
 import com.discord.widgets.chat.list.sheet.WidgetApplicationCommandBottomSheetViewModel;
-import com.lytefast.flexinput.R$d;
-import com.lytefast.flexinput.R$g;
+import com.lytefast.flexinput.R;
 import com.lytefast.flexinput.model.Attachment;
 
 import java.util.*;
@@ -123,7 +122,7 @@ public class CommandsAPI {
     /** ID of the Aliucord Application */
     public static final long ALIUCORD_APP_ID = generateId();
     public static final String DONT_SEND_RESULT = "{ALIUCORD_COMMAND}";
-    private static final Application aliucordApplication = new Application(ALIUCORD_APP_ID, "Aliucord", null, R$d.ic_slash_command_24dp, 0, null, true);
+    private static final Application aliucordApplication = new Application(ALIUCORD_APP_ID, "Aliucord", null, R.d.ic_slash_command_24dp, 0, null, true);
     /** List of all registered commands */
     public static Map<String, RemoteApplicationCommand> commands = new HashMap<>();
     /** Mapping of all registered commands to the plugin that registered them */
@@ -132,10 +131,10 @@ public class CommandsAPI {
     public static Map<Long, WidgetApplicationCommandBottomSheetViewModel.StoreState> interactionsStore = new HashMap<>();
     /** Optional CommandOption of type String */
     public static ApplicationCommandOption messageOption =
-            new ApplicationCommandOption(ApplicationCommandType.STRING, "message", null, R$g.command_shrug_message_description, false, false, null, null);
+            new ApplicationCommandOption(ApplicationCommandType.STRING, "message", null, R.g.command_shrug_message_description, false, false, null, null);
     /** Required CommandOption of type String */
     public static ApplicationCommandOption requiredMessageOption =
-            new ApplicationCommandOption(ApplicationCommandType.STRING, "message", null, R$g.command_shrug_message_description, true, false, null, null);
+            new ApplicationCommandOption(ApplicationCommandType.STRING, "message", null, R.g.command_shrug_message_description, true, false, null, null);
 
     @SuppressWarnings("unchecked")
     private static void _registerCommand(

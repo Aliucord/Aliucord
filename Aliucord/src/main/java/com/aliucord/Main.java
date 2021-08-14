@@ -40,7 +40,6 @@ import com.discord.utilities.color.ColorCompat;
 import com.discord.widgets.debugging.WidgetDebugging;
 import com.discord.widgets.guilds.invite.WidgetGuildInvite;
 import com.discord.widgets.settings.WidgetSettings;
-import com.lytefast.flexinput.*;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -83,17 +82,17 @@ public final class Main {
 
             int baseIndex = v.indexOfChild(v.findViewById(Utils.getResId("developer_options_divider", "id")));
             v.addView(new Divider(context), baseIndex);
-            TextView header = new TextView(context, null, 0, R$h.UiKit_Settings_Item_Header);
+            TextView header = new TextView(context, null, 0, com.lytefast.flexinput.R.h.UiKit_Settings_Item_Header);
             header.setText("Aliucord");
             header.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
             v.addView(header, baseIndex + 1);
 
             Typeface font = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium);
-            TextView plugins = new TextView(context, null, 0, R$h.UiKit_Settings_Item_Icon);
+            TextView plugins = new TextView(context, null, 0, com.lytefast.flexinput.R.h.UiKit_Settings_Item_Icon);
             plugins.setText("Plugins");
             plugins.setTypeface(font);
-            int iconColor = ColorCompat.getThemedColor(context, R$b.colorInteractiveNormal);
-            Drawable icon = ContextCompat.getDrawable(context, R$d.ic_clear_all_white_24dp);
+            int iconColor = ColorCompat.getThemedColor(context, com.lytefast.flexinput.R.b.colorInteractiveNormal);
+            Drawable icon = ContextCompat.getDrawable(context, com.lytefast.flexinput.R.d.ic_clear_all_white_24dp);
             if (icon != null) {
                 Drawable copy = icon.mutate();
                 copy.setTint(iconColor);
@@ -102,10 +101,10 @@ public final class Main {
             plugins.setOnClickListener(e -> Utils.openPage(e.getContext(), Plugins.class));
             v.addView(plugins, baseIndex + 2);
 
-            TextView updater = new TextView(context, null, 0, R$h.UiKit_Settings_Item_Icon);
+            TextView updater = new TextView(context, null, 0, com.lytefast.flexinput.R.h.UiKit_Settings_Item_Icon);
             updater.setText("Updater");
             updater.setTypeface(font);
-            icon = ContextCompat.getDrawable(context, R$d.ic_file_download_white_24dp);
+            icon = ContextCompat.getDrawable(context, com.lytefast.flexinput.R.d.ic_file_download_white_24dp);
             if (icon != null) {
                 Drawable copy = icon.mutate();
                 copy.setTint(iconColor);
@@ -114,10 +113,10 @@ public final class Main {
             updater.setOnClickListener(e -> Utils.openPage(e.getContext(), Updater.class));
             v.addView(updater, baseIndex + 3);
 
-            TextView crashes = new TextView(context, null, 0, R$h.UiKit_Settings_Item_Icon);
+            TextView crashes = new TextView(context, null, 0, com.lytefast.flexinput.R.h.UiKit_Settings_Item_Icon);
             crashes.setText("Crashes");
             crashes.setTypeface(font);
-            icon = ContextCompat.getDrawable(context, R$d.ic_history_white_24dp);
+            icon = ContextCompat.getDrawable(context, com.lytefast.flexinput.R.d.ic_history_white_24dp);
             if (icon != null) {
                 Drawable copy = icon.mutate();
                 copy.setTint(iconColor);

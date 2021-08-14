@@ -5,7 +5,7 @@ import android.view.ContextThemeWrapper;
 
 import com.google.android.material.button.MaterialButton;
 
-import com.lytefast.flexinput.R$h;
+import com.lytefast.flexinput.R;
 
 /** Red MaterialButton */
 public class DangerButton extends MaterialButton {
@@ -14,7 +14,6 @@ public class DangerButton extends MaterialButton {
      * @param context {@link Context}
      */
     public DangerButton(Context context) {
-        super(new ContextThemeWrapper(context, R$h.UiKit_Material_Button_Red), null, 0);
+        super(new ContextThemeWrapper(context, R.h.UiKit_Material_Button_Red), null, 0);
     }
-
 }

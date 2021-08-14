@@ -37,7 +37,7 @@ public class UpdaterPluginCard extends MaterialCardView {
         params.setMargins(0, paddingHalf, 0, 0);
         setLayoutParams(params);
         setUseCompatPadding(true);
-        setCardBackgroundColor(ColorCompat.getThemedColor(context, R$b.colorBackgroundSecondary));
+        setCardBackgroundColor(ColorCompat.getThemedColor(context, R.b.colorBackgroundSecondary));
         setRadius(Utils.getDefaultCardRadius());
         setContentPadding(padding, padding, padding, padding);
 
@@ -45,7 +45,7 @@ public class UpdaterPluginCard extends MaterialCardView {
         assert p != null;
 
         ConstraintLayout layout = new ConstraintLayout(context);
-        TextView tv = new TextView(context, null, 0, R$h.UiKit_TextView_H2);
+        TextView tv = new TextView(context, null, 0, R.h.UiKit_TextView_H2);
         tv.setText(plugin);
         int id = View.generateViewId();
         tv.setId(id);
@@ -66,13 +66,13 @@ public class UpdaterPluginCard extends MaterialCardView {
         int btnLayoutId = View.generateViewId();
         buttonLayout.setId(btnLayoutId);
 
-        tv = new TextView(context, null, 0, R$h.UiKit_TextView_Subtext);
+        tv = new TextView(context, null, 0, R.h.UiKit_TextView_Subtext);
         try {
             PluginUpdater.UpdateInfo info = PluginUpdater.getUpdateInfo(p);
             tv.setText(String.format("%s -> v%s", p.getManifest().version, info != null ? info.version : "?"));
             if (info != null && info.changelog != null) {
                 ToolbarButton changeLogButton = new ToolbarButton(context);
-                changeLogButton.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_history_white_24dp));
+                changeLogButton.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_history_white_24dp));
                 changeLogButton.setPadding(paddingHalf, paddingHalf, paddingHalf, paddingHalf);
                 changeLogButton.setOnClickListener(e ->
                     WidgetChangeLog.Companion.launch(context, p.name + " v" + info.version, "1", info.changelogMedia != null ? info.changelogMedia : "https://cdn.discordapp.com/banners/169256939211980800/eda024c8f40a45c88265a176f0926bea.jpg?size=2048", info.changelog));
@@ -94,7 +94,7 @@ public class UpdaterPluginCard extends MaterialCardView {
         set.applyTo(layout);
 
         ToolbarButton update = new ToolbarButton(context);
-        update.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_file_download_white_24dp));
+        update.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_file_download_white_24dp));
         update.setPadding(paddingHalf, paddingHalf, 0, paddingHalf);
         update.setOnClickListener(e -> {
             update.setEnabled(false);

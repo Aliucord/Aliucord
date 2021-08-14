@@ -5,6 +5,8 @@
 
 package com.aliucord.api;
 
+import android.view.View;
+
 import com.aliucord.entities.NotificationData;
 import com.discord.utilities.channel.ChannelSelector;
 import com.discord.utilities.time.ClockFactory;
@@ -45,7 +47,7 @@ public class NotificationsAPI {
                 data.getValidScreens(),
                 data.getOnClickTopRightIcon(),
                 (data.getOnClick() == null && channelId != null ? v -> {
-                    ChannelSelector.getInstance().findAndSet(v.getContext(), channelId);
+                    ChannelSelector.getInstance().findAndSet(((View) v).getContext(), channelId);
                     return Unit.a;
                 } : data.getOnClick()),
                 (data.getValidScreens() == null ? 4096 : 0) | (data.getOnClickTopRightIcon()== null ? 8192 : 0),
