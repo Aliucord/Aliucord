@@ -34,7 +34,7 @@ jobs:
       run: |
         echo "$ANDROID_HOME/build-tools/30.0.3" >> $GITHUB_PATH
         mkdir -p ~/bin
-        wget https://github.com/Aliucord/buildtool/releases/download/v0.1.1/buildtool -P ~/bin
+        wget https://github.com/Aliucord/buildtool/releases/latest/download/buildtool -P ~/bin
         chmod +x ~/bin/buildtool
         chmod +x $GITHUB_WORKSPACE/src/gradlew
         echo "{\"aliucord\":\"$GITHUB_WORKSPACE/src\",\"outputs\":\"$GITHUB_WORKSPACE/builds\"}" > ~/config.json
@@ -46,10 +46,11 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE/builds
         cp ../src/.assets/AndroidManifest.xml .
-        cp ../src/.assets/data.json .
+        # Merge src data.json into builds data.json and finally update the aliucord property to the latest commit hash
+        jq -s '.[0] * .[1] * .[2]' data.json ../src/.assets/data.json - <<< "{\"aliucord\":\"$(git rev-parse --short HEAD)\"}"
+        mv data.json.new data.json
         git config --local user.email "actions@github.com"
         git config --local user.name "GitHub Actions"
-        git pull
         git add .
         git commit -m "Build $GITHUB_SHA"
         git push

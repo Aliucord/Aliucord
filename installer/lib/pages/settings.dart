@@ -26,7 +26,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderStateMixin {
   static final List<CheckBoxData> _checkBoxes = [
     CheckBoxData('replace_bg', 'Replace icon background with Aliucord\'s', true),
-    CheckBoxData('use_dex_from_storage', 'Use Aliucord.dex from storage', false),
+    CheckBoxData('use_dex_from_storage', 'Use Injector.dex from storage', false),
     CheckBoxData('developer_mode', 'Developer Mode', false),
   ];
   int _theme = 0;
@@ -67,7 +67,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
             subtitle: Text(_dexLocation),
             enabled: prefs.getBool('use_dex_from_storage') ?? false,
             onTap: () async {
-              final path = await pickFile(context, 'Select Aliucord.dex', '.dex');
+              final path = await pickFile(context, 'Select Injector.dex', '.dex');
               if (path != null) {
                 prefs.setString('dex_location', path);
                 setState(() => _dexLocation = path);
@@ -77,7 +77,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 10),
             child: ElevatedButton(
-              child: const Text('Clear files cache (Aliucord.dex and patched manifest)', textAlign: TextAlign.center),
+              child: const Text('Clear files cache (Injector.dex and patched manifest)', textAlign: TextAlign.center),
               onPressed: () async {
                 final files = (await getApplicationSupportDirectory()).listSync();
                 for (final file in files) file.delete(recursive: true);

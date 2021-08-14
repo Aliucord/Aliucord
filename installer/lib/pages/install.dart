@@ -90,8 +90,8 @@ class _InstallPageState extends State<InstallPage> {
 
   Future<bool> _downloadAliucord(String out) async {
     if ((prefs.getString('dex_commit') ?? '') == widget.commit && await File(out).exists()) return true;
-    setState(() => _logs += 'Downloading Aliucord.dex..\n');
-    final url = githubAPI!.getDownloadUrl(widget.commit, 'Aliucord.dex');
+    setState(() => _logs += 'Downloading Injector.dex..\n');
+    final url = githubAPI!.getDownloadUrl(widget.commit, 'Injector.dex');
     try {
       await dio.download(url, out, onReceiveProgress: (count, total) => setState(() => _progress = count / total));
       setState(() {
