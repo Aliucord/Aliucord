@@ -11,13 +11,13 @@ import android.view.ViewGroup.LayoutParams;
 
 import com.aliucord.Utils;
 import com.discord.utilities.color.ColorCompat;
-import com.lytefast.flexinput.R$b;
+import com.lytefast.flexinput.R;
 
 /** Discord style Divider as seen in its settings */
 public class Divider extends View {
     public Divider(Context context) {
         super(context);
-        this.setBackgroundColor(ColorCompat.getThemedColor(context, R$b.colorPrimaryDivider));
+        this.setBackgroundColor(ColorCompat.getThemedColor(context, R.b.colorPrimaryDivider));
         LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, Utils.dpToPx(0.25f));
         this.setLayoutParams(params);
     }

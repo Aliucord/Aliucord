@@ -8,12 +8,10 @@ package com.aliucord.entities;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 
-import androidx.annotation.IdRes;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import androidx.annotation.*;
 
+import com.discord.api.sticker.Sticker;
 import com.discord.app.AppComponent;
-import com.discord.models.sticker.dto.ModelSticker;
 
 import java.util.List;
 
@@ -32,7 +30,7 @@ public class NotificationData {
     private Drawable attachmentBackground;
     private String attachmentUrl;
     private Drawable attachment;
-    private List<ModelSticker> stickers;
+    private List<Sticker> stickers;
     private String iconUrl = "";
     private Integer iconResId;
     private Drawable iconTopRight;
@@ -155,7 +153,7 @@ public class NotificationData {
      * @return Stickers of the notification.
      * @see NotificationData#setStickers(List)
      */
-    public List<ModelSticker> getStickers() {
+    public List<Sticker> getStickers() {
         return stickers;
     }
 
@@ -164,7 +162,7 @@ public class NotificationData {
      * @param stickers {@link List} of stickers.
      * @return {@link NotificationData} for chaining.
      */
-    public NotificationData setStickers(@Nullable List<ModelSticker> stickers) {
+    public NotificationData setStickers(@Nullable List<Sticker> stickers) {
         this.stickers = stickers;
         return this;
     }

@@ -28,8 +28,7 @@ import com.aliucord.widgets.BottomSheet;
 import com.aliucord.widgets.UpdaterPluginCard;
 import com.discord.views.CheckedSetting;
 import com.google.android.material.snackbar.Snackbar;
-import com.lytefast.flexinput.R$d;
-import com.lytefast.flexinput.R$h;
+import com.lytefast.flexinput.R;
 
 public class Updater extends SettingsPage {
     public static class UpdaterSettings extends BottomSheet {
@@ -139,9 +138,9 @@ public class Updater extends SettingsPage {
             updateAllButton.setPadding(p, p, p, p);
 
             //noinspection ConstantConditions
-            refreshButton.setImageDrawable(Utils.tintToTheme(ContextCompat.getDrawable(context, R$d.ic_refresh_white_a60_24dp).mutate()), false);
-            updateAllButton.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_file_download_white_24dp));
-            settingsButton.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_guild_settings_24dp));
+            refreshButton.setImageDrawable(Utils.tintToTheme(ContextCompat.getDrawable(context, R.d.ic_refresh_white_a60_24dp).mutate()), false);
+            updateAllButton.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_file_download_white_24dp));
+            settingsButton.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_guild_settings_24dp));
 
             updateAllButton.setOnClickListener(e -> {
                 setActionBarSubtitle("Updating...");
@@ -181,7 +180,7 @@ public class Updater extends SettingsPage {
         int updateCount = PluginUpdater.updates.size();
 
         if (updateCount == 0) {
-            TextView state = new TextView(context, null, 0, R$h.UiKit_Settings_Item_SubText);
+            TextView state = new TextView(context, null, 0, R.h.UiKit_Settings_Item_SubText);
             state.setText(stateText);
             state.setPadding(padding, padding, padding, padding);
             state.setGravity(Gravity.CENTER);

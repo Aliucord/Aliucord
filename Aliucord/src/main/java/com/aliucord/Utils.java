@@ -35,7 +35,7 @@ import com.discord.views.CheckedSetting;
 import com.google.gson.Gson;
 
 import java.io.*;
-import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -48,7 +48,7 @@ import rx.functions.Action0;
 import rx.functions.Action1;
 
 /** Utility class that holds miscellaneous Utilities */
-@SuppressWarnings("unused")
+@SuppressWarnings({ "unused", "unchecked" })
 public class Utils {
     /** The main (UI) thread */
     public static final Handler mainThread = new Handler(Looper.getMainLooper());
@@ -214,28 +214,14 @@ public class Utils {
         Utils.openPage(context, AppFragmentProxy.class, new Intent().putExtra("AC_FRAGMENT_ID", id));
     }
 
-    private static Field commandChoiceNameField;
-    private static Field commandChoiceValueField;
     /**
      * Creates a CommandChoice that can be used inside Command args
      * @param name The name of the choice
      * @param value The value representing this choice
      * @return CommandChoice
      */
-    @SuppressWarnings("JavaReflectionMemberAccess")
     public static CommandChoice createCommandChoice(String name, String value) {
-        CommandChoice choice = new CommandChoice();
-        try {
-            if (commandChoiceNameField == null) {
-                commandChoiceNameField = CommandChoice.class.getDeclaredField("name");
-                commandChoiceNameField.setAccessible(true);
-                commandChoiceValueField = CommandChoice.class.getDeclaredField("value");
-                commandChoiceValueField.setAccessible(true);
-            }
-            commandChoiceNameField.set(choice, name);
-            commandChoiceValueField.set(choice, value);
-        } catch (Throwable e) { Main.logger.error(e); }
-        return choice;
+        return new CommandChoice(name, value);
     }
 
     /**
@@ -417,6 +403,26 @@ public class Utils {
             return b.l(source, new Object[0], null, 2);
         } catch (Throwable e) { Main.logger.error("Failed to render markdown", e); }
         return source;
+    }
+
+    private static Object unsafe;
+    private static Method unsafeAllocIns;
+
+    /**
+     * Creates new class instance without using a constructor
+     * @param clazz Class
+     * @return Created instance
+     */
+    public static <T> T allocateInstance(Class<T> clazz) {
+        try {
+            if (unsafeAllocIns == null) {
+                var c = Class.forName("sun.misc.Unsafe");
+                unsafe = ReflectUtils.getField(c, null, "theUnsafe");
+                unsafeAllocIns = c.getMethod("allocateInstance", Class.class);
+            }
+            return (T) unsafeAllocIns.invoke(unsafe, clazz);
+        } catch (Throwable e) { Main.logger.error(e); }
+        return null;
     }
 
     /**

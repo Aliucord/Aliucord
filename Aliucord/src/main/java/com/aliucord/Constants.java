@@ -60,11 +60,10 @@ public final class Constants {
     static {
         int version = 0;
         try {
-            //noinspection AccessStaticViaInstance
+            //noinspection ConstantConditions
             version = (int) ReflectUtils.getField(
-                    ReflectUtils.getField(StoreStream.Companion.access$getCollector$p(StoreStream.Companion), "clientVersion", true),
-                    "clientVersion",
-                    true
+                    ReflectUtils.getField(StoreStream.Companion.access$getCollector$p(StoreStream.Companion), "clientVersion"),
+                    "clientVersion"
             );
         } catch (Throwable e) { Main.logger.error(e); }
         DISCORD_VERSION = version;

@@ -8,7 +8,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatImageButton;
 
 import com.aliucord.Utils;
-import com.lytefast.flexinput.R$h;
+import com.lytefast.flexinput.R;
 
 /** Settings Header Toolbar Button */
 public class ToolbarButton extends AppCompatImageButton {
@@ -17,7 +17,7 @@ public class ToolbarButton extends AppCompatImageButton {
      * @param context {@link Context}
      */
     public ToolbarButton(Context context) {
-        super(new ContextThemeWrapper(context, R$h.UiKit_ImageView_Clickable), null, 0);
+        super(new ContextThemeWrapper(context, R.h.UiKit_ImageView_Clickable), null, 0);
     }
 
     @Override

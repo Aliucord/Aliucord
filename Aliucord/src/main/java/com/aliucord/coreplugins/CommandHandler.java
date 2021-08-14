@@ -44,6 +44,7 @@ final class CommandHandler extends Plugin {
     @Override
     @SuppressWarnings("unchecked")
     public void load(Context context) throws Throwable {
+
         Patcher.addPatch("com.discord.stores.BuiltInCommands", "getBuiltInCommands", new Class<?>[0], new PinePatchFn(callFrame -> {
             List<ApplicationCommand> list = (List<ApplicationCommand>) callFrame.getResult();
             Collection<RemoteApplicationCommand> addList = CommandsAPI.commands.values();

@@ -22,7 +22,7 @@ import com.aliucord.views.*;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.views.CheckedSetting;
 import com.google.android.material.card.MaterialCardView;
-import com.lytefast.flexinput.*;
+import com.lytefast.flexinput.R;
 
 public class PluginCard extends MaterialCardView {
     public final LinearLayout root;
@@ -39,7 +39,7 @@ public class PluginCard extends MaterialCardView {
     public PluginCard(Context ctx) {
         super(ctx);
         setRadius(Utils.getDefaultCardRadius());
-        setCardBackgroundColor(ColorCompat.getThemedColor(ctx, R$b.colorBackgroundSecondary));
+        setCardBackgroundColor(ColorCompat.getThemedColor(ctx, R.b.colorBackgroundSecondary));
         setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 
         int p = Utils.getDefaultPadding();
@@ -52,7 +52,7 @@ public class PluginCard extends MaterialCardView {
 
         View headerRoot = switchHeader.k.b();
         headerRoot.setPadding(0, headerRoot.getPaddingTop(), headerRoot.getPaddingRight(), headerRoot.getPaddingBottom());
-        headerRoot.setBackgroundColor(ColorCompat.getThemedColor(ctx, R$b.colorBackgroundSecondaryAlt));
+        headerRoot.setBackgroundColor(ColorCompat.getThemedColor(ctx, R.b.colorBackgroundSecondaryAlt));
 
         switchHeader.setSubtext(null);
         titleView = switchHeader.k.a();
@@ -63,7 +63,7 @@ public class PluginCard extends MaterialCardView {
         root.addView(switchHeader);
         root.addView(new Divider(ctx));
 
-        descriptionView = new TextView(ctx, null, 0, R$h.UiKit_Settings_Item_Addition);
+        descriptionView = new TextView(ctx, null, 0, R.h.UiKit_Settings_Item_Addition);
         descriptionView.setPadding(p, p, p, p2);
         root.addView(descriptionView);
 
@@ -80,10 +80,10 @@ public class PluginCard extends MaterialCardView {
         uninstallButton.setText("Uninstall");
 
         repoButton = new ToolbarButton(ctx);
-        repoButton.setImageDrawable(ContextCompat.getDrawable(ctx, R$d.ic_github_white));
+        repoButton.setImageDrawable(ContextCompat.getDrawable(ctx, R.d.ic_github_white));
 
         changeLogButton = new ToolbarButton(ctx);
-        changeLogButton.setImageDrawable(ContextCompat.getDrawable(ctx, R$d.ic_history_white_24dp));
+        changeLogButton.setImageDrawable(ContextCompat.getDrawable(ctx, R.d.ic_history_white_24dp));
 
         buttonLayout.addView(settingsButton, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(3)));
         buttonLayout.addView(uninstallButton, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(4)));

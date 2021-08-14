@@ -27,14 +27,13 @@ import com.discord.utilities.view.extensions.ViewExtensions;
 import com.discord.widgets.auth.WidgetAuthLanding;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputLayout;
-import com.lytefast.flexinput.R$c;
+import com.lytefast.flexinput.R;
 
 import java.util.List;
 
 import kotlin.Unit;
 
 final class TokenLogin extends Plugin {
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     public static class Page extends AppFragment {
         public Page() {
             super(Utils.getResId("widget_auth_login", "layout"));
@@ -91,8 +90,8 @@ final class TokenLogin extends Plugin {
             btn.setText("Login using token");
             btn.setTextSize(16.0f);
             if (StoreStream.getUserSettingsSystem().getTheme().equals("light"))
-                btn.setBackgroundColor(context.getResources().getColor(R$c.uikit_btn_bg_color_selector_secondary_light, null));
-            else btn.setBackgroundColor(context.getResources().getColor(R$c.uikit_btn_bg_color_selector_secondary_dark, null));
+                btn.setBackgroundColor(context.getResources().getColor(R.c.uikit_btn_bg_color_selector_secondary_light, null));
+            else btn.setBackgroundColor(context.getResources().getColor(R.c.uikit_btn_bg_color_selector_secondary_dark, null));
             btn.setOnClickListener(e -> Utils.openPage(e.getContext(), Page.class));
             v.addView(btn);
         }));

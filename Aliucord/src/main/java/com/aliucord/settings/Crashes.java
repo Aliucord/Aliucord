@@ -26,12 +26,10 @@ import com.aliucord.fragments.SettingsPage;
 import com.aliucord.views.DangerButton;
 import com.aliucord.views.ToolbarButton;
 import com.discord.simpleast.code.CodeNode;
-import com.discord.simpleast.code.CodeNode$a;
 import com.discord.utilities.textprocessing.Rules$createCodeBlockRule$codeStyleProviders$1;
 import com.discord.utilities.textprocessing.node.BasicRenderContext;
 import com.discord.utilities.textprocessing.node.BlockBackgroundNode;
-import com.lytefast.flexinput.R$d;
-import com.lytefast.flexinput.R$h;
+import com.lytefast.flexinput.R;
 
 import java.io.*;
 import java.util.*;
@@ -87,9 +85,9 @@ public class Crashes extends SettingsPage {
             crashFolderBtn.setPadding(p, p, p, p);
             clearLogsBtn.setPadding(p, p, p, p);
 
-            crashFolderBtn.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_open_in_new_white_24dp));
+            crashFolderBtn.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_open_in_new_white_24dp));
             //noinspection ConstantConditions
-            Drawable clearLogs = ContextCompat.getDrawable(context, R$d.ic_delete_white_24dp).mutate();
+            Drawable clearLogs = ContextCompat.getDrawable(context, R.d.ic_delete_white_24dp).mutate();
             Utils.tintToTheme(clearLogs).setAlpha(hasCrashes ? 185 : 92);
             clearLogsBtn.setImageDrawable(clearLogs, false);
             clearLogsBtn.setClickable(hasCrashes);
@@ -121,7 +119,7 @@ public class Crashes extends SettingsPage {
 
         Map<Integer, CrashLog> crashes = getCrashes();
         if (crashes == null || crashes.size() == 0) {
-            TextView header = new TextView(context, null, 0, R$h.UiKit_Settings_Item_Header);
+            TextView header = new TextView(context, null, 0, R.h.UiKit_Settings_Item_Header);
             header.setAllCaps(false);
             header.setText("Woah, no crashes :O");
             header.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
@@ -137,21 +135,21 @@ public class Crashes extends SettingsPage {
             addView(header);
             addView(crashBtn);
         } else {
-            TextView hint = new TextView(context, null, 0, R$h.UiKit_Settings_Item_SubText);
+            TextView hint = new TextView(context, null, 0, R.h.UiKit_Settings_Item_SubText);
             hint.setText("Hint: Crashlogs are accesible via your file explorer at Aliucord/crashlogs");
             hint.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium));
             hint.setGravity(Gravity.CENTER);
             addView(hint);
 
             for (CrashLog crash : crashes.values()) {
-                TextView header = new TextView(context, null, 0, R$h.UiKit_Settings_Item_Header);
+                TextView header = new TextView(context, null, 0, R.h.UiKit_Settings_Item_Header);
                 header.setText(crash.timestamp + (crash.times > 1 ? " (" + crash.times + ")" : ""));
                 header.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
 
                 TextView body = new TextView(context);
                 //noinspection unchecked
                 BlockBackgroundNode<BasicRenderContext> node = new BlockBackgroundNode<>(false, new CodeNode<BasicRenderContext>(
-                    new CodeNode$a.b<>(crash.stacktrace), "", Rules$createCodeBlockRule$codeStyleProviders$1.INSTANCE
+                    new CodeNode.a.b(crash.stacktrace), "", Rules$createCodeBlockRule$codeStyleProviders$1.INSTANCE
                 ));
                 SpannableStringBuilder builder = new SpannableStringBuilder();
                 node.render(builder, new RenderContext(context));
