@@ -30,20 +30,17 @@ public class Updater {
         return false;
     }
 
-    private static class GithubApiInfo {
-        public Commit commit;
-        public static class Commit {
-            public String message;
-        }
+    private static class AliucordData {
+        public String aliucordHash;
     }
 
     private static Boolean isOutdated = null;
     public static boolean isAliucordOutdated() {
         if (usingDexFromStorage() || isUpdaterDisabled()) return false;
         if (isOutdated == null) {
-            try (Http.Request req = new Http.Request("https://api.github.com/repos/Aliucord/Aliucord/commits/builds")) {
-                String commitMsg = req.execute().json(GithubApiInfo.class).commit.message;
-                isOutdated = !commitMsg.contains(BuildConfig.GIT_REVISION);
+            try (var req = new Http.Request("https://raw.githubusercontent.com/Aliucord/Aliucord/builds/data.json")) {
+                var aliucordHash = req.execute().json(AliucordData.class).aliucordHash;
+                isOutdated = !BuildConfig.GIT_REVISION.equals(aliucordHash);
             } catch (IOException ex) {
                 PluginUpdater.logger.error("Failed to check updates for Aliucord", ex);
                 return false;

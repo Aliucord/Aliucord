@@ -1,4 +1,4 @@
-name: Build
+name: Build Aliucord
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
       - Aliucord/**
 
 jobs:
-  build:
+  build-aliucord:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -46,9 +46,7 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE/builds
         cp ../src/.assets/AndroidManifest.xml .
-        # Merge src data.json into builds data.json and finally update the aliucord property to the latest commit hash
-        jq -s '.[0] * .[1] * .[2]' data.json ../src/.assets/data.json - <<< "{\"aliucord\":\"$(git rev-parse --short HEAD)\"}"
-        mv data.json.new data.json
+        jq ". + { aliucordHash: \"$(git rev-parse --short HEAD)\" }" < ../src/.assets/data.json > data.json
         git config --local user.email "actions@github.com"
         git config --local user.name "GitHub Actions"
         git add .

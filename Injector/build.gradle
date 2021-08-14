@@ -2,16 +2,6 @@ plugins {
     id 'com.android.library'
 }
 
-def getGitHash = { ->
-    def stdout = new ByteArrayOutputStream()
-    exec {
-        commandLine 'git', 'rev-parse', '--short', 'HEAD'
-        standardOutput = stdout
-        ignoreExitValue = true
-    }
-    return stdout.toString().trim()
-}
-
 android {
     compileSdkVersion 30
 
@@ -20,8 +10,6 @@ android {
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
-
-        buildConfigField "String", "GIT_REVISION", "\"${getGitHash()}\""
     }
 
     buildTypes {
