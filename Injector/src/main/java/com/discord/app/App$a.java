@@ -6,15 +6,18 @@
 
 package com.discord.app;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.*;
 import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -54,15 +57,41 @@ public final class App$a {
         }
     }
 
+    private static void error(Context ctx, String msg, Throwable th) {
+        Log.e(LOG_TAG, msg, th);
+        Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show();
+    }
+
     private static void init(AppActivity appActivity) {
         Log.d(LOG_TAG, "Initializing Aliucord...");
         try {
             var aliucordDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), "Aliucord");
-            if (!aliucordDir.exists() && !aliucordDir.mkdirs()) throw new RuntimeException("Failed to create Aliucord folder");
+            var dexFile = new File(appActivity.getCodeCacheDir(), "Aliucord.zip");
 
-            var dexFile = new File(aliucordDir, "Aliucord.zip");
+            var prefs = appActivity.getSharedPreferences("aliucord", Context.MODE_PRIVATE);
+            boolean useLocalDex = prefs.getBoolean("AC_use_dex_from_storage", false);
+            File localDex;
+            if (useLocalDex && (localDex = new File(aliucordDir, "Aliucord.dex")).exists()) {
+                Log.d(LOG_TAG, "Loading dex from " + localDex.getAbsolutePath());
+                try (var is = new FileInputStream(localDex)) {
+                    buildClassesZip(is, dexFile);
+                }
+            } else if (!dexFile.exists()) {
+                var successRef = new AtomicBoolean(true);
+                var thread = new Thread(() -> {
+                    try {
+                        downloadLatestAliucordDex(dexFile);
+                    } catch (Throwable e) {
+                        error(appActivity, "Failed to install aliucord :(", e);
+                        successRef.set(false);
+                    }
+                });
+                thread.start();
+                thread.join();
+                if (!successRef.get()) return;
+            }
 
-            Log.d(LOG_TAG, "Loading Aliucord dex...");
+            Log.d(LOG_TAG, "Adding Aliucord to the classpath...");
             addDexToClasspath(dexFile, appActivity.getCodeCacheDir(), appActivity.getClassLoader());
             var c = Class.forName("com.aliucord.Main");
             var preInit = c.getDeclaredMethod("preInit", AppActivity.class);
@@ -73,11 +102,25 @@ public final class App$a {
             init.invoke(null, appActivity);
             Log.d(LOG_TAG, "Finished initializing Aliucord");
         } catch (Throwable th) {
-            Log.e(LOG_TAG, "Failed to initialize Aliucord", th);
+            error(appActivity, "Failed to initialize Aliucord :(", th);
         }
     }
 
+    /**
+     * Public so it can be manually triggered from Aliucord to update itself
+     * outputFile should be new File(context.getCodeCacheDir(), "Aliucord.zip");
+     */
+    public static void downloadLatestAliucordDex(File outputFile) throws IOException {
+        Log.d(LOG_TAG, "Downloading Aliucord dex...");
+        var conn = (HttpURLConnection) new URL(DEX_URL).openConnection();
+        try (var is = conn.getInputStream()) {
+            buildClassesZip(is, outputFile);
+        }
+        Log.d(LOG_TAG, "Finished downloading Aliucord dex");
+    }
+
     /** https://gist.github.com/nickcaballero/7045993 */
+    @SuppressLint("DiscouragedPrivateApi") // this private api seems to be stable, thanks to facebook who use it in the facebook app
     private static void addDexToClasspath(File dex, File cacheDir, ClassLoader nativeClassLoader) throws Throwable {
         Log.d(LOG_TAG, "Adding Aliucord.dex to the classpath...");
         var mClassLoader = new DexClassLoader(dex.getAbsolutePath(), cacheDir.getAbsolutePath(), null, nativeClassLoader);
@@ -87,45 +130,41 @@ public final class App$a {
         pathListField.setAccessible(true);
         // https://android.googlesource.com/platform/libcore/+/58b4e5dbb06579bec9a8fc892012093b6f4fbe20/dalvik/src/main/java/dalvik/system/DexPathList.java#71
         // "Should be called pathElements, but the Facebook app uses reflection to modify 'dexElements' (http://b/7726934)." LOL
-        var dexElementsField = Class.forName("dalvik.system.DexPathList").getDeclaredField("dexElements");
+         var dexElementsField = Class.forName("dalvik.system.DexPathList").getDeclaredField("dexElements");
         dexElementsField.setAccessible(true);
 
-        var arr1 = (Object[]) dexElementsField.get(pathListField.get(mClassLoader));
         var nativeClassLoaderPathList = pathListField.get(nativeClassLoader);
-        var arr2 = (Object[]) dexElementsField.get(nativeClassLoaderPathList);
-        int arr1Size = arr1.length;
-        int arr2Size = arr2.length;
 
-        var joined = (Object[]) Array.newInstance(arr1.getClass().getComponentType(), arr1Size + arr2Size);
-        System.arraycopy(arr1, 0, joined, 0, arr1Size);
-        System.arraycopy(arr2, 0, joined, arr1Size, arr2Size);
+        var dexElements1 = (Object[]) dexElementsField.get(pathListField.get(mClassLoader));
+        var dexElements2 = (Object[]) dexElementsField.get(nativeClassLoaderPathList);
+        int dexElements1Size = dexElements1.length;
+        int dexElements2Size = dexElements2.length;
 
-        dexElementsField.set(nativeClassLoaderPathList, joined);
+        var joinedDexElements = (Object[]) Array.newInstance(dexElements1.getClass().getComponentType(), dexElements1Size + dexElements2Size);
+        System.arraycopy(dexElements1, 0, joinedDexElements, 0, dexElements1Size);
+        System.arraycopy(dexElements2, 0, joinedDexElements, dexElements1Size, dexElements2Size);
+
+        dexElementsField.set(nativeClassLoaderPathList, joinedDexElements);
         Log.d(LOG_TAG, "Successfully added Aliucord.dex to the classpath");
     }
 
-    private static void downloadLatestAliucordDex(AppActivity appActivity, File outputFile) throws IOException {
-        var prefs = appActivity.getSharedPreferences("aliucord", Context.MODE_PRIVATE);
-        if (prefs.getBoolean("dex_from_storage", false) && outputFile.exists()) {
-            Log.i(LOG_TAG, "Using Aliucord dex from storage.");
-            return;
-        }
-
-        Log.d(LOG_TAG, "Downloading Aliucord dex...");
-        var conn = (HttpURLConnection) new URL(DEX_URL).openConnection();
-        try (var is = conn.getInputStream();
-             var os = new FileOutputStream(outputFile);
-             var zos = new ZipOutputStream(os)) {
+    private static void buildClassesZip(InputStream is, File outputFile) throws IOException {
+        Log.d(LOG_TAG, "Building zip with classes.dex...");
+        try (var os = new FileOutputStream(outputFile);
+             var zos = new ZipOutputStream(os)
+        ) {
             zos.putNextEntry(new ZipEntry("classes.dex"));
             int n;
-            byte[] buf = new byte[16384]; // 16 KB
+            final int sixteenKB = 16384;
+            byte[] buf = new byte[sixteenKB];
             while ((n = is.read(buf)) > -1) {
                 zos.write(buf, 0, n);
             }
             zos.closeEntry();
         }
-        Log.d(LOG_TAG, "Finished downloading Aliucord dex");
+        Log.d(LOG_TAG, "Finished building zip");
     }
 
+    // Part of the normal discord class, best to keep it around
     public App$a(DefaultConstructorMarker defaultConstructorMarker) {}
 }

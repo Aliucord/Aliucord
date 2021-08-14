@@ -5,8 +5,12 @@
 
 package com.aliucord.updater;
 
-import com.aliucord.*;
+import android.content.Context;
 
+import com.aliucord.*;
+import com.aliucord.utils.ReflectUtils;
+
+import java.io.File;
 import java.io.IOException;
 
 public class Updater {
@@ -26,22 +30,6 @@ public class Updater {
         return false;
     }
 
-    private static Boolean isOfficial = null;
-    public static boolean isAliucordOfficial() {
-        if (SettingsUtils.getBool("disableAliucordUpdater", false)) return true;
-        if (isOfficial == null) {
-            final String url = "https://github.com/Aliucord/Aliucord/tree/" + BuildConfig.GIT_REVISION;
-            // Check if commit hash is valid commit of the Aliucord/Aliucord repo
-            try (Http.Request req = new Http.Request(url, "HEAD")) {
-                isOfficial = req.execute().ok();
-            } catch (IOException ex) {
-                PluginUpdater.logger.error("Failed to check if installed Aliucord is official", ex);
-                return true;
-            }
-        }
-        return isOfficial;
-    }
-
     private static class GithubApiInfo {
         public Commit commit;
         public static class Commit {
@@ -51,7 +39,7 @@ public class Updater {
 
     private static Boolean isOutdated = null;
     public static boolean isAliucordOutdated() {
-        if (SettingsUtils.getBool("disableAliucordUpdater", false)) return false;
+        if (usingDexFromStorage() || isUpdaterDisabled()) return false;
         if (isOutdated == null) {
             try (Http.Request req = new Http.Request("https://api.github.com/repos/Aliucord/Aliucord/commits/builds")) {
                 String commitMsg = req.execute().json(GithubApiInfo.class).commit.message;
@@ -62,5 +50,19 @@ public class Updater {
             }
         }
         return isOutdated;
+    }
+
+    public static void updateAliucord(Context ctx) throws Throwable {
+        var file = new File(ctx.getCodeCacheDir(), "Aliucord.zip");
+        var clazz = ctx.getClassLoader().loadClass("com.discord.app.App$a");
+        ReflectUtils.invokeMethod(clazz, (Object) null, "downloadLatestAliucordDex", file);
+    }
+
+    public static boolean isUpdaterDisabled() {
+        return SettingsUtils.getBool("disableAliucordUpdater", false);
+    }
+
+    public static boolean usingDexFromStorage() {
+        return SettingsUtils.getBool(com.aliucord.settings.Updater.UpdaterSettings.USE_DEX_FROM_STORAGE_KEY, false);
     }
 }
