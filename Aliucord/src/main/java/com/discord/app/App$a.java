@@ -1,7 +1,6 @@
 package com.discord.app;
 
 import android.os.Bundle;
-import android.util.Log;
 
 import com.aliucord.fragments.ConfirmDialog;
 
@@ -18,6 +17,7 @@ public class App$a {
 
     static {
         // If we get here, it means that this dex was injected directly using the Installer
+        // instead of being loaded properly via the Injector, so display a notification to the user
         PineConfig.debug = false;
         PineConfig.debuggable = false;
         PineConfig.disableHiddenApiPolicy = false;
@@ -28,18 +28,16 @@ public class App$a {
                 @Override
                 public void afterCall(Pine.CallFrame callFrame) {
                     var appActivity = (AppActivity) callFrame.thisObject;
-                    try {
-                        new ConfirmDialog()
-                                .setTitle("Oops")
-                                .setDescription("Aliucord was not properly installed. This probably means your updater is outdated! Please update it and reinstall Aliucord")
-                                .showNow(appActivity.getSupportFragmentManager(), "ALIUCORD_INSTALLED_INCORRECTLY");
+                    new ConfirmDialog()
+                            .setTitle("Oops")
+                            .setDescription("Aliucord was not properly installed. This probably means your updater is outdated! Please update it and reinstall Aliucord")
+                            .showNow(appActivity.getSupportFragmentManager(), "ALIUCORD_INSTALLED_INCORRECTLY");
 
-                        unhook.unhook();
-                        unhook = null;
-                    } catch (Throwable th) {Log.e("", "", th); }
+                    unhook.unhook();
+                    unhook = null;
                 }
             });
-        } catch (Throwable ignored) { Log.e("EEEEEK", "", ignored); }
+        } catch (Throwable ignored) { }
     }
 
     public static void downloadLatestAliucordDex(File outputFile) throws IOException {
