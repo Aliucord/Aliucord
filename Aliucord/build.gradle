@@ -46,6 +46,7 @@ dependencies {
 
     api fileTree(include: '*.aar', dir: '../lib')
     api project(':DiscordStubs')
+    api project(':Injector')
 }
 
 // https://www.stkent.com/2016/06/10/adventures-with-javadocs-part-3.html

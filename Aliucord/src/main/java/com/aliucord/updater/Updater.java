@@ -8,7 +8,7 @@ package com.aliucord.updater;
 import android.content.Context;
 
 import com.aliucord.*;
-import com.aliucord.utils.ReflectUtils;
+import com.discord.app.App$a;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,9 +53,7 @@ public class Updater {
     }
 
     public static void updateAliucord(Context ctx) throws Throwable {
-        var file = new File(ctx.getCodeCacheDir(), "Aliucord.zip");
-        var clazz = ctx.getClassLoader().loadClass("com.discord.app.App$a");
-        ReflectUtils.invokeMethod(clazz, (Object) null, "downloadLatestAliucordDex", file);
+        App$a.downloadLatestAliucordDex(new File(ctx.getCodeCacheDir(), "Aliucord.zip"));
     }
 
     public static boolean isUpdaterDisabled() {

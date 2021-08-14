@@ -45,5 +45,4 @@ dependencies {
 
     api fileTree(include: '*.aar', dir: '../lib')
     api project(':DiscordStubs')
-    api project(':Aliucord')
 }
