@@ -27,8 +27,7 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.core.widget.NestedScrollView;
 
 import com.aliucord.coreplugins.CorePlugins;
-import com.aliucord.patcher.Patcher;
-import com.aliucord.patcher.PinePatchFn;
+import com.aliucord.patcher.*;
 import com.aliucord.settings.*;
 import com.aliucord.updater.PluginUpdater;
 import com.aliucord.views.Divider;
@@ -46,9 +45,6 @@ import java.lang.reflect.Field;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Objects;
-
-import top.canyie.pine.Pine;
-import top.canyie.pine.callback.MethodReplacement;
 
 @SuppressWarnings("ConstantConditions")
 public final class Main {
@@ -139,14 +135,10 @@ public final class Main {
         // Patch to repair built-in emotes is needed because installer doesn't recompile resources,
         // so they stay in package com.discord instead of apk package name
         Patcher.addPatch(ModelEmojiUnicode.class, "getImageUri", new Class<?>[]{String.class, Context.class},
-                new MethodReplacement() {
-                    @Override
-                    protected Object replaceCall(Pine.CallFrame callFrame) {
-                        String name = "emoji_" + callFrame.args[0];
-                        callFrame.setResult("res:///" + Utils.getResId(name, "raw"));
-                        return null;
-                    }
-                }
+                new PinePrePatchFn(callFrame -> {
+                    String name = "emoji_" + callFrame.args[0];
+                    callFrame.setResult("res:///" + Utils.getResId(name, "raw"));
+                })
         );
 
         // add stacktraces in debug logs page

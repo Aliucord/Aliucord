@@ -65,7 +65,7 @@ public final class Injector {
             var dexFile = new File(appActivity.getCodeCacheDir(), "Aliucord.zip");
 
             var prefs = appActivity.getSharedPreferences("aliucord", Context.MODE_PRIVATE);
-            boolean useLocalDex = prefs.getBoolean("AC_use_dex_from_storage", false);
+            boolean useLocalDex = prefs.getBoolean("AC_from_storage", false);
             File localDex;
             if (useLocalDex && (localDex = new File(aliucordDir, "Aliucord.zip")).exists()) {
                 Log.d(LOG_TAG, "Loading dex from " + localDex.getAbsolutePath());
