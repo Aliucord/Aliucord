@@ -51,7 +51,7 @@ public class Updater {
 
     public static void updateAliucord(Context ctx) throws Throwable {
         ReflectUtils.invokeMethod(
-                Class.forName("com.discord.app.App$a"),
+                Class.forName("com.aliucord.injector.Injector"),
                 (Object) null,
                 "downloadLatestAliucordDex",
                 new File(ctx.getCodeCacheDir(), "Aliucord.zip")
