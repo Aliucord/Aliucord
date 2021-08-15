@@ -39,7 +39,7 @@ jobs:
           chmod +x $GITHUB_WORKSPACE/src/gradlew
           echo "{\"aliucord\":\"$GITHUB_WORKSPACE/src\",\"outputs\":\"$GITHUB_WORKSPACE/builds\"}" > ~/config.json
 
-      - name: Build Aliucord
+      - name: Build Injector
         run: ~/bin/buildtool --config ~/config.json --injector
 
       - name: Push builds
