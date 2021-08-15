@@ -44,8 +44,7 @@ dependencies {
     implementation 'com.google.android.material:material:1.4.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.0'
 
-    api fileTree(include: '*.aar', dir: './libs')
-    api fileTree(include: '*.jar', dir: './libs')
+    api fileTree(include: [ '*.aar', '*.jar' ], dir: '../lib')
 }
 
 // https://www.stkent.com/2016/06/10/adventures-with-javadocs-part-3.html
@@ -56,8 +55,6 @@ android.libraryVariants.all { variant ->
             source = compiler.source
             classpath = files(android.bootClasspath.join(File.pathSeparator))
             classpath += compiler.classpath
-
-            exclude 'com/discord/app/**'
         }
     }
 }

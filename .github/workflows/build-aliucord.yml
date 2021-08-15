@@ -1,0 +1,60 @@
+name: Build Aliucord
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - Aliucord/**
+
+jobs:
+  build-aliucord:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+        with:
+          path: src
+
+      - name: Checkout builds
+        uses: actions/checkout@master
+        with:
+          ref: builds
+          path: builds
+
+      - name: Setup JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@3404b45d4c43e74e30dcad1a47fb89a0573f5a7e # v2.0.6
+
+      - name: Setup
+        run: |
+          echo "$ANDROID_HOME/build-tools/30.0.3" >> $GITHUB_PATH
+          mkdir -p ~/bin
+          wget https://github.com/Aliucord/buildtool/releases/latest/download/buildtool -P ~/bin
+          chmod +x ~/bin/buildtool
+          chmod +x $GITHUB_WORKSPACE/src/gradlew
+          echo "{\"aliucord\":\"$GITHUB_WORKSPACE/src\",\"outputs\":\"$GITHUB_WORKSPACE/builds\"}" > ~/config.json
+      - name: Build Aliucord
+        run: ~/bin/buildtool --config ~/config.json
+
+      - name: Push builds
+        run: |
+          cd $GITHUB_WORKSPACE/builds
+          cp ../src/.assets/AndroidManifest.xml .
+          if git diff --exit-code Aliucord.zip >/dev/null; then
+            # No changes to Aliucord.zip, simply merge builds data.json and Aliucord data.json to keep the old aliucordHash
+            jq -s '.[0] * .[1]' data.json ../src/.assets/data.json > data.json.new
+            mv data.json.new data.json
+          else
+            # Changes to Aliucord.zip, update aliucordHash
+            jq ". + { aliucordHash: \"$(git --git-dir=../src/.git rev-parse --short HEAD)\" }" < ../src/.assets/data.json > data.json
+          fi
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add .
+          git commit -m "Build $GITHUB_SHA"
+          git push
