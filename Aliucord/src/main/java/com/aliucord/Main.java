@@ -47,6 +47,9 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Objects;
 
+import top.canyie.pine.Pine;
+import top.canyie.pine.callback.MethodReplacement;
+
 @SuppressWarnings("ConstantConditions")
 public final class Main {
     /** Whether Aliucord has been preInitialized */
@@ -135,11 +138,15 @@ public final class Main {
 
         // Patch to repair built-in emotes is needed because installer doesn't recompile resources,
         // so they stay in package com.discord instead of apk package name
-        Patcher.addPatch(ModelEmojiUnicode.class, "getImageUri", new Class<?>[]{ String.class, Context.class },
-            new PinePatchFn(callFrame -> {
-                String name = "emoji_" + callFrame.args[0];
-                callFrame.setResult("res:///" + Utils.getResId(name, "raw"));
-            })
+        Patcher.addPatch(ModelEmojiUnicode.class, "getImageUri", new Class<?>[]{String.class, Context.class},
+                new MethodReplacement() {
+                    @Override
+                    protected Object replaceCall(Pine.CallFrame callFrame) {
+                        String name = "emoji_" + callFrame.args[0];
+                        callFrame.setResult("res:///" + Utils.getResId(name, "raw"));
+                        return null;
+                    }
+                }
         );
 
         // add stacktraces in debug logs page
