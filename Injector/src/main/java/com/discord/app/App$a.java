@@ -109,18 +109,18 @@ public final class App$a {
      * outputFile should be new File(context.getCodeCacheDir(), "Aliucord.zip");
      */
     public static void downloadLatestAliucordDex(File outputFile) throws IOException {
-        Log.d(LOG_TAG, "Downloading Aliucord dex...");
+        Log.d(LOG_TAG, "Downloading Aliucord.zip from " + DEX_URL + "...");
         var conn = (HttpURLConnection) new URL(DEX_URL).openConnection();
         try (var is = conn.getInputStream()) {
             writeAliucordZip(is, outputFile);
         }
-        Log.d(LOG_TAG, "Finished downloading Aliucord dex");
+        Log.d(LOG_TAG, "Finished downloading Aliucord.zip");
     }
 
     /** https://gist.github.com/nickcaballero/7045993 */
     @SuppressLint("DiscouragedPrivateApi") // this private api seems to be stable, thanks to facebook who use it in the facebook app
     private static void addDexToClasspath(File dex, File cacheDir, ClassLoader nativeClassLoader) throws Throwable {
-        Log.d(LOG_TAG, "Adding Aliucord.dex to the classpath...");
+        Log.d(LOG_TAG, "Adding Aliucord to the classpath...");
         var mClassLoader = new DexClassLoader(dex.getAbsolutePath(), cacheDir.getAbsolutePath(), null, nativeClassLoader);
 
         // https://android.googlesource.com/platform/libcore/+/58b4e5dbb06579bec9a8fc892012093b6f4fbe20/dalvik/src/main/java/dalvik/system/BaseDexClassLoader.java#59
@@ -143,7 +143,7 @@ public final class App$a {
         System.arraycopy(dexElements2, 0, joinedDexElements, dexElements1Size, dexElements2Size);
 
         dexElementsField.set(nativeClassLoaderPathList, joinedDexElements);
-        Log.d(LOG_TAG, "Successfully added Aliucord.dex to the classpath");
+        Log.d(LOG_TAG, "Successfully added Aliucord to the classpath");
     }
 
     private static void writeAliucordZip(InputStream is, File outputFile) throws IOException {

@@ -63,6 +63,6 @@ public class Updater {
     }
 
     public static boolean usingDexFromStorage() {
-        return SettingsUtils.getBool(com.aliucord.settings.Updater.UpdaterSettings.USE_DEX_FROM_STORAGE_KEY, false);
+        return SettingsUtils.getBool(com.aliucord.settings.Updater.UpdaterSettings.ALIUCORD_FROM_STORAGE, false);
     }
 }

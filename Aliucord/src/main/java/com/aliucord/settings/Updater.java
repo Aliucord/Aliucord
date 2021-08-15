@@ -34,7 +34,7 @@ public class Updater extends SettingsPage {
     public static class UpdaterSettings extends BottomSheet {
         public static final String AUTO_UPDATE_PLUGINS_KEY = "AC_plugins_auto_update_enabled";
         public static final String AUTO_UPDATE_ALIUCORD_KEY = "AC_aliucord_auto_update_enabled";
-        public static final String USE_DEX_FROM_STORAGE_KEY = "AC_use_dex_from_storage";
+        public static final String ALIUCORD_FROM_STORAGE = "AC_from_storage";
 
         @Override
         public void onViewCreated(View view, Bundle bundle) {
@@ -45,10 +45,10 @@ public class Updater extends SettingsPage {
             addView(createSwitch(ctx, "Auto Update Aliucord", "Whether Aliucord should automatically be updated", AUTO_UPDATE_ALIUCORD_KEY));
             addView(createSwitch(ctx, "Auto Update Plugins", "Whether Plugins should automatically be updated", AUTO_UPDATE_PLUGINS_KEY));
 
-            var dexFromStorageSwitch = Utils.createCheckedSetting(ctx, CheckedSetting.ViewType.SWITCH, "Dex from storage", "Use custom dex from Aliucord/Aliucord.dex");
-            dexFromStorageSwitch.setChecked(SettingsUtils.getBool(USE_DEX_FROM_STORAGE_KEY, false));
+            var dexFromStorageSwitch = Utils.createCheckedSetting(ctx, CheckedSetting.ViewType.SWITCH, "Aliucord from storage", "Use custom Aliucord build from Aliucord/Aliucord.zip");
+            dexFromStorageSwitch.setChecked(SettingsUtils.getBool(ALIUCORD_FROM_STORAGE, false));
             dexFromStorageSwitch.setOnCheckedListener(c -> {
-                if (!c) SettingsUtils.setBool(USE_DEX_FROM_STORAGE_KEY, false);
+                if (!c) SettingsUtils.setBool(ALIUCORD_FROM_STORAGE, false);
                 else {
                     // Spooky, lets make sure no one gets scammed
                     var dialog = new ConfirmDialog();
@@ -57,14 +57,14 @@ public class Updater extends SettingsPage {
                         .setTitle("HOLD ON")
                         .setDescription("If someone else told you to do this, you are LIKELY GETTING SCAMMED. Only check this option if you know what you're doing!")
                         .setOnOkListener(v -> {
-                            SettingsUtils.setBool(USE_DEX_FROM_STORAGE_KEY, true);
+                            SettingsUtils.setBool(ALIUCORD_FROM_STORAGE, true);
                             dialog.dismiss();
                         })
                         .setOnCancelListener(v -> {
                             dexFromStorageSwitch.setChecked(false);
                             dialog.dismiss();
                         })
-                        .show(getParentFragmentManager(), "DEX_FROM_STORAGE_WARNING");
+                        .show(getParentFragmentManager(), "ALIUCORD_FROM_STORAGE_WARNING");
                 }
             });
 
@@ -97,7 +97,7 @@ public class Updater extends SettingsPage {
         Utils.threadPool.execute(() -> {
                 Snackbar sb;
                 if (usingDexFromStorage()) {
-                    sb = Snackbar.make(getLinearLayout(), "Updater disabled due to using Aliucord dex from storage.", Snackbar.LENGTH_INDEFINITE);
+                    sb = Snackbar.make(getLinearLayout(), "Updater disabled due to using Aliucord from storage.", Snackbar.LENGTH_INDEFINITE);
                 } else if (isAliucordOutdated()) {
                     sb = Snackbar
                             .make(getLinearLayout(), "Your Aliucord is outdated.", Snackbar.LENGTH_INDEFINITE)
