@@ -8,8 +8,7 @@ package com.discord.app;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.os.Bundle;
-import android.os.Environment;
+import android.os.*;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -57,7 +56,7 @@ public final class App$a {
 
     private static void error(Context ctx, String msg, Throwable th) {
         Log.e(LOG_TAG, msg, th);
-        Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show();
+        new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show());
     }
 
     private static void init(AppActivity appActivity) {
