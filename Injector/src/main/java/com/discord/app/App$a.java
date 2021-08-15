@@ -18,8 +18,6 @@ import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import dalvik.system.BaseDexClassLoader;
 import dalvik.system.DexClassLoader;
@@ -32,13 +30,13 @@ import top.canyie.pine.callback.MethodHook;
 // Thus it offers an amazing entry point for an injection since we can safely override the class
 public final class App$a {
     private static final String LOG_TAG = "Aliucord Injector";
-    private static final String DEX_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/Aliucord.dex";
+    private static final String DEX_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/Aliucord.zip";
 
     private static MethodHook.Unhook unhook;
 
     static {
         PineConfig.debug = false;
-        PineConfig.debuggable = false;
+        PineConfig.debuggable = false; // Set this to true to make Aliucord debuggable
         PineConfig.disableHiddenApiPolicy = false;
         PineConfig.disableHiddenApiPolicyForPlatformDomain = false;
 
@@ -71,10 +69,10 @@ public final class App$a {
             var prefs = appActivity.getSharedPreferences("aliucord", Context.MODE_PRIVATE);
             boolean useLocalDex = prefs.getBoolean("AC_use_dex_from_storage", false);
             File localDex;
-            if (useLocalDex && (localDex = new File(aliucordDir, "Aliucord.dex")).exists()) {
+            if (useLocalDex && (localDex = new File(aliucordDir, "Aliucord.zip")).exists()) {
                 Log.d(LOG_TAG, "Loading dex from " + localDex.getAbsolutePath());
-                try (var is = new FileInputStream(localDex)) {
-                    buildClassesZip(is, dexFile);
+                try (var fis = new FileInputStream(localDex)) {
+                    writeAliucordZip(fis, dexFile);
                 }
             } else if (!dexFile.exists()) {
                 var successRef = new AtomicBoolean(true);
@@ -114,7 +112,7 @@ public final class App$a {
         Log.d(LOG_TAG, "Downloading Aliucord dex...");
         var conn = (HttpURLConnection) new URL(DEX_URL).openConnection();
         try (var is = conn.getInputStream()) {
-            buildClassesZip(is, outputFile);
+            writeAliucordZip(is, outputFile);
         }
         Log.d(LOG_TAG, "Finished downloading Aliucord dex");
     }
@@ -148,21 +146,16 @@ public final class App$a {
         Log.d(LOG_TAG, "Successfully added Aliucord.dex to the classpath");
     }
 
-    private static void buildClassesZip(InputStream is, File outputFile) throws IOException {
-        Log.d(LOG_TAG, "Building zip with classes.dex...");
-        try (var os = new FileOutputStream(outputFile);
-             var zos = new ZipOutputStream(os)
-        ) {
-            zos.putNextEntry(new ZipEntry("classes.dex"));
+    private static void writeAliucordZip(InputStream is, File outputFile) throws IOException {
+        try (var fos = new FileOutputStream(outputFile)) {
             int n;
             final int sixteenKB = 16384;
             byte[] buf = new byte[sixteenKB];
             while ((n = is.read(buf)) > -1) {
-                zos.write(buf, 0, n);
+                fos.write(buf, 0, n);
             }
-            zos.closeEntry();
+            fos.flush();
         }
-        Log.d(LOG_TAG, "Finished building zip");
     }
 
     public App$a(DefaultConstructorMarker defaultConstructorMarker) {}

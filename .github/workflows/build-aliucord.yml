@@ -45,12 +45,12 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/builds
           cp ../src/.assets/AndroidManifest.xml .
-          if git diff --exit-code Aliucord.dex >/dev/null; then
-            # No changes to Aliucord.dex, simply merge builds data.json and Aliucord data.json to keep the old aliucordHash
+          if git diff --exit-code Aliucord.zip >/dev/null; then
+            # No changes to Aliucord.zip, simply merge builds data.json and Aliucord data.json to keep the old aliucordHash
             jq -s '.[0] * .[1]' data.json ../src/.assets/data.json > data.json.new
             mv data.json.new data.json
           else
-            # Changes to Aliucord.dex, update aliucordHash
+            # Changes to Aliucord.zip, update aliucordHash
             jq ". + { aliucordHash: \"$(git --git-dir=../src/.git rev-parse --short HEAD)\" }" < ../src/.assets/data.json > data.json
           fi
           git config --local user.email "actions@github.com"
