@@ -45,7 +45,6 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.0'
 
     api fileTree(include: [ '*.aar', '*.jar' ], dir: '../lib')
-    api project(':Injector')
 }
 
 // https://www.stkent.com/2016/06/10/adventures-with-javadocs-part-3.html
