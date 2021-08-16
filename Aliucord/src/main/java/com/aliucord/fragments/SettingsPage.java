@@ -1,4 +1,5 @@
 /*
+ * This file is part of Aliucord, an Android Discord client mod.
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
@@ -14,6 +15,7 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.widget.NestedScrollView;
 
 import com.aliucord.Utils;
+import com.aliucord.utils.DimenUtils;
 import com.aliucord.views.ToolbarButton;
 import com.discord.app.AppFragment;
 import com.google.android.material.appbar.AppBarLayout;
@@ -32,7 +34,6 @@ public class SettingsPage extends AppFragment {
     }
 
     @Override
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     public void onViewBound(View view) {
         super.onViewBound(view);
         this.view = (CoordinatorLayout) view;
@@ -41,7 +42,7 @@ public class SettingsPage extends AppFragment {
         setActionBarDisplayHomeAsUpEnabled();
 
         clear();
-        setPadding(Utils.getDefaultPadding());
+        setPadding(DimenUtils.getDefaultPadding());
     }
 
     /** Returns the LinearLayout associated with this Page */

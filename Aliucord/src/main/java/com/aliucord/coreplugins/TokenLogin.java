@@ -1,4 +1,5 @@
 /*
+ * This file is part of Aliucord, an Android Discord client mod.
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
@@ -17,6 +18,7 @@ import com.aliucord.Utils;
 import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.PinePatchFn;
+import com.aliucord.utils.DimenUtils;
 import com.aliucord.views.Button;
 import com.discord.app.AppActivity;
 import com.discord.app.AppFragment;
@@ -84,7 +86,7 @@ final class TokenLogin extends Plugin {
             RelativeLayout view = (RelativeLayout) callFrame.args[0];
             LinearLayout v = (LinearLayout) view.getChildAt(1);
 
-            int padding = Utils.dpToPx(18);
+            int padding = DimenUtils.dpToPx(18);
             Button btn = new Button(context);
             btn.setPadding(0, padding, 0, padding);
             btn.setText("Login using token");

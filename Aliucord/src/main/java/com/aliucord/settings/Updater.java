@@ -1,4 +1,5 @@
 /*
+ * This file is part of Aliucord, an Android Discord client mod.
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
@@ -23,6 +24,7 @@ import com.aliucord.Utils;
 import com.aliucord.fragments.ConfirmDialog;
 import com.aliucord.fragments.SettingsPage;
 import com.aliucord.updater.PluginUpdater;
+import com.aliucord.utils.DimenUtils;
 import com.aliucord.views.ToolbarButton;
 import com.aliucord.widgets.BottomSheet;
 import com.aliucord.widgets.UpdaterPluginCard;
@@ -83,7 +85,6 @@ public class Updater extends SettingsPage {
     private String stateText = "No new updates found";
 
     @Override
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     @SuppressLint("SetTextI18n")
     public void onViewBound(View view) {
         super.onViewBound(view);
@@ -92,7 +93,7 @@ public class Updater extends SettingsPage {
         setActionBarSubtitle(stateText);
 
         Context context = requireContext();
-        int padding = Utils.getDefaultPadding();
+        int padding = DimenUtils.getDefaultPadding();
 
         Utils.threadPool.execute(() -> {
                 Snackbar sb;

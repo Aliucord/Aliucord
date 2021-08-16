@@ -1,4 +1,5 @@
 /*
+ * This file is part of Aliucord, an Android Discord client mod.
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
@@ -23,12 +24,10 @@ import androidx.core.content.res.ResourcesCompat;
 import com.aliucord.Constants;
 import com.aliucord.Utils;
 import com.aliucord.fragments.SettingsPage;
+import com.aliucord.utils.DimenUtils;
+import com.aliucord.utils.MDUtils;
 import com.aliucord.views.DangerButton;
 import com.aliucord.views.ToolbarButton;
-import com.discord.simpleast.code.CodeNode;
-import com.discord.utilities.textprocessing.Rules$createCodeBlockRule$codeStyleProviders$1;
-import com.discord.utilities.textprocessing.node.BasicRenderContext;
-import com.discord.utilities.textprocessing.node.BlockBackgroundNode;
 import com.lytefast.flexinput.R;
 
 import java.io.*;
@@ -43,18 +42,6 @@ public class Crashes extends SettingsPage {
         public int times;
     }
 
-    private static class RenderContext implements BasicRenderContext {
-        private final Context context;
-        public RenderContext(Context ctx) {
-            context = ctx;
-        }
-
-        @Override
-        public Context getContext() {
-            return context;
-        }
-    }
-
     @Override
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @SuppressLint("SetTextI18n")
@@ -63,7 +50,7 @@ public class Crashes extends SettingsPage {
         setActionBarTitle("Crash Logs");
 
         Context context = requireContext();
-        int padding = Utils.getDefaultPadding();
+        int padding = DimenUtils.getDefaultPadding();
         int p = padding / 2;
 
         File dir = new File(Constants.CRASHLOGS_PATH);
@@ -147,13 +134,7 @@ public class Crashes extends SettingsPage {
                 header.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
 
                 TextView body = new TextView(context);
-                //noinspection unchecked
-                BlockBackgroundNode<BasicRenderContext> node = new BlockBackgroundNode<>(false, new CodeNode<BasicRenderContext>(
-                    new CodeNode.a.b(crash.stacktrace), "", Rules$createCodeBlockRule$codeStyleProviders$1.INSTANCE
-                ));
-                SpannableStringBuilder builder = new SpannableStringBuilder();
-                node.render(builder, new RenderContext(context));
-                body.setText(builder);
+                body.setText(MDUtils.renderCodeBlock(context, new SpannableStringBuilder(), null, crash.stacktrace));
                 body.setOnClickListener(e -> {
                     Utils.setClipboard("CrashLog-" + crash.timestamp, crash.stacktrace);
                     Utils.showToast(context, "Copied to clipboard");
