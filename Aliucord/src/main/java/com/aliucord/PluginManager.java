@@ -1,4 +1,5 @@
 /*
+ * This file is part of Aliucord, an Android Discord client mod.
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
@@ -10,6 +11,7 @@ import android.content.res.AssetManager;
 import android.content.res.Resources;
 
 import com.aliucord.entities.Plugin;
+import com.aliucord.utils.MapUtils;
 
 import java.io.File;
 import java.io.InputStream;
@@ -140,6 +142,6 @@ public class PluginManager {
      */
     @SuppressWarnings("unused")
     public static boolean isPluginEnabled(Plugin plugin) {
-        return isPluginEnabled(Utils.getMapKey(plugins, plugin));
+        return isPluginEnabled(MapUtils.getMapKey(plugins, plugin));
     }
 }

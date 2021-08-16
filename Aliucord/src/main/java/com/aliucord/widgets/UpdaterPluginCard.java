@@ -1,4 +1,5 @@
 /*
+ * This file is part of Aliucord, an Android Discord client mod.
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
@@ -20,6 +21,7 @@ import com.aliucord.PluginManager;
 import com.aliucord.Utils;
 import com.aliucord.entities.Plugin;
 import com.aliucord.updater.PluginUpdater;
+import com.aliucord.utils.DimenUtils;
 import com.aliucord.views.ToolbarButton;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.widgets.changelog.WidgetChangeLog;
@@ -30,7 +32,7 @@ import com.lytefast.flexinput.*;
 public class UpdaterPluginCard extends MaterialCardView {
     public UpdaterPluginCard(Context context, String plugin, Runnable forceUpdate) {
         super(context);
-        int padding = Utils.getDefaultPadding();
+        int padding = DimenUtils.getDefaultPadding();
         int paddingHalf = padding / 2;
 
         LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
@@ -38,7 +40,7 @@ public class UpdaterPluginCard extends MaterialCardView {
         setLayoutParams(params);
         setUseCompatPadding(true);
         setCardBackgroundColor(ColorCompat.getThemedColor(context, R.b.colorBackgroundSecondary));
-        setRadius(Utils.getDefaultCardRadius());
+        setRadius(DimenUtils.getDefaultCardRadius());
         setContentPadding(padding, padding, padding, padding);
 
         Plugin p = PluginManager.plugins.get(plugin);

@@ -1,4 +1,5 @@
 /*
+ * This file is part of Aliucord, an Android Discord client mod.
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
@@ -6,6 +7,8 @@
 package com.aliucord;
 
 import androidx.annotation.NonNull;
+
+import com.aliucord.utils.GsonUtils;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -172,7 +175,7 @@ public class Http {
          * @return Response
          */
         public Response executeWithJson(Object body) throws IOException {
-            return setHeader("Content-Type", "application/json").executeWithBody(Utils.toJson(body));
+            return setHeader("Content-Type", "application/json").executeWithBody(GsonUtils.toJson(body));
         }
 
         /**
@@ -243,7 +246,7 @@ public class Http {
          * @return Response Object
          */
         public <T> T json(Type type) throws IOException {
-            return Utils.fromJson(text(), type);
+            return GsonUtils.fromJson(text(), type);
         }
 
         /**
@@ -252,7 +255,7 @@ public class Http {
          * @return Response Object
          */
         public <T> T json(Class<T> type) throws IOException {
-            return Utils.fromJson(text(), type);
+            return GsonUtils.fromJson(text(), type);
         }
 
         /**
@@ -304,7 +307,7 @@ public class Http {
      */
     public static <T> T simpleJsonGet(String url, Type schema) throws IOException {
         String res = simpleGet(url);
-        return Utils.fromJson(res, schema);
+        return GsonUtils.fromJson(res, schema);
     }
 
     /**
@@ -338,7 +341,7 @@ public class Http {
      */
     public static <T> T simpleJsonPost(String url, String body, Type schema) throws IOException {
         String res = simplePost(url, body);
-        return Utils.fromJson(res, schema);
+        return GsonUtils.fromJson(res, schema);
     }
 
     // This is just here for proper Generics so you can do simpleJsonPost(url, body, myClass).myMethod() without having to cast

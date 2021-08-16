@@ -1,4 +1,5 @@
 /*
+ * This file is part of Aliucord, an Android Discord client mod.
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
@@ -21,8 +22,7 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 
 import com.aliucord.fragments.AppFragmentProxy;
-import com.aliucord.utils.ReflectUtils;
-import com.aliucord.utils.RxUtils;
+import com.aliucord.utils.*;
 import com.discord.api.commands.CommandChoice;
 import com.discord.api.user.User;
 import com.discord.app.AppActivity;
@@ -35,20 +35,18 @@ import com.discord.views.CheckedSetting;
 import com.google.gson.Gson;
 
 import java.io.*;
-import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import c.a.d.l;
-import c.a.k.b;
 import rx.Subscriber;
 import rx.functions.Action0;
 import rx.functions.Action1;
 
 /** Utility class that holds miscellaneous Utilities */
-@SuppressWarnings({ "unused", "unchecked" })
+@SuppressWarnings("unused")
 public class Utils {
     /** The main (UI) thread */
     public static final Handler mainThread = new Handler(Looper.getMainLooper());
@@ -142,65 +140,54 @@ public class Utils {
         return resIdCache.computeIfAbsent(name, k -> context.getResources().getIdentifier(k, type, "com.discord"));
     }
 
-    private static float density;
+    /**
+     * Converts DP to PX.
+     * @param dp DP value
+     * @return <code>DP</code> converted to PX
+     * @deprecated Use {@link DimenUtils#dpToPx(int)}
+     */
+    @Deprecated
+    public static int dpToPx(int dp) { return DimenUtils.dpToPx(dp); }
 
     /**
      * Converts DP to PX.
-     * @param dp DP value.
-     * @return <code>dp</code> converted to PX.
-     * @see Utils#dpToPx(float)
+     * @param dp DP value
+     * @return <code>DP</code> converted to PX
+     * @deprecated Use {@link DimenUtils#dpToPx(float)}
      */
-    public static int dpToPx(int dp) { return Utils.dpToPx((float) dp); }
-
-    /**
-     * Converts DP to PX.
-     * @param dp DP value.
-     * @return <code>dp</code> converted to PX.
-     * @see Utils#dpToPx(int)
-     */
-    public static int dpToPx(float dp) {
-        if (density == 0) density = Utils.getAppContext().getResources().getDisplayMetrics().density;
-        return (int) (dp * Utils.getAppContext().getResources().getDisplayMetrics().density + 0.5f);
-    }
-
-    private static int defaultPadding = 0;
-    private static int defaultCardRadius = 0;
+    @Deprecated
+    public static int dpToPx(float dp) { return DimenUtils.dpToPx(dp); }
 
     /**
      * Gets the default padding for the items. (16 DP)
      * @return default padding
-     * @see Utils#dpToPx(int)
-     * @see Utils#dpToPx(float)
+     * @see DimenUtils#dpToPx(int)
+     * @see DimenUtils#dpToPx(float)
+     * @deprecated Use {@link DimenUtils#getDefaultPadding()}
      */
-    public static int getDefaultPadding() {
-        if (defaultPadding == 0) defaultPadding = Utils.dpToPx(16);
-        return defaultPadding;
-    }
+    @Deprecated
+    public static int getDefaultPadding() { return DimenUtils.getDefaultPadding(); }
 
     /**
      * Gets the default radius for cards. (8 DP)
      * @return default padding
-     * @see Utils#dpToPx(int)
-     * @see Utils#dpToPx(float)
+     * @see DimenUtils#dpToPx(int)
+     * @see DimenUtils#dpToPx(float)
+     * @deprecated Use {@link DimenUtils#getDefaultCardRadius()}
      */
-    public static int getDefaultCardRadius() {
-        if (defaultCardRadius == 0) defaultCardRadius = Utils.dpToPx(8);
-        return defaultCardRadius;
-    }
+    @Deprecated
+    public static int getDefaultCardRadius() { return DimenUtils.getDefaultCardRadius(); }
 
     /**
      * Finds the mapping key for Object val where Objects.equals(val, entry.value)
      * @param map The map to find the Object in
      * @param val The object to find the key of
      * @return Key of mapping or null if no such mapping exists
+     * @deprecated Use {@link MapUtils#getMapKey(Map, Object)}
      */
     @Nullable
-    public static <K, V> K getMapKey(@NonNull Map<K, V> map, @Nullable V val) {
-        for (Map.Entry<K, V> entry : map.entrySet()) {
-            if (Objects.equals(val, entry.getValue())) return entry.getKey();
-        }
-        return null;
-    }
+    @Deprecated
+    public static <K, V> K getMapKey(@NonNull Map<K, V> map, @Nullable V val) { return MapUtils.getMapKey(map, val); }
 
     public static void openPage(Context context, Class<? extends AppComponent> clazz, Intent intent) {
         l.d(context, clazz, intent);
@@ -317,30 +304,20 @@ public class Utils {
      * @param stream The stream to read
      * @return The read bytes
      * @throws Throwable if an I/O error occurs
+     * @deprecated Use {@link IOUtils#readBytes(InputStream)}
      */
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static byte[] readBytes(InputStream stream) throws Throwable {
-        int len = stream.available();
-        byte[] buf = new byte[len];
-        stream.read(buf);
-        stream.close();
-        return buf;
-    }
+    @Deprecated
+    public static byte[] readBytes(InputStream stream) throws Throwable { return IOUtils.readBytes(stream); }
 
     /**
      * Pipe an {@link InputStream} into an {@link OutputStream}
      * @param is InputStream
      * @param os OutputStream
      * @throws IOException if an I/O error occurs
+     * @deprecated Use {@link IOUtils#pipe(InputStream, OutputStream)}
      */
-    public static void pipe(InputStream is, OutputStream os) throws IOException {
-        int n;
-        byte[] buf = new byte[16384]; // 16 KB
-        while ((n = is.read(buf)) > -1) {
-            os.write(buf, 0, n);
-        }
-        os.flush();
-    }
+    @Deprecated
+    public static void pipe(InputStream is, OutputStream os) throws IOException { IOUtils.pipe(is, os); }
 
     /**
      * Tints a {@link Drawable} to {@link Color#BLACK} if a user has set light theme.
@@ -352,78 +329,73 @@ public class Utils {
         return drawable;
     }
 
-    /** <a href="https://github.com/google/gson">Gson</a> instance */
-    public final static Gson gson = new Gson();
-    /** Pretty <a href="https://github.com/google/gson">Gson</a> instance */
-    public final static Gson gsonPretty = new Gson();
+    /**
+     * <a href="https://github.com/google/gson">Gson</a> instance
+     * @deprecated Use {@link GsonUtils#gson}
+     */
+    @Deprecated
+    public final static Gson gson = GsonUtils.gson;
+
+    /**
+     * Pretty <a href="https://github.com/google/gson">Gson</a> instance
+     * @deprecated Use {@link GsonUtils#gsonPretty}
+     */
+    @Deprecated
+    public final static Gson gsonPretty = GsonUtils.gsonPretty;
 
     /**
      * Deserializes a JSON string into the specified class
      * @param json The JSON string to deserialize
      * @param clazz The class to deserialize the JSON into
      * @return Deserialized JSON
+     * @deprecated Use {@link GsonUtils#fromJson(String, Class)}
      */
-    public static <T> T fromJson(String json, Class<T> clazz) {
-        return gson.g(json, clazz);
-    }
+    @Deprecated
+    public static <T> T fromJson(String json, Class<T> clazz) { return GsonUtils.fromJson(json, clazz); }
     /**
      * Deserializes a JSON string into the specified object
      * @param json The JSON string to deserialize
      * @param type The type of the object to deserialize the JSON into
      * @return Deserialized JSON
+     * @deprecated Use {@link GsonUtils#fromJson(String, Type)}
      */
-    public static <T> T fromJson(String json, Type type) {
-        return gson.g(json, type);
-    }
+    @Deprecated
+    public static <T> T fromJson(String json, Type type) { return GsonUtils.fromJson(json, type); }
 
     /**
      * Serializes an Object to JSON
      * @param obj The object to serialize
      * @return Serialized JSON
+     * @deprecated Use {@link GsonUtils#toJson(Object)}
      */
-    public static String toJson(Object obj) {
-        return gson.m(obj);
-    }
+    @Deprecated
+    public static String toJson(Object obj) { return GsonUtils.toJson(obj); }
     /**
      * Serializes an Object to pretty printed JSON
      * @param obj The object to serialize
      * @return Serialized JSON
+     * @deprecated Use {@link GsonUtils#toJsonPretty(Object)}
      */
-    public static String toJsonPretty(Object obj) {
-        return gsonPretty.m(obj);
-    }
+    @Deprecated
+    public static String toJsonPretty(Object obj) { return GsonUtils.toJsonPretty(obj); }
 
     /**
      * Renders discord spice markdown
      * @param source The markdown to render
      * @return Rendered markdown
+     * @deprecated Use {@link MDUtils#render(CharSequence)}
      */
-    public static CharSequence renderMD(CharSequence source) {
-        try {
-            return b.l(source, new Object[0], null, 2);
-        } catch (Throwable e) { Main.logger.error("Failed to render markdown", e); }
-        return source;
-    }
-
-    private static Object unsafe;
-    private static Method unsafeAllocIns;
+    @Deprecated
+    public static CharSequence renderMD(CharSequence source) { return MDUtils.render(source); }
 
     /**
      * Creates new class instance without using a constructor
      * @param clazz Class
      * @return Created instance
+     * @deprecated Use {@link ReflectUtils#allocateInstance(Class)}
      */
-    public static <T> T allocateInstance(Class<T> clazz) {
-        try {
-            if (unsafeAllocIns == null) {
-                var c = Class.forName("sun.misc.Unsafe");
-                unsafe = ReflectUtils.getField(c, null, "theUnsafe");
-                unsafeAllocIns = c.getMethod("allocateInstance", Class.class);
-            }
-            return (T) unsafeAllocIns.invoke(unsafe, clazz);
-        } catch (Throwable e) { Main.logger.error(e); }
-        return null;
-    }
+    @Deprecated
+    public static <T> T allocateInstance(@NonNull Class<T> clazz) { return ReflectUtils.allocateInstance(clazz); }
 
     /**
      * @deprecated Use {@link RxUtils#createActionSubscriber(Action1)}
@@ -446,10 +418,4 @@ public class Utils {
      * @param msg Message to log.
      */
     public static void log(String msg) { Main.logger.debug(msg); }
-
-    static {
-        try {
-            ReflectUtils.setField(gsonPretty, "k", true);
-        } catch (Throwable e) { Main.logger.error(e); }
-    }
 }

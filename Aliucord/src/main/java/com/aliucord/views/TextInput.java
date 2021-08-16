@@ -1,4 +1,5 @@
 /*
+ * This file is part of Aliucord, an Android Discord client mod.
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
@@ -13,7 +14,7 @@ import android.text.Editable;
 import android.text.InputType;
 import android.view.inputmethod.EditorInfo;
 
-import com.aliucord.Utils;
+import com.aliucord.utils.DimenUtils;
 import com.discord.utilities.color.ColorCompat;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -23,7 +24,7 @@ public class TextInput extends TextInputLayout {
     @SuppressLint("SetTextI18n")
     public TextInput(Context context) {
         super(context);
-        int padding = Utils.dpToPx(12);
+        int padding = DimenUtils.dpToPx(12);
         int bgColor = ColorCompat.getThemedColor(context, R.b.colorBackgroundTertiary);
         ColorStateList hintColor = ColorStateList.valueOf(ColorCompat.getThemedColor(context, R.b.colorHeaderSecondary));
 
@@ -37,7 +38,7 @@ public class TextInput extends TextInputLayout {
         setPadding(padding, padding, padding, 0);
 
         GradientDrawable shape = new GradientDrawable();
-        shape.setCornerRadius(Utils.getDefaultCardRadius());
+        shape.setCornerRadius(DimenUtils.getDefaultCardRadius());
         shape.setColor(bgColor);
         setBackground(shape);
 

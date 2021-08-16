@@ -1,4 +1,5 @@
 /*
+ * This file is part of Aliucord, an Android Discord client mod.
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
@@ -27,6 +28,7 @@ import com.aliucord.*;
 import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.ConfirmDialog;
 import com.aliucord.fragments.SettingsPage;
+import com.aliucord.utils.DimenUtils;
 import com.aliucord.utils.ReflectUtils;
 import com.aliucord.views.TextInput;
 import com.aliucord.views.ToolbarButton;
@@ -266,11 +268,10 @@ public class Plugins extends SettingsPage {
     @SuppressLint("SetTextI18n")
     public void onViewBound(View view) {
         super.onViewBound(view);
-        //noinspection ResultOfMethodCallIgnored
         setActionBarTitle("Plugins");
 
         Context context = requireContext();
-        int padding = Utils.getDefaultPadding();
+        int padding = DimenUtils.getDefaultPadding();
         int p = padding / 2;
 
         if (getHeaderBar().findViewById(uniqueId) == null) {
