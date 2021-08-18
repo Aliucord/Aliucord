@@ -75,16 +75,20 @@ public class PluginUpdater {
             body = "Updates for plugins are available: " + updatablePlugins;
         } else body = "All plugins up to date!";
 
-        if (!Updater.usingDexFromStorage() && Updater.isAliucordOutdated()) {
-            if (SettingsUtils.getBool(UpdaterSettings.AUTO_UPDATE_ALIUCORD_KEY, false)) {
-                try {
-                    Updater.updateAliucord(Utils.appActivity);
-                    body = "Auto updated Aliucord. Please restart Aliucord to load the update - " + body;
-                } catch (Throwable th) {
-                    body = "Failed to auto update Aliucord. Please update it manually - " + body;
+        if (!Updater.usingDexFromStorage()) {
+            if (Updater.isDiscordOutdated()) {
+                body = "Your Aliucord and base Discord are outdated. Please update using the installer - " + body;
+            } else if (Updater.isAliucordOutdated()) {
+                if (SettingsUtils.getBool(UpdaterSettings.AUTO_UPDATE_ALIUCORD_KEY, false)) {
+                    try {
+                        Updater.updateAliucord(Utils.appActivity);
+                        body = "Auto updated Aliucord. Please restart Aliucord to load the update - " + body;
+                    } catch (Throwable th) {
+                        body = "Failed to auto update Aliucord. Please update it manually - " + body;
+                    }
+                } else {
+                    body = "Your Aliucord is outdated. Please update it to the latest version - " + body;
                 }
-            } else {
-                body = "Your Aliucord is outdated. Please update it to the latest version - " + body;
             }
         }
 
