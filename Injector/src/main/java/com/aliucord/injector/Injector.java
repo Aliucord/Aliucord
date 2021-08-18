@@ -13,6 +13,11 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.discord.app.AppActivity;
+import com.discord.stores.StoreClientVersion;
+import com.discord.stores.StoreStream;
+
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import java.io.*;
 import java.lang.reflect.Array;
@@ -27,7 +32,8 @@ import top.canyie.pine.PineConfig;
 import top.canyie.pine.callback.MethodHook;
 
 public final class Injector {
-    private static final String LOG_TAG = "Aliucord Injector";
+    public static final String LOG_TAG = "Aliucord Injector";
+    private static final String DATA_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/data.json";
     private static final String DEX_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/Aliucord.zip";
 
     private static MethodHook.Unhook unhook;
@@ -54,12 +60,12 @@ public final class Injector {
     }
 
     private static void error(Context ctx, String msg, Throwable th) {
-        Log.e(LOG_TAG, msg, th);
+        Logger.e(msg, th);
         new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show());
     }
 
     private static void init(AppActivity appActivity) {
-        Log.d(LOG_TAG, "Initializing Aliucord...");
+        Logger.d("Initializing Aliucord...");
         try {
             var aliucordDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), "Aliucord");
             var dexFile = new File(appActivity.getCodeCacheDir(), "Aliucord.zip");
@@ -68,7 +74,7 @@ public final class Injector {
             boolean useLocalDex = prefs.getBoolean("AC_from_storage", false);
             File localDex;
             if (useLocalDex && (localDex = new File(aliucordDir, "Aliucord.zip")).exists()) {
-                Log.d(LOG_TAG, "Loading dex from " + localDex.getAbsolutePath());
+                Logger.d("Loading dex from " + localDex.getAbsolutePath());
                 try (var fis = new FileInputStream(localDex)) {
                     writeAliucordZip(fis, dexFile);
                 }
@@ -76,7 +82,30 @@ public final class Injector {
                 var successRef = new AtomicBoolean(true);
                 var thread = new Thread(() -> {
                     try {
-                        downloadLatestAliucordDex(dexFile);
+                        Logger.d("Checking local Discord version...");
+                        var storeClientVersionField = StoreStream.class.getDeclaredField("clientVersion");
+                        storeClientVersionField.setAccessible(true);
+                        var clientVersionField = StoreClientVersion.class.getDeclaredField("clientVersion");
+                        clientVersionField.setAccessible(true);
+                        var collector = StoreStream.Companion.access$getCollector$p(StoreStream.Companion);
+                        var storeClientVersion = storeClientVersionField.get(collector);
+                        var version = (int) clientVersionField.get(storeClientVersion);
+                        Logger.d("Retrieved local Discord version: " + version);
+
+                        Logger.d("Fetching latest Discord version...");
+                        var conn = (HttpURLConnection) new URL(DATA_URL).openConnection();
+                        var sb = new StringBuilder();
+                        String ln;
+                        try (var reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                            while ((ln = reader.readLine()) != null) sb.append(ln);
+                        }
+                        var remoteVersion = new JSONObject(new JSONTokener(sb.toString())).getInt("versionCode");
+                        Logger.d("Retrieved remote Discord version: " + remoteVersion);
+
+                        if (remoteVersion > version) {
+                            error(appActivity, "Your base Discord is outdated. Please reinstall using the Installer.", null);
+                            successRef.set(false);
+                        } else downloadLatestAliucordDex(dexFile);
                     } catch (Throwable e) {
                         error(appActivity, "Failed to install aliucord :(", e);
                         successRef.set(false);
@@ -87,18 +116,22 @@ public final class Injector {
                 if (!successRef.get()) return;
             }
 
-            Log.d(LOG_TAG, "Adding Aliucord to the classpath...");
+            Logger.d("Adding Aliucord to the classpath...");
             addDexToClasspath(dexFile, appActivity.getCodeCacheDir(), appActivity.getClassLoader());
             var c = Class.forName("com.aliucord.Main");
             var preInit = c.getDeclaredMethod("preInit", AppActivity.class);
             var init = c.getDeclaredMethod("init", AppActivity.class);
 
-            Log.d(LOG_TAG, "Invoking main Aliucord entry point...");
+            Logger.d("Invoking main Aliucord entry point...");
             preInit.invoke(null, appActivity);
             init.invoke(null, appActivity);
-            Log.d(LOG_TAG, "Finished initializing Aliucord");
+            Logger.d("Finished initializing Aliucord");
         } catch (Throwable th) {
             error(appActivity, "Failed to initialize Aliucord :(", th);
+            // Delete file so it is reinstalled the next time
+            try {
+                new File(appActivity.getCodeCacheDir(), "Aliucord.zip").delete();
+            } catch (Throwable ignored) {}
         }
     }
 
@@ -107,18 +140,18 @@ public final class Injector {
      * outputFile should be new File(context.getCodeCacheDir(), "Aliucord.zip");
      */
     public static void downloadLatestAliucordDex(File outputFile) throws IOException {
-        Log.d(LOG_TAG, "Downloading Aliucord.zip from " + DEX_URL + "...");
+        Logger.d("Downloading Aliucord.zip from " + DEX_URL + "...");
         var conn = (HttpURLConnection) new URL(DEX_URL).openConnection();
         try (var is = conn.getInputStream()) {
             writeAliucordZip(is, outputFile);
         }
-        Log.d(LOG_TAG, "Finished downloading Aliucord.zip");
+        Logger.d("Finished downloading Aliucord.zip");
     }
 
     /** https://gist.github.com/nickcaballero/7045993 */
     @SuppressLint("DiscouragedPrivateApi") // this private api seems to be stable, thanks to facebook who use it in the facebook app
     private static void addDexToClasspath(File dex, File cacheDir, ClassLoader nativeClassLoader) throws Throwable {
-        Log.d(LOG_TAG, "Adding Aliucord to the classpath...");
+        Logger.d("Adding Aliucord to the classpath...");
         var mClassLoader = new DexClassLoader(dex.getAbsolutePath(), cacheDir.getAbsolutePath(), null, nativeClassLoader);
 
         // https://android.googlesource.com/platform/libcore/+/58b4e5dbb06579bec9a8fc892012093b6f4fbe20/dalvik/src/main/java/dalvik/system/BaseDexClassLoader.java#59
@@ -141,7 +174,7 @@ public final class Injector {
         System.arraycopy(dexElements2, 0, joinedDexElements, dexElements1Size, dexElements2Size);
 
         dexElementsField.set(nativeClassLoaderPathList, joinedDexElements);
-        Log.d(LOG_TAG, "Successfully added Aliucord to the classpath");
+        Logger.d("Successfully added Aliucord to the classpath");
     }
 
     private static void writeAliucordZip(InputStream is, File outputFile) throws IOException {

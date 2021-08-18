@@ -6,7 +6,10 @@
 
 package com.aliucord.settings;
 
-import static com.aliucord.updater.Updater.*;
+import static com.aliucord.updater.Updater.isAliucordOutdated;
+import static com.aliucord.updater.Updater.isDiscordOutdated;
+import static com.aliucord.updater.Updater.updateAliucord;
+import static com.aliucord.updater.Updater.usingDexFromStorage;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -29,6 +32,7 @@ import com.aliucord.views.ToolbarButton;
 import com.aliucord.widgets.BottomSheet;
 import com.aliucord.widgets.UpdaterPluginCard;
 import com.discord.views.CheckedSetting;
+import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.lytefast.flexinput.R;
 
@@ -99,6 +103,17 @@ public class Updater extends SettingsPage {
                 Snackbar sb;
                 if (usingDexFromStorage()) {
                     sb = Snackbar.make(getLinearLayout(), "Updater disabled due to using Aliucord from storage.", Snackbar.LENGTH_INDEFINITE);
+                } else if (isDiscordOutdated()) {
+                    sb = Snackbar
+                            .make(getLinearLayout(), "Your Base Discord is outdated. Please update using the installer.", BaseTransientBottomBar.LENGTH_INDEFINITE)
+                            .setAction("Open Installer", v -> {
+                                var ctx = v.getContext();
+                                var i = ctx.getPackageManager().getLaunchIntentForPackage("com.aliucord.installer");
+                                if (i != null)
+                                    ctx.startActivity(i);
+                                else
+                                    Utils.showToast(ctx, "Please install the Aliucord installer and try again.");
+                            });
                 } else if (isAliucordOutdated()) {
                     sb = Snackbar
                             .make(getLinearLayout(), "Your Aliucord is outdated.", Snackbar.LENGTH_INDEFINITE)
@@ -113,8 +128,11 @@ public class Updater extends SettingsPage {
                             }));
                 } else return;
 
-                // https://developer.android.com/reference/android/R.color#holo_orange_light
-                sb.setBackgroundTint(0xffffbb33).setTextColor(Color.BLACK).show();
+                sb
+                        .setBackgroundTint(0xffffbb33) // https://developer.android.com/reference/android/R.color#holo_orange_light
+                        .setTextColor(Color.BLACK)
+                        .setActionTextColor(Color.BLACK)
+                        .show();
         });
 
         if (getHeaderBar().findViewById(id) == null) {

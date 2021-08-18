@@ -12,6 +12,7 @@ import com.aliucord.api.NotificationsAPI;
 import com.aliucord.entities.NotificationData;
 import com.aliucord.entities.Plugin;
 import com.aliucord.settings.Updater.UpdaterSettings;
+import com.aliucord.utils.MDUtils;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.FileOutputStream;
@@ -75,20 +76,24 @@ public class PluginUpdater {
             body = "Updates for plugins are available: " + updatablePlugins;
         } else body = "All plugins up to date!";
 
-        if (!Updater.usingDexFromStorage() && Updater.isAliucordOutdated()) {
-            if (SettingsUtils.getBool(UpdaterSettings.AUTO_UPDATE_ALIUCORD_KEY, false)) {
-                try {
-                    Updater.updateAliucord(Utils.appActivity);
-                    body = "Auto updated Aliucord. Please restart Aliucord to load the update - " + body;
-                } catch (Throwable th) {
-                    body = "Failed to auto update Aliucord. Please update it manually - " + body;
+        if (!Updater.usingDexFromStorage()) {
+            if (Updater.isDiscordOutdated()) {
+                body = "Your Base Discord is outdated. Please update using the installer - " + body;
+            } else if (Updater.isAliucordOutdated()) {
+                if (SettingsUtils.getBool(UpdaterSettings.AUTO_UPDATE_ALIUCORD_KEY, false)) {
+                    try {
+                        Updater.updateAliucord(Utils.appActivity);
+                        body = "Auto updated Aliucord. Please restart Aliucord to load the update - " + body;
+                    } catch (Throwable th) {
+                        body = "Failed to auto update Aliucord. Please update it manually - " + body;
+                    }
+                } else {
+                    body = "Your Aliucord is outdated. Please update it to the latest version - " + body;
                 }
-            } else {
-                body = "Your Aliucord is outdated. Please update it to the latest version - " + body;
             }
         }
 
-        notificationData.setBody(Utils.renderMD(body));
+        notificationData.setBody(MDUtils.render(body));
         NotificationsAPI.display(notificationData);
     }
 
