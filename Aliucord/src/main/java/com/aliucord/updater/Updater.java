@@ -39,7 +39,7 @@ public class Updater {
 
     private static class AliucordData {
         public String aliucordHash;
-        public String versionCode;
+        public int versionCode;
     }
 
     private static Boolean isAliucordOutdated = null;
@@ -50,7 +50,7 @@ public class Updater {
         try (var req = new Http.Request("https://raw.githubusercontent.com/Aliucord/Aliucord/builds/data.json")) {
             var res = req.execute().json(AliucordData.class);
             isAliucordOutdated = !BuildConfig.GIT_REVISION.equals(res.aliucordHash);
-            isDiscordOutdated = Constants.DISCORD_VERSION < Integer.parseInt(res.versionCode);
+            isDiscordOutdated = Constants.DISCORD_VERSION < res.versionCode;
             return true;
         } catch (IOException ex) {
             PluginUpdater.logger.error("Failed to check updates for Aliucord", ex);
