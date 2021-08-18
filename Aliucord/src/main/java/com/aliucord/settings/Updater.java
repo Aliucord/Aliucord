@@ -6,7 +6,10 @@
 
 package com.aliucord.settings;
 
-import static com.aliucord.updater.Updater.*;
+import static com.aliucord.updater.Updater.isAliucordOutdated;
+import static com.aliucord.updater.Updater.isDiscordOutdated;
+import static com.aliucord.updater.Updater.updateAliucord;
+import static com.aliucord.updater.Updater.usingDexFromStorage;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

@@ -13,6 +13,12 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.discord.app.AppActivity;
+import com.discord.app.AppLog;
+import com.discord.stores.StoreClientVersion;
+import com.discord.stores.StoreStream;
+
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import java.io.*;
 import java.lang.reflect.Array;
@@ -28,6 +34,7 @@ import top.canyie.pine.callback.MethodHook;
 
 public final class Injector {
     private static final String LOG_TAG = "Aliucord Injector";
+    private static final String DATA_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/data.json";
     private static final String DEX_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/Aliucord.zip";
 
     private static MethodHook.Unhook unhook;
@@ -54,7 +61,7 @@ public final class Injector {
     }
 
     private static void error(Context ctx, String msg, Throwable th) {
-        Log.e(LOG_TAG, msg, th);
+        AppLog.g.e(String.format("[%s] %s", LOG_TAG, msg), th, null);
         new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show());
     }
 
@@ -76,7 +83,30 @@ public final class Injector {
                 var successRef = new AtomicBoolean(true);
                 var thread = new Thread(() -> {
                     try {
-                        downloadLatestAliucordDex(dexFile);
+                        Log.d(LOG_TAG, "Checking local Discord version...");
+                        var storeClientVersionField = StoreStream.class.getDeclaredField("clientVersion");
+                        storeClientVersionField.setAccessible(true);
+                        var clientVersionField = StoreClientVersion.class.getDeclaredField("clientVersion");
+                        clientVersionField.setAccessible(true);
+                        var collector = StoreStream.Companion.access$getCollector$p(StoreStream.Companion);
+                        var storeClientVersion = storeClientVersionField.get(collector);
+                        var version = (int) clientVersionField.get(storeClientVersion);
+                        Log.d(LOG_TAG, "Retrieved local Discord version: " + version);
+
+                        Log.d(LOG_TAG, "Fetching latest Discord version...");
+                        var conn = (HttpURLConnection) new URL(DATA_URL).openConnection();
+                        var sb = new StringBuilder();
+                        String ln;
+                        try (var reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                            while ((ln = reader.readLine()) != null) sb.append(ln);
+                        }
+                        var remoteVersion = Integer.parseInt(new JSONObject(new JSONTokener(sb.toString())).getString("versionCode"));
+                        Log.d(LOG_TAG, "Retrieved remote Discord version: " + remoteVersion);
+
+                        if (remoteVersion > version) {
+                            error(appActivity, "Your base Discord is outdated. Please reinstall using the Installer.", null);
+                            successRef.set(false);
+                        } else downloadLatestAliucordDex(dexFile);
                     } catch (Throwable e) {
                         error(appActivity, "Failed to install aliucord :(", e);
                         successRef.set(false);
