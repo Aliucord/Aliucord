@@ -128,8 +128,11 @@ public class Updater extends SettingsPage {
                             }));
                 } else return;
 
-                // https://developer.android.com/reference/android/R.color#holo_orange_light
-                sb.setBackgroundTint(0xffffbb33).setTextColor(Color.BLACK).show();
+                sb
+                        .setBackgroundTint(0xffffbb33) // https://developer.android.com/reference/android/R.color#holo_orange_light
+                        .setTextColor(Color.BLACK)
+                        .setActionTextColor(Color.BLACK)
+                        .show();
         });
 
         if (getHeaderBar().findViewById(id) == null) {

@@ -12,6 +12,7 @@ import com.aliucord.api.NotificationsAPI;
 import com.aliucord.entities.NotificationData;
 import com.aliucord.entities.Plugin;
 import com.aliucord.settings.Updater.UpdaterSettings;
+import com.aliucord.utils.MDUtils;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.FileOutputStream;
@@ -92,7 +93,7 @@ public class PluginUpdater {
             }
         }
 
-        notificationData.setBody(Utils.renderMD(body));
+        notificationData.setBody(MDUtils.render(body));
         NotificationsAPI.display(notificationData);
     }
 
