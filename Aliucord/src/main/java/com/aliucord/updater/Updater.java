@@ -6,12 +6,14 @@
 package com.aliucord.updater;
 
 import android.content.Context;
+import android.content.Intent;
 
 import com.aliucord.*;
 import com.aliucord.utils.ReflectUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.Runtime;
 
 public class Updater {
     /**
@@ -90,6 +92,9 @@ public class Updater {
                 "downloadLatestAliucordDex",
                 new File(ctx.getCodeCacheDir(), "Aliucord.zip")
         );
+        Intent intent = ctx.getPackageManager().getLauchIntentForPackage(ctx.getPackageName());
+        context.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
+        Runtime.getRuntime().exit(0);
     }
 
     /**
