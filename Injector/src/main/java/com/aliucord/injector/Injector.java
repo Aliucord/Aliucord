@@ -100,7 +100,7 @@ public final class Injector {
                         try (var reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
                             while ((ln = reader.readLine()) != null) sb.append(ln);
                         }
-                        var remoteVersion = Integer.parseInt(new JSONObject(new JSONTokener(sb.toString())).getString("versionCode"));
+                        var remoteVersion = new JSONObject(new JSONTokener(sb.toString())).getInt("versionCode");
                         Log.d(LOG_TAG, "Retrieved remote Discord version: " + remoteVersion);
 
                         if (remoteVersion > version) {
