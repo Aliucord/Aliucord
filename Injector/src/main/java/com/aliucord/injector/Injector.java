@@ -129,6 +129,10 @@ public final class Injector {
             Log.d(LOG_TAG, "Finished initializing Aliucord");
         } catch (Throwable th) {
             error(appActivity, "Failed to initialize Aliucord :(", th);
+            // Delete file so it is reinstalled the next time
+            try {
+                new File(appActivity.getCodeCacheDir(), "Aliucord.zip").delete();
+            } catch (Throwable ignored) {}
         }
     }
 

@@ -105,7 +105,7 @@ public class Updater extends SettingsPage {
                     sb = Snackbar.make(getLinearLayout(), "Updater disabled due to using Aliucord from storage.", Snackbar.LENGTH_INDEFINITE);
                 } else if (isDiscordOutdated()) {
                     sb = Snackbar
-                            .make(getLinearLayout(), "Your Aliucord and base Discord are outdated. Please update using the installer.", BaseTransientBottomBar.LENGTH_INDEFINITE)
+                            .make(getLinearLayout(), "Your Base Discord is outdated. Please update using the installer.", BaseTransientBottomBar.LENGTH_INDEFINITE)
                             .setAction("Open Installer", v -> {
                                 var ctx = v.getContext();
                                 var i = ctx.getPackageManager().getLaunchIntentForPackage("com.aliucord.installer");

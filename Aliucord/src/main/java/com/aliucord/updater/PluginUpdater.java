@@ -77,7 +77,7 @@ public class PluginUpdater {
 
         if (!Updater.usingDexFromStorage()) {
             if (Updater.isDiscordOutdated()) {
-                body = "Your Aliucord and base Discord are outdated. Please update using the installer - " + body;
+                body = "Your Base Discord is outdated. Please update using the installer - " + body;
             } else if (Updater.isAliucordOutdated()) {
                 if (SettingsUtils.getBool(UpdaterSettings.AUTO_UPDATE_ALIUCORD_KEY, false)) {
                     try {
