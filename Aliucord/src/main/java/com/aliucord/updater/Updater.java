@@ -92,9 +92,6 @@ public class Updater {
                 "downloadLatestAliucordDex",
                 new File(ctx.getCodeCacheDir(), "Aliucord.zip")
         );
-        Intent intent = ctx.getPackageManager().getLaunchIntentForPackage(ctx.getPackageName());
-        ctx.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
-        Runtime.getRuntime().exit(0);
     }
 
     /**
