@@ -31,7 +31,7 @@ class CommitCommit {
 }
 
 class GithubAPI with ChangeNotifier {
-  static const String _org = 'Aliucord';
+  static const String _org = 'wingio';
   static const String _repo = 'Aliucord';
 
   static const String _apiHost = 'api.github.com';
