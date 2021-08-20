@@ -6,7 +6,6 @@
 package com.aliucord.updater;
 
 import android.content.Context;
-import android.content.Intent;
 
 import com.aliucord.*;
 import com.aliucord.utils.ReflectUtils;
