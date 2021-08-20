@@ -127,17 +127,14 @@ public class Updater extends SettingsPage {
                                 try {
                                     updateAliucord(ctx);
                                     Utils.showToast(ctx, "Successfully updated Aliucord.");
-                                    Snackbar restartBar = Snackbar
-                                                               .make(getLinearLayout(), "Restart to apply the update.", Snackbar.LENGTH_INDEFINITE)
-                                                               .setAction("Restart", e -> {
-                                                                    Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
-                                                                    context.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
-                                                                    Runtime.getRuntime().exit(0);
-                                                               })
-                                                               .setBackgroundTint(0xffffbb33)
-                                                               .setTextColor(Color.BLACK)
-                                                               .setActionTextColor(Color.BLACK)
-                                                               .show();
+                                    Snackbar rb = Snackbar
+                                    .make(getLinearLayout(), "Restart to apply the update.", Snackbar.LENGTH_INDEFINITE)
+                                    .setAction("Restart", e -> {
+                                        Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+                                        context.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
+                                        Runtime.getRuntime().exit(0);
+                                     })
+                                     rb.setBackgroundTint(0xffffbb33).setTextColor(Color.BLACK).setActionTextColor(Color.BLACK).show();
                                 } catch (Throwable th) {
                                     PluginUpdater.logger.error(ctx, "Failed to update Aliucord. Check the debug log for more info", th);
                                 }
