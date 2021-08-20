@@ -91,7 +91,6 @@ public class Updater extends SettingsPage {
 
     private static final int id = View.generateViewId();
     private String stateText = "No new updates found";
-    private boolean showRestartButton = false;
 
     @Override
     @SuppressLint("SetTextI18n")
@@ -126,9 +125,18 @@ public class Updater extends SettingsPage {
                                 var ctx = v.getContext();
                                 try {
                                     updateAliucord(ctx);
-                                    Utils.showToast(ctx, "Successfully updated Aliucord. Please restart Aliucord to load the update!");
-                                    showRestartButton = true;
-                                    Utils.mainThread.post(this::reRender);
+                                    Utils.showToast(ctx, "Successfully updated Aliucord.");
+                                    Snackbar rb = Snackbar
+                                    .make(getLinearLayout(), "Restart to apply the update.", Snackbar.LENGTH_INDEFINITE)
+                                    .setAction("Restart", e -> {
+                                        Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+                                        context.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
+                                        Runtime.getRuntime().exit(0);
+                                    });
+                                    rb.setBackgroundTint(0xffffbb33);
+                                    rb.setTextColor(Color.BLACK);
+                                    rb.setActionTextColor(Color.BLACK);
+                                    rb.show();
                                 } catch (Throwable th) {
                                     PluginUpdater.logger.error(ctx, "Failed to update Aliucord. Check the debug log for more info", th);
                                 }
@@ -149,13 +157,11 @@ public class Updater extends SettingsPage {
             refreshButton.setId(id);
             ToolbarButton updateAllButton = new ToolbarButton(context);
             ToolbarButton settingsButton = new ToolbarButton(context);
-            ToolbarButton restartButton = new ToolbarButton(context);
 
             Toolbar.LayoutParams childParams = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
             childParams.gravity = Gravity.END;
             refreshButton.setLayoutParams(childParams);
             updateAllButton.setLayoutParams(childParams);
-            restartButton.setLayoutParams(childParams);
 
             Toolbar.LayoutParams marginEndParams = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
             marginEndParams.gravity = Gravity.END;
@@ -164,17 +170,11 @@ public class Updater extends SettingsPage {
             refreshButton.setPadding(p, p, p, p);
             settingsButton.setPadding(p, p, p, p);
             updateAllButton.setPadding(p, p, p, p);
-            restartButton.setPadding(p, p, p, p);
 
             //noinspection ConstantConditions
             refreshButton.setImageDrawable(Utils.tintToTheme(ContextCompat.getDrawable(context, R.d.ic_refresh_white_a60_24dp).mutate()), false);
             updateAllButton.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_file_download_white_24dp));
             settingsButton.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_guild_settings_24dp));
-
-            Drawable restartDrawable = ContextCompat.getDrawable(context, R.d.ic_refresh_white_a60_24dp).mutate();
-            restartDrawable.setTint(0xff57F287);
-            restartButton.setImageDrawable(restartDrawable);
-            restartButton.setVisibility(showRestartButton ? View.VISIBLE : View.GONE);
 
             updateAllButton.setOnClickListener(e -> {
                 setActionBarSubtitle("Updating...");
@@ -206,16 +206,9 @@ public class Updater extends SettingsPage {
 
             settingsButton.setOnClickListener(e -> new UpdaterSettings().show(getParentFragmentManager(), "Updater Settings"));
 
-            restartButton.setOnClickListener(e -> { 
-                Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
-                context.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
-                Runtime.getRuntime().exit(0);
-            });
-
             addHeaderButton(settingsButton);
             addHeaderButton(updateAllButton);
             addHeaderButton(refreshButton);
-            addHeaderButton(restartButton);
         }
 
         int updateCount = PluginUpdater.updates.size();
