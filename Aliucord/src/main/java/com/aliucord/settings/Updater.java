@@ -91,7 +91,7 @@ public class Updater extends SettingsPage {
 
     private static final int id = View.generateViewId();
     private String stateText = "No new updates found";
-    private boolean showRestartButton = true;
+    private boolean showRestartButton = false;
 
     @Override
     @SuppressLint("SetTextI18n")
@@ -119,7 +119,7 @@ public class Updater extends SettingsPage {
                                 else
                                     Utils.showToast(ctx, "Please install the Aliucord installer and try again.");
                             });
-                } else if (isAliucordOutdated()) {
+                } else if (isAliucordOutdated() && showRestartButton) {
                     sb = Snackbar
                             .make(getLinearLayout(), "Your Aliucord is outdated.", Snackbar.LENGTH_INDEFINITE)
                             .setAction("Update", v -> Utils.threadPool.execute(() -> {
