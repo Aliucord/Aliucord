@@ -90,7 +90,6 @@ public class Updater extends SettingsPage {
     }
 
     private static final int id = View.generateViewId();
-    private static final int restartId = View.generateViewId();
     private String stateText = "No new updates found";
 
     @Override
@@ -133,8 +132,8 @@ public class Updater extends SettingsPage {
                                         Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
                                         context.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
                                         Runtime.getRuntime().exit(0);
-                                     })
-                                     rb.setBackgroundTint(0xffffbb33).setTextColor(Color.BLACK).setActionTextColor(Color.BLACK).show();
+                                    });
+                                    rb.setBackgroundTint(0xffffbb33).setTextColor(Color.BLACK).setActionTextColor(Color.BLACK).show();
                                 } catch (Throwable th) {
                                     PluginUpdater.logger.error(ctx, "Failed to update Aliucord. Check the debug log for more info", th);
                                 }
@@ -155,14 +154,11 @@ public class Updater extends SettingsPage {
             refreshButton.setId(id);
             ToolbarButton updateAllButton = new ToolbarButton(context);
             ToolbarButton settingsButton = new ToolbarButton(context);
-            ToolbarButton restartButton = new ToolbarButton(context);
-            restartButton.setId(restartId);
 
             Toolbar.LayoutParams childParams = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
             childParams.gravity = Gravity.END;
             refreshButton.setLayoutParams(childParams);
             updateAllButton.setLayoutParams(childParams);
-            restartButton.setLayoutParams(childParams);
 
             Toolbar.LayoutParams marginEndParams = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
             marginEndParams.gravity = Gravity.END;
@@ -171,17 +167,11 @@ public class Updater extends SettingsPage {
             refreshButton.setPadding(p, p, p, p);
             settingsButton.setPadding(p, p, p, p);
             updateAllButton.setPadding(p, p, p, p);
-            restartButton.setPadding(p, p, p, p);
 
             //noinspection ConstantConditions
             refreshButton.setImageDrawable(Utils.tintToTheme(ContextCompat.getDrawable(context, R.d.ic_refresh_white_a60_24dp).mutate()), false);
             updateAllButton.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_file_download_white_24dp));
             settingsButton.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_guild_settings_24dp));
-
-            Drawable restartDrawable = ContextCompat.getDrawable(context, R.d.ic_resend_24dp).mutate();
-            restartDrawable.setTint(0xffffbb33);
-            restartButton.setImageDrawable(restartDrawable);
-            restartButton.setVisibility(View.GONE);
 
             updateAllButton.setOnClickListener(e -> {
                 setActionBarSubtitle("Updating...");
@@ -216,7 +206,6 @@ public class Updater extends SettingsPage {
             addHeaderButton(settingsButton);
             addHeaderButton(updateAllButton);
             addHeaderButton(refreshButton);
-            addHeaderButton(restartButton);
         }
 
         int updateCount = PluginUpdater.updates.size();
