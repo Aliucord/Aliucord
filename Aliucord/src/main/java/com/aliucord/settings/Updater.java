@@ -127,7 +127,9 @@ public class Updater extends SettingsPage {
                                 try {
                                     updateAliucord(ctx);
                                     Utils.showToast(ctx, "Successfully updated Aliucord. Please restart Aliucord to load the update!");
-                                    Utils.mainThread.post(() -> {this::getHeaderBar().findViewById(restartId).setVisibility(View.VISIBLE);});
+                                    Utils.mainThread.post(() -> {
+                                        this.getHeaderBar().findViewById(restartId).setVisibility(View.VISIBLE);
+                                    });
                                 } catch (Throwable th) {
                                     PluginUpdater.logger.error(ctx, "Failed to update Aliucord. Check the debug log for more info", th);
                                 }
