@@ -47,6 +47,7 @@ jobs:
           cd $GITHUB_WORKSPACE/builds
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
+          git pull
           git add .
           git commit -m "Build $GITHUB_SHA"
           git push
