@@ -91,7 +91,7 @@ public class Updater extends SettingsPage {
 
     private static final int id = View.generateViewId();
     private String stateText = "No new updates found";
-    private boolean showRestartButton = false;
+    private boolean showRestartButton = true;
 
     @Override
     @SuppressLint("SetTextI18n")
