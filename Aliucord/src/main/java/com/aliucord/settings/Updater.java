@@ -172,7 +172,7 @@ public class Updater extends SettingsPage {
             settingsButton.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_guild_settings_24dp));
 
             Drawable restartDrawable = ContextCompat.getDrawable(context, R.d.ic_refresh_white_a60_24dp).mutate();
-            restartDrawable.setTint(0xff57F287);
+            restartDrawable.setTint(0xff5865F2);
             restartButton.setImageDrawable(restartDrawable);
             restartButton.setVisibility(showRestartButton ? View.VISIBLE : View.GONE);
 
