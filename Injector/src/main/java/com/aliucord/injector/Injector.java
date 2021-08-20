@@ -35,12 +35,14 @@ public final class Injector {
     public static final String LOG_TAG = "Aliucord Injector";
     private static final String DATA_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/data.json";
     private static final String DEX_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/Aliucord.zip";
+    private static final File BASE_DIRECTORY = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), "Aliucord");
 
     private static MethodHook.Unhook unhook;
 
     public static void init() {
         PineConfig.debug = false;
-        PineConfig.debuggable = false; // Set this to true to make Aliucord debuggable
+        PineConfig.debuggable = new File(BASE_DIRECTORY, ".debuggable").exists();
+        Log.i(LOG_TAG, "Debuggable: " + PineConfig.debuggable);
         PineConfig.disableHiddenApiPolicy = false;
         PineConfig.disableHiddenApiPolicyForPlatformDomain = false;
 
@@ -67,13 +69,12 @@ public final class Injector {
     private static void init(AppActivity appActivity) {
         Logger.d("Initializing Aliucord...");
         try {
-            var aliucordDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), "Aliucord");
             var dexFile = new File(appActivity.getCodeCacheDir(), "Aliucord.zip");
 
             var prefs = appActivity.getSharedPreferences("aliucord", Context.MODE_PRIVATE);
             boolean useLocalDex = prefs.getBoolean("AC_from_storage", false);
             File localDex;
-            if (useLocalDex && (localDex = new File(aliucordDir, "Aliucord.zip")).exists()) {
+            if (useLocalDex && (localDex = new File(BASE_DIRECTORY, "Aliucord.zip")).exists()) {
                 Logger.d("Loading dex from " + localDex.getAbsolutePath());
                 try (var fis = new FileInputStream(localDex)) {
                     writeAliucordZip(fis, dexFile);

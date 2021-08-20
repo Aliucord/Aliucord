@@ -58,3 +58,20 @@ android.libraryVariants.all { variant ->
         }
     }
 }
+
+task pushDebuggable {
+    group = "aliucord"
+
+    def android = project.extensions.getByName("android")
+    def aliucordPath = "/storage/emulated/0/Aliucord/"
+
+    doLast {
+        exec {
+            commandLine(android.adbExecutable, "shell", "touch", aliucordPath + ".debuggable")
+        }
+
+        exec {
+            commandLine(android.adbExecutable, "push", rootProject.file(".assets/AndroidManifest-debuggable.xml"), aliucordPath + "AndroidManifest.xml")
+        }
+    }
+}
