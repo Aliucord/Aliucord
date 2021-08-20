@@ -90,8 +90,8 @@ public class Updater extends SettingsPage {
     }
 
     private static final int id = View.generateViewId();
+    private static final int restartId = View.generateViewId();
     private String stateText = "No new updates found";
-    private boolean showRestartButton = false;
 
     @Override
     @SuppressLint("SetTextI18n")
@@ -119,7 +119,7 @@ public class Updater extends SettingsPage {
                                 else
                                     Utils.showToast(ctx, "Please install the Aliucord installer and try again.");
                             });
-                } else if (isAliucordOutdated() && showRestartButton == false) {
+                } else if (isAliucordOutdated()) {
                     sb = Snackbar
                             .make(getLinearLayout(), "Your Aliucord is outdated.", Snackbar.LENGTH_INDEFINITE)
                             .setAction("Update", v -> Utils.threadPool.execute(() -> {
@@ -127,8 +127,7 @@ public class Updater extends SettingsPage {
                                 try {
                                     updateAliucord(ctx);
                                     Utils.showToast(ctx, "Successfully updated Aliucord. Please restart Aliucord to load the update!");
-                                    showRestartButton = true;
-                                    Utils.mainThread.post(this::reRender);
+                                    getHeaderBar().findViewById(restartId).setVisibility(View.VISIBLE);
                                 } catch (Throwable th) {
                                     PluginUpdater.logger.error(ctx, "Failed to update Aliucord. Check the debug log for more info", th);
                                 }
@@ -150,6 +149,7 @@ public class Updater extends SettingsPage {
             ToolbarButton updateAllButton = new ToolbarButton(context);
             ToolbarButton settingsButton = new ToolbarButton(context);
             ToolbarButton restartButton = new ToolbarButton(context);
+            restartButton.setId(restartId);
 
             Toolbar.LayoutParams childParams = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
             childParams.gravity = Gravity.END;
@@ -174,7 +174,7 @@ public class Updater extends SettingsPage {
             Drawable restartDrawable = ContextCompat.getDrawable(context, R.d.ic_resend_24dp).mutate();
             restartDrawable.setTint(0xffffbb33);
             restartButton.setImageDrawable(restartDrawable);
-            restartButton.setVisibility(showRestartButton ? View.VISIBLE : View.GONE);
+            restartButton.setVisibility(View.GONE);
 
             updateAllButton.setOnClickListener(e -> {
                 setActionBarSubtitle("Updating...");
