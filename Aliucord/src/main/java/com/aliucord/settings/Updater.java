@@ -119,7 +119,7 @@ public class Updater extends SettingsPage {
                                 else
                                     Utils.showToast(ctx, "Please install the Aliucord installer and try again.");
                             });
-                } else if (isAliucordOutdated() && showRestartButton) {
+                } else if (isAliucordOutdated() && showRestartButton == false) {
                     sb = Snackbar
                             .make(getLinearLayout(), "Your Aliucord is outdated.", Snackbar.LENGTH_INDEFINITE)
                             .setAction("Update", v -> Utils.threadPool.execute(() -> {
