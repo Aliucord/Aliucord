@@ -7,23 +7,17 @@ package com.aliucord.updater;
 
 import android.text.TextUtils;
 
-import com.aliucord.Constants;
-import com.aliucord.Http;
-import com.aliucord.Logger;
-import com.aliucord.PluginManager;
-import com.aliucord.SettingsUtils;
-import com.aliucord.Utils;
+import com.aliucord.*;
 import com.aliucord.api.NotificationsAPI;
 import com.aliucord.entities.NotificationData;
 import com.aliucord.entities.Plugin;
+import com.aliucord.settings.Updater.UpdaterSettings;
+import com.aliucord.utils.MDUtils;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.FileOutputStream;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import kotlin.Unit;
@@ -58,7 +52,7 @@ public class PluginUpdater {
             if (checkPluginUpdate(plugin.getValue()))
                 updates.add(plugin.getKey());
         }
-        if (!notify || (updates.size() == 0 && !(Updater.isAliucordOfficial() && Updater.isAliucordOutdated()))) return;
+        if (!notify || (updates.size() == 0 && !(!Updater.usingDexFromStorage() && Updater.isAliucordOutdated()))) return;
 
         NotificationData notificationData = new NotificationData()
                 .setTitle("Updater")
@@ -70,7 +64,7 @@ public class PluginUpdater {
 
         String updatablePlugins = String.format("**%s**", TextUtils.join("**, **", updates.toArray()));
         String body;
-        if (SettingsUtils.getBool(com.aliucord.settings.Updater.UpdaterSettings.AUTO_UPDATE_KEY, false)) {
+        if (SettingsUtils.getBool(UpdaterSettings.AUTO_UPDATE_PLUGINS_KEY, false)) {
             int res = PluginUpdater.updateAll();
             if (res == 0) return;
             if (res == -1) {
@@ -82,11 +76,24 @@ public class PluginUpdater {
             body = "Updates for plugins are available: " + updatablePlugins;
         } else body = "All plugins up to date!";
 
-        if (Updater.isAliucordOfficial() && Updater.isAliucordOutdated()) {
-            body = "Your Aliucord is outdated. Please update via the Aliucord Installer - " + body;
+        if (!Updater.usingDexFromStorage()) {
+            if (Updater.isDiscordOutdated()) {
+                body = "Your Base Discord is outdated. Please update using the installer - " + body;
+            } else if (Updater.isAliucordOutdated()) {
+                if (SettingsUtils.getBool(UpdaterSettings.AUTO_UPDATE_ALIUCORD_KEY, false)) {
+                    try {
+                        Updater.updateAliucord(Utils.appActivity);
+                        body = "Auto updated Aliucord. Please restart Aliucord to load the update - " + body;
+                    } catch (Throwable th) {
+                        body = "Failed to auto update Aliucord. Please update it manually - " + body;
+                    }
+                } else {
+                    body = "Your Aliucord is outdated. Please update it to the latest version - " + body;
+                }
+            }
         }
 
-        notificationData.setBody(Utils.renderMD(body));
+        notificationData.setBody(MDUtils.render(body));
         NotificationsAPI.display(notificationData);
     }
 

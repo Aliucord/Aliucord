@@ -1,4 +1,5 @@
 /*
+ * This file is part of Aliucord, an Android Discord client mod.
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
@@ -7,6 +8,8 @@ package com.aliucord;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+
+import com.aliucord.utils.GsonUtils;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;
@@ -135,10 +138,10 @@ public class SettingsUtils {
     public static <T> T getObject(String key, T defValue, Type type) {
         Object cached = cache.get(key);
         if (cached != null)
-            try { return (T) cached; } catch (Throwable ignored) {};
+            try { return (T) cached; } catch (Throwable ignored) {}
         String json = getString(key, null);
         if (json == null) return defValue;
-        T t = Utils.fromJson(json, type);
+        T t = GsonUtils.fromJson(json, type);
         return t == null ? defValue : t;
     }
 
@@ -149,6 +152,6 @@ public class SettingsUtils {
      */
     public static void setObject(String key, Object val) {
         cache.put(key, val);
-        setString(key, Utils.toJson(val));
+        setString(key, GsonUtils.toJson(val));
     }
 }

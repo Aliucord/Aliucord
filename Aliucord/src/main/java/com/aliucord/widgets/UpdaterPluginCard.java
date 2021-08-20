@@ -1,4 +1,5 @@
 /*
+ * This file is part of Aliucord, an Android Discord client mod.
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
@@ -20,6 +21,7 @@ import com.aliucord.PluginManager;
 import com.aliucord.Utils;
 import com.aliucord.entities.Plugin;
 import com.aliucord.updater.PluginUpdater;
+import com.aliucord.utils.DimenUtils;
 import com.aliucord.views.ToolbarButton;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.widgets.changelog.WidgetChangeLog;
@@ -30,22 +32,22 @@ import com.lytefast.flexinput.*;
 public class UpdaterPluginCard extends MaterialCardView {
     public UpdaterPluginCard(Context context, String plugin, Runnable forceUpdate) {
         super(context);
-        int padding = Utils.getDefaultPadding();
+        int padding = DimenUtils.getDefaultPadding();
         int paddingHalf = padding / 2;
 
         LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
         params.setMargins(0, paddingHalf, 0, 0);
         setLayoutParams(params);
         setUseCompatPadding(true);
-        setCardBackgroundColor(ColorCompat.getThemedColor(context, R$b.colorBackgroundSecondary));
-        setRadius(Utils.getDefaultCardRadius());
+        setCardBackgroundColor(ColorCompat.getThemedColor(context, R.b.colorBackgroundSecondary));
+        setRadius(DimenUtils.getDefaultCardRadius());
         setContentPadding(padding, padding, padding, padding);
 
         Plugin p = PluginManager.plugins.get(plugin);
         assert p != null;
 
         ConstraintLayout layout = new ConstraintLayout(context);
-        TextView tv = new TextView(context, null, 0, R$h.UiKit_TextView_H2);
+        TextView tv = new TextView(context, null, 0, R.h.UiKit_TextView_H2);
         tv.setText(plugin);
         int id = View.generateViewId();
         tv.setId(id);
@@ -66,13 +68,13 @@ public class UpdaterPluginCard extends MaterialCardView {
         int btnLayoutId = View.generateViewId();
         buttonLayout.setId(btnLayoutId);
 
-        tv = new TextView(context, null, 0, R$h.UiKit_TextView_Subtext);
+        tv = new TextView(context, null, 0, R.h.UiKit_TextView_Subtext);
         try {
             PluginUpdater.UpdateInfo info = PluginUpdater.getUpdateInfo(p);
             tv.setText(String.format("%s -> v%s", p.getManifest().version, info != null ? info.version : "?"));
             if (info != null && info.changelog != null) {
                 ToolbarButton changeLogButton = new ToolbarButton(context);
-                changeLogButton.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_history_white_24dp));
+                changeLogButton.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_history_white_24dp));
                 changeLogButton.setPadding(paddingHalf, paddingHalf, paddingHalf, paddingHalf);
                 changeLogButton.setOnClickListener(e ->
                     WidgetChangeLog.Companion.launch(context, p.name + " v" + info.version, "1", info.changelogMedia != null ? info.changelogMedia : "https://cdn.discordapp.com/banners/169256939211980800/eda024c8f40a45c88265a176f0926bea.jpg?size=2048", info.changelog));
@@ -94,7 +96,7 @@ public class UpdaterPluginCard extends MaterialCardView {
         set.applyTo(layout);
 
         ToolbarButton update = new ToolbarButton(context);
-        update.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_file_download_white_24dp));
+        update.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_file_download_white_24dp));
         update.setPadding(paddingHalf, paddingHalf, 0, paddingHalf);
         update.setOnClickListener(e -> {
             update.setEnabled(false);

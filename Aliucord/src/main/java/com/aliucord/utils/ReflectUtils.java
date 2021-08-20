@@ -1,4 +1,5 @@
 /*
+ * This file is part of Aliucord, an Android Discord client mod.
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
@@ -8,10 +9,33 @@ package com.aliucord.utils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.aliucord.Main;
+
 import java.lang.reflect.*;
 
 /** Utility class to ease Reflection */
+@SuppressWarnings("unchecked")
 public final class ReflectUtils {
+    private static Object unsafe;
+    private static Method unsafeAllocIns;
+
+    /**
+     * Creates new class instance without using a constructor
+     * @param clazz Class
+     * @return Created instance
+     */
+    public static <T> T allocateInstance(@NonNull Class<T> clazz) {
+        try {
+            if (unsafeAllocIns == null) {
+                var c = Class.forName("sun.misc.Unsafe");
+                unsafe = ReflectUtils.getField(c, null, "theUnsafe");
+                unsafeAllocIns = c.getMethod("allocateInstance", Class.class);
+            }
+            return (T) unsafeAllocIns.invoke(unsafe, clazz);
+        } catch (Throwable e) { Main.logger.error(e); }
+        return null;
+    }
+
     /**
      * Gets the constructor for class T matching the specified arguments
      *

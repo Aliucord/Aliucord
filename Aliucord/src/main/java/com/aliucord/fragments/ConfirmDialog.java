@@ -15,7 +15,7 @@ import com.discord.databinding.LeaveGuildDialogBinding;
 import com.discord.views.LoadingButton;
 import com.discord.widgets.guilds.leave.WidgetLeaveGuildDialog$binding$2;
 import com.google.android.material.button.MaterialButton;
-import com.lytefast.flexinput.R$c;
+import com.lytefast.flexinput.R;
 
 /**
  * Creates a Confirmation Dialog similar to the <strong>Leave Guild</strong> dialog.
@@ -44,7 +44,7 @@ public class ConfirmDialog extends AppDialog {
         okButton.setText("OK");
         okButton.setIsLoading(false);
         okButton.setOnClickListener(onOkListener != null ? onOkListener : e -> dismiss());
-        if (isDangerous) okButton.setBackgroundColor(view.getResources().getColor(R$c.uikit_btn_bg_color_selector_red, view.getContext().getTheme()));
+        if (isDangerous) okButton.setBackgroundColor(view.getResources().getColor(R.c.uikit_btn_bg_color_selector_red, view.getContext().getTheme()));
 
         getCancelButton().setOnClickListener(onCancelListener != null ? onCancelListener : e -> dismiss());
         getHeader().setText(title != null ? title : "Confirm");

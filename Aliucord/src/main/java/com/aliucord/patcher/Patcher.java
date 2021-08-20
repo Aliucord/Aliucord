@@ -5,45 +5,17 @@
 
 package com.aliucord.patcher;
 
-import android.os.Bundle;
-
-import com.aliucord.*;
-import com.discord.app.AppActivity;
+import com.aliucord.Logger;
 
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.*;
 
 import top.canyie.pine.Pine;
-import top.canyie.pine.PineConfig;
 import top.canyie.pine.callback.MethodHook;
 
-@SuppressWarnings("unused")
 public class Patcher {
     public static Logger logger = new Logger("Patcher");
-
-    private static MethodHook.Unhook unhook1;
-    private static MethodHook.Unhook unhook2;
-
-    @SuppressWarnings("JavaReflectionMemberAccess")
-    public static void init() {
-        PineConfig.debug = false;
-        PineConfig.disableHiddenApiPolicy = false;
-        PineConfig.disableHiddenApiPolicyForPlatformDomain = false;
-
-        try {
-            unhook1 = Pine.hook(AppActivity.class.getDeclaredMethod("onCreate", Bundle.class), new PinePrePatchFn(callFrame -> {
-                Main.preInit((AppActivity) callFrame.thisObject);
-                unhook1.unhook();
-            }));
-
-            unhook2 = Pine.hook(AppActivity.class.getDeclaredMethod("b", String.class, boolean.class), new PinePatchFn(callFrame -> {
-                Main.init((AppActivity) callFrame.thisObject);
-                unhook2.unhook();
-            }));
-        } catch (Throwable e) { logger.error(e); }
-    }
-
     private static final ClassLoader cl = Objects.requireNonNull(Patcher.class.getClassLoader());
 
     public static Runnable addPatch(String forClass, String fn, Class<?>[] paramTypes, MethodHook hook) {

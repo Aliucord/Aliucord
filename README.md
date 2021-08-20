@@ -55,15 +55,11 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
 - Robust plugin system using Pine!
     - Allows swapping in and out your plugins without needing to rebuild Aliucord
     - Toggle on and off, configure or uninstall your plugins via the plugins page
-    - In-app updater to keep your plugins up-to-date
     - Minimum Discord versions for plugins so no breaking changes are sent out to outdated Discord versions
+- In-app updater to keep Aliucord and your plugins up-to-date
 - Crash logging!
     - In-app crash log page to give a more native feel
     - Logs are also saved to `Aliucord/crashlogs` for easy access outside of the app
-- Installer app with multiple features!
-    - Helps you keep track of which updates to this repository require you to update
-    - Automatically downloads the latest files for Aliucord, so you can get busy updating
-    - Allows you to provide your own `Aliucord.dex` so you can develop your own additions, fixes etc. for Aliucord and test them yourself
 
 ## 📲 Installation
 
@@ -124,8 +120,10 @@ See `.github/workflows/build.yml` for all build steps.
 4. Rebuild the Discord APK using Apktool
     - e.g `apktool b discord-n.apk` (replace n with build number)
 5. Copy `build/apk/AndroidManifest.xml` to `.assets/AndroidManifest.xml` and to `Aliucord/AndroidManifest.xml` on your Android device
-6. Build Aliucord using [buildtool](https://github.com/Aliucord/buildtool) and copy to `Aliucord/Aliucord.dex` on your Android device
-7. Open Aliucord Installer, open the app settings, clear cache, and enable "Use Aliucord.dex from storage"
-8. Install Aliucord
-9. Ensure you've got a `logcat` catcher ready to go
-10. Open Aliucord and fix any errors that show in `logcat`
+6. Use [Aliucord's dex2jar fork](https://github.com/Aliucord/dex2jar/releases) to generate stubs jar
+    - e.g `java -jar dex2jar.jar -nc -f -o repo/Aliucord/libs/discord.jar discord-n.apk`
+7. Build Aliucord using [buildtool](https://github.com/Aliucord/buildtool) and copy it to `Aliucord/Aliucord.zip` on your Android device
+8. Open Aliucord > Settings > Updater > Top right settings > Use Aliucord.zip from storage
+9. Restart Aliucord
+10. Ensure you've got a `logcat` catcher ready to go
+11. Open Aliucord and fix any errors that show in `logcat`

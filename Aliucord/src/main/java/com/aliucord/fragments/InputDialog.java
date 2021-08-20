@@ -17,7 +17,7 @@ import com.discord.databinding.WidgetKickUserBinding;
 import com.discord.widgets.user.WidgetKickUser$binding$2;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputLayout;
-import com.lytefast.flexinput.R$c;
+import com.lytefast.flexinput.R;
 
 import java.util.Objects;
 
@@ -64,7 +64,7 @@ public class InputDialog extends AppDialog {
         LinearLayout buttonLayout = ((LinearLayout) okButton.getParent());
         // The button has no room to breathe - Discord moment, it doesn't even line up with the input field ~ Whatever, fix that
         buttonLayout.setPadding(buttonLayout.getPaddingLeft(), buttonLayout.getPaddingTop(), buttonLayout.getPaddingRight() * 2, buttonLayout.getPaddingBottom());
-        okButton.setBackgroundColor(view.getResources().getColor(R$c.uikit_btn_bg_color_selector_brand, view.getContext().getTheme()));
+        okButton.setBackgroundColor(view.getResources().getColor(R.c.uikit_btn_bg_color_selector_brand, view.getContext().getTheme()));
         okButton.setOnClickListener(onOkListener != null ? onOkListener : e -> dismiss());
 
         getCancelButton().setOnClickListener(onCancelListener != null ? onCancelListener : e -> dismiss());
@@ -177,5 +177,5 @@ public class InputDialog extends AppDialog {
     public InputDialog setInputType(int type) {
         inputType = type;
         return this;
-    };
+    }
 }

@@ -1,4 +1,5 @@
 /*
+ * This file is part of Aliucord, an Android Discord client mod.
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
@@ -14,7 +15,7 @@ import com.discord.models.user.User;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class ChannelUtils {
+public final class ChannelUtils {
     public static List<User> getRecipients(Channel channel) {
         return AnimatableValueParser.G0(channel);
     }

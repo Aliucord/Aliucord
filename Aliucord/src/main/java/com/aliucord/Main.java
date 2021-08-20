@@ -27,8 +27,7 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.core.widget.NestedScrollView;
 
 import com.aliucord.coreplugins.CorePlugins;
-import com.aliucord.patcher.Patcher;
-import com.aliucord.patcher.PinePatchFn;
+import com.aliucord.patcher.*;
 import com.aliucord.settings.*;
 import com.aliucord.updater.PluginUpdater;
 import com.aliucord.views.Divider;
@@ -40,7 +39,6 @@ import com.discord.utilities.color.ColorCompat;
 import com.discord.widgets.debugging.WidgetDebugging;
 import com.discord.widgets.guilds.invite.WidgetGuildInvite;
 import com.discord.widgets.settings.WidgetSettings;
-import com.lytefast.flexinput.*;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -83,17 +81,17 @@ public final class Main {
 
             int baseIndex = v.indexOfChild(v.findViewById(Utils.getResId("developer_options_divider", "id")));
             v.addView(new Divider(context), baseIndex);
-            TextView header = new TextView(context, null, 0, R$h.UiKit_Settings_Item_Header);
+            TextView header = new TextView(context, null, 0, com.lytefast.flexinput.R.h.UiKit_Settings_Item_Header);
             header.setText("Aliucord");
             header.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
             v.addView(header, baseIndex + 1);
 
             Typeface font = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium);
-            TextView plugins = new TextView(context, null, 0, R$h.UiKit_Settings_Item_Icon);
+            TextView plugins = new TextView(context, null, 0, com.lytefast.flexinput.R.h.UiKit_Settings_Item_Icon);
             plugins.setText("Plugins");
             plugins.setTypeface(font);
-            int iconColor = ColorCompat.getThemedColor(context, R$b.colorInteractiveNormal);
-            Drawable icon = ContextCompat.getDrawable(context, R$d.ic_clear_all_white_24dp);
+            int iconColor = ColorCompat.getThemedColor(context, com.lytefast.flexinput.R.b.colorInteractiveNormal);
+            Drawable icon = ContextCompat.getDrawable(context, com.lytefast.flexinput.R.d.ic_clear_all_white_24dp);
             if (icon != null) {
                 Drawable copy = icon.mutate();
                 copy.setTint(iconColor);
@@ -102,10 +100,10 @@ public final class Main {
             plugins.setOnClickListener(e -> Utils.openPage(e.getContext(), Plugins.class));
             v.addView(plugins, baseIndex + 2);
 
-            TextView updater = new TextView(context, null, 0, R$h.UiKit_Settings_Item_Icon);
+            TextView updater = new TextView(context, null, 0, com.lytefast.flexinput.R.h.UiKit_Settings_Item_Icon);
             updater.setText("Updater");
             updater.setTypeface(font);
-            icon = ContextCompat.getDrawable(context, R$d.ic_file_download_white_24dp);
+            icon = ContextCompat.getDrawable(context, com.lytefast.flexinput.R.d.ic_file_download_white_24dp);
             if (icon != null) {
                 Drawable copy = icon.mutate();
                 copy.setTint(iconColor);
@@ -114,10 +112,10 @@ public final class Main {
             updater.setOnClickListener(e -> Utils.openPage(e.getContext(), Updater.class));
             v.addView(updater, baseIndex + 3);
 
-            TextView crashes = new TextView(context, null, 0, R$h.UiKit_Settings_Item_Icon);
+            TextView crashes = new TextView(context, null, 0, com.lytefast.flexinput.R.h.UiKit_Settings_Item_Icon);
             crashes.setText("Crashes");
             crashes.setTypeface(font);
-            icon = ContextCompat.getDrawable(context, R$d.ic_history_white_24dp);
+            icon = ContextCompat.getDrawable(context, com.lytefast.flexinput.R.d.ic_history_white_24dp);
             if (icon != null) {
                 Drawable copy = icon.mutate();
                 copy.setTint(iconColor);
@@ -136,11 +134,11 @@ public final class Main {
 
         // Patch to repair built-in emotes is needed because installer doesn't recompile resources,
         // so they stay in package com.discord instead of apk package name
-        Patcher.addPatch(ModelEmojiUnicode.class, "getImageUri", new Class<?>[]{ String.class, Context.class },
-            new PinePatchFn(callFrame -> {
-                String name = "emoji_" + callFrame.args[0];
-                callFrame.setResult("res:///" + Utils.getResId(name, "raw"));
-            })
+        Patcher.addPatch(ModelEmojiUnicode.class, "getImageUri", new Class<?>[]{String.class, Context.class},
+                new PinePrePatchFn(callFrame -> {
+                    String name = "emoji_" + callFrame.args[0];
+                    callFrame.setResult("res:///" + Utils.getResId(name, "raw"));
+                })
         );
 
         // add stacktraces in debug logs page

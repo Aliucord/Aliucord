@@ -6,17 +6,16 @@
 package com.aliucord.entities;
 
 import com.aliucord.Main;
+import com.aliucord.Utils;
 import com.aliucord.utils.ReflectUtils;
 import com.discord.api.message.embed.*;
 import com.discord.api.utcdatetime.UtcDateTime;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /** {@link com.discord.api.message.embed.MessageEmbed} builder */
-@SuppressWarnings({"unused"})
+@SuppressWarnings({ "unused", "UnusedReturnValue" })
 public class MessageEmbedBuilder {
     // reflect moment
     private static Field authorField;
@@ -79,7 +78,7 @@ public class MessageEmbedBuilder {
      * @param type {@link EmbedType}
      */
     public MessageEmbedBuilder(EmbedType type) {
-        embed = new com.discord.api.message.embed.MessageEmbed();
+        embed = Utils.allocateInstance(MessageEmbed.class);
         setType(type);
     }
 
@@ -112,14 +111,15 @@ public class MessageEmbedBuilder {
      * @return {@link MessageEmbedBuilder} for chaining.
      */
     public MessageEmbedBuilder setAuthor(String name, String iconUrl, String proxyIconUrl) {
-        EmbedAuthor author = new EmbedAuthor();
-        Class<EmbedAuthor> c = EmbedAuthor.class;
+        var c = EmbedAuthor.class;
+        var author = Utils.allocateInstance(c);
         try {
             ReflectUtils.setField(c, author, "name", name);
             ReflectUtils.setField(c, author, "iconUrl", iconUrl);
             ReflectUtils.setField(c, author, "proxyIconUrl", proxyIconUrl);
+            setAuthor(author);
         } catch (Throwable e) { Main.logger.error(e); }
-        return setAuthor(author);
+        return this;
     }
 
     /**
@@ -186,7 +186,7 @@ public class MessageEmbedBuilder {
      */
     @SuppressWarnings("unchecked")
     public MessageEmbedBuilder addField(EmbedField field) {
-        try {
+        if (field != null) try {
             List<EmbedField> o = (List<EmbedField>) fieldsField.get(embed);
             if (o == null) fieldsField.set(embed, Collections.singletonList(field));
             else {
@@ -238,14 +238,15 @@ public class MessageEmbedBuilder {
      * @return {@link MessageEmbedBuilder} for chaining.
      */
     public MessageEmbedBuilder setFooter(String text, String iconUrl, String proxyIconUrl) {
-        EmbedFooter footer = new EmbedFooter();
-        Class<EmbedFooter> c = EmbedFooter.class;
+        var c = EmbedFooter.class;
+        var footer = Utils.allocateInstance(c);
         try {
             ReflectUtils.setField(c, footer, "text", text);
             ReflectUtils.setField(c, footer, "iconUrl", iconUrl);
             ReflectUtils.setField(c, footer, "proxyIconUrl", proxyIconUrl);
+            setFooter(footer);
         } catch (Throwable e) { Main.logger.error(e); }
-        return setFooter(footer);
+        return this;
     }
 
     /**
@@ -292,15 +293,15 @@ public class MessageEmbedBuilder {
      * @see MessageEmbedBuilder#setImage(String, String)
      */
     public MessageEmbedBuilder setImage(String imageUrl, String proxyImageUrl, Integer imageHeight, Integer imageWidth) {
-        EmbedImage image = new EmbedImage();
-        Class<EmbedImage> c = EmbedImage.class;
+        var c = EmbedImage.class;
+        var image = Utils.allocateInstance(c);
         try {
             ReflectUtils.setField(c, image, "url", imageUrl);
             ReflectUtils.setField(c, image, "proxyUrl", proxyImageUrl);
             ReflectUtils.setField(c, image, "height", imageHeight);
             ReflectUtils.setField(c, image, "width", imageWidth);
         } catch (Throwable e) { Main.logger.error(e); }
-        return setImage(image);
+        return this;
     }
 
     /**
@@ -359,15 +360,16 @@ public class MessageEmbedBuilder {
      * @see MessageEmbedBuilder#setThumbnail(String, String)
      */
     public MessageEmbedBuilder setThumbnail(String imageUrl, String proxyImageUrl, Integer imageHeight, Integer imageWidth) {
-        EmbedThumbnail image = new EmbedThumbnail();
-        Class<EmbedThumbnail> c = EmbedThumbnail.class;
+        var c = EmbedThumbnail.class;
+        var image = Utils.allocateInstance(c);
         try {
             ReflectUtils.setField(c, image, "url", imageUrl);
             ReflectUtils.setField(c, image, "proxyUrl", proxyImageUrl);
             ReflectUtils.setField(c, image, "height", imageHeight);
             ReflectUtils.setField(c, image, "width", imageWidth);
+            setThumbnail(image);
         } catch (Throwable e) { Main.logger.error(e); }
-        return setThumbnail(image);
+        return this;
     }
 
     /**
@@ -437,15 +439,16 @@ public class MessageEmbedBuilder {
      * @return {@link MessageEmbedBuilder} for chaining.
      */
     public MessageEmbedBuilder setVideo(String videoUrl, String proxyVideoUrl, Integer height, Integer width) {
-        EmbedVideo video = new EmbedVideo();
-        Class<EmbedVideo> c = EmbedVideo.class;
+        var c = EmbedVideo.class;
+        var video = Utils.allocateInstance(c);
         try {
             ReflectUtils.setField(c, video, "url", videoUrl);
             ReflectUtils.setField(c, video, "proxyUrl", proxyVideoUrl);
             ReflectUtils.setField(c, video, "height", height);
             ReflectUtils.setField(c, video, "width", width);
+            setVideo(video);
         } catch (Throwable e) { Main.logger.error(e); }
-        return setVideo(video);
+        return this;
     }
 
     /**
@@ -487,13 +490,14 @@ public class MessageEmbedBuilder {
      * @see MessageEmbedBuilder#addField(EmbedField)
      */
     public static EmbedField createField(String name, String value, Boolean inline) {
-        EmbedField field = new EmbedField();
-        Class<EmbedField> c = EmbedField.class;
+        var c = EmbedField.class;
+        var field = Utils.allocateInstance(c);
         try {
             ReflectUtils.setField(c, field, "name", name);
             ReflectUtils.setField(c, field, "value", value);
             ReflectUtils.setField(c, field, "inline", inline);
+            return field;
         } catch (Throwable e) { Main.logger.error(e); }
-        return field;
+        return null;
     }
 }

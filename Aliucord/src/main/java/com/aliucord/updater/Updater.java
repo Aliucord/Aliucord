@@ -5,11 +5,22 @@
 
 package com.aliucord.updater;
 
-import com.aliucord.*;
+import android.content.Context;
 
+import com.aliucord.*;
+import com.aliucord.utils.ReflectUtils;
+
+import java.io.File;
 import java.io.IOException;
 
 public class Updater {
+    /**
+     * Compares two versions of a plugin to determine whether it is outdated
+     * @param plugin The name of the plugin
+     * @param version The local version of the plugin
+     * @param newVersion The latest version of the plugin
+     * @return Whether newVersion is newer than version
+     */
     public static boolean isOutdated(String plugin, String version, String newVersion) {
         try {
             String[] versions = version.split("\\.");
@@ -26,41 +37,74 @@ public class Updater {
         return false;
     }
 
-    private static Boolean isOfficial = null;
-    public static boolean isAliucordOfficial() {
-        if (SettingsUtils.getBool("disableAliucordUpdater", false)) return true;
-        if (isOfficial == null) {
-            final String url = "https://github.com/Aliucord/Aliucord/tree/" + BuildConfig.GIT_REVISION;
-            // Check if commit hash is valid commit of the Aliucord/Aliucord repo
-            try (Http.Request req = new Http.Request(url, "HEAD")) {
-                isOfficial = req.execute().ok();
-            } catch (IOException ex) {
-                PluginUpdater.logger.error("Failed to check if installed Aliucord is official", ex);
-                return true;
-            }
-        }
-        return isOfficial;
+    private static class AliucordData {
+        public String aliucordHash;
+        public int versionCode;
     }
 
-    private static class GithubApiInfo {
-        public Commit commit;
-        public static class Commit {
-            public String message;
+    private static Boolean isAliucordOutdated = null;
+    private static Boolean isDiscordOutdated = null;
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private static boolean fetchAliucordData() {
+        try (var req = new Http.Request("https://raw.githubusercontent.com/Aliucord/Aliucord/builds/data.json")) {
+            var res = req.execute().json(AliucordData.class);
+            isAliucordOutdated = !BuildConfig.GIT_REVISION.equals(res.aliucordHash);
+            isDiscordOutdated = Constants.DISCORD_VERSION < res.versionCode;
+            return true;
+        } catch (IOException ex) {
+            PluginUpdater.logger.error("Failed to check updates for Aliucord", ex);
+            return false;
         }
     }
 
-    private static Boolean isOutdated = null;
+    /**
+     * Determines whether Aliucord is outdated
+     * @return Whether latest remote Aliucord commit hash is newer than the installed one
+     */
     public static boolean isAliucordOutdated() {
-        if (SettingsUtils.getBool("disableAliucordUpdater", false)) return false;
-        if (isOutdated == null) {
-            try (Http.Request req = new Http.Request("https://api.github.com/repos/Aliucord/Aliucord/commits/builds")) {
-                String commitMsg = req.execute().json(GithubApiInfo.class).commit.message;
-                isOutdated = !commitMsg.contains(BuildConfig.GIT_REVISION);
-            } catch (IOException ex) {
-                PluginUpdater.logger.error("Failed to check updates for Aliucord", ex);
-                return false;
-            }
-        }
-        return isOutdated;
+        if (usingDexFromStorage() || isUpdaterDisabled()) return false;
+        if (isAliucordOutdated == null && !fetchAliucordData()) return false;
+        return isAliucordOutdated;
+    }
+
+    /**
+     * Determines whether the Base Discord is outdated
+     * @return Whether Aliucord's currently supported Discord version is newer than the installed one
+     */
+    public static boolean isDiscordOutdated() {
+        if (isUpdaterDisabled()) return false;
+        if (isDiscordOutdated == null && !fetchAliucordData()) return false;
+        return isDiscordOutdated;
+    }
+
+    /**
+     * Replaces the local Aliucord version with the latest from Github
+     * @param ctx Context
+     * @throws Throwable If an error occurred
+     */
+    public static void updateAliucord(Context ctx) throws Throwable {
+        ReflectUtils.invokeMethod(
+                Class.forName("com.aliucord.injector.Injector"),
+                (Object) null,
+                "downloadLatestAliucordDex",
+                new File(ctx.getCodeCacheDir(), "Aliucord.zip")
+        );
+    }
+
+    /**
+     * Determines whether the update is outdated
+     * @return Whether preference "disableAliucordUpdater" is set to true
+     */
+    public static boolean isUpdaterDisabled() {
+        return SettingsUtils.getBool("disableAliucordUpdater", false);
+    }
+
+    /**
+     * Determines whether the Aliucord dex is being loaded from storage
+     * @return Whether preference {@link com.aliucord.settings.Updater.UpdaterSettings#ALIUCORD_FROM_STORAGE} is set to true
+     */
+    public static boolean usingDexFromStorage() {
+        return SettingsUtils.getBool(com.aliucord.settings.Updater.UpdaterSettings.ALIUCORD_FROM_STORAGE, false);
     }
 }

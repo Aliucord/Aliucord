@@ -1,4 +1,5 @@
 /*
+ * This file is part of Aliucord, an Android Discord client mod.
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
@@ -27,6 +28,7 @@ import com.aliucord.*;
 import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.ConfirmDialog;
 import com.aliucord.fragments.SettingsPage;
+import com.aliucord.utils.DimenUtils;
 import com.aliucord.utils.ReflectUtils;
 import com.aliucord.views.TextInput;
 import com.aliucord.views.ToolbarButton;
@@ -35,8 +37,7 @@ import com.discord.app.AppBottomSheet;
 import com.discord.app.AppFragment;
 import com.discord.widgets.changelog.WidgetChangeLog;
 import com.discord.widgets.user.usersheet.WidgetUserSheet;
-import com.lytefast.flexinput.R$d;
-import com.lytefast.flexinput.R$g;
+import com.lytefast.flexinput.R;
 
 import java.io.File;
 import java.util.*;
@@ -267,11 +268,10 @@ public class Plugins extends SettingsPage {
     @SuppressLint("SetTextI18n")
     public void onViewBound(View view) {
         super.onViewBound(view);
-        //noinspection ResultOfMethodCallIgnored
         setActionBarTitle("Plugins");
 
         Context context = requireContext();
-        int padding = Utils.getDefaultPadding();
+        int padding = DimenUtils.getDefaultPadding();
         int p = padding / 2;
 
         if (getHeaderBar().findViewById(uniqueId) == null) {
@@ -283,7 +283,7 @@ public class Plugins extends SettingsPage {
             params.setMarginEnd(p);
             pluginFolderBtn.setLayoutParams(params);
             pluginFolderBtn.setPadding(p, p, p, p);
-            pluginFolderBtn.setImageDrawable(ContextCompat.getDrawable(context, R$d.ic_open_in_new_white_24dp));
+            pluginFolderBtn.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_open_in_new_white_24dp));
 
             pluginFolderBtn.setOnClickListener(e -> {
                 File dir = new File(Constants.PLUGINS_PATH);
@@ -300,7 +300,7 @@ public class Plugins extends SettingsPage {
         }
 
         TextInput input = new TextInput(context);
-        input.setHint(context.getString(R$g.search));
+        input.setHint(context.getString(R.g.search));
 
         RecyclerView recyclerView = new RecyclerView(context);
         recyclerView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));

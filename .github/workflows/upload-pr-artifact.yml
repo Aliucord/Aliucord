@@ -4,7 +4,6 @@ on:
   pull_request:
     paths:
       - Aliucord/**
-      - DiscordStubs/**
       - gradle/**
       - settings.gradle
       - gradlew
@@ -30,7 +29,7 @@ jobs:
           echo "$ANDROID_HOME/build-tools/30.0.3" >> $GITHUB_PATH
           mkdir -p ~/bin
           mkdir -p ~/builds
-          wget https://github.com/Aliucord/buildtool/releases/download/v0.1.1/buildtool -P ~/bin
+          wget https://github.com/Aliucord/buildtool/releases/latest/download/buildtool -P ~/bin
           chmod +x ~/bin/buildtool
           chmod +x $GITHUB_WORKSPACE/gradlew
           echo "{\"aliucord\":\"$GITHUB_WORKSPACE\",\"outputs\":\"$(realpath ~/builds)\"}" > ~/config.json
@@ -42,4 +41,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: Aliucord
-          path: ~/builds/Aliucord.dex
+          path: ~/builds/Aliucord.zip
