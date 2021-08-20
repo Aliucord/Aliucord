@@ -30,17 +30,12 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@3404b45d4c43e74e30dcad1a47fb89a0573f5a7e # v2.0.6
 
-      - name: Setup
-        run: |
-          echo "$ANDROID_HOME/build-tools/30.0.3" >> $GITHUB_PATH
-          mkdir -p ~/bin
-          wget https://github.com/Aliucord/buildtool/releases/latest/download/buildtool -P ~/bin
-          chmod +x ~/bin/buildtool
-          chmod +x $GITHUB_WORKSPACE/src/gradlew
-          echo "{\"aliucord\":\"$GITHUB_WORKSPACE/src\",\"outputs\":\"$GITHUB_WORKSPACE/builds\"}" > ~/config.json
-
       - name: Build Injector
-        run: ~/bin/buildtool --config ~/config.json --injector
+        run: |
+          cd $GITHUB_WORKSPACE/src
+          chmod +x gradlew
+          ./gradlew make
+          cp Injector/build/Injector.dex $GITHUB_WORKSPACE/builds
 
       - name: Push builds
         run: |
