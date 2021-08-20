@@ -13,7 +13,6 @@ import com.aliucord.utils.ReflectUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.Runtime;
 
 public class Updater {
     /**
