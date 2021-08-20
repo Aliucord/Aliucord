@@ -133,7 +133,10 @@ public class Updater extends SettingsPage {
                                         context.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
                                         Runtime.getRuntime().exit(0);
                                     });
-                                    rb.setBackgroundTint(0xffffbb33).setTextColor(Color.BLACK).setActionTextColor(Color.BLACK).show();
+                                    rb.setBackgroundTint(0xffffbb33);
+                                    rb.setTextColor(Color.BLACK);
+                                    rb.setActionTextColor(Color.BLACK)
+                                    rb.show();
                                 } catch (Throwable th) {
                                     PluginUpdater.logger.error(ctx, "Failed to update Aliucord. Check the debug log for more info", th);
                                 }
