@@ -35,7 +35,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/src
           chmod +x gradlew
-          ./gradlew make
+          ./gradlew :Aliucord:make
           cp Aliucord/build/Aliucord.zip $GITHUB_WORKSPACE/builds
 
       - name: Push builds

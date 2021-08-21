@@ -29,10 +29,10 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE
           chmod +x gradlew
-          ./gradlew make
+          ./gradlew :Aliucord:make
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: Aliucord
-          path: $GITHUB_WORKSPACE/Aliucord/build/Aliucord.zip
+          path: Aliucord/build/Aliucord.zip
