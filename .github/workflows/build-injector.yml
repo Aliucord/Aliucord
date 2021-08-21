@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - .github/workflows/build-injector.yml
       - Injector/**
 
 jobs:

@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - .github/workflows/generate-javadoc.yml
       - Aliucord/**
 
 jobs:
