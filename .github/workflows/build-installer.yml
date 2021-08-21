@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - .github/workflows/build-installer.yml
       - DexPatcher/**
       - installer/**
 
