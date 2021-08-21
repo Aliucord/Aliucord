@@ -13,6 +13,7 @@ import static com.aliucord.updater.Updater.usingDexFromStorage;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -35,6 +36,8 @@ import com.discord.views.CheckedSetting;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.lytefast.flexinput.R;
+
+import java.lang.Runtime;
 
 public class Updater extends SettingsPage {
     public static class UpdaterSettings extends BottomSheet {
@@ -121,7 +124,18 @@ public class Updater extends SettingsPage {
                                 var ctx = v.getContext();
                                 try {
                                     updateAliucord(ctx);
-                                    Utils.showToast(ctx, "Successfully updated Aliucord. Please restart Aliucord to load the update!");
+                                    Utils.showToast(ctx, "Successfully updated Aliucord.");
+                                    Snackbar rb = Snackbar
+                                        .make(getLinearLayout(), "Restart to apply the update.", Snackbar.LENGTH_INDEFINITE)
+                                        .setAction("Restart", e -> {
+                                            Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+                                            context.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
+                                            Runtime.getRuntime().exit(0);
+                                        });
+                                    rb.setBackgroundTint(0xffffbb33);
+                                    rb.setTextColor(Color.BLACK);
+                                    rb.setActionTextColor(Color.BLACK);
+                                    rb.show();
                                 } catch (Throwable th) {
                                     PluginUpdater.logger.error(ctx, "Failed to update Aliucord. Check the debug log for more info", th);
                                 }
