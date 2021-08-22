@@ -3,6 +3,7 @@ name: PR Artifact
 on:
   pull_request:
     paths:
+      - .github/workflows/upload-pr-artifact.yml
       - Aliucord/**
       - gradle/**
       - settings.gradle
@@ -24,21 +25,14 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@3404b45d4c43e74e30dcad1a47fb89a0573f5a7e # v2.0.6
 
-      - name: Setup
-        run: |
-          echo "$ANDROID_HOME/build-tools/30.0.3" >> $GITHUB_PATH
-          mkdir -p ~/bin
-          mkdir -p ~/builds
-          wget https://github.com/Aliucord/buildtool/releases/latest/download/buildtool -P ~/bin
-          chmod +x ~/bin/buildtool
-          chmod +x $GITHUB_WORKSPACE/gradlew
-          echo "{\"aliucord\":\"$GITHUB_WORKSPACE\",\"outputs\":\"$(realpath ~/builds)\"}" > ~/config.json
-
       - name: Build Aliucord
-        run: ~/bin/buildtool --config ~/config.json
+        run: |
+          cd $GITHUB_WORKSPACE
+          chmod +x gradlew
+          ./gradlew :Aliucord:make
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: Aliucord
-          path: ~/builds/Aliucord.zip
+          path: Aliucord/build/Aliucord.zip

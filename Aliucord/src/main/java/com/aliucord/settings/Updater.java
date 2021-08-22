@@ -127,12 +127,12 @@ public class Updater extends SettingsPage {
                                     updateAliucord(ctx);
                                     Utils.showToast(ctx, "Successfully updated Aliucord.");
                                     Snackbar rb = Snackbar
-                                    .make(getLinearLayout(), "Restart to apply the update.", Snackbar.LENGTH_INDEFINITE)
-                                    .setAction("Restart", e -> {
-                                        Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
-                                        context.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
-                                        Runtime.getRuntime().exit(0);
-                                    });
+                                        .make(getLinearLayout(), "Restart to apply the update.", Snackbar.LENGTH_INDEFINITE)
+                                        .setAction("Restart", e -> {
+                                            Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+                                            context.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
+                                            Runtime.getRuntime().exit(0);
+                                        });
                                     rb.setBackgroundTint(0xffffbb33);
                                     rb.setTextColor(Color.BLACK);
                                     rb.setActionTextColor(Color.BLACK);
