@@ -100,7 +100,8 @@ public class Updater extends SettingsPage {
         setActionBarTitle("Updater");
         setActionBarSubtitle(stateText);
 
-        Context context = requireContext();
+        var context = getContext();
+        if (context == null) return;
         int padding = DimenUtils.getDefaultPadding();
 
         Utils.threadPool.execute(() -> {
