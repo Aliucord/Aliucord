@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.aliucord.*;
+import com.aliucord.api.kotlin.ApiMethodsKt;
 import com.aliucord.entities.CommandContext;
 import com.aliucord.entities.Plugin;
 import com.aliucord.utils.ReflectUtils;

@@ -2,6 +2,7 @@ plugins {
     id("com.android.library")
     id("maven-publish")
     id("com.aliucord.gradle")
+    id("kotlin-android")
 }
 
 fun getGitHash(): String {
