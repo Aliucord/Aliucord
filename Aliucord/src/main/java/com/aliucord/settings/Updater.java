@@ -96,7 +96,7 @@ public class Updater extends SettingsPage {
     public void onViewBound(View view) {
         super.onViewBound(view);
 
-        setActionBarTitle("Updater Balls");
+        setActionBarTitle("Updater");
         setActionBarSubtitle(stateText);
 
         var context = view.getContext();
