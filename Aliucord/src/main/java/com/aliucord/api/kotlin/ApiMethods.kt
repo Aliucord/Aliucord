@@ -3,7 +3,25 @@ package com.aliucord.api.kotlin
 import com.aliucord.api.CommandsAPI
 import com.aliucord.api.kotlin.builder.CommandResultBuilder
 import com.aliucord.api.kotlin.builder.EmbedBuilder
+import com.aliucord.api.kotlin.builder.ManifestBuilder
 import com.aliucord.entities.MessageEmbedBuilder
+import com.aliucord.entities.Plugin
+
+inline fun manifest(
+    builder: ManifestBuilder.() -> Unit
+) = with (ManifestBuilder().apply(builder)) {
+    Plugin.Manifest().apply {
+        authors = this@with.authors.map {
+            Plugin.Manifest.Author(it.name, it.id)
+        }.toTypedArray()
+
+        changelog = this@with.changelog
+        changelogMedia = this@with.changelogMedia
+        description = this@with.description
+        updateUrl = this@with.updateUrl
+        version = this@with.version
+    }
+}
 
 inline fun embedBuilder(
     builder: EmbedBuilder.() -> Unit
