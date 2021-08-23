@@ -49,7 +49,8 @@ public class Updater extends SettingsPage {
         public void onViewCreated(View view, Bundle bundle) {
             super.onViewCreated(view, bundle);
 
-            var ctx = requireContext();
+            var ctx = getContext();
+            if (ctx == null) return;
 
             addView(createSwitch(ctx, "Auto Update Aliucord", "Whether Aliucord should automatically be updated", AUTO_UPDATE_ALIUCORD_KEY));
             addView(createSwitch(ctx, "Auto Update Plugins", "Whether Plugins should automatically be updated", AUTO_UPDATE_PLUGINS_KEY));
