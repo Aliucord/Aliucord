@@ -7,7 +7,6 @@
 package com.aliucord.settings;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -49,7 +48,7 @@ public class Crashes extends SettingsPage {
         super.onViewBound(view);
         setActionBarTitle("Crash Logs");
 
-        Context context = requireContext();
+        var context = view.getContext();
         int padding = DimenUtils.getDefaultPadding();
         int p = padding / 2;
 
