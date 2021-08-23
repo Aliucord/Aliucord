@@ -1,9 +1,8 @@
 package com.aliucord.api.kotlin.data
 
-import com.discord.models.commands.ApplicationCommandOption
-import com.discord.api.commands.CommandChoice
-
 import com.discord.api.commands.ApplicationCommandType
+import com.discord.api.commands.CommandChoice
+import com.discord.models.commands.ApplicationCommandOption
 
 fun applicationCommandOption(
     type: ApplicationCommandType,
