@@ -48,8 +48,7 @@ public class Crashes extends SettingsPage {
         super.onViewBound(view);
         setActionBarTitle("Crash Logs");
 
-        var context = getContext();
-        if (context == null) return;
+        var context = view.getContext();
         int padding = DimenUtils.getDefaultPadding();
         int p = padding / 2;
 

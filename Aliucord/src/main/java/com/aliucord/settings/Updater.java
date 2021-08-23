@@ -49,8 +49,7 @@ public class Updater extends SettingsPage {
         public void onViewCreated(View view, Bundle bundle) {
             super.onViewCreated(view, bundle);
 
-            var ctx = getContext();
-            if (ctx == null) return;
+            var ctx = view.getContext();
 
             addView(createSwitch(ctx, "Auto Update Aliucord", "Whether Aliucord should automatically be updated", AUTO_UPDATE_ALIUCORD_KEY));
             addView(createSwitch(ctx, "Auto Update Plugins", "Whether Plugins should automatically be updated", AUTO_UPDATE_PLUGINS_KEY));
@@ -97,11 +96,10 @@ public class Updater extends SettingsPage {
     public void onViewBound(View view) {
         super.onViewBound(view);
 
-        setActionBarTitle("Updater");
+        setActionBarTitle("Updater Balls");
         setActionBarSubtitle(stateText);
 
-        var context = getContext();
-        if (context == null) return;
+        var context = view.getContext();
         int padding = DimenUtils.getDefaultPadding();
 
         Utils.threadPool.execute(() -> {

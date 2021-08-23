@@ -270,8 +270,7 @@ public class Plugins extends SettingsPage {
         super.onViewBound(view);
         setActionBarTitle("Plugins");
 
-        var context = getContext();
-        if (context == null) return;
+        var context = view.getContext();
         int padding = DimenUtils.getDefaultPadding();
         int p = padding / 2;
 
