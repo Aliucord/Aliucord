@@ -77,8 +77,6 @@ flutter {
 }
 
 dependencies {
-    implementation 'androidx.browser:browser:1.3.0'
-
     //noinspection GradleDependency
     implementation 'org.bouncycastle:bcpkix-jdk15on:1.65'
 

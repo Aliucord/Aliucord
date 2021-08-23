@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - .github/workflows/build-installer.yml
-      - DexPatcher/**
       - installer/**
 
 jobs:
@@ -27,7 +26,7 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@4389e6cbc6cb8a4b18c628ff96ff90be0e926aa8 # v1.5.3
       with:
-        flutter-version: '2.2.1'
+        flutter-version: '2.2.3'
 
     - name: Build Installer
       run: |

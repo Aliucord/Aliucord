@@ -6,7 +6,6 @@
 package com.aliucord.installer;
 
 import android.Manifest;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -19,7 +18,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.browser.customtabs.*;
 import androidx.core.content.FileProvider;
 
 import com.aliucord.libzip.Zip;
@@ -70,26 +68,6 @@ public final class MainActivity extends FlutterActivity {
                     break;
                 case "getGitRev":
                     result.success(BuildConfig.GIT_REVISION);
-                    break;
-                case "openChromeCustomTab":
-                    Uri uri = Uri.parse((String) methodCall.arguments);
-                    String packageName = CustomTabsHelper.getPackageNameToUse(this);
-                    if (packageName != null) {
-                        CustomTabsServiceConnection serviceConnection = new CustomTabsServiceConnection() {
-                            @Override
-                            public void onCustomTabsServiceConnected(@NonNull ComponentName name, @NonNull CustomTabsClient client) {
-                                CustomTabsIntent.Builder tabBuilder = new CustomTabsIntent.Builder();
-                                CustomTabsIntent intent = tabBuilder.build();
-                                client.warmup(0L);
-                                intent.launchUrl(getContext(), uri);
-                            }
-                            public void onServiceDisconnected(ComponentName name) {}
-                        };
-                        CustomTabsClient.bindCustomTabsService(this, packageName, serviceConnection);
-                    } else {
-                        startActivity(new Intent(Intent.ACTION_VIEW, uri));
-                    }
-                    result.success(null);
                     break;
                 case "toast":
                     Toast.makeText(this, methodCall.arguments(), Toast.LENGTH_SHORT).show();
@@ -171,6 +149,7 @@ public final class MainActivity extends FlutterActivity {
                             } else {
                                 zip.deleteEntry("classes.dex");
                                 zip.deleteEntry("classes5.dex");
+                                zip.deleteEntry("classes6.dex");
                             }
                             zip.deleteEntry("AndroidManifest.xml");
                             zip.deleteEntry("lib/arm64-v8a/libpine.so");
@@ -198,6 +177,8 @@ public final class MainActivity extends FlutterActivity {
 
                             Utils.writeEntry(zip, "lib/arm64-v8a/libpine.so", Utils.readBytes(assets.open("pine/arm64-v8a/libpine.so")));
                             Utils.writeEntry(zip, "lib/armeabi-v7a/libpine.so", Utils.readBytes(assets.open("pine/armeabi-v7a/libpine.so")));
+
+                            Utils.writeEntry(zip, "classes6.dex", Utils.readBytes(assets.open("kotlin/classes.dex")));
                             zip.close();
 
                             if (methodCall.argument("replaceBg") != Boolean.FALSE) {
