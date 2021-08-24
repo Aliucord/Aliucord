@@ -10,6 +10,7 @@ import android.os.Looper;
 import android.util.Pair;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import rx.*;
@@ -85,5 +86,17 @@ public final class RxUtils {
      */
     public static <T> Subscriber<T> createActionSubscriber(Action1<? super T> onNext, Action1<Throwable> onError, Action0 onCompleted) {
         return new j0.l.e.b<>(onNext, onError == null ? e -> {} : onError, onCompleted == null ? () -> {} : onCompleted);
+    }
+
+    /**
+     * Returns an Observable that emits {@code 0L} after a specified delay, and then completes.
+     *
+     * @param delay the initial delay before emitting a single {@code 0L}
+     * @param unit time units to use for {@code delay}
+     * @return an Observable that emits one item after a specified delay, and then completes
+     * @see <a href="http://reactivex.io/documentation/operators/timer.html">ReactiveX operators documentation: Timer</a>
+     */
+    public static Observable<Long> timer(long delay, TimeUnit unit) {
+        return Observable.d0(delay, unit, j0.p.a.a());
     }
 }
