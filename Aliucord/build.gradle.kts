@@ -2,6 +2,8 @@ plugins {
     id("com.android.library")
     id("maven-publish")
     id("com.aliucord.gradle")
+    id("kotlin-android")
+    id("org.jetbrains.dokka")
 }
 
 fun getGitHash(): String {
@@ -37,6 +39,13 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    kotlinOptions {
+        jvmTarget = "11"
+        freeCompilerArgs = freeCompilerArgs +
+            "-Xno-call-assertions" +
+            "-Xno-param-assertions" +
+            "-Xno-receiver-assertions"
+    }
 
     buildFeatures {
         viewBinding = true
@@ -52,15 +61,20 @@ dependencies {
     api("com.github.Aliucord:pine:83f67b2cdb")
 }
 
-// https://www.stkent.com/2016/06/10/adventures-with-javadocs-part-3.html
-android.libraryVariants.all {
-    if (name == "release") {
-        val variant = this
-        task<Javadoc>("javadoc") {
-            val compiler = variant.javaCompileProvider.get()
-            source = compiler.source
-            classpath = files(android.bootClasspath.joinToString(File.pathSeparator))
-            classpath += compiler.classpath
+tasks.dokkaHtml.configure {
+    dokkaSourceSets {
+        named("main") {
+            noAndroidSdkLink.set(false)
+            includeNonPublic.set(false)
+        }
+    }
+}
+
+tasks.dokkaJavadoc.configure {
+    dokkaSourceSets {
+        named("main") {
+            noAndroidSdkLink.set(false)
+            includeNonPublic.set(false)
         }
     }
 }

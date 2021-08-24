@@ -11,6 +11,7 @@ import android.content.res.AssetManager;
 import android.content.res.Resources;
 
 import com.aliucord.entities.Plugin;
+import com.aliucord.utils.IOUtils;
 import com.aliucord.utils.MapUtils;
 
 import java.io.File;
@@ -38,7 +39,7 @@ public class PluginManager {
         try {
             PathClassLoader loader = new PathClassLoader(file.getAbsolutePath(), context.getClassLoader());
             InputStream stream = loader.getResourceAsStream("ac-plugin");
-            String pName = stream == null ? name : new String(Utils.readBytes(stream));
+            String pName = stream == null ? name : new String(IOUtils.readBytes(stream));
             if (plugins.containsKey(pName)) {
                 logger.warn("Plugin with name " + pName + " already exists");
                 return;

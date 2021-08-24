@@ -1,4 +1,5 @@
 /*
+ * This file is part of Aliucord, an Android Discord client mod.
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
@@ -35,6 +36,7 @@ import com.discord.app.AppActivity;
 import com.discord.app.AppLog;
 import com.discord.databinding.WidgetDebuggingAdapterItemBinding;
 import com.discord.models.domain.emoji.ModelEmojiUnicode;
+import com.discord.stores.StoreInviteSettings;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.widgets.debugging.WidgetDebugging;
 import com.discord.widgets.guilds.invite.WidgetGuildInvite;
@@ -129,7 +131,8 @@ public final class Main {
 
             TextView uploadLogs = v.findViewById(Utils.getResId("upload_debug_logs", "id"));
             uploadLogs.setText("Aliucord Support Server");
-            uploadLogs.setOnClickListener(e -> WidgetGuildInvite.Companion.launch(e.getContext(), Constants.ALIUCORD_SUPPORT, ""));
+            uploadLogs.setOnClickListener(e ->
+                WidgetGuildInvite.Companion.launch(e.getContext(), new StoreInviteSettings.InviteCode(Constants.ALIUCORD_SUPPORT, "", null)));
         }));
 
         // Patch to repair built-in emotes is needed because installer doesn't recompile resources,

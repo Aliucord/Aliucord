@@ -21,7 +21,7 @@ public class SettingsUtils {
     private static final SharedPreferences prefs = Utils.getAppContext().getSharedPreferences("aliucord", Context.MODE_PRIVATE);
 
     /**
-     * Get a {@link boolean} from the preferences
+     * Get a boolean from the preferences
      * @param key Key of the value
      * @param defValue Default value
      * @return Value if found, else the defValue
@@ -31,7 +31,7 @@ public class SettingsUtils {
     }
 
     /**
-     * Set a {@link boolean} item
+     * Set a boolean item
      * @param key Key of the item
      * @param val Value
      */
@@ -40,7 +40,7 @@ public class SettingsUtils {
     }
 
     /**
-     * Get an {@link int} from the preferences
+     * Get an int from the preferences
      * @param key Key of the value
      * @param defValue Default value
      * @return Value if found, else the defValue
@@ -50,7 +50,7 @@ public class SettingsUtils {
     }
 
     /**
-     * Set an {@link int} item
+     * Set an int item
      * @param key Key of the item
      * @param val Value
      */
@@ -59,7 +59,7 @@ public class SettingsUtils {
     }
 
     /**
-     * Get a {@link float} from the preferences
+     * Get a float from the preferences
      * @param key Key of the value
      * @param defValue Default value
      * @return Value if found, else the defValue
@@ -69,7 +69,7 @@ public class SettingsUtils {
     }
 
     /**
-     * Set a {@link float} item
+     * Set a float item
      * @param key Key of the item
      * @param val Value
      */
@@ -78,7 +78,7 @@ public class SettingsUtils {
     }
 
     /**
-     * Get a {@link long} from the preferences
+     * Get a long from the preferences
      * @param key Key of the value
      * @param defValue Default value
      * @return Value if found, else the defValue
@@ -88,7 +88,7 @@ public class SettingsUtils {
     }
 
     /**
-     * Set a {@link long} item
+     * Set a long item
      * @param key Key of the item
      * @param val Value
      */

@@ -1,15 +1,15 @@
-name: Javadoc
+name: Dokka
 
 on:
   push:
     branches:
       - main
     paths:
-      - .github/workflows/generate-javadoc.yml
+      - .github/workflows/generate-dokka.yml
       - Aliucord/**
 
 jobs:
-  javadoc:
+  dokka:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
@@ -19,29 +19,30 @@ jobs:
         with:
           java-version: 11
 
-      - name: Generate Javadoc
+      - name: Generate Dokka
         run: |
           chmod +x ./gradlew
-          ./gradlew Aliucord:javadoc
+          ./gradlew Aliucord:dokkaHtml
+          ./gradlew Aliucord:dokkaJavadoc
 
-      - name: Push Javadoc
+      - name: Push Dokka
         shell: bash # GLOBIGNORE is a special bash variable so explicitly target bash
         env:
           API_TOKEN: ${{ secrets.API_PAT_GITHUB }}
           USERNAME: Github-Actions
-          REPO: Aliucord/Javadoc
+          REPO: Aliucord/dokka
         run: |
           git config --global user.name "$USERNAME"
           git config --global user.email actions@github.com
 
           git clone https://$USERNAME:$API_TOKEN@github.com/$REPO.git
-          cd Javadoc
+          cd dokka
 
           GLOBIGNORE=README.md:.git     # do not glob README and .git
           rm -rf *
 
-          cp -r ../Aliucord/build/docs/javadoc/* .
+          cp -r ../Aliucord/build/dokka/* .
 
           git add .
-          git commit -m "Generate Javadoc for https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
+          git commit -m "Generate dokka for https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
           git push https://$USERNAME:$API_TOKEN@github.com/$REPO.git

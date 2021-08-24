@@ -1,4 +1,3 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     repositories {
         google()
@@ -8,6 +7,8 @@ buildscript {
     dependencies {
         classpath("com.android.tools.build:gradle:7.0.1")
         classpath("com.github.Aliucord:gradle:main-SNAPSHOT")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.21")
+        classpath("org.jetbrains.dokka:dokka-gradle-plugin:1.5.0")
     }
 }
 

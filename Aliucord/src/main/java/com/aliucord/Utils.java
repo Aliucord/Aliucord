@@ -40,7 +40,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import c.a.d.l;
+import c.a.d.j;
 import rx.Subscriber;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -190,7 +190,7 @@ public class Utils {
     public static <K, V> K getMapKey(@NonNull Map<K, V> map, @Nullable V val) { return MapUtils.getMapKey(map, val); }
 
     public static void openPage(Context context, Class<? extends AppComponent> clazz, Intent intent) {
-        l.d(context, clazz, intent);
+        j.d(context, clazz, intent);
     }
     public static void openPage(Context context, Class<? extends AppComponent> clazz) {
         Utils.openPage(context, clazz, null);

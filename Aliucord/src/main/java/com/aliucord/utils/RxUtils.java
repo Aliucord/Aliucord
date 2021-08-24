@@ -20,12 +20,12 @@ import rx.functions.Action1;
 @SuppressWarnings("unused")
 public final class RxUtils {
     public static <T> Observable<T> onBackpressureBuffer(Observable<T> observable) {
-        return observable.K();
+        return observable.J();
     }
 
     /** Subscribe to the Observable */
     public static <T> Subscription subscribe(Observable<T> observable, Subscriber<? super T> subscriber) {
-        return observable.U(subscriber);
+        return observable.T(subscriber);
     }
 
     /**
