@@ -1,4 +1,5 @@
 /*
+ * This file is part of Aliucord, an Android Discord client mod.
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
@@ -17,7 +18,7 @@ import java.util.List;
  * Wraps the obfuscated {@link GuildMember} class to provide nice method names and require only one central
  * update if method names change after an update
  */
-@SuppressWarnings({"unused", "deprecation"})
+@SuppressWarnings("unused")
 public class GuildMemberWrapper {
     private final GuildMember guildMember;
 
@@ -32,81 +33,99 @@ public class GuildMemberWrapper {
 
     @Nullable
     public final String getAvatar() {
-        return getAvatar(guildMember);
+        return StaticGuildMemberWrapper.getAvatar(guildMember);
     }
 
     public final long getGuildId() {
-        return getGuildId(guildMember);
+        return StaticGuildMemberWrapper.getGuildId(guildMember);
     }
 
     public final UtcDateTime getJoinedAt() {
-        return getJoinedAt(guildMember);
+        return StaticGuildMemberWrapper.getJoinedAt(guildMember);
     }
 
     @Nullable
     public final String getNick() {
-        return getNick(guildMember);
+        return StaticGuildMemberWrapper.getNick(guildMember);
     }
 
     public final boolean getIsPending() {
-        return getIsPending(guildMember);
+        return StaticGuildMemberWrapper.isPending(guildMember);
     }
 
     @Nullable
     public final String getPremiumSince() {
-        return getPremiumSince(guildMember);
+        return StaticGuildMemberWrapper.getPremiumSince(guildMember);
     }
 
     public final List<Long> getRoles() {
-        return getRoles(guildMember);
+        return StaticGuildMemberWrapper.getRoles(guildMember);
     }
 
     public final User getUser() {
-        return getUser(guildMember);
+        return StaticGuildMemberWrapper.getUser(guildMember);
     }
 
     public final Long getUserId() {
-        return getUserId(guildMember);
+        return StaticGuildMemberWrapper.getUserId(guildMember);
     }
 
 
 
+    /** @deprecated Use {@link StaticGuildMemberWrapper#getAvatar(GuildMember)} instead */
+    @Deprecated
     @Nullable
     public static String getAvatar(GuildMember guildMember) {
-        return guildMember.b();
+        return StaticGuildMemberWrapper.getAvatar(guildMember);
     }
 
+    /** @deprecated Use {@link StaticGuildMemberWrapper#getGuildId(GuildMember)} instead */
+    @Deprecated
     public static long getGuildId(GuildMember guildMember) {
-        return guildMember.c();
+        return StaticGuildMemberWrapper.getGuildId(guildMember);
     }
 
+    /** @deprecated Use {@link StaticGuildMemberWrapper#getJoinedAt(GuildMember)} instead */
+    @Deprecated
     public static UtcDateTime getJoinedAt(GuildMember guildMember) {
-        return guildMember.d();
+        return StaticGuildMemberWrapper.getJoinedAt(guildMember);
     }
 
+    /** @deprecated Use {@link StaticGuildMemberWrapper#getNick(GuildMember)} instead */
+    @Deprecated
     @Nullable
     public static String getNick(GuildMember guildMember) {
-        return guildMember.e();
+        return StaticGuildMemberWrapper.getNick(guildMember);
     }
 
+    /** @deprecated Use {@link StaticGuildMemberWrapper#isPending(GuildMember)} instead */
+    @Deprecated
     public static boolean getIsPending(GuildMember guildMember) {
-        return guildMember.f();
+        return StaticGuildMemberWrapper.isPending(guildMember);
     }
 
+    /** @deprecated Use {@link StaticGuildMemberWrapper#getPremiumSince(GuildMember)} instead */
+    @Deprecated
     @Nullable
     public static String getPremiumSince(GuildMember guildMember) {
-        return guildMember.g();
+        return StaticGuildMemberWrapper.getPremiumSince(guildMember);
     }
 
+    /** @deprecated Use {@link StaticGuildMemberWrapper#getRoles(GuildMember)} instead */
+    @Deprecated
     public static List<Long> getRoles(GuildMember guildMember) {
-        return guildMember.i();
+        return StaticGuildMemberWrapper.getRoles(guildMember);
     }
 
+    /** @deprecated Use {@link StaticGuildMemberWrapper#getUser(GuildMember)} instead */
+    @Deprecated
     public static User getUser(GuildMember guildMember) {
-        return guildMember.j();
+        return StaticGuildMemberWrapper.getUser(guildMember);
     }
 
+    /** @deprecated Use {@link StaticGuildMemberWrapper#getUserId(GuildMember)} instead */
+    @Deprecated
     public final Long getUserId(GuildMember guildMember) {
-        return guildMember.k();
+        return StaticGuildMemberWrapper.getUserId(guildMember);
     }
 }
