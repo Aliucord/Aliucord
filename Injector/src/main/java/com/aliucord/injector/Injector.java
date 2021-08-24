@@ -20,13 +20,11 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.io.*;
-import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import dalvik.system.BaseDexClassLoader;
-import dalvik.system.DexClassLoader;
 import top.canyie.pine.Pine;
 import top.canyie.pine.PineConfig;
 import top.canyie.pine.callback.MethodHook;
@@ -40,9 +38,9 @@ public final class Injector {
     private static MethodHook.Unhook unhook;
 
     public static void init() {
-        PineConfig.debug = false;
+        PineConfig.debug = new File(BASE_DIRECTORY, ".pine_debug").exists();
         PineConfig.debuggable = new File(BASE_DIRECTORY, ".debuggable").exists();
-        Log.i(LOG_TAG, "Debuggable: " + PineConfig.debuggable);
+        Log.d(LOG_TAG, "Debuggable: " + PineConfig.debuggable);
         PineConfig.disableHiddenApiPolicy = false;
         PineConfig.disableHiddenApiPolicyForPlatformDomain = false;
 
@@ -118,7 +116,7 @@ public final class Injector {
             }
 
             Logger.d("Adding Aliucord to the classpath...");
-            addDexToClasspath(dexFile, appActivity.getCodeCacheDir(), appActivity.getClassLoader());
+            addDexToClasspath(dexFile, appActivity.getClassLoader());
             var c = Class.forName("com.aliucord.Main");
             var preInit = c.getDeclaredMethod("preInit", AppActivity.class);
             var init = c.getDeclaredMethod("init", AppActivity.class);
@@ -149,32 +147,21 @@ public final class Injector {
         Logger.d("Finished downloading Aliucord.zip");
     }
 
-    /** https://gist.github.com/nickcaballero/7045993 */
     @SuppressLint("DiscouragedPrivateApi") // this private api seems to be stable, thanks to facebook who use it in the facebook app
-    private static void addDexToClasspath(File dex, File cacheDir, ClassLoader nativeClassLoader) throws Throwable {
+    private static void addDexToClasspath(File dex, ClassLoader classLoader) throws Throwable {
         Logger.d("Adding Aliucord to the classpath...");
-        var mClassLoader = new DexClassLoader(dex.getAbsolutePath(), cacheDir.getAbsolutePath(), null, nativeClassLoader);
 
         // https://android.googlesource.com/platform/libcore/+/58b4e5dbb06579bec9a8fc892012093b6f4fbe20/dalvik/src/main/java/dalvik/system/BaseDexClassLoader.java#59
         var pathListField = BaseDexClassLoader.class.getDeclaredField("pathList");
         pathListField.setAccessible(true);
-        // https://android.googlesource.com/platform/libcore/+/58b4e5dbb06579bec9a8fc892012093b6f4fbe20/dalvik/src/main/java/dalvik/system/DexPathList.java#71
-        // "Should be called pathElements, but the Facebook app uses reflection to modify 'dexElements' (http://b/7726934)." LOL
-        var dexElementsField = Class.forName("dalvik.system.DexPathList").getDeclaredField("dexElements");
-        dexElementsField.setAccessible(true);
 
-        var nativeClassLoaderPathList = pathListField.get(nativeClassLoader);
+        var pathList = pathListField.get(classLoader);
+        // Android 7: https://android.googlesource.com/platform/libcore/+/refs/heads/nougat-release/dalvik/src/main/java/dalvik/system/DexPathList.java#184
+        // Current latest Master: https://android.googlesource.com/platform/libcore/+/58b4e5dbb06579bec9a8fc892012093b6f4fbe20/dalvik/src/main/java/dalvik/system/DexPathList.java#214
+        var addDexPath = pathList.getClass().getDeclaredMethod("addDexPath", String.class, File.class);
+        addDexPath.setAccessible(true);
+        addDexPath.invoke(pathList, dex.getAbsolutePath(), (File) null);
 
-        var dexElements1 = (Object[]) dexElementsField.get(nativeClassLoaderPathList);
-        var dexElements2 = (Object[]) dexElementsField.get(pathListField.get(mClassLoader));
-        int dexElements1Size = dexElements1.length;
-        int dexElements2Size = dexElements2.length;
-
-        var joinedDexElements = (Object[]) Array.newInstance(dexElements1.getClass().getComponentType(), dexElements1Size + dexElements2Size);
-        System.arraycopy(dexElements1, 0, joinedDexElements, 0, dexElements1Size);
-        System.arraycopy(dexElements2, 0, joinedDexElements, dexElements1Size, dexElements2Size);
-
-        dexElementsField.set(nativeClassLoaderPathList, joinedDexElements);
         Logger.d("Successfully added Aliucord to the classpath");
     }
 
