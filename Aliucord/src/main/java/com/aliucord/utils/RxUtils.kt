@@ -17,10 +17,34 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
+/**
+ * Instructs an Observable that is emitting items faster than its observer can consume them to buffer these
+ * items indefinitely until they can be emitted.
+ *
+ * [preview image](https://raw.github.com/wiki/ReactiveX/RxJava/images/rx-operators/bp.obp.buffer.png "preview image")
+ *
+ * **`Backpressure`**:
+ *
+ * The operator honors backpressure from downstream and consumes the source [Observable] in an unbounded
+ * manner (i.e., not applying backpressure to it).
+ *
+ * **`Scheduler`**:
+ *
+ * [onBackpressureBuffer] does not operate by default on a particular [Scheduler].
+ *
+ * @return the source [Observable] modified to buffer items to the extent system resources allow
+ * @see [ReactiveX operators documentation: backpressure operators](http://reactivex.io/documentation/operators/backpressure.html)
+ */
 fun <T> Observable<T>.onBackpressureBuffer(): Observable<T> = J()
 
-/** Subscribe to the [Observable] */
-fun <T> Observable<T>.subscribe(subscriber: Subscriber<in T>): Subscription = T(subscriber)
+/**
+ * Subscribe to the [Observable]
+ *
+ * @param subscriber the [Subscriber] that will handle emissions and notifications from the Observable
+ * @return created [Subscription]
+ * @see [ReactiveX operators documentation: Subscribe](http://reactivex.io/documentation/operators/subscribe.html)
+ */
+fun <T> Observable<T>.subscribe(subscriber: Subscriber<in T>): Subscription = this.T(subscriber)
 
 /**
  * Blocks the current thread and waits for the [Observable] to complete, then returns a [Pair] containing the result, and the error (if any)
