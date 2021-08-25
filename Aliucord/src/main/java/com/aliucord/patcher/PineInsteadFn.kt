@@ -11,7 +11,7 @@ import top.canyie.pine.Pine.CallFrame
 import top.canyie.pine.callback.MethodHook
 
 /**
- * Calls [top.canyie.pine.Pine.CallFrame] patch block **after** the method has been invoked.
+ * Calls [top.canyie.pine.Pine.CallFrame] patch block **instead of** this method.
  * @param patch Patch block to execute.
  * @see top.canyie.pine.Pine.CallFrame
  */
