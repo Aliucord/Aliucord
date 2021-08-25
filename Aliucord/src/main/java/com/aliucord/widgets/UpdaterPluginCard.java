@@ -21,12 +21,12 @@ import com.aliucord.PluginManager;
 import com.aliucord.Utils;
 import com.aliucord.entities.Plugin;
 import com.aliucord.updater.PluginUpdater;
+import com.aliucord.utils.ChangelogUtils;
 import com.aliucord.utils.DimenUtils;
 import com.aliucord.views.ToolbarButton;
 import com.discord.utilities.color.ColorCompat;
-import com.discord.widgets.changelog.WidgetChangeLog;
 import com.google.android.material.card.MaterialCardView;
-import com.lytefast.flexinput.*;
+import com.lytefast.flexinput.R;
 
 @SuppressLint({"SetTextI18n", "ViewConstructor"})
 public class UpdaterPluginCard extends MaterialCardView {
@@ -76,8 +76,7 @@ public class UpdaterPluginCard extends MaterialCardView {
                 ToolbarButton changeLogButton = new ToolbarButton(context);
                 changeLogButton.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_history_white_24dp));
                 changeLogButton.setPadding(paddingHalf, paddingHalf, paddingHalf, paddingHalf);
-                changeLogButton.setOnClickListener(e ->
-                    WidgetChangeLog.Companion.launch(context, p.name + " v" + info.version, "1", info.changelogMedia != null ? info.changelogMedia : "https://cdn.discordapp.com/banners/169256939211980800/eda024c8f40a45c88265a176f0926bea.jpg?size=2048", info.changelog));
+                changeLogButton.setOnClickListener(e -> ChangelogUtils.show(context, p.name + " v" + info.version, info.changelogMedia, info.changelog));
 
                 GridLayout.LayoutParams clParams = new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(0));
                 clParams.setGravity(Gravity.CENTER_VERTICAL);
