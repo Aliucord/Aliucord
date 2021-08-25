@@ -6,7 +6,6 @@
 
 package com.aliucord.patcher
 
-import rx.functions.Action1
 import top.canyie.pine.Pine.CallFrame
 import top.canyie.pine.callback.MethodHook
 
