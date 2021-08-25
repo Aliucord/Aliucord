@@ -4,22 +4,9 @@
  * Licensed under the Open Software License version 3.0
  */
 
-@file:JvmName("StaticImageWrapper")
 package com.aliucord.wrappers.embeds
 
 import com.discord.api.message.embed.EmbedImage
-
-val EmbedImage.url: String
-  get() = c()
-
-val EmbedImage.proxyUrl: String
-  get() = b()
-
-val EmbedImage.height: Int?
-  get() = a()
-
-val EmbedImage.width: Int?
-  get() = d()
 
 /**
  * Wraps the obfuscated [EmbedImage] class to provide nice method names and require only one central
@@ -44,35 +31,19 @@ class ImageWrapper(private val image: EmbedImage) {
 
   companion object {
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticImageWrapper.getUrl\nFor kotlin: use image.url",
-      ReplaceWith("image.url"),
-      DeprecationLevel.ERROR,
-    )
-    fun getUrl(image: EmbedImage) = image.url
+    val EmbedImage.url: String
+      get() = c()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticImageWrapper.getProxyUrl\nFor kotlin: use image.proxyUrl",
-      ReplaceWith("image.proxyUrl"),
-      DeprecationLevel.ERROR,
-    )
-    fun getProxyUrl(image: EmbedImage) = image.proxyUrl
+    val EmbedImage.proxyUrl: String
+      get() = b()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticImageWrapper.getHeight\nFor kotlin: use image.height",
-      ReplaceWith("image.height"),
-      DeprecationLevel.ERROR,
-    )
-    fun getHeight(image: EmbedImage) = image.height
+    val EmbedImage.height: Int?
+      get() = a()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticImageWrapper.getWidth\nFor kotlin: use image.width",
-      ReplaceWith("image.width"),
-      DeprecationLevel.ERROR,
-    )
-    fun getWidth(image: EmbedImage) = image.width
+    val EmbedImage.width: Int?
+      get() = d()
   }
 }

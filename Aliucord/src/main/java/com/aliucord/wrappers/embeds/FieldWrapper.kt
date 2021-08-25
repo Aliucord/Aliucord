@@ -4,21 +4,9 @@
  * Licensed under the Open Software License version 3.0
  */
 
-@file:JvmName("StaticFieldWrapper")
 package com.aliucord.wrappers.embeds
 
 import com.discord.api.message.embed.EmbedField
-
-val EmbedField.name: String
-  get() = a()
-
-val EmbedField.value: String
-  get() = b()
-
-private val inlineField = EmbedField::class.java.getDeclaredField("inline").apply { isAccessible = true }
-@get:JvmName("isInline")
-val EmbedField.inline
-  get() = inlineField[this] as Boolean? == java.lang.Boolean.TRUE
 
 /**
  * Wraps the obfuscated [EmbedField] class to provide nice method names and require only one central
@@ -40,27 +28,18 @@ class FieldWrapper(private val field: EmbedField) {
 
   companion object {
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticFieldWrapper.getName\nFor kotlin: use field.name",
-      ReplaceWith("field.name"),
-      DeprecationLevel.ERROR,
-    )
-    fun getName(field: EmbedField) = field.name
+    val EmbedField.name: String
+      get() = a()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticFieldWrapper.getValue\nFor kotlin: use field.value",
-      ReplaceWith("field.value"),
-      DeprecationLevel.ERROR,
-    )
-    fun getValue(field: EmbedField) = field.value
+    val EmbedField.value: String
+      get() = b()
+
+    private val inlineField = EmbedField::class.java.getDeclaredField("inline").apply { isAccessible = true }
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticFieldWrapper.isInline\nFor kotlin: use field.inline",
-      ReplaceWith("field.inline"),
-      DeprecationLevel.ERROR,
-    )
-    fun isInline(field: EmbedField) = field.inline
+    @get:JvmName("isInline")
+    val EmbedField.inline
+      get() = inlineField[this] as Boolean? == java.lang.Boolean.TRUE
   }
 }

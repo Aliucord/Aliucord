@@ -4,7 +4,6 @@
  * Licensed under the Open Software License version 3.0
  */
 
-@file:JvmName("StaticGuildWrapper")
 package com.aliucord.wrappers
 
 import com.discord.api.channel.Channel
@@ -16,126 +15,6 @@ import com.discord.api.guildscheduledevent.GuildScheduledEvent
 import com.discord.api.presence.Presence
 import com.discord.api.role.GuildRole
 import com.discord.api.sticker.Sticker
-
-val Guild.afkChannelId: Long?
-  get() = b()
-
-val Guild.afkTimeout
-  get() = c()
-
-val Guild.approximatePresenceCount
-  get() = d()
-
-val Guild.banner: String?
-  get() = e()
-
-val Guild.channelUpdates: List<Channel>
-  get() = f()
-
-val Guild.channels: List<Channel>
-  get() = g()
-
-val Guild.defaultMessageNotifications: Int?
-  get() = h()
-
-val Guild.description: String?
-  get() = i()
-
-val Guild.emojis: List<GuildEmoji>
-  get() = j()
-
-val Guild.explicitContentFilter: GuildExplicitContentFilter?
-  get() = k()
-
-val Guild.features: List<GuildFeature>
-  get() = l()
-
-val Guild.hashes: GuildHashes
-  get() = m()
-
-val Guild.scheduledEvents: List<GuildScheduledEvent>
-  get() = n()
-
-val Guild.icon: String?
-  get() = o()
-
-val Guild.id
-  get() = p()
-
-val Guild.joinedAt: String?
-  get() = q()
-
-val Guild.maxVideoChannelUsers: GuildMaxVideoChannelUsers?
-  get() = r()
-
-val Guild.approxMemberCount
-  get() = s()
-
-val Guild.cachedMembers: List<GuildMember>
-  get() = t()
-
-val Guild.mfaLevel
-  get() = u()
-
-val Guild.name: String
-  get() = v()
-
-@get:JvmName("isNsfw")
-val Guild.nsfw
-  get() = w()
-
-val Guild.ownerId
-  get() = x()
-
-val Guild.preferredLocale: String?
-  get() = y()
-
-val Guild.premiumSubscriptionCount
-  get() = z()
-
-val Guild.premiumTier
-  get() = A()
-
-val Guild.presences: List<Presence>
-  get() = B()
-
-val Guild.publicUpdatesChannelId: Long?
-  get() = C()
-
-val Guild.region: String?
-  get() = D()
-
-val Guild.roles: List<GuildRole>
-  get() = E()
-
-val Guild.rulesChannelId: Long?
-  get() = F()
-
-val Guild.splash: String?
-  get() = G()
-
-val Guild.stickers: List<Sticker>
-  get() = I()
-
-val Guild.systemChannelFlags
-  get() = J()
-
-val Guild.systemChannelId: Long?
-  get() = K()
-
-val Guild.threads: List<Channel>
-  get() = L()
-
-@get:JvmName("isUnavailable")
-val Guild.unavailable
-  get() = M()
-
-val Guild.vanityUrlCode: String?
-  get() = N()
-
-val Guild.verificationLevel: GuildVerificationLevel
-  get() = O()
-
 
 /**
  * Wraps the obfuscated [Guild] class to provide nice method names and require only one central
@@ -270,315 +149,161 @@ class GuildWrapper(private val guild: Guild) {
 
   companion object {
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getAfkChannelId\nFor kotlin: use guild.afkChannelId",
-      ReplaceWith("guild.afkChannelId"),
-      DeprecationLevel.ERROR,
-    )
-    fun getAfkChannelId(guild: Guild) = guild.afkChannelId
+    val Guild.afkChannelId: Long?
+      get() = b()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getAfkTimeout\nFor kotlin: use guild.afkTimeout",
-      ReplaceWith("guild.afkTimeout"),
-      DeprecationLevel.ERROR,
-    )
-    fun getAfkTimeout(guild: Guild) = guild.afkTimeout
+    val Guild.afkTimeout
+      get() = c()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getApproximatePresenceCount\nFor kotlin: use guild.approximatePresenceCount",
-      ReplaceWith("guild.approximatePresenceCount"),
-      DeprecationLevel.ERROR,
-    )
-    fun getApproximatePresenceCount(guild: Guild) = guild.approximatePresenceCount
+    val Guild.approximatePresenceCount
+      get() = d()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getBanner\nFor kotlin: use guild.banner",
-      ReplaceWith("guild.banner"),
-      DeprecationLevel.ERROR,
-    )
-    fun getBanner(guild: Guild) = guild.banner
+    val Guild.banner: String?
+      get() = e()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getChannelUpdates\nFor kotlin: use guild.channelUpdates",
-      ReplaceWith("guild.channelUpdates"),
-      DeprecationLevel.ERROR,
-    )
-    fun getChannelUpdates(guild: Guild) = guild.channelUpdates
+    val Guild.channelUpdates: List<Channel>
+      get() = f()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getChannels\nFor kotlin: use guild.channels",
-      ReplaceWith("guild.channels"),
-      DeprecationLevel.ERROR,
-    )
-    fun getChannels(guild: Guild) = guild.channels
+    val Guild.channels: List<Channel>
+      get() = g()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getDefaultMessageNotifications\nFor kotlin: use guild.defaultMessageNotifications",
-      ReplaceWith("guild.defaultMessageNotifications"),
-      DeprecationLevel.ERROR,
-    )
-    fun getDefaultMessageNotifications(guild: Guild) = guild.defaultMessageNotifications
+    val Guild.defaultMessageNotifications: Int?
+      get() = h()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getDescription\nFor kotlin: use guild.description",
-      ReplaceWith("guild.description"),
-      DeprecationLevel.ERROR,
-    )
-    fun getDescription(guild: Guild) = guild.description
+    val Guild.description: String?
+      get() = i()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getEmojis\nFor kotlin: use guild.emojis",
-      ReplaceWith("guild.emojis"),
-      DeprecationLevel.ERROR,
-    )
-    fun getEmojis(guild: Guild) = guild.emojis
+    val Guild.emojis: List<GuildEmoji>
+      get() = j()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getExplicitContentFilter\nFor kotlin: use guild.explicitContentFilter",
-      ReplaceWith("guild.explicitContentFilter"),
-      DeprecationLevel.ERROR,
-    )
-    fun getExplicitContentFilter(guild: Guild) = guild.explicitContentFilter
+    val Guild.explicitContentFilter: GuildExplicitContentFilter?
+      get() = k()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getFeatures\nFor kotlin: use guild.features",
-      ReplaceWith("guild.features"),
-      DeprecationLevel.ERROR,
-    )
-    fun getFeatures(guild: Guild) = guild.features
+    val Guild.features: List<GuildFeature>
+      get() = l()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getGuildHashes\nFor kotlin: use guild.hashes",
-      ReplaceWith("guild.hashes"),
-      DeprecationLevel.ERROR,
-    )
-    fun getGuildHashes(guild: Guild) = guild.hashes
+    val Guild.hashes: GuildHashes
+      get() = m()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getScheduledEvents\nFor kotlin: use guild.scheduledEvents",
-      ReplaceWith("guild.scheduledEvents"),
-      DeprecationLevel.ERROR,
-    )
-    fun getScheduledEvents(guild: Guild) = guild.scheduledEvents
+    val Guild.scheduledEvents: List<GuildScheduledEvent>
+      get() = n()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getIcon\nFor kotlin: use guild.icon",
-      ReplaceWith("guild.icon"),
-      DeprecationLevel.ERROR,
-    )
-    fun getIcon(guild: Guild) = guild.icon
+    val Guild.icon: String?
+      get() = o()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getId\nFor kotlin: use guild.id",
-      ReplaceWith("guild.id"),
-      DeprecationLevel.ERROR,
-    )
-    fun getId(guild: Guild) = guild.id
+    val Guild.id
+      get() = p()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getJoinedAt\nFor kotlin: use guild.joinedAt",
-      ReplaceWith("guild.joinedAt"),
-      DeprecationLevel.ERROR,
-    )
-    fun getJoinedAt(guild: Guild) = guild.joinedAt
+    val Guild.joinedAt: String?
+      get() = q()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getMaxVideoChannelUsers\nFor kotlin: use guild.maxVideoChannelUsers",
-      ReplaceWith("guild.maxVideoChannelUsers"),
-      DeprecationLevel.ERROR,
-    )
-    fun getMaxVideoChannelUsers(guild: Guild) = guild.maxVideoChannelUsers
+    val Guild.maxVideoChannelUsers: GuildMaxVideoChannelUsers?
+      get() = r()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getApproxMemberCount\nFor kotlin: use guild.approxMemberCount",
-      ReplaceWith("guild.approxMemberCount"),
-      DeprecationLevel.ERROR,
-    )
-    fun getApproxMemberCount(guild: Guild) = guild.approxMemberCount
+    val Guild.approxMemberCount
+      get() = s()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getCachedMembers\nFor kotlin: use guild.cachedMembers",
-      ReplaceWith("guild.cachedMembers"),
-      DeprecationLevel.ERROR,
-    )
-    fun getCachedMembers(guild: Guild) = guild.cachedMembers
+    val Guild.cachedMembers: List<GuildMember>
+      get() = t()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getMfaLevel\nFor kotlin: use guild.mfaLevel",
-      ReplaceWith("guild.mfaLevel"),
-      DeprecationLevel.ERROR,
-    )
-    fun getMfaLevel(guild: Guild) = guild.mfaLevel
+    val Guild.mfaLevel
+      get() = u()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getName\nFor kotlin: use guild.name",
-      ReplaceWith("guild.name"),
-      DeprecationLevel.ERROR,
-    )
-    fun getName(guild: Guild) = guild.name
+    val Guild.name: String
+      get() = v()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.isNsfw\nFor kotlin: use guild.nsfw",
-      ReplaceWith("guild.nsfw"),
-      DeprecationLevel.ERROR,
-    )
-    fun isNsfw(guild: Guild) = guild.nsfw
+    @get:JvmName("isNsfw")
+    val Guild.nsfw
+      get() = w()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getOwnerId\nFor kotlin: use guild.ownerId",
-      ReplaceWith("guild.ownerId"),
-      DeprecationLevel.ERROR,
-    )
-    fun getOwnerId(guild: Guild) = guild.ownerId
+    val Guild.ownerId
+      get() = x()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getPreferredLocale\nFor kotlin: use guild.preferredLocale",
-      ReplaceWith("guild.preferredLocale"),
-      DeprecationLevel.ERROR,
-    )
-    fun getPreferredLocale(guild: Guild) = guild.preferredLocale
+    val Guild.preferredLocale: String?
+      get() = y()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getPremiumSubscriptionCount\nFor kotlin: use guild.premiumSubscriptionCount",
-      ReplaceWith("guild.premiumSubscriptionCount"),
-      DeprecationLevel.ERROR,
-    )
-    fun getPremiumSubscriptionCount(guild: Guild) = guild.premiumSubscriptionCount
+    val Guild.premiumSubscriptionCount
+      get() = z()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getPremiumTier\nFor kotlin: use guild.premiumTier",
-      ReplaceWith("guild.premiumTier"),
-      DeprecationLevel.ERROR,
-    )
-    fun getPremiumTier(guild: Guild) = guild.premiumTier
+    val Guild.premiumTier
+      get() = A()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getPresences\nFor kotlin: use guild.presences",
-      ReplaceWith("guild.presences"),
-      DeprecationLevel.ERROR,
-    )
-    fun getPresences(guild: Guild) = guild.presences
+    val Guild.presences: List<Presence>
+      get() = B()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getPublicUpdatesChannelId\nFor kotlin: use guild.publicUpdatesChannelId",
-      ReplaceWith("guild.publicUpdatesChannelId"),
-      DeprecationLevel.ERROR,
-    )
-    fun getPublicUpdatesChannelId(guild: Guild) = guild.publicUpdatesChannelId
+    val Guild.publicUpdatesChannelId: Long?
+      get() = C()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getRegion\nFor kotlin: use guild.region",
-      ReplaceWith("guild.region"),
-      DeprecationLevel.ERROR,
-    )
-    fun getRegion(guild: Guild) = guild.region
+    val Guild.region: String?
+      get() = D()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getRoles\nFor kotlin: use guild.roles",
-      ReplaceWith("guild.roles"),
-      DeprecationLevel.ERROR,
-    )
-    fun getRoles(guild: Guild) = guild.roles
+    val Guild.roles: List<GuildRole>
+      get() = E()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getRulesChannelId\nFor kotlin: use guild.rulesChannelId",
-      ReplaceWith("guild.rulesChannelId"),
-      DeprecationLevel.ERROR,
-    )
-    fun getRulesChannelId(guild: Guild) = guild.rulesChannelId
+    val Guild.rulesChannelId: Long?
+      get() = F()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getSplash\nFor kotlin: use guild.splash",
-      ReplaceWith("guild.splash"),
-      DeprecationLevel.ERROR,
-    )
-    fun getSplash(guild: Guild) = guild.splash
+    val Guild.splash: String?
+      get() = G()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getStickers\nFor kotlin: use guild.stickers",
-      ReplaceWith("guild.stickers"),
-      DeprecationLevel.ERROR,
-    )
-    fun getStickers(guild: Guild) = guild.stickers
+    val Guild.stickers: List<Sticker>
+      get() = I()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getSystemChannelFlags\nFor kotlin: use guild.systemChannelFlags",
-      ReplaceWith("guild.systemChannelFlags"),
-      DeprecationLevel.ERROR,
-    )
-    fun getSystemChannelFlags(guild: Guild) = guild.systemChannelFlags
+    val Guild.systemChannelFlags
+      get() = J()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getSystemChannelId\nFor kotlin: use guild.systemChannelId",
-      ReplaceWith("guild.systemChannelId"),
-      DeprecationLevel.ERROR,
-    )
-    fun getSystemChannelId(guild: Guild) = guild.systemChannelId
+    val Guild.systemChannelId: Long?
+      get() = K()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getThreads\nFor kotlin: use guild.threads",
-      ReplaceWith("guild.threads"),
-      DeprecationLevel.ERROR,
-    )
-    fun getThreads(guild: Guild) = guild.threads
+    val Guild.threads: List<Channel>
+      get() = L()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.isUnavailable\nFor kotlin: use guild.unavailable",
-      ReplaceWith("guild.unavailable"),
-      DeprecationLevel.ERROR,
-    )
-    fun isUnavailable(guild: Guild) = guild.unavailable
+    @get:JvmName("isUnavailable")
+    val Guild.unavailable
+      get() = M()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getVanityUrlCode\nFor kotlin: use guild.vanityUrlCode",
-      ReplaceWith("guild.vanityUrlCode"),
-      DeprecationLevel.ERROR,
-    )
-    fun getVanityUrlCode(guild: Guild) = guild.vanityUrlCode
+    val Guild.vanityUrlCode: String?
+      get() = N()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticGuildWrapper.getVerificationLevel\nFor kotlin: use guild.verificationLevel",
-      ReplaceWith("guild.verificationLevel"),
-      DeprecationLevel.ERROR,
-    )
-    fun getVerificationLevel(guild: Guild) = guild.verificationLevel
+    val Guild.verificationLevel: GuildVerificationLevel
+      get() = O()
   }
 }

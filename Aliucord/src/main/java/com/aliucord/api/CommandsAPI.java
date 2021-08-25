@@ -15,7 +15,7 @@ import com.aliucord.*;
 import com.aliucord.entities.CommandContext;
 import com.aliucord.entities.Plugin;
 import com.aliucord.utils.ReflectUtils;
-import com.aliucord.wrappers.StaticChannelWrapper;
+import com.aliucord.wrappers.ChannelWrapper;
 import com.discord.api.commands.ApplicationCommandData;
 import com.discord.api.commands.ApplicationCommandType;
 import com.discord.api.message.MessageFlags;
@@ -212,7 +212,7 @@ public class CommandsAPI {
                             ReflectUtils.setField(c, commandMessage, "interaction", thinkingMsg.getInteraction());
 
                             // TODO: add arguments
-                            long guildId = StaticChannelWrapper.getGuildId(StoreStream.getChannels().getChannel(channelId));
+                            long guildId = ChannelWrapper.getGuildId(StoreStream.getChannels().getChannel(channelId));
                             interactionsStore.put(id, new WidgetApplicationCommandBottomSheetViewModel.StoreState(
                                 me,
                                 guildId == 0 ? null : StoreStream.getGuilds().getMembers().get(guildId).get(me.getId()),

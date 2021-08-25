@@ -4,22 +4,9 @@
  * Licensed under the Open Software License version 3.0
  */
 
-@file:JvmName("StaticVideoWrapper")
 package com.aliucord.wrappers.embeds
 
 import com.discord.api.message.embed.EmbedVideo
-
-val EmbedVideo.url: String
-  get() = c()
-
-val EmbedVideo.proxyUrl: String
-  get() = b()
-
-val EmbedVideo.height: Int?
-  get() = a()
-
-val EmbedVideo.width: Int?
-  get() = d()
 
 /**
  * Wraps the obfuscated [EmbedVideo] class to provide nice method names and require only one central
@@ -44,35 +31,19 @@ class VideoWrapper(private val video: EmbedVideo) {
 
   companion object {
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticVideoWrapper.getUrl\nFor kotlin: use video.url",
-      ReplaceWith("video.url"),
-      DeprecationLevel.ERROR,
-    )
-    fun getUrl(video: EmbedVideo) = video.url
+    val EmbedVideo.url: String
+      get() = c()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticVideoWrapper.getProxyUrl\nFor kotlin: use video.proxyUrl",
-      ReplaceWith("video.proxyUrl"),
-      DeprecationLevel.ERROR,
-    )
-    fun getProxyUrl(video: EmbedVideo) = video.proxyUrl
+    val EmbedVideo.proxyUrl: String
+      get() = b()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticVideoWrapper.getHeight\nFor kotlin: use video.height",
-      ReplaceWith("video.height"),
-      DeprecationLevel.ERROR,
-    )
-    fun getHeight(video: EmbedVideo) = video.height
+    val EmbedVideo.height: Int?
+      get() = a()
 
     @JvmStatic
-    @Deprecated(
-      "For java: use StaticVideoWrapper.getWidth\nFor kotlin: use video.width",
-      ReplaceWith("video.width"),
-      DeprecationLevel.ERROR,
-    )
-    fun getWidth(video: EmbedVideo) = video.width
+    val EmbedVideo.width: Int?
+      get() = d()
   }
 }
