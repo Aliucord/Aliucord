@@ -30,8 +30,6 @@ import top.canyie.pine.callback.MethodReplacement
 
 @Suppress("UNCHECKED_CAST")
 internal class CommandHandler : Plugin() {
-  override fun getManifest() = Manifest()
-
   override fun load(context: Context) {
     Patcher.addPatch(BuiltInCommands::class.java, "getBuiltInCommands", emptyArray(), PinePatchFn {
       val list = it.result.run { if (this == null) return@PinePatchFn else this as MutableList<ApplicationCommand?> }
@@ -146,6 +144,6 @@ internal class CommandHandler : Plugin() {
     }
   }
 
-  override fun start(context: Context?) {}
-  override fun stop(context: Context?) {}
+  override fun start(context: Context) {}
+  override fun stop(context: Context) {}
 }

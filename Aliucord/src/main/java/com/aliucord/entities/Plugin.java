@@ -51,6 +51,8 @@ public abstract class Plugin {
             public String toString() { return name; }
         }
 
+        public String name;
+        public String pluginClassName;
         /** The authors of this plugin */
         public Author[] authors = new Author[]{};
         /** A short description of this plugin */
@@ -63,7 +65,7 @@ public abstract class Plugin {
         /** Changelog featuring recent updates, written in markdown */
         public String changelog;
         /** Image or video link that will be displayed at the top of the changelog */
-        public String changelogMedia = "https://cdn.discordapp.com/banners/169256939211980800/eda024c8f40a45c88265a176f0926bea.jpg?size=2048";
+        public String changelogMedia;
     }
 
     /** Plugin SettingsTab */
@@ -117,9 +119,18 @@ public abstract class Plugin {
         }
     }
 
+    private Manifest manifest;
+
     /** Method returning the {@link Manifest} of your Plugin */
     @NonNull
-    public abstract Manifest getManifest();
+    public Manifest getManifest() {
+        return manifest;
+    }
+
+    // TODO make this internal, somehow
+    public void setManifest(Manifest manifest) {
+        this.manifest = manifest;
+    }
 
     /**
      * Called when your Plugin is loaded
@@ -147,7 +158,12 @@ public abstract class Plugin {
     public abstract void stop(Context context) throws Throwable;
 
     /** Name of this plugin. Defaults to the class name */
+    @Deprecated
     public String name = this.getClass().getSimpleName();
+
+    public String getName() {
+        return manifest.name;
+    }
 
     /** SettingsTab associated with this plugin. Set this to register a settings page */
     public SettingsTab settingsTab;

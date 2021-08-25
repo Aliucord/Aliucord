@@ -172,11 +172,18 @@ public final class Main {
                     String badPlugin = null;
                     for (StackTraceElement ele : throwable.getStackTrace()) {
                         String className = ele.getClassName();
-                        if (!className.startsWith("com.aliucord.plugins.")) continue;
-                        String plugin = className.replace("com.aliucord.plugins.", "").replaceAll("\\..+", "");
-                        if (PluginManager.plugins.containsKey(plugin)) {
-                            badPlugin = plugin;
-                            SettingsUtils.setBool(PluginManager.getPluginPrefKey(plugin), false);
+
+                        for (Map.Entry<PathClassLoader, Plugin> entry : PluginManager.classLoaders.entrySet()) {
+                            try {
+                                entry.getKey().loadClass(className);
+                                badPlugin = entry.getValue().getName();
+                                SettingsUtils.setBool(PluginManager.getPluginPrefKey(badPlugin), false);
+                                break;
+                            } catch (ClassNotFoundException ignored) {
+                            }
+                        }
+
+                        if (badPlugin != null) {
                             break;
                         }
                     }

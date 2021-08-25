@@ -11,11 +11,9 @@ import android.content.res.AssetManager;
 import android.content.res.Resources;
 
 import com.aliucord.entities.Plugin;
-import com.aliucord.utils.IOUtils;
-import com.aliucord.utils.MapUtils;
+import com.aliucord.utils.*;
 
-import java.io.File;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -25,6 +23,7 @@ import dalvik.system.PathClassLoader;
 public class PluginManager {
     /** Map containing all loaded plugins */
     public static final Map<String, Plugin> plugins = new HashMap<>();
+    public static final Map<PathClassLoader, Plugin> classLoaders = new HashMap<>();
     public static final Logger logger = new Logger("PM");
 
     /**
@@ -34,34 +33,66 @@ public class PluginManager {
      */
     @SuppressWarnings({"JavaReflectionMemberAccess", "unchecked"})
     public static void loadPlugin(Context context, File file) {
-        String name = file.getName().replace(".zip", "");
-        logger.info("Loading plugin: " + name);
+        String fileName = file.getName().replace(".zip", "");
+        logger.info("Loading plugin: " + fileName);
         try {
             PathClassLoader loader = new PathClassLoader(file.getAbsolutePath(), context.getClassLoader());
-            InputStream stream = loader.getResourceAsStream("ac-plugin");
-            String pName = stream == null ? name : new String(IOUtils.readBytes(stream));
-            if (plugins.containsKey(pName)) {
-                logger.warn("Plugin with name " + pName + " already exists");
+
+            InputStream stream;
+
+            Plugin.Manifest manifest;
+            String name;
+
+            Class<? extends Plugin> pluginClass;
+            Plugin pluginInstance;
+
+            if ((stream = loader.getResourceAsStream("manifest.json")) != null) {
+                manifest = GsonUtils.gson.e(new InputStreamReader(stream), Plugin.Manifest.class);
+                name = manifest.name;
+
+                pluginClass = (Class<? extends Plugin>) loader.loadClass(manifest.pluginClassName);
+                pluginInstance = pluginClass.newInstance();
+
+                pluginInstance.setManifest(manifest);
+                pluginInstance.name = manifest.name;
+            } else if ((stream = loader.getResourceAsStream("ac-plugin")) != null) {
+                name = new String(IOUtils.readBytes(stream));
+
+                pluginClass = (Class<? extends Plugin>) loader.loadClass("com.aliucord.plugins." + name);
+                pluginInstance = pluginClass.newInstance();
+
+                manifest = pluginInstance.getManifest();
+
+                //noinspection ConstantConditions
+                if (manifest == null) {
+                    logger.error(context, "Invalid manifest for plugin: " + name, null);
+                    return;
+                }
+
+                manifest.name = pluginInstance.name;
+                pluginInstance.setManifest(manifest);
+            } else {
+                logger.error(context, "No manifest found for plugin: " + fileName, null);
                 return;
             }
-            Class<? extends Plugin> plugin = (Class<? extends Plugin>) loader.loadClass("com.aliucord.plugins." + pName);
-            Plugin p = plugin.newInstance();
-            p.__filename = name;
-            //noinspection ConstantConditions
-            if (p.getManifest() == null) {
-                logger.error(context, "Invalid manifest for plugin: " + pName, null);
+
+            if (plugins.containsKey(name)) {
+                logger.warn("Plugin with name " + name + " already exists");
                 return;
             }
-            if (p.needsResources) {
+
+            pluginInstance.__filename = fileName;
+            if (pluginInstance.needsResources) {
                 // based on https://stackoverflow.com/questions/7483568/dynamic-resource-loading-from-other-apk
                 AssetManager assets = AssetManager.class.newInstance();
                 Method addAssetPath = AssetManager.class.getMethod("addAssetPath", String.class);
                 addAssetPath.invoke(assets, file.getAbsolutePath());
-                p.resources = new Resources(assets, context.getResources().getDisplayMetrics(), context.getResources().getConfiguration());
+                pluginInstance.resources = new Resources(assets, context.getResources().getDisplayMetrics(), context.getResources().getConfiguration());
             }
-            plugins.put(pName, p);
-            p.load(context);
-        } catch (Throwable e) { logger.error(context, "Failed to load plugin: " + name, e); }
+            plugins.put(name, pluginInstance);
+            classLoaders.put(loader, pluginInstance);
+            pluginInstance.load(context);
+        } catch (Throwable e) { logger.error(context, "Failed to load plugin: " + fileName, e); }
     }
 
     /**
