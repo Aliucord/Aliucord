@@ -13,14 +13,15 @@ import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Looper;
+import android.os.Parcelable;
 import android.text.*;
 import android.text.style.AbsoluteSizeSpan;
 import android.view.View;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
 
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
@@ -31,13 +32,17 @@ import com.aliucord.coreplugins.CorePlugins;
 import com.aliucord.patcher.*;
 import com.aliucord.settings.*;
 import com.aliucord.updater.PluginUpdater;
+import com.aliucord.utils.ChangelogUtils;
 import com.aliucord.views.Divider;
+import com.aliucord.views.ToolbarButton;
 import com.discord.app.AppActivity;
 import com.discord.app.AppLog;
+import com.discord.databinding.WidgetChangeLogBinding;
 import com.discord.databinding.WidgetDebuggingAdapterItemBinding;
 import com.discord.models.domain.emoji.ModelEmojiUnicode;
 import com.discord.stores.StoreInviteSettings;
 import com.discord.utilities.color.ColorCompat;
+import com.discord.widgets.changelog.WidgetChangeLog;
 import com.discord.widgets.debugging.WidgetDebugging;
 import com.discord.widgets.guilds.invite.WidgetGuildInvite;
 import com.discord.widgets.settings.WidgetSettings;
@@ -143,6 +148,52 @@ public final class Main {
                     callFrame.setResult("res:///" + Utils.getResId(name, "raw"));
                 })
         );
+
+        // Patch to allow changelogs without media
+        Patcher.addPatch(WidgetChangeLog.class, "configureMedia", new Class<?>[]{String.class}, new PinePrePatchFn(callFrame -> {
+            WidgetChangeLog _this = (WidgetChangeLog) callFrame.thisObject;
+            String media = _this.getMostRecentIntent().getStringExtra("INTENT_EXTRA_VIDEO");
+
+            if (media == null) {
+                WidgetChangeLogBinding binding = WidgetChangeLog.access$getBinding$p(_this);
+                binding.i.setVisibility(View.GONE); // changeLogVideoOverlay
+                binding.h.setVisibility(View.GONE); // changeLogVideo
+                callFrame.setResult(null);
+            }
+        }));
+
+        // Patch for custom footer actions
+        Patcher.addPatch(WidgetChangeLog.class, "configureFooter", new Class<?>[0], new PinePrePatchFn(callFrame -> {
+            WidgetChangeLog _this = (WidgetChangeLog) callFrame.thisObject;
+            WidgetChangeLogBinding binding = WidgetChangeLog.access$getBinding$p(_this);
+
+            Parcelable[] actions = _this.getMostRecentIntent().getParcelableArrayExtra("INTENT_EXTRA_FOOTER_ACTIONS");
+
+            if (actions == null) {
+                return;
+            }
+
+            AppCompatImageButton twitterButton = binding.g;
+            LinearLayout parent = (LinearLayout) twitterButton.getParent();
+
+            parent.removeAllViewsInLayout();
+
+            for (Parcelable parcelable : actions) {
+                ChangelogUtils.FooterAction action = ((ChangelogUtils.FooterAction) parcelable);
+
+                ToolbarButton button = new ToolbarButton(parent.getContext());
+                button.setImageDrawable(ContextCompat.getDrawable(parent.getContext(), action.getDrawableResourceId()), false);
+
+                button.setPadding(twitterButton.getPaddingLeft(), twitterButton.getPaddingTop(), twitterButton.getPaddingRight(), twitterButton.getPaddingBottom());
+                button.setLayoutParams(twitterButton.getLayoutParams());
+
+                button.setOnClickListener(v -> Utils.launchUrl(action.getUrl()));
+
+                parent.addView(button);
+            }
+
+            callFrame.setResult(null);
+        }));
 
         // add stacktraces in debug logs page
         try {
