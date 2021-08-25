@@ -28,6 +28,7 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.core.widget.NestedScrollView;
 
 import com.aliucord.coreplugins.CorePlugins;
+import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.*;
 import com.aliucord.settings.*;
 import com.aliucord.updater.PluginUpdater;
@@ -45,8 +46,9 @@ import com.discord.widgets.settings.WidgetSettings;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.*;
+
+import dalvik.system.PathClassLoader;
 
 @SuppressWarnings("ConstantConditions")
 public final class Main {
