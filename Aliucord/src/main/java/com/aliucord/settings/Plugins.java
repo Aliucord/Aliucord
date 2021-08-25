@@ -213,7 +213,7 @@ public class Plugins extends SettingsPage {
             Plugin.Manifest manifest = p.getManifest();
             if (manifest.changelog != null) {
                 String url = getGithubUrl(p);
-                ChangelogUtils.show(ctx, p.getName() + " v" + manifest.version, manifest.changelogMedia, manifest.changelog, new ChangelogUtils.FooterAction(com.lytefast.flexinput.R.d.ic_github_white, url));
+                ChangelogUtils.show(ctx, p.name + " v" + manifest.version, manifest.changelogMedia, manifest.changelog, new ChangelogUtils.FooterAction(com.lytefast.flexinput.R.d.ic_github_white, url));
             }
         }   
 
