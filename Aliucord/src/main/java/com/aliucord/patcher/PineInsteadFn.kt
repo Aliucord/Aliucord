@@ -10,9 +10,9 @@ import top.canyie.pine.Pine.CallFrame
 import top.canyie.pine.callback.MethodHook
 
 /**
- * Calls [top.canyie.pine.Pine.CallFrame] patch block **instead of** this method.
- * @param patch Patch block to execute.
- * @see top.canyie.pine.Pine.CallFrame
+ * Calls [CallFrame] patch block **instead of** this method.
+ * @param callback Patch block to execute.
+ * @see CallFrame
  */
 class PineInsteadFn(private val callback: Function1<CallFrame, Any?>) : MethodHook() {
     override fun beforeCall(callFrame: CallFrame) {
