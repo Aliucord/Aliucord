@@ -138,10 +138,7 @@ public final class Main {
         // Patch to repair built-in emotes is needed because installer doesn't recompile resources,
         // so they stay in package com.discord instead of apk package name
         Patcher.addPatch(ModelEmojiUnicode.class, "getImageUri", new Class<?>[]{String.class, Context.class},
-                new PinePrePatchFn(callFrame -> {
-                    String name = "emoji_" + callFrame.args[0];
-                    callFrame.setResult("res:///" + Utils.getResId(name, "raw"));
-                })
+                new PineInsteadFn(callFrame -> "res:///" + Utils.getResId("emoji_" + callFrame.args[0], "raw"))
         );
 
         // add stacktraces in debug logs page
