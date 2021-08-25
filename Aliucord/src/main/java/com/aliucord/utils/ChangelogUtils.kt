@@ -6,7 +6,7 @@ import android.os.Bundle
 import android.os.Parcel
 import android.os.Parcelable
 import androidx.annotation.DrawableRes
-import c.a.d.j
+import com.aliucord.Utils
 import com.discord.widgets.changelog.WidgetChangeLog
 
 object ChangelogUtils {
@@ -24,7 +24,7 @@ object ChangelogUtils {
         bundle.putString("INTENT_EXTRA_VIDEO", media)
         bundle.putString("INTENT_EXTRA_BODY", body)
         bundle.putParcelableArray("INTENT_EXTRA_FOOTER_ACTIONS", footerActions)
-        j.d(context, WidgetChangeLog::class.java, Intent().putExtras(bundle))
+        Utils.openPage(context, WidgetChangeLog::class.java, Intent().putExtras(bundle))
     }
 
     class FooterAction : Parcelable {
