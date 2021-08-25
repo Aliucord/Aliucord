@@ -40,9 +40,9 @@ object ChangelogUtils {
             parcel.writeString(url)
         }
 
-        private constructor(`in`: Parcel) {
-            drawableResourceId = `in`.readInt()
-            url = `in`.readString()!!
+        private constructor(input: Parcel) {
+            drawableResourceId = input.readInt()
+            url = input.readString()!!
         }
 
         constructor(@DrawableRes drawableResourceId: Int, url: String) {
@@ -54,8 +54,8 @@ object ChangelogUtils {
             @JvmField
             val CREATOR: Parcelable.Creator<FooterAction?> =
                 object : Parcelable.Creator<FooterAction?> {
-                    override fun createFromParcel(`in`: Parcel): FooterAction {
-                        return FooterAction(`in`)
+                    override fun createFromParcel(input: Parcel): FooterAction {
+                        return FooterAction(input)
                     }
 
                     override fun newArray(size: Int): Array<FooterAction?> {
