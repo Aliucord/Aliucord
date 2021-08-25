@@ -48,6 +48,10 @@ fun <T> Observable<T>.getResultBlocking(): Pair<T?, Throwable?> {
     override fun onNext(value: T) = resRef.set(value)
   })
 
+  if (latch.count != 0L) try {
+    latch.await()
+  } catch (ignored: InterruptedException) {}
+
   return Pair(resRef.get(), throwableRef.get())
 }
 
