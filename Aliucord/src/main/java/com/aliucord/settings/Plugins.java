@@ -28,14 +28,12 @@ import com.aliucord.*;
 import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.ConfirmDialog;
 import com.aliucord.fragments.SettingsPage;
-import com.aliucord.utils.DimenUtils;
-import com.aliucord.utils.ReflectUtils;
+import com.aliucord.utils.*;
 import com.aliucord.views.TextInput;
 import com.aliucord.views.ToolbarButton;
 import com.aliucord.widgets.PluginCard;
 import com.discord.app.AppBottomSheet;
 import com.discord.app.AppFragment;
-import com.discord.widgets.changelog.WidgetChangeLog;
 import com.discord.widgets.user.usersheet.WidgetUserSheet;
 import com.lytefast.flexinput.R;
 
@@ -199,19 +197,23 @@ public class Plugins extends SettingsPage {
             return filter;
         }
 
-        public void onGithubClick(int position) {
-            String url = data.get(position)
+        private String getGithubUrl(Plugin plugin) {
+            return plugin
                     .getManifest().updateUrl
                     .replace("raw.githubusercontent.com", "github.com")
                     .replaceFirst("/builds.*", "");
-            Utils.launchUrl(url);
+        }
+
+        public void onGithubClick(int position) {
+            Utils.launchUrl(getGithubUrl(data.get(position)));
         }
 
         public void onChangeLogClick(int position) {
             Plugin p = data.get(position);
             Plugin.Manifest manifest = p.getManifest();
             if (manifest.changelog != null) {
-                WidgetChangeLog.Companion.launch(ctx, p.name + " v" + manifest.version, "1", manifest.changelogMedia, manifest.changelog);
+                String url = getGithubUrl(p);
+                ChangelogUtils.show(ctx, p.name + " v" + manifest.version, manifest.changelogMedia, manifest.changelog, new ChangelogUtils.FooterAction(com.lytefast.flexinput.R.d.ic_github_white, url));
             }
         }   
 
