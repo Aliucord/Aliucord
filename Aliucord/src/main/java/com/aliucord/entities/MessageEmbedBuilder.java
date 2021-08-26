@@ -1,4 +1,5 @@
 /*
+ * This file is part of Aliucord, an Android Discord client mod.
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
@@ -112,11 +113,12 @@ public class MessageEmbedBuilder {
      */
     public MessageEmbedBuilder setAuthor(String name, String iconUrl, String proxyIconUrl) {
         var c = EmbedAuthor.class;
-        var author = Utils.allocateInstance(c);
+        var author = ReflectUtils.allocateInstance(c);
         try {
             ReflectUtils.setField(c, author, "name", name);
             ReflectUtils.setField(c, author, "iconUrl", iconUrl);
             ReflectUtils.setField(c, author, "proxyIconUrl", proxyIconUrl);
+
             setAuthor(author);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
@@ -239,11 +241,12 @@ public class MessageEmbedBuilder {
      */
     public MessageEmbedBuilder setFooter(String text, String iconUrl, String proxyIconUrl) {
         var c = EmbedFooter.class;
-        var footer = Utils.allocateInstance(c);
+        var footer = ReflectUtils.allocateInstance(c);
         try {
             ReflectUtils.setField(c, footer, "text", text);
             ReflectUtils.setField(c, footer, "iconUrl", iconUrl);
             ReflectUtils.setField(c, footer, "proxyIconUrl", proxyIconUrl);
+
             setFooter(footer);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
@@ -294,12 +297,14 @@ public class MessageEmbedBuilder {
      */
     public MessageEmbedBuilder setImage(String imageUrl, String proxyImageUrl, Integer imageHeight, Integer imageWidth) {
         var c = EmbedImage.class;
-        var image = Utils.allocateInstance(c);
+        var image = ReflectUtils.allocateInstance(c);
         try {
             ReflectUtils.setField(c, image, "url", imageUrl);
             ReflectUtils.setField(c, image, "proxyUrl", proxyImageUrl);
             ReflectUtils.setField(c, image, "height", imageHeight);
             ReflectUtils.setField(c, image, "width", imageWidth);
+
+            setImage(image);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
     }
@@ -361,12 +366,13 @@ public class MessageEmbedBuilder {
      */
     public MessageEmbedBuilder setThumbnail(String imageUrl, String proxyImageUrl, Integer imageHeight, Integer imageWidth) {
         var c = EmbedThumbnail.class;
-        var image = Utils.allocateInstance(c);
+        var image = ReflectUtils.allocateInstance(c);
         try {
             ReflectUtils.setField(c, image, "url", imageUrl);
             ReflectUtils.setField(c, image, "proxyUrl", proxyImageUrl);
             ReflectUtils.setField(c, image, "height", imageHeight);
             ReflectUtils.setField(c, image, "width", imageWidth);
+
             setThumbnail(image);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
@@ -440,12 +446,13 @@ public class MessageEmbedBuilder {
      */
     public MessageEmbedBuilder setVideo(String videoUrl, String proxyVideoUrl, Integer height, Integer width) {
         var c = EmbedVideo.class;
-        var video = Utils.allocateInstance(c);
+        var video = ReflectUtils.allocateInstance(c);
         try {
             ReflectUtils.setField(c, video, "url", videoUrl);
             ReflectUtils.setField(c, video, "proxyUrl", proxyVideoUrl);
             ReflectUtils.setField(c, video, "height", height);
             ReflectUtils.setField(c, video, "width", width);
+
             setVideo(video);
         } catch (Throwable e) { Main.logger.error(e); }
         return this;
@@ -491,7 +498,7 @@ public class MessageEmbedBuilder {
      */
     public static EmbedField createField(String name, String value, Boolean inline) {
         var c = EmbedField.class;
-        var field = Utils.allocateInstance(c);
+        var field = ReflectUtils.allocateInstance(c);
         try {
             ReflectUtils.setField(c, field, "name", name);
             ReflectUtils.setField(c, field, "value", value);
