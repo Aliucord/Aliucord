@@ -36,6 +36,9 @@ object ChangelogUtils {
         Utils.openPage(context, WidgetChangeLog::class.java, Intent().putExtras(bundle))
     }
 
+    /**
+     * Icon that will show up in changelog's footer
+     */
     class FooterAction : Parcelable {
         val drawableResourceId: Int
         val url: String
@@ -54,6 +57,12 @@ object ChangelogUtils {
             url = input.readString()!!
         }
 
+        /**
+         * Creates a new [FooterAction]
+         *
+         * @param drawableResourceId Resource id for the icon's image
+         * @param url Url to a web page that is opened after the icon is clicked
+         */
         constructor(@DrawableRes drawableResourceId: Int, url: String) {
             this.drawableResourceId = drawableResourceId
             this.url = url
