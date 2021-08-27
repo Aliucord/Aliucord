@@ -127,8 +127,16 @@ public abstract class Plugin {
         return manifest;
     }
 
-    // TODO make this internal, somehow
-    public void setManifest(Manifest manifest) {
+    /**
+     * Initializes the plugin with a manifest, you shouldn't be calling this manually
+     *
+     * @throws IllegalStateException If the method was called more than once
+     */
+    public void initialize(Manifest manifest) {
+        if (this.manifest != null) {
+            throw new IllegalStateException("This plugin was already initialized");
+        }
+
         this.manifest = manifest;
     }
 

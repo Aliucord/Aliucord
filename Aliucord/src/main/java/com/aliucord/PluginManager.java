@@ -53,7 +53,7 @@ public class PluginManager {
                 pluginClass = (Class<? extends Plugin>) loader.loadClass(manifest.pluginClassName);
                 pluginInstance = pluginClass.newInstance();
 
-                pluginInstance.setManifest(manifest);
+                pluginInstance.initialize(manifest);
                 pluginInstance.name = manifest.name;
             } else if ((stream = loader.getResourceAsStream("ac-plugin")) != null) {
                 name = new String(IOUtils.readBytes(stream));
@@ -70,14 +70,14 @@ public class PluginManager {
                 }
 
                 manifest.name = pluginInstance.name;
-                pluginInstance.setManifest(manifest);
+                pluginInstance.initialize(manifest);
             } else {
                 logger.error(context, "No manifest found for plugin: " + fileName, null);
                 return;
             }
 
             if (plugins.containsKey(name)) {
-                logger.warn("Plugin with name " + name + " already exists");
+                logger.error("Plugin with name " + name + " already exists", null);
                 return;
             }
 
