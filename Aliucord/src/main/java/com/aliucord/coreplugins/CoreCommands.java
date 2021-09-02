@@ -8,8 +8,6 @@ package com.aliucord.coreplugins;
 import android.content.Context;
 import android.text.TextUtils;
 
-import androidx.annotation.NonNull;
-
 import com.aliucord.PluginManager;
 import com.aliucord.api.CommandsAPI;
 import com.aliucord.entities.Plugin;
@@ -20,10 +18,6 @@ import java.util.Collections;
 import java.util.Set;
 
 final class CoreCommands extends Plugin {
-    @NonNull
-    @Override
-    public Manifest getManifest() { return new Manifest(); }
-
     @Override
     public void start(Context context) {
         commands.registerCommand(
