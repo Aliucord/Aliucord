@@ -225,7 +225,12 @@ public final class Main {
 
                         for (Map.Entry<PathClassLoader, Plugin> entry : PluginManager.classLoaders.entrySet()) {
                             try {
-                                entry.getKey().loadClass(className);
+                                var loadedClass = entry.getKey().loadClass(className);
+                                if (!loadedClass.getClassLoader().equals(entry.getKey())) {
+                                    // class was loaded from the parent classloader, ignore
+                                    continue;
+                                }
+
                                 badPlugin = entry.getValue().getName();
                                 SettingsUtils.setBool(PluginManager.getPluginPrefKey(badPlugin), false);
                                 break;
