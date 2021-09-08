@@ -215,6 +215,10 @@ public final class Main {
         } catch (Throwable e) { logger.error(e); }
 
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            if (Looper.getMainLooper().getThread() != thread) {
+                logger.error("Uncaught exception on thread " + thread.getName(), throwable);
+                return;
+            }
             new Thread() {
                 @Override
                 public void run() {
