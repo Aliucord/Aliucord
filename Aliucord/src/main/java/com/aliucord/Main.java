@@ -12,8 +12,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.os.Looper;
-import android.os.Parcelable;
+import android.os.*;
 import android.text.*;
 import android.text.style.AbsoluteSizeSpan;
 import android.view.View;
@@ -74,6 +73,10 @@ public final class Main {
         CorePlugins.loadAll(activity);
 
         if (checkPermissions(activity)) loadAllPlugins(activity);
+
+        Patcher.addPatch(AppActivity.class, "onCreate", new Class<?>[] { Bundle.class}, new PinePatchFn(cf -> {
+            Utils.appActivity = (AppActivity) cf.thisObject;
+        }));
     }
 
     /** Aliucord's init hook. Plugins are started here */
