@@ -8,7 +8,7 @@ package com.aliucord;
 
 import androidx.annotation.NonNull;
 
-import com.aliucord.utils.GsonUtils;
+import com.aliucord.utils.*;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -202,7 +202,7 @@ public class Http {
     }
 
     /** Response obtained by calling Request.execute() */
-    public static class Response {
+    public static class Response implements Closeable {
         private final Request req;
         /** The <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status">status code</a> of this response */
         public final int statusCode;
@@ -222,7 +222,7 @@ public class Http {
 
         /** Whether the request was successful (status code 2xx) */
         public boolean ok() {
-            return statusCode > 199 && statusCode < 300;
+            return statusCode >= 200 && statusCode < 300;
         }
 
         /** Throws an HttpException if this request was not successful */
@@ -235,9 +235,10 @@ public class Http {
             String ln;
             StringBuilder res = new StringBuilder();
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream()))) {
-                while ((ln = reader.readLine()) != null) res.append(ln);
+                while ((ln = reader.readLine()) != null)
+                    res.append(ln).append('\n');
             }
-            return res.toString().trim();
+            return res.toString();
         }
 
         /**
@@ -263,6 +264,7 @@ public class Http {
          * @return InputStream
          */
         public InputStream stream() throws IOException {
+            assertOk();
             return req.conn.getInputStream();
         }
 
@@ -272,12 +274,12 @@ public class Http {
          */
         public void pipe(OutputStream os) throws IOException {
             try (InputStream is = stream()) {
-                Utils.pipe(is, os);
+                IOUtils.pipe(is, os);
             }
         }
 
         /**
-         * Saves the received data to the specified file
+         * Saves the received data to the specified {@link File}
          * @param file The file to save the data to
          * @throws IOException If an I/O error occurred: No such file / file is directory / etc
          */
@@ -285,6 +287,14 @@ public class Http {
             try (FileOutputStream os = new FileOutputStream(file)) {
                 pipe(os);
             }
+        }
+
+        /**
+         * Closes the {@link Request} associated with this {@link Response}
+         */
+        @Override
+        public void close() {
+            req.close();
         }
     }
 
@@ -294,9 +304,16 @@ public class Http {
      * @return Raw response (String). If you want Json, use simpleJsonGet
      */
     public static String simpleGet(String url) throws IOException {
-        Response res = new Request(url, "GET").execute();
-        res.assertOk();
-        return res.text();
+        return new Request(url, "GET").execute().text();
+    }
+
+    /**
+     * Download content from the specified url to the specified {@link File}
+     * @param url The url to download content from
+     * @param outputFile The file to save to
+     */
+    public static void simpleDownload(String url, File outputFile) throws IOException {
+        new Request(url).execute().saveToFile(outputFile);
     }
 
     /**
@@ -327,9 +344,7 @@ public class Http {
      * @return Raw response (String). If you want Json, use simpleJsonPost
      */
     public static String simplePost(String url, String body) throws IOException {
-        Response res = new Request(url, "POST").executeWithBody(body);
-        res.assertOk();
-        return res.text();
+        return new Request(url, "POST").executeWithBody(body).text();
     }
 
     /**
