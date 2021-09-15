@@ -6,6 +6,8 @@
 
 package com.aliucord.utils;
 
+import androidx.annotation.NonNull;
+
 import java.io.*;
 
 public final class IOUtils {
@@ -15,7 +17,8 @@ public final class IOUtils {
      * @return The text
      * @throws IOException if an I/O error occurs
      */
-    public static String readAsText(InputStream is) throws IOException {
+    @NonNull
+    public static String readAsText(@NonNull InputStream is) throws IOException {
         var sb = new StringBuilder();
         try (var reader = new BufferedReader(new InputStreamReader(is))) {
             String ln;
@@ -31,7 +34,8 @@ public final class IOUtils {
      * @return The read bytes
      * @throws Throwable if an I/O error occurs
      */
-    public static byte[] readBytes(InputStream stream) throws Throwable {
+    @NonNull
+    public static byte[] readBytes(@NonNull InputStream stream) throws Throwable {
         try (var baos = new ByteArrayOutputStream(stream.available())) {
             pipe(stream, baos);
             return baos.toByteArray();
@@ -44,7 +48,7 @@ public final class IOUtils {
      * @param os OutputStream
      * @throws IOException if an I/O error occurs
      */
-    public static void pipe(InputStream is, OutputStream os) throws IOException {
+    public static void pipe(@NonNull InputStream is, @NonNull OutputStream os) throws IOException {
         int n;
         byte[] buf = new byte[16384]; // 16 KB
         while ((n = is.read(buf)) > -1) {
