@@ -7,12 +7,15 @@
 package com.aliucord;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.aliucord.utils.*;
 
 import java.io.*;
 import java.lang.reflect.Type;
+import java.math.BigInteger;
 import java.net.*;
+import java.security.*;
 import java.util.*;
 
 /** Http Utilities */
@@ -34,7 +37,7 @@ public class Http {
 
         /** Creates a new HttpException for the specified Request and Response */
         public HttpException(Request req, Response res) {
-            super(String.format(Locale.ENGLISH, "%d: %s", res.statusCode, res.statusMessage));
+            super(String.format("%s: %s", res.statusCode, res.statusMessage));
             this.req = req;
             this.res = res;
             this.statusCode = res.statusCode;
@@ -225,20 +228,25 @@ public class Http {
             return statusCode >= 200 && statusCode < 300;
         }
 
-        /** Throws an HttpException if this request was not successful */
+        /** Throws an HttpException if this request was unsuccessful */
         public void assertOk() throws HttpException {
             if (!ok()) throw new HttpException(req, this);
         }
 
-        /** Get the raw response */
+        /** Get the response body as String */
         public String text() throws IOException {
-            String ln;
-            StringBuilder res = new StringBuilder();
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream()))) {
-                while ((ln = reader.readLine()) != null)
-                    res.append(ln).append('\n');
+            try (var is = stream()) {
+                return IOUtils.readAsText(is);
             }
-            return res.toString();
+        }
+
+        /** Get the response body as <code>byte[]</code> */
+        public byte[] getBytes() throws IOException {
+            try (var is = stream()) {
+                return IOUtils.readBytes(is);
+            } catch (Throwable ex) {
+                throw (IOException) ex;
+            }
         }
 
         /**
@@ -281,12 +289,55 @@ public class Http {
         /**
          * Saves the received data to the specified {@link File}
          * @param file The file to save the data to
-         * @throws IOException If an I/O error occurred: No such file / file is directory / etc
+         * @throws IOException If an I/O error occurred: No such file, file is directory, etc
          */
-        public void saveToFile(File file) throws IOException {
-            try (FileOutputStream os = new FileOutputStream(file)) {
-                pipe(os);
+        public void saveToFile(@NonNull File file) throws IOException {
+            saveToFile(file, null);
+        }
+
+        /**
+         * Saves the received data to the specified {@link File}
+         * and verifies its integrity using the specified md5sum
+         * @param file The file to save the data to
+         * @param md5sum md5sum to check the file's integrity. May be null to skip integrity check
+         * @throws IOException If an I/O error occurred: No such file, file is directory, integrity check failed, etc
+         */
+        public void saveToFile(@NonNull File file, @Nullable String md5sum) throws IOException {
+            if (file.exists()) {
+                if (!file.canWrite())
+                    throw new IOException("Cannot write to file: " + file.getAbsolutePath());
+                if (file.isDirectory())
+                    throw new IOException("Path already exists and is directory: " + file.getAbsolutePath());
             }
+
+            var parent = file.getParentFile();
+            if (parent == null)
+                throw new IOException("Only absolute paths are supported.");
+
+            var tempFile = File.createTempFile("download", null, parent);
+            try {
+                boolean shouldVerify = md5sum != null;
+                var md = shouldVerify ? MessageDigest.getInstance("MD5") : null;
+                try (
+                        var is = shouldVerify ? new DigestInputStream(stream(), md) : stream();
+                        var os = new FileOutputStream(tempFile)
+                ) {
+                    IOUtils.pipe(is, os);
+
+                    if (shouldVerify) {
+                        var hash = String.format("%032x", new BigInteger(1, md.digest()));
+                        if (!hash.equalsIgnoreCase(md5sum))
+                            throw new IOException(String.format("Integrity check failed. Expected %s, received %s.", md5sum, hash));
+                    }
+
+                    if (!tempFile.renameTo(file))
+                        throw new IOException("Failed to rename temp file.");
+                } catch (IOException ex) {
+                    if (tempFile.exists() && !tempFile.delete())
+                        Main.logger.warn("[HTTP#saveToFile] Failed to clean up temp file " + tempFile.getAbsolutePath());
+                    throw ex;
+                }
+            } catch (NoSuchAlgorithmException ignored) { }
         }
 
         /**

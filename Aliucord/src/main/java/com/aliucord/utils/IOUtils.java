@@ -10,18 +10,32 @@ import java.io.*;
 
 public final class IOUtils {
     /**
-     * Reads the InputStream into a byte[]
+     * Reads the {@link InputStream} as text
+     * @param is The input stream to read
+     * @return The text
+     * @throws IOException if an I/O error occurs
+     */
+    public static String readAsText(InputStream is) throws IOException {
+        var sb = new StringBuilder();
+        try (var reader = new BufferedReader(new InputStreamReader(is))) {
+            String ln;
+            while ((ln = reader.readLine()) != null)
+                sb.append(ln).append('\n');
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Reads the InputStream into a <code>byte[]</code>
      * @param stream The stream to read
      * @return The read bytes
      * @throws Throwable if an I/O error occurs
      */
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     public static byte[] readBytes(InputStream stream) throws Throwable {
-        int len = stream.available();
-        byte[] buf = new byte[len];
-        stream.read(buf);
-        stream.close();
-        return buf;
+        try (var baos = new ByteArrayOutputStream(stream.available())) {
+            pipe(stream, baos);
+            return baos.toByteArray();
+        }
     }
 
     /**

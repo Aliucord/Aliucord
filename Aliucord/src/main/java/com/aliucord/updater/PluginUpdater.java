@@ -15,7 +15,7 @@ import com.aliucord.settings.Updater.UpdaterSettings;
 import com.aliucord.utils.MDUtils;
 import com.google.gson.reflect.TypeToken;
 
-import java.io.FileOutputStream;
+import java.io.File;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -29,6 +29,7 @@ public class PluginUpdater {
         public String build;
         public String changelog;
         public String changelogMedia;
+        public String md5sum;
     }
 
     public static class CachedData {
@@ -106,9 +107,9 @@ public class PluginUpdater {
             if (updateInfo == null || updateInfo.minimumDiscordVersion > Constants.DISCORD_VERSION) return false;
 
             String updatedVer = updated.get(plugin.getClass().getSimpleName());
-            if (updatedVer != null && !Updater.isOutdated(plugin.name, updateInfo.version, updatedVer)) return false;
+            if (updatedVer != null && !Updater.isOutdated(plugin.getName(), updateInfo.version, updatedVer)) return false;
 
-            return Updater.isOutdated(plugin.name, manifest.version, updateInfo.version);
+            return Updater.isOutdated(plugin.getName(), manifest.version, updateInfo.version);
         } catch (Throwable e) { logger.error("Failed to check update for: " + plugin.getClass().getSimpleName(), e); }
         return false;
     }
@@ -153,16 +154,20 @@ public class PluginUpdater {
     }
 
     public static boolean update(String plugin) throws Throwable {
-        Plugin p = PluginManager.plugins.get(plugin);
-        assert p != null;
-        UpdateInfo updateInfo = getUpdateInfo(p);
+        var p = PluginManager.plugins.get(plugin);
+        if (p == null)
+            throw new NoSuchElementException("No such plugin: " + plugin);
+
+        var updateInfo = getUpdateInfo(p);
         if (updateInfo == null) return false;
 
-        String url = updateInfo.build;
-        if (url.contains("%s")) url = String.format(url, plugin);
+        var url = updateInfo.build.replace("%s", plugin);
 
-        try (FileOutputStream out = new FileOutputStream(Constants.BASE_PATH + "/plugins/" + p.__filename + ".zip")) {
-            new Http.Request(url).execute().pipe(out);
+        try (var res = new Http.Request(url).execute()) {
+            res.saveToFile(
+                    new File(Constants.BASE_PATH + "/plugins", p.__filename + ".zip"),
+                    updateInfo.md5sum
+            );
         }
 
         updated.put(plugin, updateInfo.version);
