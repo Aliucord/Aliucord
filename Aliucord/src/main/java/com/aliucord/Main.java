@@ -139,7 +139,7 @@ public final class Main {
 
             TextView version = v.findViewById(Utils.getResId("app_info_header", "id"));
             boolean isDebuggable =  ( 0 != ( getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE ) );
-            version.setText(version.getText() + " | Aliucord " + BuildConfig.GIT_REVISION + isDebuggable ? "(debuggable)" : "");
+            version.setText(version.getText() + " | Aliucord " + BuildConfig.GIT_REVISION + isDebuggable ? " (debuggable)" : "");
 
             TextView uploadLogs = v.findViewById(Utils.getResId("upload_debug_logs", "id"));
             uploadLogs.setText("Aliucord Support Server");
