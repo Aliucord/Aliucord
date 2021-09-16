@@ -10,6 +10,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.pm.ApplicationInfo;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.*;
@@ -137,7 +138,8 @@ public final class Main {
             v.addView(crashes, baseIndex + 4);
 
             TextView version = v.findViewById(Utils.getResId("app_info_header", "id"));
-            version.setText(version.getText() + " | Aliucord " + BuildConfig.GIT_REVISION);
+            boolean isDebuggable =  ( 0 != ( getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE ) );
+            version.setText(version.getText() + " | Aliucord " + BuildConfig.GIT_REVISION + isDebuggable ? "(debuggable)" : "");
 
             TextView uploadLogs = v.findViewById(Utils.getResId("upload_debug_logs", "id"));
             uploadLogs.setText("Aliucord Support Server");
