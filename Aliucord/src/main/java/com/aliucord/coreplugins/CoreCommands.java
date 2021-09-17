@@ -37,7 +37,7 @@ final class CoreCommands extends Plugin {
         commands.registerCommand(
             "plugins",
             "Lists installed plugins",
-            Collections.singletonList(new ApplicationCommandOption(ApplicationCommandType.BOOLEAN, "send", "Whether the result should be visible for everyone", null, false, false, null, null)),
+            Collections.singletonList(new ApplicationCommandOption(ApplicationCommandType.BOOLEAN, "send", "Whether the result should be visible for everyone", null, false, false, null, null, null)),
             ctx -> {
                 boolean send = ctx.getBoolOrDefault("send", false);
                 Set<String> plugins = PluginManager.plugins.keySet();
