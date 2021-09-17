@@ -138,7 +138,7 @@ public final class Main {
             v.addView(crashes, baseIndex + 4);
 
             TextView version = v.findViewById(Utils.getResId("app_info_header", "id"));
-            boolean isDebuggable = ( 0 != ( context.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE ) );
+            boolean isDebuggable = (context.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
             version.setText(version.getText() + " | Aliucord " + BuildConfig.GIT_REVISION + (isDebuggable ? " (debuggable)" : ""));
 
             TextView uploadLogs = v.findViewById(Utils.getResId("upload_debug_logs", "id"));
