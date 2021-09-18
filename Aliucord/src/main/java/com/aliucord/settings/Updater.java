@@ -193,6 +193,7 @@ public class Updater extends SettingsPage {
             refreshButton.setOnClickListener(e -> {
                 setActionBarSubtitle("Checking for updates...");
                 Utils.threadPool.execute(() -> {
+                    PluginUpdater.cache.clear();
                     PluginUpdater.checkUpdates(false);
                     int updateCount = PluginUpdater.updates.size();
                     if (updateCount == 0)
