@@ -11,6 +11,8 @@ import android.content.res.AssetManager;
 import android.content.res.Resources;
 
 import com.aliucord.entities.Plugin;
+import com.aliucord.patcher.Patcher;
+import com.aliucord.patcher.PineInsteadFn;
 import com.aliucord.utils.*;
 
 import java.io.*;
@@ -71,6 +73,8 @@ public class PluginManager {
 
                 manifest.name = pluginInstance.name;
                 pluginInstance.initialize(manifest);
+
+                Patcher.addPatch(pluginClass.getDeclaredMethod("getManifest"), new PineInsteadFn(callFrame -> manifest));
             } else {
                 logger.error(context, "No manifest found for plugin: " + fileName, null);
                 return;

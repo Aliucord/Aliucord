@@ -11,15 +11,18 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 
-import com.aliucord.api.CommandsAPI;
-import com.aliucord.api.PatcherAPI;
-import com.aliucord.api.SettingsAPI;
+import com.aliucord.api.*;
 import com.discord.app.AppBottomSheet;
 import com.discord.app.AppFragment;
+
+import java.util.HashMap;
+import java.util.regex.Pattern;
 
 /** Base Plugin class all plugins must extend */
 @SuppressWarnings("unused")
 public abstract class Plugin {
+    private static final Pattern MONO_REPO_UPDATER_PATTERN = Pattern.compile("^https://raw\\.githubusercontent\\.com/(.+/.+)/builds/updater\\.json$");
+
     /** Plugin Manifest */
     public static class Manifest {
         /** Plugin Author */
@@ -51,6 +54,23 @@ public abstract class Plugin {
             public String toString() { return name; }
         }
 
+        public static class Links extends HashMap<String, String> {
+            public static String GITHUB = "github";
+            public static String SOURCE = "source";
+
+            public String getGithub() {
+                return get(GITHUB);
+            }
+
+            public String getSource() {
+                if (containsKey(GITHUB)) {
+                    return getGithub();
+                }
+
+                return get(SOURCE);
+            }
+        }
+
         public String name;
         public String pluginClassName;
         /** The authors of this plugin */
@@ -66,6 +86,8 @@ public abstract class Plugin {
         public String changelog;
         /** Image or video link that will be displayed at the top of the changelog */
         public String changelogMedia;
+        /** Plugin's links like the source code */
+        public Links links = new Links();
     }
 
     /** Plugin SettingsTab */
@@ -138,6 +160,13 @@ public abstract class Plugin {
         }
 
         this.manifest = manifest;
+
+        if (manifest.links.getSource() == null) {
+            var matcher = MONO_REPO_UPDATER_PATTERN.matcher(manifest.updateUrl);
+            if (matcher.matches()) {
+                manifest.links.put(Manifest.Links.GITHUB, "https://github.com/" + matcher.group(1));
+            }
+        }
     }
 
     /**

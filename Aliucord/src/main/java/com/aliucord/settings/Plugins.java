@@ -54,15 +54,15 @@ public class Plugins extends SettingsPage {
                 this.adapter = adapter;
                 this.card = card;
 
-                card.repoButton.setOnClickListener(this::onGithubClick);
+                card.repoButton.setOnClickListener(this::onRepoClick);
                 card.changeLogButton.setOnClickListener(this::onChangeLogClick);
                 card.uninstallButton.setOnClickListener(this::onUninstallClick);
                 card.switchHeader.setOnCheckedListener(this::onToggleClick);
                 card.settingsButton.setOnClickListener(this::onSettingsClick);
             }
 
-            public void onGithubClick(View view) {
-                adapter.onGithubClick(getAdapterPosition());
+            public void onRepoClick(View view) {
+                adapter.onRepoClick(getAdapterPosition());
             }
 
             public void onChangeLogClick(View view) {
@@ -125,6 +125,7 @@ public class Plugins extends SettingsPage {
             holder.card.settingsButton.setVisibility(p.settingsTab != null ? View.VISIBLE : View.GONE);
             holder.card.settingsButton.setEnabled(enabled);
             holder.card.changeLogButton.setVisibility(p.getManifest().changelog != null ? View.VISIBLE : View.GONE);
+            holder.card.repoButton.setVisibility(p.getManifest().links.getSource() != null ? View.VISIBLE : View.GONE);
 
             String title = String.format("%s v%s by %s", p.getName(), manifest.version, TextUtils.join(", ", manifest.authors));
             SpannableString spannableTitle = new SpannableString(title);
@@ -198,25 +199,23 @@ public class Plugins extends SettingsPage {
             return filter;
         }
 
-        private String getGithubUrl(Plugin plugin) {
-            return plugin
-                    .getManifest().updateUrl
-                    .replace("raw.githubusercontent.com", "github.com")
-                    .replaceFirst("/builds.*", "");
-        }
-
-        public void onGithubClick(int position) {
-            Utils.launchUrl(getGithubUrl(data.get(position)));
+        public void onRepoClick(int position) {
+            var repoUrl = data.get(position).getManifest().links.getSource();
+            Utils.launchUrl(repoUrl);
         }
 
         public void onChangeLogClick(int position) {
             Plugin p = data.get(position);
             Plugin.Manifest manifest = p.getManifest();
             if (manifest.changelog != null) {
-                String url = getGithubUrl(p);
-                ChangelogUtils.show(ctx, p.getName() + " v" + manifest.version, manifest.changelogMedia, manifest.changelog, new ChangelogUtils.FooterAction(com.lytefast.flexinput.R.d.ic_github_white, url));
+                var repoUrl = p.getManifest().links.getSource();
+                var footerActions = repoUrl != null
+                        ? new ChangelogUtils.FooterAction[]{new ChangelogUtils.FooterAction(com.lytefast.flexinput.R.d.ic_github_white, repoUrl)}
+                        : new ChangelogUtils.FooterAction[0];
+
+                ChangelogUtils.show(ctx, p.getName() + " v" + manifest.version, manifest.changelogMedia, manifest.changelog, footerActions);
             }
-        }   
+        }
 
         public void onSettingsClick(int position) throws Throwable {
             Plugin p = data.get(position);
