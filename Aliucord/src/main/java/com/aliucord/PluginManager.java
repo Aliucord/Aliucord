@@ -135,8 +135,11 @@ public class PluginManager {
     public static void startPlugin(String name) {
         logger.info("Starting plugin: " + name);
          try {
-            Objects.requireNonNull(plugins.get(name)).start(Utils.getAppContext());
-         } catch (Throwable e) { logger.error("Exception while starting plugin: " + name, e); }
+             Objects.requireNonNull(plugins.get(name)).start(Utils.getAppContext());
+         } catch (Throwable e) {
+             logger.error(Utils.getAppContext(), "Exception while starting plugin: " + name, e);
+             stopPlugin(name);
+         }
     }
 
     /**

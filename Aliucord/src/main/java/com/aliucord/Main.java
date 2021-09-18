@@ -294,7 +294,7 @@ public final class Main {
                 if (PluginManager.isPluginEnabled(name))
                     PluginManager.startPlugin(name);
             } catch (Throwable e) {
-                PluginManager.logger.error("Exception while starting plugin: " + name, e);
+                PluginManager.logger.error(Utils.getAppContext(), "Exception while starting plugin: " + name, e);
                 PluginManager.stopPlugin(name);
             }
         }
