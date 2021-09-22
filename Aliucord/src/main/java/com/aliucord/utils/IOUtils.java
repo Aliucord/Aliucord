@@ -32,10 +32,10 @@ public final class IOUtils {
      * Reads the InputStream into a <code>byte[]</code>
      * @param stream The stream to read
      * @return The read bytes
-     * @throws Throwable if an I/O error occurs
+     * @throws IOException if an I/O error occurs
      */
     @NonNull
-    public static byte[] readBytes(@NonNull InputStream stream) throws Throwable {
+    public static byte[] readBytes(@NonNull InputStream stream) throws IOException {
         try (var baos = new ByteArrayOutputStream(stream.available())) {
             pipe(stream, baos);
             return baos.toByteArray();

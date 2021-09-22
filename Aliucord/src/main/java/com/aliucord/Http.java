@@ -19,7 +19,7 @@ import java.security.*;
 import java.util.*;
 
 /** Http Utilities */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public class Http {
     public static class HttpException extends IOException {
         /** The url of this request */
@@ -244,8 +244,6 @@ public class Http {
         public byte[] getBytes() throws IOException {
             try (var is = stream()) {
                 return IOUtils.readBytes(is);
-            } catch (Throwable ex) {
-                throw (IOException) ex;
             }
         }
 
@@ -337,7 +335,9 @@ public class Http {
                         Main.logger.warn("[HTTP#saveToFile] Failed to clean up temp file " + tempFile.getAbsolutePath());
                     throw ex;
                 }
-            } catch (NoSuchAlgorithmException ignored) { }
+            } catch (NoSuchAlgorithmException ex) {
+                throw new RuntimeException("Failed to retrieve MD5 MessageDigest instance", ex);
+            }
         }
 
         /**
