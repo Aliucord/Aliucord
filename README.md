@@ -30,7 +30,7 @@ Unlike other Android Discord app modifications, you don't need to rebuild the AP
 - [Plugin Installation](#-plugin-installation)
   - [Troubleshooting](#troubleshooting)
 - [Building from source](#-building-from-source)
-  - [Porting Aliucord to the latest Discord version](#-porting-aliucord-to-the-latest-discord-version)
+- [Porting Aliucord to the latest Discord version](#-porting-aliucord-to-the-latest-discord-version)
 
 ## ⚠️ Important Information
 
