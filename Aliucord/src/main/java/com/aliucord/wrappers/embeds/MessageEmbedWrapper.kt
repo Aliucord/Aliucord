@@ -91,7 +91,7 @@ class MessageEmbedWrapper(private val embed: MessageEmbed) {
       .run { if (this == null) null else AuthorWrapper(this) }
 
     @JvmStatic
-    fun getFields(embed: MessageEmbed) = embed.rawFields.map { FieldWrapper(it) }
+    fun getFields(embed: MessageEmbed) = embed.rawFields?.map { FieldWrapper(it) }
 
     @JvmStatic
     fun getFooter(embed: MessageEmbed) = embed.rawFooter
@@ -126,7 +126,7 @@ class MessageEmbedWrapper(private val embed: MessageEmbed) {
       get() = c()
 
     @JvmStatic
-    val MessageEmbed.rawFields: List<EmbedField>
+    val MessageEmbed.rawFields: List<EmbedField>?
       get() = d()
 
     @JvmStatic

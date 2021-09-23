@@ -25,7 +25,7 @@ public final class CorePlugins {
             try {
                 p.load(context);
             } catch (Throwable e) {
-                PluginManager.logger.error(context,"Failed to load core plugin " + p.name, e);
+                PluginManager.logger.error(context,"Failed to load core plugin " + p.getName(), e);
             }
         }
     }
@@ -38,7 +38,7 @@ public final class CorePlugins {
             try {
                 p.start(context);
             } catch (Throwable e) {
-                PluginManager.logger.error(context, "Failed to start core plugin " + p.name, e);
+                PluginManager.logger.error(context, "Failed to start core plugin " + p.getName(), e);
             }
         }
     }
