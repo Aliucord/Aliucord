@@ -295,12 +295,12 @@ public class Http {
 
         /**
          * Saves the received data to the specified {@link File}
-         * and verifies its integrity using the specified md5sum
+         * and verifies its integrity using the specified sha1sum
          * @param file The file to save the data to
-         * @param md5sum md5sum to check the file's integrity. May be null to skip integrity check
+         * @param sha1sum checksum to check the file's integrity. May be null to skip integrity check
          * @throws IOException If an I/O error occurred: No such file, file is directory, integrity check failed, etc
          */
-        public void saveToFile(@NonNull File file, @Nullable String md5sum) throws IOException {
+        public void saveToFile(@NonNull File file, @Nullable String sha1sum) throws IOException {
             if (file.exists()) {
                 if (!file.canWrite())
                     throw new IOException("Cannot write to file: " + file.getAbsolutePath());
@@ -314,8 +314,8 @@ public class Http {
 
             var tempFile = File.createTempFile("download", null, parent);
             try {
-                boolean shouldVerify = md5sum != null;
-                var md = shouldVerify ? MessageDigest.getInstance("MD5") : null;
+                boolean shouldVerify = sha1sum != null;
+                var md = shouldVerify ? MessageDigest.getInstance("SHA-1") : null;
                 try (
                         var is = shouldVerify ? new DigestInputStream(stream(), md) : stream();
                         var os = new FileOutputStream(tempFile)
@@ -323,9 +323,9 @@ public class Http {
                     IOUtils.pipe(is, os);
 
                     if (shouldVerify) {
-                        var hash = String.format("%032x", new BigInteger(1, md.digest()));
-                        if (!hash.equalsIgnoreCase(md5sum))
-                            throw new IOException(String.format("Integrity check failed. Expected %s, received %s.", md5sum, hash));
+                        var hash = String.format("%040x", new BigInteger(1, md.digest()));
+                        if (!hash.equalsIgnoreCase(sha1sum))
+                            throw new IOException(String.format("Integrity check failed. Expected %s, received %s.", sha1sum, hash));
                     }
 
                     if (!tempFile.renameTo(file))
@@ -336,7 +336,7 @@ public class Http {
                     throw ex;
                 }
             } catch (NoSuchAlgorithmException ex) {
-                throw new RuntimeException("Failed to retrieve MD5 MessageDigest instance", ex);
+                throw new RuntimeException("Failed to retrieve SHA-1 MessageDigest instance", ex);
             }
         }
 
