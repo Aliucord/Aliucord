@@ -29,7 +29,7 @@ public class PluginUpdater {
         public String build;
         public String changelog;
         public String changelogMedia;
-        public String md5sum;
+        public String sha1sum;
     }
 
     public static class CachedData {
@@ -166,7 +166,7 @@ public class PluginUpdater {
         try (var res = new Http.Request(url).execute()) {
             res.saveToFile(
                     new File(Constants.BASE_PATH + "/plugins", p.__filename + ".zip"),
-                    updateInfo.md5sum
+                    updateInfo.sha1sum
             );
         }
 

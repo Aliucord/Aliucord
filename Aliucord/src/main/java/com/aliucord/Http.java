@@ -37,13 +37,37 @@ public class Http {
 
         /** Creates a new HttpException for the specified Request and Response */
         public HttpException(Request req, Response res) {
-            super(String.format("%s: %s", res.statusCode, res.statusMessage));
+            super();
             this.req = req;
             this.res = res;
             this.statusCode = res.statusCode;
             this.statusMessage = res.statusMessage;
             this.method = req.conn.getRequestMethod();
             this.url = req.conn.getURL();
+        }
+
+        private String message;
+        @Override
+        @NonNull
+        public String getMessage() {
+            if (message == null) {
+                var sb = new StringBuilder()
+                        .append(res.statusCode)
+                        .append(": ")
+                        .append(res.statusMessage)
+                        .append(" (")
+                        .append(req.conn.getURL())
+                        .append(')');
+
+                try (var eis = req.conn.getErrorStream()) {
+                    var s = IOUtils.readAsText(eis);
+                    sb.append('\n').append(s);
+                } catch (Throwable ignored) {
+                }
+
+                message = sb.toString();
+            }
+            return message;
         }
     }
 
