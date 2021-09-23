@@ -229,6 +229,7 @@ public final class Main {
                 public void run() {
                     Looper.prepare();
                     String badPlugin = null;
+                    boolean disabledPlugin = false;
                     for (StackTraceElement ele : throwable.getStackTrace()) {
                         String className = ele.getClassName();
 
@@ -241,7 +242,10 @@ public final class Main {
                                 }
 
                                 badPlugin = entry.getValue().getName();
-                                SettingsUtils.setBool(PluginManager.getPluginPrefKey(badPlugin), false);
+                                if (SettingsUtils.getBool(CrashesKt.autoDisableKey, true)) {
+                                    disabledPlugin = true;
+                                    SettingsUtils.setBool(PluginManager.getPluginPrefKey(badPlugin), false);
+                                }
                                 break;
                             } catch (ClassNotFoundException ignored) {
                             }
@@ -259,10 +263,17 @@ public final class Main {
                         } catch (FileNotFoundException ignored) {}
                     }
 
-                    String moreInfo = badPlugin != null ?
-                            String.format("This crash was caused by %s, so I automatically disabled it for you.", badPlugin) :
-                            "Check the crashes section in the settings for more info";
-                    Toast.makeText(Utils.getAppContext(),"An unrecoverable crash occurred. " + moreInfo, Toast.LENGTH_LONG).show();
+                    var sb = new StringBuilder("An unrecoverable crash occurred. ");
+                    if (badPlugin != null) {
+                        sb.append("This crash was caused by ").append(badPlugin);
+                        if (disabledPlugin) {
+                            sb.append(", so I automatically disabled it for you");
+                        }
+                        sb.append(". ");
+                    }
+                    sb.append("Check the crashes section in the settings for more info.");
+
+                    Toast.makeText(Utils.getAppContext(), sb.toString(), Toast.LENGTH_LONG).show();
                     Looper.loop();
                 }
             }.start();

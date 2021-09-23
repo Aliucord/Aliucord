@@ -49,6 +49,16 @@ object RxUtils {
   fun <T> Observable<T>.subscribe(subscriber: Subscriber<in T>): Subscription = this.T(subscriber)
 
   /**
+   * Subscribe to the [Observable]. This is equivalent to subscribe(createActionSubscriber(onNext))
+   *
+   * @param onNext the callback that will be fired once the Observable emits onNext
+   * @return created [Subscription]
+   * @see [ReactiveX operators documentation: Subscribe](http://reactivex.io/documentation/operators/subscribe.html)
+   */
+  @JvmStatic
+  fun <T> Observable<T>.subscribe(onNext: T.() -> Unit) = subscribe(createActionSubscriber(onNext))
+
+  /**
    * Blocks the current thread and waits for the [Observable] to complete, then returns a [Pair] containing the result, and the error (if any)
    * This must not be called from the Main thread (and will throw an [IllegalStateException] if done so) as that would freeze the UI
    * @return A [Pair] whose first value is the result and whose second value is the error that occurred, if any
@@ -107,4 +117,15 @@ object RxUtils {
    */
   @JvmStatic
   fun timer(delay: Long, unit: TimeUnit?): Observable<Long> = Observable.d0(delay, unit, j0.p.a.a())
+
+  /**
+   * Runs the callback after the specified delay
+   *
+   * @param delay the delay before running the callback
+   * @param unit time unit to use for the [delay]
+   * @param callback the callback to run after the delay
+   */
+  @JvmStatic
+  fun schedule(delay: Long, unit: TimeUnit?, callback: Long.() -> Unit) =
+          timer(delay, unit).subscribe(callback)
 }

@@ -106,9 +106,9 @@ public class PluginUpdater {
             if (updateInfo == null || updateInfo.minimumDiscordVersion > Constants.DISCORD_VERSION) return false;
 
             String updatedVer = updated.get(plugin.getClass().getSimpleName());
-            if (updatedVer != null && !Updater.isOutdated(plugin.name, updateInfo.version, updatedVer)) return false;
+            if (updatedVer != null && !Updater.isOutdated(plugin.getName(), updateInfo.version, updatedVer)) return false;
 
-            return Updater.isOutdated(plugin.name, manifest.version, updateInfo.version);
+            return Updater.isOutdated(plugin.getName(), manifest.version, updateInfo.version);
         } catch (Throwable e) { logger.error("Failed to check update for: " + plugin.getClass().getSimpleName(), e); }
         return false;
     }
