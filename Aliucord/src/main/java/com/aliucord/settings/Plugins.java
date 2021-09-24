@@ -28,14 +28,12 @@ import com.aliucord.*;
 import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.ConfirmDialog;
 import com.aliucord.fragments.SettingsPage;
-import com.aliucord.utils.DimenUtils;
-import com.aliucord.utils.ReflectUtils;
+import com.aliucord.utils.*;
 import com.aliucord.views.TextInput;
 import com.aliucord.views.ToolbarButton;
 import com.aliucord.widgets.PluginCard;
 import com.discord.app.AppBottomSheet;
 import com.discord.app.AppFragment;
-import com.discord.widgets.changelog.WidgetChangeLog;
 import com.discord.widgets.user.usersheet.WidgetUserSheet;
 import com.lytefast.flexinput.R;
 
@@ -100,7 +98,7 @@ public class Plugins extends SettingsPage {
             ctx = fragment.requireContext();
 
             this.originalData = new ArrayList<>(plugins);
-            originalData.sort(Comparator.comparing(p -> p.name));
+            originalData.sort(Comparator.comparing(Plugin::getName));
 
             data = originalData;
         }
@@ -121,18 +119,18 @@ public class Plugins extends SettingsPage {
             Plugin p = data.get(position);
             Plugin.Manifest manifest = p.getManifest();
 
-            boolean enabled = PluginManager.isPluginEnabled(p.name);
+            boolean enabled = PluginManager.isPluginEnabled(p.getName());
             holder.card.switchHeader.setChecked(enabled);
             holder.card.descriptionView.setText(p.getManifest().description);
             holder.card.settingsButton.setVisibility(p.settingsTab != null ? View.VISIBLE : View.GONE);
             holder.card.settingsButton.setEnabled(enabled);
             holder.card.changeLogButton.setVisibility(p.getManifest().changelog != null ? View.VISIBLE : View.GONE);
 
-            String title = String.format("%s v%s by %s", p.name, manifest.version, TextUtils.join(", ", manifest.authors));
+            String title = String.format("%s v%s by %s", p.getName(), manifest.version, TextUtils.join(", ", manifest.authors));
             SpannableString spannableTitle = new SpannableString(title);
             for (Plugin.Manifest.Author author : manifest.authors) {
                 if (author.id < 1) continue;
-                int i = title.indexOf(author.name, p.name.length() + 2 + manifest.version.length() + 3);
+                int i = title.indexOf(author.name, p.getName().length() + 2 + manifest.version.length() + 3);
                 spannableTitle.setSpan(new ClickableSpan() {
                     @Override
                     public void onClick(@NonNull View widget) {
@@ -155,7 +153,7 @@ public class Plugins extends SettingsPage {
                 else {
                     String search = constraint.toString().toLowerCase().trim();
                     resultsList = CollectionUtils.filter(originalData, p -> {
-                                if (p.name.toLowerCase().contains(search)) return true;
+                                if (p.getName().toLowerCase().contains(search)) return true;
                                 Plugin.Manifest manifest = p.getManifest();
                                 if (manifest.description.toLowerCase().contains(search)) return true;
                                 for (Plugin.Manifest.Author author : manifest.authors)
@@ -172,7 +170,7 @@ public class Plugins extends SettingsPage {
             @Override
             protected void publishResults(CharSequence constraint, FilterResults results) {
                 List<Plugin> res = (List<Plugin>) results.values;
-                DiffUtil.calculateDiff(new DiffUtil.Callback() {
+                var diff = DiffUtil.calculateDiff(new DiffUtil.Callback() {
                     @Override
                     public int getOldListSize() {
                         return getItemCount();
@@ -183,14 +181,15 @@ public class Plugins extends SettingsPage {
                     }
                     @Override
                     public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
-                        return data.get(oldItemPosition).name.equals(res.get(newItemPosition).name);
+                        return data.get(oldItemPosition).getName().equals(res.get(newItemPosition).getName());
                     }
                     @Override
                     public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
                         return true;
                     }
-                }, false).dispatchUpdatesTo(_this);
+                }, false);
                 data = res;
+                diff.dispatchUpdatesTo(_this);
             }
         };
 
@@ -199,19 +198,23 @@ public class Plugins extends SettingsPage {
             return filter;
         }
 
-        public void onGithubClick(int position) {
-            String url = data.get(position)
+        private String getGithubUrl(Plugin plugin) {
+            return plugin
                     .getManifest().updateUrl
                     .replace("raw.githubusercontent.com", "github.com")
                     .replaceFirst("/builds.*", "");
-            Utils.launchUrl(url);
+        }
+
+        public void onGithubClick(int position) {
+            Utils.launchUrl(getGithubUrl(data.get(position)));
         }
 
         public void onChangeLogClick(int position) {
             Plugin p = data.get(position);
             Plugin.Manifest manifest = p.getManifest();
             if (manifest.changelog != null) {
-                WidgetChangeLog.Companion.launch(ctx, p.name + " v" + manifest.version, "1", manifest.changelogMedia, manifest.changelog);
+                String url = getGithubUrl(p);
+                ChangelogUtils.show(ctx, p.getName() + " v" + manifest.version, manifest.changelogMedia, manifest.changelog, new ChangelogUtils.FooterAction(com.lytefast.flexinput.R.d.ic_github_white, url));
             }
         }   
 
@@ -227,12 +230,12 @@ public class Plugins extends SettingsPage {
                         ? ReflectUtils.invokeConstructorWithArgs(p.settingsTab.bottomSheet, p.settingsTab.args)
                         : p.settingsTab.bottomSheet.newInstance();
 
-                sheet.show(fragment.getParentFragmentManager(), p.name + "Settings");
+                sheet.show(fragment.getParentFragmentManager(), p.getName() + "Settings");
             }
         }
 
         public void onToggleClick(ViewHolder holder, boolean state, int position) {
-            String name = data.get(position).name;
+            String name = data.get(position).getName();
             PluginManager.togglePlugin(name);
             holder.card.settingsButton.setEnabled(state);
         }
@@ -241,18 +244,18 @@ public class Plugins extends SettingsPage {
             Plugin p = data.get(position);
             ConfirmDialog dialog = new ConfirmDialog()
                     .setIsDangerous(true)
-                    .setTitle("Delete " + p.name)
+                    .setTitle("Delete " + p.getName())
                     .setDescription("Are you sure you want to delete this plugin? This action cannot be undone.");
             dialog.setOnOkListener(e -> {
                 File pluginFile = new File(Constants.BASE_PATH + "/plugins/" + p.__filename + ".zip");
                 if (pluginFile.exists() && !pluginFile.delete()) {
-                    PluginManager.logger.error(ctx, "Failed to delete plugin " + p.name, null);
+                    PluginManager.logger.error(ctx, "Failed to delete plugin " + p.getName(), null);
                     return;
                 }
 
-                PluginManager.stopPlugin(p.name);
-                PluginManager.plugins.remove(p.name);
-                PluginManager.logger.info(ctx, "Successfully deleted " + p.name);
+                PluginManager.stopPlugin(p.getName());
+                PluginManager.plugins.remove(p.getName());
+                PluginManager.logger.info(ctx, "Successfully deleted " + p.getName());
 
                 dialog.dismiss();
                 data.remove(position);

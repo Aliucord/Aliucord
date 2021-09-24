@@ -7,16 +7,19 @@
 package com.aliucord;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
-import com.aliucord.utils.GsonUtils;
+import com.aliucord.utils.*;
 
 import java.io.*;
 import java.lang.reflect.Type;
+import java.math.BigInteger;
 import java.net.*;
+import java.security.*;
 import java.util.*;
 
 /** Http Utilities */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public class Http {
     public static class HttpException extends IOException {
         /** The url of this request */
@@ -34,13 +37,37 @@ public class Http {
 
         /** Creates a new HttpException for the specified Request and Response */
         public HttpException(Request req, Response res) {
-            super(String.format(Locale.ENGLISH, "%d: %s", res.statusCode, res.statusMessage));
+            super();
             this.req = req;
             this.res = res;
             this.statusCode = res.statusCode;
             this.statusMessage = res.statusMessage;
             this.method = req.conn.getRequestMethod();
             this.url = req.conn.getURL();
+        }
+
+        private String message;
+        @Override
+        @NonNull
+        public String getMessage() {
+            if (message == null) {
+                var sb = new StringBuilder()
+                        .append(res.statusCode)
+                        .append(": ")
+                        .append(res.statusMessage)
+                        .append(" (")
+                        .append(req.conn.getURL())
+                        .append(')');
+
+                try (var eis = req.conn.getErrorStream()) {
+                    var s = IOUtils.readAsText(eis);
+                    sb.append('\n').append(s);
+                } catch (Throwable ignored) {
+                }
+
+                message = sb.toString();
+            }
+            return message;
         }
     }
 
@@ -202,7 +229,7 @@ public class Http {
     }
 
     /** Response obtained by calling Request.execute() */
-    public static class Response {
+    public static class Response implements Closeable {
         private final Request req;
         /** The <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status">status code</a> of this response */
         public final int statusCode;
@@ -222,22 +249,26 @@ public class Http {
 
         /** Whether the request was successful (status code 2xx) */
         public boolean ok() {
-            return statusCode > 199 && statusCode < 300;
+            return statusCode >= 200 && statusCode < 300;
         }
 
-        /** Throws an HttpException if this request was not successful */
+        /** Throws an HttpException if this request was unsuccessful */
         public void assertOk() throws HttpException {
             if (!ok()) throw new HttpException(req, this);
         }
 
-        /** Get the raw response */
+        /** Get the response body as String */
         public String text() throws IOException {
-            String ln;
-            StringBuilder res = new StringBuilder();
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream()))) {
-                while ((ln = reader.readLine()) != null) res.append(ln);
+            try (var is = stream()) {
+                return IOUtils.readAsText(is);
             }
-            return res.toString().trim();
+        }
+
+        /** Get the response body as <code>byte[]</code> */
+        public byte[] getBytes() throws IOException {
+            try (var is = stream()) {
+                return IOUtils.readBytes(is);
+            }
         }
 
         /**
@@ -263,6 +294,7 @@ public class Http {
          * @return InputStream
          */
         public InputStream stream() throws IOException {
+            assertOk();
             return req.conn.getInputStream();
         }
 
@@ -272,19 +304,72 @@ public class Http {
          */
         public void pipe(OutputStream os) throws IOException {
             try (InputStream is = stream()) {
-                Utils.pipe(is, os);
+                IOUtils.pipe(is, os);
             }
         }
 
         /**
-         * Saves the received data to the specified file
+         * Saves the received data to the specified {@link File}
          * @param file The file to save the data to
-         * @throws IOException If an I/O error occurred: No such file / file is directory / etc
+         * @throws IOException If an I/O error occurred: No such file, file is directory, etc
          */
-        public void saveToFile(File file) throws IOException {
-            try (FileOutputStream os = new FileOutputStream(file)) {
-                pipe(os);
+        public void saveToFile(@NonNull File file) throws IOException {
+            saveToFile(file, null);
+        }
+
+        /**
+         * Saves the received data to the specified {@link File}
+         * and verifies its integrity using the specified sha1sum
+         * @param file The file to save the data to
+         * @param sha1sum checksum to check the file's integrity. May be null to skip integrity check
+         * @throws IOException If an I/O error occurred: No such file, file is directory, integrity check failed, etc
+         */
+        public void saveToFile(@NonNull File file, @Nullable String sha1sum) throws IOException {
+            if (file.exists()) {
+                if (!file.canWrite())
+                    throw new IOException("Cannot write to file: " + file.getAbsolutePath());
+                if (file.isDirectory())
+                    throw new IOException("Path already exists and is directory: " + file.getAbsolutePath());
             }
+
+            var parent = file.getParentFile();
+            if (parent == null)
+                throw new IOException("Only absolute paths are supported.");
+
+            var tempFile = File.createTempFile("download", null, parent);
+            try {
+                boolean shouldVerify = sha1sum != null;
+                var md = shouldVerify ? MessageDigest.getInstance("SHA-1") : null;
+                try (
+                        var is = shouldVerify ? new DigestInputStream(stream(), md) : stream();
+                        var os = new FileOutputStream(tempFile)
+                ) {
+                    IOUtils.pipe(is, os);
+
+                    if (shouldVerify) {
+                        var hash = String.format("%040x", new BigInteger(1, md.digest()));
+                        if (!hash.equalsIgnoreCase(sha1sum))
+                            throw new IOException(String.format("Integrity check failed. Expected %s, received %s.", sha1sum, hash));
+                    }
+
+                    if (!tempFile.renameTo(file))
+                        throw new IOException("Failed to rename temp file.");
+                } catch (IOException ex) {
+                    if (tempFile.exists() && !tempFile.delete())
+                        Main.logger.warn("[HTTP#saveToFile] Failed to clean up temp file " + tempFile.getAbsolutePath());
+                    throw ex;
+                }
+            } catch (NoSuchAlgorithmException ex) {
+                throw new RuntimeException("Failed to retrieve SHA-1 MessageDigest instance", ex);
+            }
+        }
+
+        /**
+         * Closes the {@link Request} associated with this {@link Response}
+         */
+        @Override
+        public void close() {
+            req.close();
         }
     }
 
@@ -294,9 +379,16 @@ public class Http {
      * @return Raw response (String). If you want Json, use simpleJsonGet
      */
     public static String simpleGet(String url) throws IOException {
-        Response res = new Request(url, "GET").execute();
-        res.assertOk();
-        return res.text();
+        return new Request(url, "GET").execute().text();
+    }
+
+    /**
+     * Download content from the specified url to the specified {@link File}
+     * @param url The url to download content from
+     * @param outputFile The file to save to
+     */
+    public static void simpleDownload(String url, File outputFile) throws IOException {
+        new Request(url).execute().saveToFile(outputFile);
     }
 
     /**
@@ -327,9 +419,7 @@ public class Http {
      * @return Raw response (String). If you want Json, use simpleJsonPost
      */
     public static String simplePost(String url, String body) throws IOException {
-        Response res = new Request(url, "POST").executeWithBody(body);
-        res.assertOk();
-        return res.text();
+        return new Request(url, "POST").executeWithBody(body).text();
     }
 
     /**

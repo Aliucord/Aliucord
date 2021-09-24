@@ -28,7 +28,10 @@ public class Updater {
             int len = versions.length;
             if (len != newVersions.length) return false;
             for (int i = 0; i < len; i++) {
-                if (Integer.parseInt(newVersions[i]) > Integer.parseInt(versions[i])) return true;
+                int newInt = Integer.parseInt(newVersions[i]);
+                int oldInt = Integer.parseInt(versions[i]);
+                if (newInt > oldInt) return true;
+                if (newInt < oldInt) return false;
             }
         } catch (NullPointerException | NumberFormatException th) {
             PluginUpdater.logger.error(String.format("Failed to check updates for plugin %s due to an invalid updater/manifest version", plugin), th);
@@ -93,7 +96,7 @@ public class Updater {
     }
 
     /**
-     * Determines whether the update is outdated
+     * Determines whether the updater is disabled
      * @return Whether preference "disableAliucordUpdater" is set to true
      */
     public static boolean isUpdaterDisabled() {

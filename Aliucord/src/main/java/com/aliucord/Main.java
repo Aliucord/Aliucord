@@ -10,17 +10,18 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.pm.ApplicationInfo;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.os.Looper;
+import android.os.*;
 import android.text.*;
 import android.text.style.AbsoluteSizeSpan;
 import android.view.View;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
 
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
@@ -28,16 +29,21 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.core.widget.NestedScrollView;
 
 import com.aliucord.coreplugins.CorePlugins;
+import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.*;
 import com.aliucord.settings.*;
 import com.aliucord.updater.PluginUpdater;
+import com.aliucord.utils.ChangelogUtils;
 import com.aliucord.views.Divider;
+import com.aliucord.views.ToolbarButton;
 import com.discord.app.AppActivity;
 import com.discord.app.AppLog;
+import com.discord.databinding.WidgetChangeLogBinding;
 import com.discord.databinding.WidgetDebuggingAdapterItemBinding;
 import com.discord.models.domain.emoji.ModelEmojiUnicode;
 import com.discord.stores.StoreInviteSettings;
 import com.discord.utilities.color.ColorCompat;
+import com.discord.widgets.changelog.WidgetChangeLog;
 import com.discord.widgets.debugging.WidgetDebugging;
 import com.discord.widgets.guilds.invite.WidgetGuildInvite;
 import com.discord.widgets.settings.WidgetSettings;
@@ -45,8 +51,9 @@ import com.discord.widgets.settings.WidgetSettings;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.*;
+
+import dalvik.system.PathClassLoader;
 
 @SuppressWarnings("ConstantConditions")
 public final class Main {
@@ -67,6 +74,10 @@ public final class Main {
         CorePlugins.loadAll(activity);
 
         if (checkPermissions(activity)) loadAllPlugins(activity);
+
+        Patcher.addPatch(AppActivity.class, "onCreate", new Class<?>[] { Bundle.class}, new PinePatchFn(cf -> {
+            Utils.appActivity = (AppActivity) cf.thisObject;
+        }));
     }
 
     /** Aliucord's init hook. Plugins are started here */
@@ -127,7 +138,8 @@ public final class Main {
             v.addView(crashes, baseIndex + 4);
 
             TextView version = v.findViewById(Utils.getResId("app_info_header", "id"));
-            version.setText(version.getText() + " | Aliucord " + BuildConfig.GIT_REVISION);
+            boolean isDebuggable = (context.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+            version.setText(version.getText() + " | Aliucord " + BuildConfig.GIT_REVISION + (isDebuggable ? " (debuggable)" : ""));
 
             TextView uploadLogs = v.findViewById(Utils.getResId("upload_debug_logs", "id"));
             uploadLogs.setText("Aliucord Support Server");
@@ -140,6 +152,52 @@ public final class Main {
         Patcher.addPatch(ModelEmojiUnicode.class, "getImageUri", new Class<?>[]{String.class, Context.class},
                 new PineInsteadFn(callFrame -> "res:///" + Utils.getResId("emoji_" + callFrame.args[0], "raw"))
         );
+
+        // Patch to allow changelogs without media
+        Patcher.addPatch(WidgetChangeLog.class, "configureMedia", new Class<?>[]{String.class}, new PinePrePatchFn(callFrame -> {
+            WidgetChangeLog _this = (WidgetChangeLog) callFrame.thisObject;
+            String media = _this.getMostRecentIntent().getStringExtra("INTENT_EXTRA_VIDEO");
+
+            if (media == null) {
+                WidgetChangeLogBinding binding = WidgetChangeLog.access$getBinding$p(_this);
+                binding.i.setVisibility(View.GONE); // changeLogVideoOverlay
+                binding.h.setVisibility(View.GONE); // changeLogVideo
+                callFrame.setResult(null);
+            }
+        }));
+
+        // Patch for custom footer actions
+        Patcher.addPatch(WidgetChangeLog.class, "configureFooter", new Class<?>[0], new PinePrePatchFn(callFrame -> {
+            WidgetChangeLog _this = (WidgetChangeLog) callFrame.thisObject;
+            WidgetChangeLogBinding binding = WidgetChangeLog.access$getBinding$p(_this);
+
+            Parcelable[] actions = _this.getMostRecentIntent().getParcelableArrayExtra("INTENT_EXTRA_FOOTER_ACTIONS");
+
+            if (actions == null) {
+                return;
+            }
+
+            AppCompatImageButton twitterButton = binding.g;
+            LinearLayout parent = (LinearLayout) twitterButton.getParent();
+
+            parent.removeAllViewsInLayout();
+
+            for (Parcelable parcelable : actions) {
+                ChangelogUtils.FooterAction action = ((ChangelogUtils.FooterAction) parcelable);
+
+                ToolbarButton button = new ToolbarButton(parent.getContext());
+                button.setImageDrawable(ContextCompat.getDrawable(parent.getContext(), action.getDrawableResourceId()), false);
+
+                button.setPadding(twitterButton.getPaddingLeft(), twitterButton.getPaddingTop(), twitterButton.getPaddingRight(), twitterButton.getPaddingBottom());
+                button.setLayoutParams(twitterButton.getLayoutParams());
+
+                button.setOnClickListener(v -> Utils.launchUrl(action.getUrl()));
+
+                parent.addView(button);
+            }
+
+            callFrame.setResult(null);
+        }));
 
         // add stacktraces in debug logs page
         try {
@@ -162,18 +220,38 @@ public final class Main {
         } catch (Throwable e) { logger.error(e); }
 
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            if (Looper.getMainLooper().getThread() != thread) {
+                logger.error("Uncaught exception on thread " + thread.getName(), throwable);
+                return;
+            }
             new Thread() {
                 @Override
                 public void run() {
                     Looper.prepare();
                     String badPlugin = null;
+                    boolean disabledPlugin = false;
                     for (StackTraceElement ele : throwable.getStackTrace()) {
                         String className = ele.getClassName();
-                        if (!className.startsWith("com.aliucord.plugins.")) continue;
-                        String plugin = className.replace("com.aliucord.plugins.", "").replaceAll("\\..+", "");
-                        if (PluginManager.plugins.containsKey(plugin)) {
-                            badPlugin = plugin;
-                            SettingsUtils.setBool(PluginManager.getPluginPrefKey(plugin), false);
+
+                        for (Map.Entry<PathClassLoader, Plugin> entry : PluginManager.classLoaders.entrySet()) {
+                            try {
+                                var loadedClass = entry.getKey().loadClass(className);
+                                if (!loadedClass.getClassLoader().equals(entry.getKey())) {
+                                    // class was loaded from the parent classloader, ignore
+                                    continue;
+                                }
+
+                                badPlugin = entry.getValue().getName();
+                                if (SettingsUtils.getBool(CrashesKt.autoDisableKey, true)) {
+                                    disabledPlugin = true;
+                                    SettingsUtils.setBool(PluginManager.getPluginPrefKey(badPlugin), false);
+                                }
+                                break;
+                            } catch (ClassNotFoundException ignored) {
+                            }
+                        }
+
+                        if (badPlugin != null) {
                             break;
                         }
                     }
@@ -185,10 +263,17 @@ public final class Main {
                         } catch (FileNotFoundException ignored) {}
                     }
 
-                    String moreInfo = badPlugin != null ?
-                            String.format("This crash was caused by %s, so I automatically disabled it for you.", badPlugin) :
-                            "Check the crashes section in the settings for more info";
-                    Toast.makeText(Utils.getAppContext(),"An unrecoverable crash occurred. " + moreInfo, Toast.LENGTH_LONG).show();
+                    var sb = new StringBuilder("An unrecoverable crash occurred. ");
+                    if (badPlugin != null) {
+                        sb.append("This crash was caused by ").append(badPlugin);
+                        if (disabledPlugin) {
+                            sb.append(", so I automatically disabled it for you");
+                        }
+                        sb.append(". ");
+                    }
+                    sb.append("Check the crashes section in the settings for more info.");
+
+                    Toast.makeText(Utils.getAppContext(), sb.toString(), Toast.LENGTH_LONG).show();
                     Looper.loop();
                 }
             }.start();

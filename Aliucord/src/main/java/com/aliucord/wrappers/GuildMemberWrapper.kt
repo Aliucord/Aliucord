@@ -76,7 +76,7 @@ class GuildMemberWrapper(private val guildMember: GuildMember) {
       get() = i()
 
     @JvmStatic
-    val GuildMember.user: User
+    val GuildMember.user: User?
       get() = j()
 
     @JvmStatic

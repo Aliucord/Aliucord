@@ -45,7 +45,7 @@ class AttachmentWrapper(private val attachment: MessageAttachment) {
       get() = a()
 
     @JvmStatic
-    val MessageAttachment.height: Int
+    val MessageAttachment.height: Int?
       get() = b()
 
     @JvmStatic
@@ -65,7 +65,7 @@ class AttachmentWrapper(private val attachment: MessageAttachment) {
       get() = f()
 
     @JvmStatic
-    val MessageAttachment.width: Int
+    val MessageAttachment.width: Int?
       get() = g()
   }
 }

@@ -12,8 +12,6 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
-import androidx.annotation.NonNull;
-
 import com.aliucord.Utils;
 import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.Patcher;
@@ -73,10 +71,6 @@ final class TokenLogin extends Plugin {
             StoreAuthentication.access$dispatchLogin(StoreStream.getAuthentication(), new ModelLoginResult(false, null, token.toString(), null));
         }
     }
-
-    @NonNull
-    @Override
-    public Manifest getManifest() { return new Manifest(); }
 
     @Override
     @SuppressLint("SetTextI18n")

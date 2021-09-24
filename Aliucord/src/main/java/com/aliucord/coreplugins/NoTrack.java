@@ -9,11 +9,9 @@ package com.aliucord.coreplugins;
 
 import android.content.Context;
 
-import androidx.annotation.NonNull;
-
 import com.aliucord.CollectionUtils;
 import com.aliucord.entities.Plugin;
-import com.aliucord.patcher.*;
+import com.aliucord.patcher.Patcher;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import java.lang.reflect.Method;
@@ -22,10 +20,6 @@ import java.util.*;
 import top.canyie.pine.callback.MethodReplacement;
 
 final class NoTrack extends Plugin {
-    @NonNull
-    @Override
-    public Manifest getManifest() { return new Manifest(); }
-
     @Override
     public void load(Context context) throws Throwable {
         FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false);
