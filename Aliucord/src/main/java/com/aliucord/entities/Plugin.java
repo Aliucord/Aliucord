@@ -161,7 +161,7 @@ public abstract class Plugin {
 
         this.manifest = manifest;
 
-        if (manifest.links.getSource() == null) {
+        if (manifest.updateUrl != null && manifest.links.getSource() == null) {
             var matcher = MONO_REPO_UPDATER_PATTERN.matcher(manifest.updateUrl);
             if (matcher.matches()) {
                 manifest.links.put(Manifest.Links.GITHUB, "https://github.com/" + matcher.group(1));
