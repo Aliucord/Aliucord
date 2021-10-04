@@ -79,7 +79,7 @@ public class MessageEmbedBuilder {
      * @param type {@link EmbedType}
      */
     public MessageEmbedBuilder(EmbedType type) {
-        embed = Utils.allocateInstance(MessageEmbed.class);
+        embed = ReflectUtils.allocateInstance(MessageEmbed.class);
         setType(type);
     }
 

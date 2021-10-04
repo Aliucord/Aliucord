@@ -131,10 +131,10 @@ public class CommandsAPI {
     public static Map<Long, WidgetApplicationCommandBottomSheetViewModel.StoreState> interactionsStore = new HashMap<>();
     /** Optional CommandOption of type String */
     public static ApplicationCommandOption messageOption =
-            new ApplicationCommandOption(ApplicationCommandType.STRING, "message", null, R.g.command_shrug_message_description, false, false, null, null);
+            new ApplicationCommandOption(ApplicationCommandType.STRING, "message", null, R.g.command_shrug_message_description, false, false, null, null, null, false);
     /** Required CommandOption of type String */
     public static ApplicationCommandOption requiredMessageOption =
-            new ApplicationCommandOption(ApplicationCommandType.STRING, "message", null, R.g.command_shrug_message_description, true, false, null, null);
+            new ApplicationCommandOption(ApplicationCommandType.STRING, "message", null, R.g.command_shrug_message_description, true, false, null, null, null, false);
 
     @SuppressWarnings("unchecked")
     private static void _registerCommand(

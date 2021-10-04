@@ -9,7 +9,6 @@ package com.aliucord.patcher;
 import com.aliucord.Logger;
 
 import java.lang.reflect.Member;
-import java.lang.reflect.Method;
 import java.util.*;
 
 import top.canyie.pine.Pine;
@@ -19,84 +18,43 @@ public class Patcher {
     public static Logger logger = new Logger("Patcher");
     private static final ClassLoader cl = Objects.requireNonNull(Patcher.class.getClassLoader());
 
-    public static Runnable addPatch(String forClass, String fn, Class<?>[] paramTypes, MethodHook hook) {
+    /**
+     * Add a patch
+     * @param forClass The full name of the class to patch (e.g. com.aliucord.patcher.Patcher)
+     * @param methodName The name of the method
+     * @param paramTypes The types of the parameters (e.g. int.class, String.class)
+     * @param hook MethodHook
+     * @return Unhook function
+     */
+    public static Runnable addPatch(String forClass, String methodName, Class<?>[] paramTypes, MethodHook hook) {
         try {
-            return addPatch(cl.loadClass(forClass), fn, paramTypes, hook);
+            return addPatch(cl.loadClass(forClass), methodName, paramTypes, hook);
         } catch (Throwable e) { Patcher.logger.error(e); }
         return null;
     }
 
-    public static Runnable addPatch(Class<?> clazz, String fn, Class<?>[] paramTypes, MethodHook hook) {
+    /**
+     * Add a patch
+     * @param clazz Class to patch
+     * @param methodName The name of the method
+     * @param paramTypes The types of the parameters (e.g. int.class, String.class)
+     * @param hook MethodHook
+     * @return Unhook function
+     */
+    public static Runnable addPatch(Class<?> clazz, String methodName, Class<?>[] paramTypes, MethodHook hook) {
         try {
-            return addPatch(clazz.getDeclaredMethod(fn, paramTypes), hook);
+            return addPatch(clazz.getDeclaredMethod(methodName, paramTypes), hook);
         } catch (Throwable e) { Patcher.logger.error(e); }
         return null;
     }
 
-    public static Runnable addPatch(Member m, MethodHook hook) {
-        return Pine.hook(m, hook)::unhook;
-    }
-
-    @SuppressWarnings("deprecation")
-    public static MethodHook prePatchToMethodHook(PrePatchFunction patch) {
-        return new MethodHook() {
-            public void beforeCall(Pine.CallFrame callFrame) {
-                try {
-                    ArrayList<Object> args = new ArrayList<>(Arrays.asList(callFrame.args));
-                    PrePatchRes res = patch.invoke(callFrame.thisObject, args);
-                    if (res != null) callFrame.setResult(res.ret);
-                    callFrame.args = args.toArray();
-                } catch (Throwable e) { logger.error(e); }
-            }
-        };
-    }
-
-    @SuppressWarnings("deprecation")
-    public static MethodHook patchToMethodHook(PatchFunction patch) {
-        return new MethodHook() {
-            public void afterCall(Pine.CallFrame callFrame) {
-                try {
-                    callFrame.setResult(patch.invoke(callFrame.thisObject, Arrays.asList(callFrame.args), callFrame.getResult()));
-                } catch (Throwable e) { logger.error(e); }
-            }
-        };
-    }
-
     /**
-     * @deprecated Use {@link #addPatch(Class, String, Class[], MethodHook)}
+     * Add a patch
+     * @param member The member (method, constructor) to patch
+     * @param hook MethodHook
+     * @return Unhook function
      */
-    @Deprecated
-    @SuppressWarnings("deprecation")
-    public static Runnable addPrePatch(String forClass, String fn, PrePatchFunction patch) {
-        List<Runnable> unhooks = new ArrayList<>();
-        try {
-            Class<?> clazz = Objects.requireNonNull(Patcher.class.getClassLoader()).loadClass(forClass);
-            MethodHook hook = prePatchToMethodHook(patch);
-            for (Method m : clazz.getDeclaredMethods()) {
-                if (m.getName().equals(fn)) unhooks.add(Pine.hook(m, hook)::unhook);
-            }
-        } catch (Throwable e) { logger.error(e); }
-        return () -> {
-            for (Runnable unhook : unhooks) unhook.run();
-        };
-    }
-
-    /**
-     * @deprecated Use {@link #addPatch(Class, String, Class[], MethodHook)}
-     */
-    @Deprecated
-    @SuppressWarnings("deprecation")
-    public static Runnable addPatch(String forClass, String fn, PatchFunction patch) {
-        List<Runnable> unhooks = new ArrayList<>();
-        try {
-            Class<?> clazz = Objects.requireNonNull(Patcher.class.getClassLoader()).loadClass(forClass);
-            MethodHook hook = patchToMethodHook(patch);
-            for (Method m : clazz.getDeclaredMethods()) {
-                if (m.getName().equals(fn)) unhooks.add(Pine.hook(m, hook)::unhook);
-            }
-        } catch (Throwable e) { logger.error(e); }
-        return () -> {
-            for (Runnable unhook : unhooks) unhook.run();
-        };
+    public static Runnable addPatch(Member member, MethodHook hook) {
+        return Pine.hook(member, hook)::unhook;
     }
 }

@@ -18,27 +18,50 @@ import java.io.File
 
 internal class CoreCommands : Plugin() {
     override fun start(context: Context) {
-        commands.registerCommand("echo", "Creates Clyde message", listOf(CommandsAPI.requiredMessageOption)) {
+        commands.registerCommand(
+            "echo",
+            "Creates Clyde message",
+            listOf(CommandsAPI.requiredMessageOption)
+        ) {
             CommandResult(it.getRequiredString("message"), null, false)
         }
 
-        commands.registerCommand("say", "Sends message", listOf(CommandsAPI.requiredMessageOption)) {
+        commands.registerCommand(
+            "say",
+            "Sends message",
+            listOf(CommandsAPI.requiredMessageOption)
+        ) {
             CommandResult(it.getRequiredString("message"))
         }
 
         commands.registerCommand(
-                "plugins",
-                "Lists installed plugins",
-                listOf(ApplicationCommandOption(ApplicationCommandType.BOOLEAN, "send", "Whether the result should be visible for everyone", null, false, false, null, null))
+            "plugins",
+            "Lists installed plugins",
+            listOf(
+                ApplicationCommandOption(
+                    ApplicationCommandType.BOOLEAN,
+                    "send",
+                    "Whether the result should be visible for everyone",
+                    null,
+                    false,
+                    false,
+                    null,
+                    null,
+                    null,
+                    false
+                )
+            )
         ) {
             val plugins = PluginManager.plugins.keys
             if (plugins.isEmpty())
                 CommandResult("No plugins installed", null, false)
             else
                 CommandResult(
-                        "**Installed Plugins (${plugins.size}):**\n>>> ${plugins.sorted().joinToString()}",
-                        null,
-                        it.getBoolOrDefault("send", false)
+                    "**Installed Plugins (${plugins.size}):**\n>>> ${
+                        plugins.sorted().joinToString()
+                    }",
+                    null,
+                    it.getBoolOrDefault("send", false)
                 )
         }
 
@@ -57,9 +80,9 @@ internal class CoreCommands : Plugin() {
     }
 
     private fun getIsRooted() =
-            System.getenv("PATH")?.split(':')?.any {
-                File(it, "su").exists()
-            }
+        System.getenv("PATH")?.split(':')?.any {
+            File(it, "su").exists()
+        }
 
     private fun getArchitecture(): String {
         Build.SUPPORTED_ABIS.forEach {

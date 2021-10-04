@@ -15,24 +15,8 @@ import java.util.List;
 
 import top.canyie.pine.callback.MethodHook;
 
-@SuppressWarnings({"unused", "deprecation"})
+@SuppressWarnings({"unused"})
 public class PatcherAPI {
-    /**
-     * @deprecated Use {@link PatcherAPI#patch(String, String, Class[], MethodHook)}, {@link PatcherAPI#patch(Class, String, Class[], MethodHook)} or {@link PatcherAPI#patch(Member, MethodHook)} instead.
-     */
-    @Deprecated
-    public static Runnable addPatch(String forClass, String fn, PatchFunction patch) {
-        return Patcher.addPatch(forClass, fn, patch);
-    }
-
-    /**
-     * @deprecated Use {@link PatcherAPI#patch(String, String, Class[], MethodHook)}, {@link PatcherAPI#patch(Class, String, Class[], MethodHook)} or {@link PatcherAPI#patch(Member, MethodHook)} instead.
-     */
-    @Deprecated
-    public static Runnable addPrePatch(String forClass, String fn, PrePatchFunction patch) {
-        return Patcher.addPrePatch(forClass, fn, patch);
-    }
-
     public List<Runnable> unpatches = new ArrayList<>();
 
     private Runnable createUnpatch(Runnable _unpatch) {
@@ -86,38 +70,6 @@ public class PatcherAPI {
      */
     public Runnable patch(@NonNull Member m, @NonNull MethodHook hook) {
         return createUnpatch(Patcher.addPatch(m, hook));
-    }
-
-    /**
-     * @deprecated Use {@link PatcherAPI#patch(String, String, Class[], MethodHook)}, {@link PatcherAPI#patch(Class, String, Class[], MethodHook)} or {@link PatcherAPI#patch(Member, MethodHook)} instead.
-     */
-    @Deprecated
-    public Runnable patch(String forClass, String fn, PatchFunction patch) {
-        Runnable unpatch = PatcherAPI.addPatch(forClass, fn, patch);
-        Runnable _unpatch = new Runnable() {
-            public void run() {
-                unpatch.run();
-                unpatches.remove(this);
-            }
-        };
-        unpatches.add(_unpatch);
-        return _unpatch;
-    }
-
-    /**
-     * @deprecated Use {@link PatcherAPI#patch(String, String, Class[], MethodHook)}, {@link PatcherAPI#patch(Class, String, Class[], MethodHook)} or {@link PatcherAPI#patch(Member, MethodHook)} instead.
-     */
-    @Deprecated
-    public Runnable prePatch(String forClass, String fn, PrePatchFunction patch) {
-        Runnable unpatch = PatcherAPI.addPrePatch(forClass, fn, patch);
-        Runnable _unpatch = new Runnable() {
-            public void run() {
-                unpatch.run();
-                unpatches.remove(this);
-            }
-        };
-        unpatches.add(_unpatch);
-        return _unpatch;
     }
 
     /**
