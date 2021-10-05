@@ -38,8 +38,8 @@ internal class CommandHandler : Plugin() {
   }
 
   override fun load(context: Context) {
-    Patcher.addPatch(BuiltInCommands::class.java, "getBuiltInCommands", emptyArray(), PinePatchFn {
-      val list = it.result.run { if (this == null) return@PinePatchFn else this as MutableList<ApplicationCommand?> }
+    Patcher.addPatch(BuiltInCommands::class.java, "getBuiltInCommands", emptyArray(), Hook {
+      val list = it.result.run { if (this == null) return@Hook else this as MutableList<ApplicationCommand?> }
       val addList = CommandsAPI.commands.values
       if (!list.containsAll(addList))
         with(if (list is ArrayList<ApplicationCommand?>) list else ArrayList(list).apply { it.result = this }) {
@@ -49,8 +49,8 @@ internal class CommandHandler : Plugin() {
     })
 
     val storeApplicationCommands = StoreApplicationCommands::class.java
-    Patcher.addPatch(storeApplicationCommands, "getApplications", emptyArray(), PinePatchFn {
-      val list = it.result.run { if (this == null) return@PinePatchFn else this as MutableList<Application?> }
+    Patcher.addPatch(storeApplicationCommands, "getApplications", emptyArray(), Hook {
+      val list = it.result.run { if (this == null) return@Hook else this as MutableList<Application?> }
       val acApp = CommandsAPI.getAliucordApplication()
       if (!list.contains(acApp))
         with(if (list is ArrayList<Application?>) list else ArrayList(list).apply { it.result = this }) {
@@ -58,23 +58,23 @@ internal class CommandHandler : Plugin() {
         }
     })
 
-    Patcher.addPatch(storeApplicationCommands, "getApplicationMap", emptyArray(), PinePatchFn {
-      val map = it.result.run { if (this == null) return@PinePatchFn else this as MutableMap<Long?, Application?> }
+    Patcher.addPatch(storeApplicationCommands, "getApplicationMap", emptyArray(), Hook {
+      val map = it.result.run { if (this == null) return@Hook else this as MutableMap<Long?, Application?> }
       if (!map.containsKey(CommandsAPI.ALIUCORD_APP_ID))
         with(if (map is LinkedHashMap<Long?, Application?>) map else LinkedHashMap(map).apply { it.result = this }) {
           this[CommandsAPI.ALIUCORD_APP_ID] = CommandsAPI.getAliucordApplication()
         }
     })
 
-    Patcher.addPatch(storeApplicationCommands, "handleGuildApplicationsUpdate", arrayOf(List::class.java), PinePrePatchFn {
-      val list = it.result.run { if (this == null) return@PinePrePatchFn else this as MutableList<Application?> }
+    Patcher.addPatch(storeApplicationCommands, "handleGuildApplicationsUpdate", arrayOf(List::class.java), PreHook {
+      val list = it.result.run { if (this == null) return@PreHook else this as MutableList<Application?> }
       if (!list.contains(CommandsAPI.getAliucordApplication()))
         with(if (list is ArrayList<Application?>) list else ArrayList(list).apply { it.args[0] = this }) {
           add(CommandsAPI.getAliucordApplication())
         }
     })
 
-    Patcher.addPatch(StoreLocalMessagesHolder::class.java, "messageCacheTryPersist", emptyArray(), MethodReplacement.DO_NOTHING)
+    Patcher.addPatch(StoreLocalMessagesHolder::class.java, "messageCacheTryPersist", emptyArray(), InsteadHook.DO_NOTHING)
 
     // needed to reimplement this to:
     // 1. don't send command result if not needed
@@ -82,12 +82,12 @@ internal class CommandHandler : Plugin() {
     // 3. clear input after executing command
     Patcher.addPatch(
       `WidgetChatInput$configureSendListeners$2`::class.java.getDeclaredMethod("invoke", List::class.java, ApplicationCommandData::class.java, Function1::class.java),
-      PinePrePatchFn {
-        val data = it.args[1] as ApplicationCommandData? ?: return@PinePrePatchFn
-        val command = data.applicationCommand.also { c -> if (c == null || c !is RemoteApplicationCommand || !c.builtIn) return@PinePrePatchFn }
-        val values = data.values ?: return@PinePrePatchFn
+      PreHook {
+        val data = it.args[1] as ApplicationCommandData? ?: return@PreHook
+        val command = data.applicationCommand.also { c -> if (c == null || c !is RemoteApplicationCommand || !c.builtIn) return@PreHook }
+        val values = data.values ?: return@PreHook
         val commandArgs = LinkedHashMap<String, Any?>(values.size).apply { addValues(this, values) }
-        val execute = command.execute ?: return@PinePrePatchFn
+        val execute = command.execute ?: return@PreHook
         commandArgs["__this"] = it.thisObject as `WidgetChatInput$configureSendListeners$2`
         commandArgs["__args"] = it.args
         execute(commandArgs)
@@ -100,18 +100,18 @@ internal class CommandHandler : Plugin() {
     val bindingField = autocompleteItemViewHolder.getDeclaredField("binding").apply { isAccessible = true }
     Patcher.addPatch(
       autocompleteItemViewHolder.getDeclaredMethod("bindCommand", ApplicationCommandAutocompletable::class.java),
-      PinePatchFn {
+      Hook {
         val cmd = (it.args[0] as ApplicationCommandAutocompletable).command.run { if (this is ApplicationSubCommand) rootCommand else this }
-          .apply { if (!builtIn) return@PinePatchFn }
-        val plugin = CommandsAPI.commandsAndPlugins[cmd.name] ?: return@PinePatchFn
+          .apply { if (!builtIn) return@Hook }
+        val plugin = CommandsAPI.commandsAndPlugins[cmd.name] ?: return@Hook
         val binding = bindingField[it.thisObject] as WidgetChatInputAutocompleteItemBinding
         binding.f.text = plugin.uppercase()
       }
     )
 
-    Patcher.addPatch(Message::class.java, "isLocalApplicationCommand", arrayOf(), PinePrePatchFn {
+    Patcher.addPatch(Message::class.java, "isLocalApplicationCommand", arrayOf(), PreHook {
       with(it.thisObject as Message) {
-        val type = type ?: return@PinePrePatchFn
+        val type = type ?: return@PreHook
         if (isLoading && type != MessageTypes.LOCAL_APPLICATION_COMMAND && type != MessageTypes.LOCAL_APPLICATION_COMMAND_SEND_FAILED)
           it.result = true
       }
@@ -120,17 +120,17 @@ internal class CommandHandler : Plugin() {
     // don't mark Aliucord command messages as
     Patcher.addPatch(
       WidgetChatListAdapterItemMessage::class.java.getDeclaredMethod("processMessageText", SimpleDraweeSpanTextView::class.java, MessageEntry::class.java),
-      PinePatchFn {
-        val message = (it.args[1] as MessageEntry).message ?: return@PinePatchFn
+      Hook {
+        val message = (it.args[1] as MessageEntry).message ?: return@Hook
         if (message.isLocal && CoreUser(message.author).id == -1L) with(it.args[0] as TextView) {
           if (alpha != 1.0f) alpha = 1.0f
         }
       }
     )
 
-    Patcher.addPatch(WidgetApplicationCommandBottomSheetViewModel::class.java, "requestInteractionData", arrayOf(), PinePrePatchFn {
+    Patcher.addPatch(WidgetApplicationCommandBottomSheetViewModel::class.java, "requestInteractionData", arrayOf(), PreHook {
       with(it.thisObject as WidgetApplicationCommandBottomSheetViewModel) {
-        if (applicationId != -1L) return@PinePrePatchFn
+        if (applicationId != -1L) return@PreHook
         val state = CommandsAPI.interactionsStore[interactionId]
         if (state != null) WidgetApplicationCommandBottomSheetViewModel.`access$handleStoreState`(this, state)
         it.result = null

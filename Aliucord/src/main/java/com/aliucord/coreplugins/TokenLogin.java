@@ -15,7 +15,7 @@ import android.widget.RelativeLayout;
 import com.aliucord.Utils;
 import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.Patcher;
-import com.aliucord.patcher.PinePatchFn;
+import com.aliucord.patcher.Hook;
 import com.aliucord.utils.DimenUtils;
 import com.aliucord.views.Button;
 import com.discord.app.AppActivity;
@@ -81,9 +81,9 @@ final class TokenLogin extends Plugin {
     @Override
     @SuppressLint("SetTextI18n")
     public void start(Context appContext) throws Throwable {
-        Patcher.addPatch(WidgetAuthLanding.class.getDeclaredMethod("onViewBound", View.class), new PinePatchFn(callFrame -> {
-            Context context = ((WidgetAuthLanding) callFrame.thisObject).requireContext();
-            RelativeLayout view = (RelativeLayout) callFrame.args[0];
+        Patcher.addPatch(WidgetAuthLanding.class.getDeclaredMethod("onViewBound", View.class), new Hook(param -> {
+            Context context = ((WidgetAuthLanding) param.thisObject).requireContext();
+            RelativeLayout view = (RelativeLayout) param.args[0];
             LinearLayout v = (LinearLayout) view.getChildAt(1);
 
             int padding = DimenUtils.dpToPx(18);
@@ -98,8 +98,8 @@ final class TokenLogin extends Plugin {
             v.addView(btn);
         }));
 
-        Patcher.addPatch(AppActivity.class, "g", new Class<?>[]{ List.class }, new PinePatchFn(callFrame -> {
-            if (!((boolean) callFrame.getResult()) && ((AppActivity) callFrame.thisObject).d().equals(Page.class)) callFrame.setResult(true);
+        Patcher.addPatch(AppActivity.class, "g", new Class<?>[]{ List.class }, new Hook(param -> {
+            if (!((boolean) param.getResult()) && ((AppActivity) param.thisObject).d().equals(Page.class)) param.setResult(true);
         }));
     }
 

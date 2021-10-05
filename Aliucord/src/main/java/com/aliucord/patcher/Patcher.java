@@ -11,6 +11,7 @@ import com.aliucord.Logger;
 import java.lang.reflect.Member;
 import java.util.*;
 
+import de.robv.android.xposed.*;
 import top.canyie.pine.Pine;
 import top.canyie.pine.callback.MethodHook;
 
@@ -25,7 +26,9 @@ public class Patcher {
      * @param paramTypes The types of the parameters (e.g. int.class, String.class)
      * @param hook MethodHook
      * @return Unhook function
+     * @deprecated Use {@link #addPatch(String, String, Class[], XC_MethodHook)}
      */
+    @Deprecated
     public static Runnable addPatch(String forClass, String methodName, Class<?>[] paramTypes, MethodHook hook) {
         try {
             return addPatch(cl.loadClass(forClass), methodName, paramTypes, hook);
@@ -40,7 +43,9 @@ public class Patcher {
      * @param paramTypes The types of the parameters (e.g. int.class, String.class)
      * @param hook MethodHook
      * @return Unhook function
+     * @deprecated Use {@link #addPatch(Member, XC_MethodHook)}
      */
+    @Deprecated
     public static Runnable addPatch(Class<?> clazz, String methodName, Class<?>[] paramTypes, MethodHook hook) {
         try {
             return addPatch(clazz.getDeclaredMethod(methodName, paramTypes), hook);
@@ -53,8 +58,54 @@ public class Patcher {
      * @param member The member (method, constructor) to patch
      * @param hook MethodHook
      * @return Unhook function
+     * @deprecated Use {@link #addPatch(Class, String, Class[], XC_MethodHook)}
      */
+    @Deprecated
     public static Runnable addPatch(Member member, MethodHook hook) {
         return Pine.hook(member, hook)::unhook;
+    }
+
+    /**
+     * Add a patch
+     * @param member The member (method, constructor) to patch
+     * @param hook MethodHook
+     * @return Unhook
+     */
+    public static XC_MethodHook.Unhook addPatch(Member member, XC_MethodHook hook) {
+        return XposedBridge.hookMethod(member, hook);
+    }
+
+    /**
+     * Add a patch
+     * @param clazz Class to patch
+     * @param methodName The name of the method
+     * @param paramTypes The types of the parameters (e.g. int.class, String.class)
+     * @param hook MethodHook
+     * @return Unhook
+     */
+    public static XC_MethodHook.Unhook addPatch(Class<?> clazz, String methodName, Class<?>[] paramTypes, XC_MethodHook hook) {
+        try {
+            return addPatch(clazz.getDeclaredMethod(methodName,paramTypes), hook);
+        } catch (Throwable e) {
+            logger.error(e);
+            return null;
+        }
+    }
+
+    /**
+     * Add a patch
+     * @param forClass The full name of the class to patch (e.g. com.aliucord.patcher.Patcher)
+     * @param methodName The name of the method
+     * @param paramTypes The types of the parameters (e.g. int.class, String.class)
+     * @param hook MethodHook
+     * @return Unhook
+     */
+    public static XC_MethodHook.Unhook addPatch(String forClass, String methodName, Class<?>[] paramTypes, XC_MethodHook hook) {
+        try {
+            return addPatch(cl.loadClass(forClass), methodName, paramTypes, hook);
+        } catch (Throwable e) {
+            logger.error(e);
+            return null;
+        }
     }
 }

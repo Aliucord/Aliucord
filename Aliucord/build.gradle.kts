@@ -59,7 +59,7 @@ dependencies {
     api("androidx.constraintlayout:constraintlayout:2.1.1")
 
     discord("com.discord:discord:${findProperty("discord_version")}")
-    api("com.github.Aliucord:pine:83f67b2cdb")
+    api(files("../.assets/pine.jar"))
 }
 
 tasks.dokkaHtml.configure {

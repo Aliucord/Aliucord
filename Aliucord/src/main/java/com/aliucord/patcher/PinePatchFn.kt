@@ -14,7 +14,12 @@ import top.canyie.pine.callback.MethodHook
  * Calls [CallFrame] patch block **after** the method has been invoked.
  * @param callback Patch block to execute.
  * @see CallFrame
+ * @deprecated Pine style patching is deprecated. Use Xposed style hooks.
  */
+@Deprecated("Pine style patching is deprecated. Use Xposed style hooks.", ReplaceWith(
+    "Hook(callback)",
+    "com.aliucord.patcher.Hook"
+))
 class PinePatchFn(private val callback: Action1<CallFrame>) : MethodHook() {
     override fun afterCall(callFrame: CallFrame) {
         try {

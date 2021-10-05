@@ -75,8 +75,8 @@ public final class Main {
 
         if (checkPermissions(activity)) loadAllPlugins(activity);
 
-        Patcher.addPatch(AppActivity.class, "onCreate", new Class<?>[] { Bundle.class}, new PinePatchFn(cf -> {
-            Utils.appActivity = (AppActivity) cf.thisObject;
+        Patcher.addPatch(AppActivity.class, "onCreate", new Class<?>[] { Bundle.class}, new Hook(param -> {
+            Utils.appActivity = (AppActivity) param.thisObject;
         }));
     }
 
@@ -86,9 +86,9 @@ public final class Main {
         if (initialized) return;
         initialized = true;
 
-        Patcher.addPatch(WidgetSettings.class, "onViewBound", new Class<?>[]{ View.class }, new PinePatchFn(callFrame -> {
-            Context context = ((WidgetSettings) callFrame.thisObject).requireContext();
-            CoordinatorLayout view = (CoordinatorLayout) callFrame.args[0];
+        Patcher.addPatch(WidgetSettings.class, "onViewBound", new Class<?>[]{ View.class }, new Hook(param -> {
+            Context context = ((WidgetSettings) param.thisObject).requireContext();
+            CoordinatorLayout view = (CoordinatorLayout) param.args[0];
             LinearLayoutCompat v = (LinearLayoutCompat) ((NestedScrollView)
                 view.getChildAt(1)).getChildAt(0);
 
@@ -150,25 +150,25 @@ public final class Main {
         // Patch to repair built-in emotes is needed because installer doesn't recompile resources,
         // so they stay in package com.discord instead of apk package name
         Patcher.addPatch(ModelEmojiUnicode.class, "getImageUri", new Class<?>[]{String.class, Context.class},
-                new PineInsteadFn(callFrame -> "res:///" + Utils.getResId("emoji_" + callFrame.args[0], "raw"))
+                new InsteadHook(param -> "res:///" + Utils.getResId("emoji_" + param.args[0], "raw"))
         );
 
         // Patch to allow changelogs without media
-        Patcher.addPatch(WidgetChangeLog.class, "configureMedia", new Class<?>[]{String.class}, new PinePrePatchFn(callFrame -> {
-            WidgetChangeLog _this = (WidgetChangeLog) callFrame.thisObject;
+        Patcher.addPatch(WidgetChangeLog.class, "configureMedia", new Class<?>[]{String.class}, new PreHook(param -> {
+            WidgetChangeLog _this = (WidgetChangeLog) param.thisObject;
             String media = _this.getMostRecentIntent().getStringExtra("INTENT_EXTRA_VIDEO");
 
             if (media == null) {
                 WidgetChangeLogBinding binding = WidgetChangeLog.access$getBinding$p(_this);
                 binding.i.setVisibility(View.GONE); // changeLogVideoOverlay
                 binding.h.setVisibility(View.GONE); // changeLogVideo
-                callFrame.setResult(null);
+                param.setResult(null);
             }
         }));
 
         // Patch for custom footer actions
-        Patcher.addPatch(WidgetChangeLog.class, "configureFooter", new Class<?>[0], new PinePrePatchFn(callFrame -> {
-            WidgetChangeLog _this = (WidgetChangeLog) callFrame.thisObject;
+        Patcher.addPatch(WidgetChangeLog.class, "configureFooter", new Class<?>[0], new PreHook(param -> {
+            WidgetChangeLog _this = (WidgetChangeLog) param.thisObject;
             WidgetChangeLogBinding binding = WidgetChangeLog.access$getBinding$p(_this);
 
             Parcelable[] actions = _this.getMostRecentIntent().getParcelableArrayExtra("INTENT_EXTRA_FOOTER_ACTIONS");
@@ -196,7 +196,7 @@ public final class Main {
                 parent.addView(button);
             }
 
-            callFrame.setResult(null);
+            param.setResult(null);
         }));
 
         // add stacktraces in debug logs page
@@ -205,11 +205,11 @@ public final class Main {
             Field debugItemBinding = c.getDeclaredField("binding");
             debugItemBinding.setAccessible(true);
 
-            Patcher.addPatch(c, "onConfigure", new Class<?>[]{ int.class, AppLog.LoggedItem.class }, new PinePatchFn(callFrame -> {
-                AppLog.LoggedItem loggedItem = (AppLog.LoggedItem) callFrame.args[1];
+            Patcher.addPatch(c, "onConfigure", new Class<?>[]{ int.class, AppLog.LoggedItem.class }, new Hook(param -> {
+                AppLog.LoggedItem loggedItem = (AppLog.LoggedItem) param.args[1];
                 Throwable th = loggedItem.l;
                 if (th != null) try {
-                    TextView logMessage = ((WidgetDebuggingAdapterItemBinding) debugItemBinding.get(callFrame.thisObject)).b;
+                    TextView logMessage = ((WidgetDebuggingAdapterItemBinding) debugItemBinding.get(param.thisObject)).b;
                     SpannableStringBuilder sb = new SpannableStringBuilder("\n  at ");
                     StackTraceElement[] s = th.getStackTrace();
                     sb.append(TextUtils.join("\n  at ", s.length > 12 ? Arrays.copyOfRange(s, 0, 12) : s));
