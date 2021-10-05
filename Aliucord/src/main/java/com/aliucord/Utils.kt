@@ -210,13 +210,12 @@ object Utils {
      * @param avatarUrl Avatar URL of user
      * @return Built Clyde
      */
-    @JvmOverloads
     @JvmStatic
-    fun buildClyde(name: String? = "Clyde", avatarUrl: String? = Constants.Icons.CLYDE) =
+    fun buildClyde(name: String?, avatarUrl: String?) =
         User(
             -1,
-            name,
-            NullSerializable.b(avatarUrl),
+            name ?: "Clyde",
+            NullSerializable.b(avatarUrl ?: Constants.Icons.CLYDE),
             NullSerializable.a(),
             "0000",
             0,
