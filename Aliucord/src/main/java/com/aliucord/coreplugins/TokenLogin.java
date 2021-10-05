@@ -34,6 +34,12 @@ import java.util.List;
 import kotlin.Unit;
 
 final class TokenLogin extends Plugin {
+    TokenLogin() {
+        var manifest = new Manifest();
+        manifest.name = "TokenLogin";
+        initialize(manifest);
+    }
+
     public static class Page extends AppFragment {
         public Page() {
             super(Utils.getResId("widget_auth_login", "layout"));

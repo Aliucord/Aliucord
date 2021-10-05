@@ -30,6 +30,13 @@ import top.canyie.pine.callback.MethodReplacement
 
 @Suppress("UNCHECKED_CAST")
 internal class CommandHandler : Plugin() {
+  init {
+    Manifest().run {
+      name = "CommandHandler"
+      initialize(this)
+    }
+  }
+
   override fun load(context: Context) {
     Patcher.addPatch(BuiltInCommands::class.java, "getBuiltInCommands", emptyArray(), PinePatchFn {
       val list = it.result.run { if (this == null) return@PinePatchFn else this as MutableList<ApplicationCommand?> }
@@ -92,7 +99,7 @@ internal class CommandHandler : Plugin() {
     val autocompleteItemViewHolder = AutocompleteItemViewHolder::class.java
     val bindingField = autocompleteItemViewHolder.getDeclaredField("binding").apply { isAccessible = true }
     Patcher.addPatch(
-      autocompleteItemViewHolder.getDeclaredMethod("bindCommand", ApplicationCommandAutocompletable::class.java, Boolean::class.javaPrimitiveType),
+      autocompleteItemViewHolder.getDeclaredMethod("bindCommand", ApplicationCommandAutocompletable::class.java),
       PinePatchFn {
         val cmd = (it.args[0] as ApplicationCommandAutocompletable).command.run { if (this is ApplicationSubCommand) rootCommand else this }
           .apply { if (!builtIn) return@PinePatchFn }

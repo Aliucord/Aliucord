@@ -17,6 +17,13 @@ import com.discord.models.commands.ApplicationCommandOption
 import java.io.File
 
 internal class CoreCommands : Plugin() {
+    init {
+        Manifest().run {
+            name = "CoreCommands"
+            initialize(this)
+        }
+    }
+
     override fun start(context: Context) {
         commands.registerCommand(
             "echo",

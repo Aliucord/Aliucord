@@ -20,6 +20,12 @@ import java.util.*;
 import top.canyie.pine.callback.MethodReplacement;
 
 final class NoTrack extends Plugin {
+    NoTrack() {
+        var manifest = new Manifest();
+        manifest.name = "NoTrack";
+        initialize(manifest);
+    }
+
     @Override
     public void load(Context context) throws Throwable {
         FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false);
