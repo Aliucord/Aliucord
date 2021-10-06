@@ -179,6 +179,7 @@ object Utils {
      * @param autocomplete Whether autocomplete is enabled
      */
     @JvmStatic
+    @JvmOverloads
     fun createCommandOption(
         type: ApplicationCommandType = ApplicationCommandType.STRING,
         name: String,
@@ -189,7 +190,7 @@ object Utils {
         channelTypes: List<Int?> = emptyList(),
         choices: List<CommandChoice> = emptyList(),
         subCommandOptions: List<ApplicationCommandOption> = emptyList(),
-        autocomplete: Boolean = true
+        autocomplete: Boolean = false
     )
         = ApplicationCommandOption(
             type,

@@ -12,8 +12,8 @@ import com.aliucord.api.CommandsAPI
 import com.aliucord.api.CommandsAPI.CommandResult
 import com.discord.api.commands.ApplicationCommandType
 import com.aliucord.PluginManager
+import com.aliucord.Utils
 import com.aliucord.entities.Plugin
-import com.discord.models.commands.ApplicationCommandOption
 import java.io.File
 
 internal class CoreCommands : Plugin() {
@@ -28,7 +28,7 @@ internal class CoreCommands : Plugin() {
         commands.registerCommand(
             "echo",
             "Creates Clyde message",
-            listOf(CommandsAPI.requiredMessageOption)
+            CommandsAPI.requiredMessageOption
         ) {
             CommandResult(it.getRequiredString("message"), null, false)
         }
@@ -36,7 +36,7 @@ internal class CoreCommands : Plugin() {
         commands.registerCommand(
             "say",
             "Sends message",
-            listOf(CommandsAPI.requiredMessageOption)
+            CommandsAPI.requiredMessageOption
         ) {
             CommandResult(it.getRequiredString("message"))
         }
@@ -44,19 +44,10 @@ internal class CoreCommands : Plugin() {
         commands.registerCommand(
             "plugins",
             "Lists installed plugins",
-            listOf(
-                ApplicationCommandOption(
-                    ApplicationCommandType.BOOLEAN,
-                    "send",
-                    "Whether the result should be visible for everyone",
-                    null,
-                    false,
-                    false,
-                    null,
-                    null,
-                    null,
-                    false
-                )
+            Utils.createCommandOption(
+                type = ApplicationCommandType.BOOLEAN,
+                name = "send",
+                description = "Whether the result should be visible for everyone",
             )
         ) {
             val plugins = PluginManager.plugins.keys
@@ -72,7 +63,7 @@ internal class CoreCommands : Plugin() {
                 )
         }
 
-        commands.registerCommand("debug", "Posts debug info", emptyList()) {
+        commands.registerCommand("debug", "Posts debug info") {
             // .trimIndent() is broken sadly due to collision with Discord's Kotlin
             val str = """
 **Debug Info:**
