@@ -13,6 +13,7 @@ import android.os.Handler
 import android.os.Looper
 import android.view.View
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import c.a.d.j
@@ -28,6 +29,7 @@ import com.discord.stores.StoreStream
 import com.discord.utilities.SnowflakeUtils
 import com.discord.utilities.fcm.NotificationClient
 import com.discord.views.CheckedSetting
+import com.lytefast.flexinput.R
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -270,16 +272,35 @@ object Utils {
     }
 
 
+    @Deprecated(
+        "The old implementation didn't use the correct color and only tinted in dark mode. Use #tintToTheme(Context, Drawable)",
+        ReplaceWith("tintToTheme(context, drawable)")
+    )
+    @JvmStatic
+    fun tintToTheme(drawable: Drawable?) = drawable?.apply {
+        if (StoreStream.getUserSettingsSystem().theme == "light") setTint(Color.BLACK)
+    }
+
     /**
-     * Tints a [Drawable] to [Color.BLACK] if a user has set light theme.
+     * Tints a [Drawable] to match the user's current theme.
+     * More specifically, tints the drawable to [R.c.primary_light_600] if the user is using light theme,
+     * [R.c.primary_dark_300] otherwise
+     *
+     * Make sure you call [Drawable.mutate] first or the drawable will change in the entire app.
      * @param drawable Drawable
      * @return Drawable for chaining
      */
     @JvmStatic
-    fun tintToTheme(drawable: Drawable?) =
+    fun tintToTheme(context: Context, drawable: Drawable?) =
         drawable?.apply {
-            if (StoreStream.getUserSettingsSystem().theme == "light")
-                setTint(Color.BLACK)
+            // This should instead be setTint(ColorCompat.getThemedColor(context, R.b.colorInteractiveNormal)) but Themer plugin
+            // doesn't support attributes. The below code is the equivalent
+            val colorName =
+                if (StoreStream.getUserSettingsSystem().theme == "light")
+                    R.c.primary_light_600
+                else
+                    R.c.primary_dark_300
+            setTint(ContextCompat.getColor(context, colorName))
         }
 
     /**

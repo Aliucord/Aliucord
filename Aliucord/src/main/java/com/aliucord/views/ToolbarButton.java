@@ -28,7 +28,7 @@ public class ToolbarButton extends AppCompatImageButton {
     public void setImageDrawable(@Nullable Drawable drawable, boolean forceTint) {
         if (forceTint && drawable != null) {
             drawable = drawable.mutate();
-            Utils.tintToTheme(drawable).setAlpha(0x99);
+            Utils.tintToTheme(getContext(), drawable);
         }
         super.setImageDrawable(drawable);
     }
