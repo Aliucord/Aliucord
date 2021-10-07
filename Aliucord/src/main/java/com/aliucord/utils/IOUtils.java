@@ -9,7 +9,6 @@ package com.aliucord.utils;
 import androidx.annotation.NonNull;
 
 import java.io.*;
-import java.nio.charset.Charset;
 
 public final class IOUtils {
     /**

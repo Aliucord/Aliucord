@@ -18,7 +18,7 @@ import java.lang.reflect.Member
 class PreHook(val callback: Action1<MethodHookParam>) : XC_MethodHook() {
     override fun beforeHookedMethod(param: MethodHookParam) {
         try {
-            callback.call(param);
+            callback.call(param)
         } catch (th: Throwable) {
             Patcher.logger.error(
                 "Exception while pre-hooking ${param.method.declaringClass.name}.${param.method.name}",

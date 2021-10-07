@@ -6,29 +6,28 @@
 package com.aliucord
 
 import android.content.*
-import android.os.Looper
-import com.discord.app.AppActivity
 import android.graphics.Color
-import kotlin.jvm.JvmOverloads
-import android.widget.Toast
-import com.discord.utilities.fcm.NotificationClient
-import com.discord.app.AppComponent
-import com.discord.utilities.SnowflakeUtils
-import com.aliucord.fragments.AppFragmentProxy
-import com.discord.api.commands.CommandChoice
-import com.discord.nullserializable.NullSerializable
-import com.discord.views.CheckedSetting
-import androidx.core.content.res.ResourcesCompat
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Handler
+import android.os.Looper
+import android.view.View
+import android.widget.Toast
+import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import c.a.d.j
-import com.aliucord.utils.*
+import com.aliucord.fragments.AppFragmentProxy
 import com.discord.api.commands.ApplicationCommandType
-import com.discord.stores.StoreStream
+import com.discord.api.commands.CommandChoice
 import com.discord.api.user.User
+import com.discord.app.AppActivity
+import com.discord.app.AppComponent
 import com.discord.models.commands.ApplicationCommandOption
+import com.discord.nullserializable.NullSerializable
+import com.discord.stores.StoreStream
+import com.discord.utilities.SnowflakeUtils
+import com.discord.utilities.fcm.NotificationClient
+import com.discord.views.CheckedSetting
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -50,6 +49,7 @@ object Utils {
     lateinit var appActivity: AppActivity
 
     private var mAppContext: Context? = null
+
     @JvmStatic
     val appContext: Context
         get() = mAppContext ?: NotificationClient.`access$getContext$p`(NotificationClient.INSTANCE)
@@ -99,8 +99,13 @@ object Utils {
     @Suppress("deprecation")
     @JvmOverloads
     @JvmStatic
-    fun showToast(message: String, showLonger: Boolean = false) =
-        showToast(appContext, message, showLonger)
+    fun showToast(message: String, showLonger: Boolean = false) = mainThread.post {
+        Toast.makeText(
+            appContext,
+            message,
+            if (showLonger) Toast.LENGTH_LONG else Toast.LENGTH_SHORT
+        ).show()
+    }
 
     /**
      * Send a toast from any [Thread]
@@ -115,13 +120,8 @@ object Utils {
     )
     @JvmOverloads
     @JvmStatic
-    fun showToast(ctx: Context, message: String, showLonger: Boolean = false) = mainThread.post {
-        Toast.makeText(
-            ctx,
-            message,
-            if (showLonger) Toast.LENGTH_LONG else Toast.LENGTH_SHORT
-        ).show()
-    }
+    fun showToast(ctx: Context, message: String, showLonger: Boolean = false) =
+        showToast(message, showLonger)
 
     private val resIdCache = HashMap<String, Int>()
 
@@ -190,20 +190,19 @@ object Utils {
         channelTypes: List<Int?> = emptyList(),
         choices: List<CommandChoice> = emptyList(),
         subCommandOptions: List<ApplicationCommandOption> = emptyList(),
-        autocomplete: Boolean = false
+        autocomplete: Boolean = false,
+    ) = ApplicationCommandOption(
+        type,
+        name,
+        description,
+        descriptionRes,
+        required,
+        default,
+        channelTypes,
+        choices,
+        subCommandOptions,
+        autocomplete
     )
-        = ApplicationCommandOption(
-            type,
-            name,
-            description,
-            descriptionRes,
-            required,
-            default,
-            channelTypes,
-            choices,
-            subCommandOptions,
-            autocomplete
-        )
 
     /**
      * Builds Clyde User
@@ -251,7 +250,7 @@ object Utils {
         context: Context,
         type: CheckedSetting.ViewType,
         text: CharSequence?,
-        subtext: CharSequence?
+        subtext: CharSequence?,
     ) = CheckedSetting(context, null).apply {
         if (type != CheckedSetting.ViewType.CHECK) {
             removeAllViews()

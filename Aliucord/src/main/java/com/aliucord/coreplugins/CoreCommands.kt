@@ -8,12 +8,12 @@ import android.content.Context
 import android.os.Build
 import com.aliucord.BuildConfig
 import com.aliucord.Constants
-import com.aliucord.api.CommandsAPI
-import com.aliucord.api.CommandsAPI.CommandResult
-import com.discord.api.commands.ApplicationCommandType
 import com.aliucord.PluginManager
 import com.aliucord.Utils
+import com.aliucord.api.CommandsAPI
+import com.aliucord.api.CommandsAPI.CommandResult
 import com.aliucord.entities.Plugin
+import com.discord.api.commands.ApplicationCommandType
 import java.io.File
 
 internal class CoreCommands : Plugin() {

@@ -17,7 +17,7 @@ import java.lang.reflect.Member
 class InsteadHook(val callback: Function1<MethodHookParam, Any?>) : XC_MethodHook() {
     override fun beforeHookedMethod(param: MethodHookParam) {
         try {
-            param.result = callback.invoke(param);
+            param.result = callback.invoke(param)
         } catch (th: Throwable) {
             Patcher.logger.error(
                 "Exception while replacing ${param.method.declaringClass.name}.${param.method.name}",

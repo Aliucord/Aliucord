@@ -9,18 +9,13 @@ package com.aliucord.coreplugins;
 
 import android.content.Context;
 
-import com.aliucord.CollectionUtils;
 import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.InsteadHook;
-import com.aliucord.patcher.Patcher;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
-import java.lang.reflect.Method;
 import java.util.*;
 
 import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
-import top.canyie.pine.callback.MethodReplacement;
 
 final class NoTrack extends Plugin {
     NoTrack() {

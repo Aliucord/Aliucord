@@ -18,7 +18,7 @@ import java.lang.reflect.Member
 class Hook(val callback: Action1<MethodHookParam>) : XC_MethodHook() {
     override fun afterHookedMethod(param: MethodHookParam) {
         try {
-            callback.call(param);
+            callback.call(param)
         } catch (th: Throwable) {
             Patcher.logger.error(
                 "Exception while hooking ${param.method.declaringClass.name}.${param.method.name}",

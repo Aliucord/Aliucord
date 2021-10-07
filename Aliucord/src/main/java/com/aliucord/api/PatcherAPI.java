@@ -45,10 +45,11 @@ public class PatcherAPI {
 
     /**
      * Patches a method.
-     * @param forClass Class to patch.
-     * @param fn Method to patch.
+     *
+     * @param forClass   Class to patch.
+     * @param fn         Method to patch.
      * @param paramTypes Parameters of the <code>fn</code>. Useful for patching individual overloads.
-     * @param hook Callback for the patch.
+     * @param hook       Callback for the patch.
      * @return A {@link Runnable} object.
      * @see PinePatchFn
      * @see PinePrePatchFn
@@ -61,10 +62,11 @@ public class PatcherAPI {
 
     /**
      * Patches a method.
-     * @param clazz Class to patch.
-     * @param fn Method to patch.
+     *
+     * @param clazz      Class to patch.
+     * @param fn         Method to patch.
      * @param paramTypes Parameters of the <code>fn</code>. Useful for patching individual overloads.
-     * @param hook Callback for the patch.
+     * @param hook       Callback for the patch.
      * @return Method that will remove the patch when invoked
      * @see PinePatchFn
      * @see PinePrePatchFn
@@ -77,7 +79,8 @@ public class PatcherAPI {
 
     /**
      * Patches a method or constructor.
-     * @param m Method or constructor to patch. see {@link Member}.
+     *
+     * @param m    Method or constructor to patch. see {@link Member}.
      * @param hook Callback for the patch.
      * @return Method that will remove the patch when invoked
      * @see PatcherAPI#patch(String, String, Class[], MethodHook)
@@ -94,10 +97,11 @@ public class PatcherAPI {
 
     /**
      * Patches a method.
-     * @param forClass Class to patch.
-     * @param fn Method to patch.
+     *
+     * @param forClass   Class to patch.
+     * @param fn         Method to patch.
      * @param paramTypes Parameters of the <code>fn</code>. Useful for patching individual overloads.
-     * @param hook Callback for the patch.
+     * @param hook       Callback for the patch.
      * @return A {@link Runnable} object.
      */
     public Runnable patch(@NonNull String forClass, @NonNull String fn, @NonNull Class<?>[] paramTypes, @NonNull XC_MethodHook hook) {
@@ -106,10 +110,11 @@ public class PatcherAPI {
 
     /**
      * Patches a method.
-     * @param clazz Class to patch.
-     * @param fn Method to patch.
+     *
+     * @param clazz      Class to patch.
+     * @param fn         Method to patch.
      * @param paramTypes Parameters of the <code>fn</code>. Useful for patching individual overloads.
-     * @param hook Callback for the patch.
+     * @param hook       Callback for the patch.
      * @return Method that will remove the patch when invoked
      */
     public Runnable patch(@NonNull Class<?> clazz, @NonNull String fn, @NonNull Class<?>[] paramTypes, @NonNull XC_MethodHook hook) {
@@ -118,7 +123,8 @@ public class PatcherAPI {
 
     /**
      * Patches a method or constructor.
-     * @param m Method or constructor to patch. see {@link Member}.
+     *
+     * @param m    Method or constructor to patch. see {@link Member}.
      * @param hook Callback for the patch.
      * @return Method that will remove the patch when invoked
      */
