@@ -171,7 +171,7 @@ public class Updater extends SettingsPage {
             updateAllButton.setPadding(p, p, p, p);
 
             //noinspection ConstantConditions
-            refreshButton.setImageDrawable(Utils.tintToTheme(context, ContextCompat.getDrawable(context, R.d.ic_refresh_white_a60_24dp).mutate()), false);
+            refreshButton.setImageDrawable(Utils.tintToTheme(ContextCompat.getDrawable(context, R.d.ic_refresh_white_a60_24dp).mutate()), false);
             updateAllButton.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_file_download_white_24dp));
             settingsButton.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_guild_settings_24dp));
 

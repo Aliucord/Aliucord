@@ -271,16 +271,6 @@ object Utils {
         }
     }
 
-
-    @Deprecated(
-        "The old implementation didn't use the correct color and only tinted in dark mode. Use #tintToTheme(Context, Drawable)",
-        ReplaceWith("tintToTheme(context, drawable)")
-    )
-    @JvmStatic
-    fun tintToTheme(drawable: Drawable?) = drawable?.apply {
-        if (StoreStream.getUserSettingsSystem().theme == "light") setTint(Color.BLACK)
-    }
-
     /**
      * Tints a [Drawable] to match the user's current theme.
      * More specifically, tints the drawable to [R.c.primary_light_600] if the user is using light theme,
@@ -291,7 +281,7 @@ object Utils {
      * @return Drawable for chaining
      */
     @JvmStatic
-    fun tintToTheme(context: Context, drawable: Drawable?) =
+    fun tintToTheme(drawable: Drawable?) =
         drawable?.apply {
             // This should instead be setTint(ColorCompat.getThemedColor(context, R.b.colorInteractiveNormal)) but Themer plugin
             // doesn't support attributes. The below code is the equivalent
@@ -300,7 +290,7 @@ object Utils {
                     R.c.primary_light_600
                 else
                     R.c.primary_dark_300
-            setTint(ContextCompat.getColor(context, colorName))
+            setTint(ContextCompat.getColor(appContext, colorName))
         }
 
     /**
