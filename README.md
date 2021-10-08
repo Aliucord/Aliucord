@@ -19,19 +19,6 @@ Aliucord is a modification for the Android Discord app inspired by desktop clien
 Unlike other Android Discord app modifications, you don't need to rebuild the APK when adding or removing plugins, because Aliucord hooks at runtime using the <a href="https://github.com/canyie/pine">Pine</a> java method hook framework.
 </p>
 
-## 📃 Table of contents
-
-- [Important Information](#-important-information)
-  - [Supported Architectures](#supported-architectures)
-  - [Supported Android version(s)](#supported-android-versions)
-  - [Supported Discord version(s)](#supported-discord-versions)
-- [Features](#-features)
-- [Installation](#-installation)
-- [Plugin Installation](#-plugin-installation)
-  - [Troubleshooting](#troubleshooting)
-- [Building from source](#-building-from-source)
-- [Porting Aliucord to the latest Discord version](#-porting-aliucord-to-the-latest-discord-version)
-
 ## ⚠️ Important Information
 
 ### Supported Architectures
