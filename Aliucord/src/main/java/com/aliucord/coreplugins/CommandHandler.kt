@@ -26,7 +26,6 @@ import com.discord.widgets.chat.input.models.ApplicationCommandValue
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemMessage
 import com.discord.widgets.chat.list.entries.MessageEntry
 import com.discord.widgets.chat.list.sheet.WidgetApplicationCommandBottomSheetViewModel
-import top.canyie.pine.callback.MethodReplacement
 
 @Suppress("UNCHECKED_CAST")
 internal class CommandHandler : Plugin() {
