@@ -63,15 +63,18 @@ object Utils {
      * @param url The url to launch
      */
     @JvmStatic
-    fun launchUrl(url: String) =
+    fun launchUrl(url: String) {
         launchUrl(Uri.parse(url))
+    }
 
     /**
      * Launches an URL in the user's preferred Browser
      * @param url The url to launch
      */
     @JvmStatic
-    fun launchUrl(url: Uri) = appActivity.startActivity(Intent(Intent.ACTION_VIEW).setData(url))
+    fun launchUrl(url: Uri) {
+        appActivity.startActivity(Intent(Intent.ACTION_VIEW).setData(url))
+    }
 
     /**
      * Sets the clipboard content
@@ -101,12 +104,14 @@ object Utils {
     @Suppress("deprecation")
     @JvmOverloads
     @JvmStatic
-    fun showToast(message: String, showLonger: Boolean = false) = mainThread.post {
-        Toast.makeText(
-            appContext,
-            message,
-            if (showLonger) Toast.LENGTH_LONG else Toast.LENGTH_SHORT
-        ).show()
+    fun showToast(message: String, showLonger: Boolean = false) {
+        mainThread.post {
+            Toast.makeText(
+                appContext,
+                message,
+                if (showLonger) Toast.LENGTH_LONG else Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 
     /**
@@ -122,8 +127,9 @@ object Utils {
     )
     @JvmOverloads
     @JvmStatic
-    fun showToast(ctx: Context, message: String, showLonger: Boolean = false) =
+    fun showToast(ctx: Context, message: String, showLonger: Boolean = false) {
         showToast(message, showLonger)
+    }
 
     private val resIdCache = HashMap<String, Int>()
 
@@ -143,18 +149,22 @@ object Utils {
     }
 
     @JvmStatic
-    fun openPage(context: Context, clazz: Class<out AppComponent>, intent: Intent?) =
+    fun openPage(context: Context, clazz: Class<out AppComponent>, intent: Intent?) {
         j.d(context, clazz, intent)
+    }
 
     @JvmStatic
-    fun openPage(context: Context, clazz: Class<out AppComponent>) = openPage(context, clazz, null)
+    fun openPage(context: Context, clazz: Class<out AppComponent>) {
+        openPage(context, clazz, null)
+    }
 
     @JvmStatic
-    fun openPageWithProxy(context: Context, fragment: Fragment) =
+    fun openPageWithProxy(context: Context, fragment: Fragment) {
         SnowflakeUtils.fromTimestamp(System.currentTimeMillis() * 100).toString().let {
             AppFragmentProxy.fragments[it] = fragment
             openPage(context, AppFragmentProxy::class.java, Intent().putExtra("AC_FRAGMENT_ID", it))
         }
+    }
 
     /**
      * Creates a CommandChoice that can be used inside Command args
