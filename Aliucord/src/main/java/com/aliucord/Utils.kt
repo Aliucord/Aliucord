@@ -5,11 +5,22 @@
  */
 package com.aliucord
 
-import android.content.*
+import android.annotation.SuppressLint
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
+import android.provider.DocumentsContract
+import android.text.SpannableStringBuilder
+import android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+import android.text.style.ClickableSpan
+import android.text.style.StyleSpan
 import android.view.View
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -17,6 +28,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import c.a.d.j
 import com.aliucord.fragments.AppFragmentProxy
+import com.aliucord.fragments.ConfirmDialog
 import com.discord.api.commands.ApplicationCommandType
 import com.discord.api.commands.CommandChoice
 import com.discord.api.user.User
@@ -29,6 +41,7 @@ import com.discord.utilities.SnowflakeUtils
 import com.discord.utilities.fcm.NotificationClient
 import com.discord.views.CheckedSetting
 import com.lytefast.flexinput.R
+import java.io.File
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -73,6 +86,70 @@ object Utils {
     @JvmStatic
     fun launchUrl(url: Uri) {
         appActivity.startActivity(Intent(Intent.ACTION_VIEW).setData(url))
+    }
+
+    /**
+     * Launches the file explorer in the specified folder.
+     * May not work on all Roms, will show an error with advice in that case.
+     *
+     * @param folder The folder to launch
+     * @throws IllegalArgumentException If [folder] does not exist or is not a directory.
+     */
+    @JvmStatic
+    @Throws(IllegalArgumentException::class)
+    fun launchFileExplorer(folder: File) {
+        val path = folder.absolutePath
+        if (!folder.exists()) throw IllegalArgumentException("No such folder: $path")
+        if (!folder.isDirectory) throw IllegalArgumentException("Not a folder: $path")
+
+        val uri = Uri.parse(path)
+        val intent = Intent(Intent.ACTION_VIEW)
+            .setDataAndType(uri, "resource/folder")
+
+        // TODO: Do we need to add query permission to AndroidManifest? I tried on Android 11 and it resolved MiXplorer correctly
+        @SuppressLint("QueryPermissionsNeeded")
+        if (intent.resolveActivityInfo(appActivity.packageManager, 0) == null) {
+            val text =
+                """
+You don't have a file explorer installed that can handle this action.
+
+Consider installing the MiXplorer file manager, or navigate to $path manually using your file explorer.
+"""
+
+            val ssb = SpannableStringBuilder(text).apply {
+                val mixText = "the MiXplorer file manager"
+                var start = text.indexOf(mixText)
+                var end = start + mixText.length
+                setSpan(object : ClickableSpan() {
+                    override fun onClick(widget: View) {
+                        launchUrl("https://forum.xda-developers.com/t/app-2-2-mixplorer-v6-x-released-fully-featured-file-manager.1523691/")
+                    }
+                }, start, end, SPAN_EXCLUSIVE_EXCLUSIVE)
+
+                start = text.indexOf(path)
+                end = start + path.length
+                setSpan(StyleSpan(Typeface.BOLD_ITALIC), start, end, SPAN_EXCLUSIVE_EXCLUSIVE)
+
+                val explorerText = "your file explorer"
+                start = text.indexOf(explorerText)
+                end = start + explorerText.length
+                setSpan(object : ClickableSpan() {
+                    override fun onClick(widget: View) {
+                        Intent(Intent.ACTION_VIEW)
+                            .setDataAndType(uri, DocumentsContract.Document.MIME_TYPE_DIR)
+                            .let {
+                                appActivity.startActivity(Intent.createChooser(it, "Open folder"))
+                            }
+                    }
+                }, start, end, SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+            ConfirmDialog()
+                .setTitle(":(")
+                .setDescription(ssb)
+                .show(appActivity.supportFragmentManager, "Open Folder")
+        } else {
+            appActivity.startActivity(Intent.createChooser(intent, "Open folder"))
+        }
     }
 
     /**

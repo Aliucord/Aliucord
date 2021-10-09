@@ -96,10 +96,7 @@ class Crashes : SettingsPage() {
                 if (!dir.exists() && !dir.mkdir()) {
                     Utils.showToast("Failed to create crashlogs directory!", true)
                 } else {
-                    Intent(Intent.ACTION_VIEW).run {
-                        setDataAndType(Uri.parse(Constants.CRASHLOGS_PATH), "resource/folder")
-                        startActivity(Intent.createChooser(this, "Open folder"))
-                    }
+                    Utils.launchFileExplorer(dir)
                 }
             }.run {
                 addHeaderButton(this)

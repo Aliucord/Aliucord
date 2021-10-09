@@ -5,6 +5,7 @@
 
 package com.aliucord.fragments;
 
+import android.text.method.LinkMovementMethod;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -49,6 +50,7 @@ public class ConfirmDialog extends AppDialog {
         getCancelButton().setOnClickListener(onCancelListener != null ? onCancelListener : e -> dismiss());
         getHeader().setText(title != null ? title : "Confirm");
         getBody().setText(description != null ? description : "Are you sure?");
+        getBody().setMovementMethod(LinkMovementMethod.getInstance());
     }
 
     /**
