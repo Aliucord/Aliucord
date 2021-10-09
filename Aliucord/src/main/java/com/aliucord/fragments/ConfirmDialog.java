@@ -5,9 +5,12 @@
 
 package com.aliucord.fragments;
 
+import android.text.method.LinkMovementMethod;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.core.content.ContextCompat;
 
 import com.aliucord.Utils;
 import com.discord.app.AppDialog;
@@ -44,11 +47,13 @@ public class ConfirmDialog extends AppDialog {
         okButton.setText("OK");
         okButton.setIsLoading(false);
         okButton.setOnClickListener(onOkListener != null ? onOkListener : e -> dismiss());
-        if (isDangerous) okButton.setBackgroundColor(view.getResources().getColor(R.c.uikit_btn_bg_color_selector_red, view.getContext().getTheme()));
+        var btnColor = isDangerous ? R.c.uikit_btn_bg_color_selector_red : R.c.uikit_btn_bg_color_selector_brand;
+        okButton.setBackgroundColor(ContextCompat.getColor(view.getContext(), btnColor));
 
         getCancelButton().setOnClickListener(onCancelListener != null ? onCancelListener : e -> dismiss());
         getHeader().setText(title != null ? title : "Confirm");
         getBody().setText(description != null ? description : "Are you sure?");
+        getBody().setMovementMethod(LinkMovementMethod.getInstance());
     }
 
     /**

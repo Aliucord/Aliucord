@@ -149,15 +149,6 @@ public final class ReflectUtils {
     }
 
     /**
-     * @deprecated Use {@link #getField(Object, String)}
-     */
-    @Nullable
-    @Deprecated
-    public static Object getField(@NonNull Object instance, @NonNull String fieldName, boolean _priv) throws NoSuchFieldException, IllegalAccessException {
-        return getField(instance.getClass(), instance, fieldName);
-    }
-
-    /**
      * Gets a field declared in the class.
      * Please note that this does not cache the lookup result, so if you need to call this many times
      * you should do it manually and cache the {@link Field} to improve performance drastically
@@ -177,15 +168,6 @@ public final class ReflectUtils {
     }
 
     /**
-     * @deprecated Use {@link #getField(Class, Object, String)}
-     */
-    @Nullable
-    @Deprecated
-    public static Object getField(@NonNull Class<?> clazz, @Nullable Object instance, @NonNull String fieldName, boolean _priv) throws NoSuchFieldException, IllegalAccessException {
-        return getField(clazz, instance, fieldName);
-    }
-
-    /**
      * Stores a value to the field declared in the class.
      * Please note that this does not cache the lookup result, so if you need to call this many times
      * you should do it manually and cache the {@link Field} to improve performance drastically
@@ -197,14 +179,6 @@ public final class ReflectUtils {
      * @throws IllegalAccessException If the field is inaccessible.
      */
     public static void setField(@NonNull Object instance, @NonNull String fieldName, @Nullable Object v) throws NoSuchFieldException, IllegalAccessException {
-        setField(instance.getClass(), instance, fieldName, v);
-    }
-
-    /**
-     * @deprecated Use {@link #setField(Object, String, Object)}
-     */
-    @Deprecated
-    public static void setField(@NonNull Object instance, @NonNull String fieldName, @Nullable Object v, boolean _priv) throws NoSuchFieldException, IllegalAccessException {
         setField(instance.getClass(), instance, fieldName, v);
     }
 
@@ -224,13 +198,5 @@ public final class ReflectUtils {
         Field field = clazz.getDeclaredField(fieldName);
         field.setAccessible(true);
         field.set(instance, v);
-    }
-
-    /**
-     * @deprecated Use {@link #setField(Class, Object, String, Object)}
-     */
-    @Deprecated
-    public static void setField(@NonNull Class<?> clazz, @Nullable Object instance, @NonNull String fieldName, @Nullable Object v, boolean _priv) throws NoSuchFieldException, IllegalAccessException {
-        setField(clazz, instance, fieldName, v);
     }
 }

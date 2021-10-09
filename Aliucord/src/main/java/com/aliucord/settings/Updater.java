@@ -115,7 +115,7 @@ public class Updater extends SettingsPage {
                                 if (i != null)
                                     ctx.startActivity(i);
                                 else
-                                    Utils.showToast(ctx, "Please install the Aliucord installer and try again.");
+                                    Utils.showToast("Please install the Aliucord installer and try again.");
                             });
                 } else if (isAliucordOutdated()) {
                     sb = Snackbar
@@ -124,7 +124,7 @@ public class Updater extends SettingsPage {
                                 var ctx = v.getContext();
                                 try {
                                     updateAliucord(ctx);
-                                    Utils.showToast(ctx, "Successfully updated Aliucord.");
+                                    Utils.showToast("Successfully updated Aliucord.");
                                     Snackbar rb = Snackbar
                                         .make(getLinearLayout(), "Restart to apply the update.", Snackbar.LENGTH_INDEFINITE)
                                         .setAction("Restart", e -> {

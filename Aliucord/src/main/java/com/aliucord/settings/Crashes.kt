@@ -94,12 +94,9 @@ class Crashes : SettingsPage() {
 
             createToolbarButton(context, R.d.ic_open_in_new_white_24dp, 0) {
                 if (!dir.exists() && !dir.mkdir()) {
-                    Utils.showToast(context, "Failed to create crashlogs directory!", true)
+                    Utils.showToast("Failed to create crashlogs directory!", true)
                 } else {
-                    Intent(Intent.ACTION_VIEW).run {
-                        setDataAndType(Uri.parse(Constants.CRASHLOGS_PATH), "resource/folder")
-                        startActivity(Intent.createChooser(this, "Open folder"))
-                    }
+                    Utils.launchFileExplorer(dir)
                 }
             }.run {
                 addHeaderButton(this)
@@ -155,7 +152,7 @@ class Crashes : SettingsPage() {
                     text = MDUtils.renderCodeBlock(context, SpannableStringBuilder(), null, stacktrace)
                     setOnClickListener {
                         Utils.setClipboard("CrashLog-$timestamp", stacktrace)
-                        Utils.showToast(it.context, "Copied to clipboard")
+                        Utils.showToast("Copied to clipboard")
                     }
                     linearLayout.addView(this)
                 }

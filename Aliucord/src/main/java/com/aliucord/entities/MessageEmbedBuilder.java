@@ -7,7 +7,6 @@
 package com.aliucord.entities;
 
 import com.aliucord.Main;
-import com.aliucord.Utils;
 import com.aliucord.utils.ReflectUtils;
 import com.discord.api.message.embed.*;
 import com.discord.api.utcdatetime.UtcDateTime;
@@ -79,7 +78,7 @@ public class MessageEmbedBuilder {
      * @param type {@link EmbedType}
      */
     public MessageEmbedBuilder(EmbedType type) {
-        embed = Utils.allocateInstance(MessageEmbed.class);
+        embed = ReflectUtils.allocateInstance(MessageEmbed.class);
         setType(type);
     }
 

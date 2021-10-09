@@ -41,7 +41,7 @@ public class CommandContext {
         this._this = _this;
         this.messageContent = messageContent;
         this.attachments = (List<Attachment<?>>) _args[0];
-        viewState = ((WidgetChatInput$configureSendListeners$6$1) _args[2]).this$0.$viewState;
+        viewState = ((WidgetChatInput$configureSendListeners$7$1) _args[2]).this$0.$viewState;
     }
 
     private static <T> T requireNonNull(String key, T val) {

@@ -19,13 +19,10 @@ public final class IOUtils {
      */
     @NonNull
     public static String readAsText(@NonNull InputStream is) throws IOException {
-        var sb = new StringBuilder();
-        try (var reader = new BufferedReader(new InputStreamReader(is))) {
-            String ln;
-            while ((ln = reader.readLine()) != null)
-                sb.append(ln).append('\n');
+        try (var baos = new ByteArrayOutputStream(is.available())) {
+            pipe(is, baos);
+            return baos.toString("UTF-8");
         }
-        return sb.toString();
     }
 
     /**

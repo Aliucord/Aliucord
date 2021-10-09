@@ -68,7 +68,7 @@ public class Logger {
      * @param msg Message to log
      */
     public void info(Context ctx, String msg) {
-        Utils.showToast(ctx, msg);
+        Utils.showToast(msg);
         info(msg, null);
     }
 
@@ -130,7 +130,7 @@ public class Logger {
      * @param msg Message to log
      */
     public void error(Context ctx, String msg, Throwable e) {
-        Utils.showToast(ctx, msg);
+        Utils.showToast(msg, true);
         error(msg, e);
     }
 }

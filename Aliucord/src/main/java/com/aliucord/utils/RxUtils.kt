@@ -7,7 +7,6 @@
 package com.aliucord.utils
 
 import android.os.Looper
-import android.util.Pair
 import rx.*
 import rx.functions.Action0
 import rx.functions.Action1
@@ -65,7 +64,7 @@ object RxUtils {
    */
   @JvmStatic
   @Throws(IllegalStateException::class)
-  fun <T> Observable<T>.getResultBlocking(): Pair<T?, Throwable?> {
+  fun <T> Observable<T>.await(): Pair<T?, Throwable?> {
     if (Looper.getMainLooper() == Looper.myLooper()) throw IllegalStateException("getResultBlocking may not be called from the main thread as this would freeze the UI.")
 
     val latch = CountDownLatch(1)
@@ -87,7 +86,21 @@ object RxUtils {
       latch.await()
     } catch (ignored: InterruptedException) {}
 
-    return Pair(resRef.get(), throwableRef.get())
+    return resRef.get() to throwableRef.get()
+  }
+
+  /**
+   * Blocks the current thread and waits for the [Observable] to complete, then returns a [Pair] containing the result, and the error (if any)
+   * This must not be called from the Main thread (and will throw an [IllegalStateException] if done so) as that would freeze the UI
+   * @return A [Pair] whose first value is the result and whose second value is the error that occurred, if any
+   * @deprecated Use [await]
+   */
+  @JvmStatic
+  @Deprecated("Use RxUtils.await()", ReplaceWith("await()"))
+  @Throws(IllegalStateException::class)
+  fun <T> Observable<T>.getResultBlocking(): android.util.Pair<T?, Throwable?> {
+    val (res, th) = await()
+    return android.util.Pair(res, th)
   }
 
   /**

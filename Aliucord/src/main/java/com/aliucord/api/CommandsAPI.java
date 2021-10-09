@@ -131,10 +131,10 @@ public class CommandsAPI {
     public static Map<Long, WidgetApplicationCommandBottomSheetViewModel.StoreState> interactionsStore = new HashMap<>();
     /** Optional CommandOption of type String */
     public static ApplicationCommandOption messageOption =
-            new ApplicationCommandOption(ApplicationCommandType.STRING, "message", null, R.g.command_shrug_message_description, false, false, null, null);
+            Utils.createCommandOption(ApplicationCommandType.STRING, "message", null, R.g.command_shrug_message_description);
     /** Required CommandOption of type String */
     public static ApplicationCommandOption requiredMessageOption =
-            new ApplicationCommandOption(ApplicationCommandType.STRING, "message", null, R.g.command_shrug_message_description, true, false, null, null);
+            Utils.createCommandOption(ApplicationCommandType.STRING, "message", null, R.g.command_shrug_message_description, true);
 
     @SuppressWarnings("unchecked")
     private static void _registerCommand(
@@ -349,6 +349,36 @@ public class CommandsAPI {
         _registerCommand(pluginName, name, description, options, execute);
         commandsAndPlugins.put(name, pluginName);
         pluginCommands.add(name);
+    }
+
+    /**
+     * Registers a slash command.
+     * @param name Name of the command.
+     * @param description Description of the command.
+     * @param option Argument for the command. see {@link ApplicationCommandOption}
+     * @param execute Callback for the command.
+     */
+    public void registerCommand(
+            @NonNull String name,
+            @NonNull String description,
+            @NonNull ApplicationCommandOption option,
+            @NonNull Function1<CommandContext, CommandResult> execute
+    ) {
+        registerCommand(name, description, Collections.singletonList(option), execute);
+    }
+
+    /**
+     * Registers a slash command.
+     * @param name Name of the command.
+     * @param description Description of the command.
+     * @param execute Callback for the command.
+     */
+    public void registerCommand(
+            @NonNull String name,
+            @NonNull String description,
+            @NonNull Function1<CommandContext, CommandResult> execute
+    ) {
+        registerCommand(name, description, Collections.emptyList(), execute);
     }
 
     /**

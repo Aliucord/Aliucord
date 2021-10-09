@@ -8,6 +8,7 @@ package com.aliucord.fragments;
 import static android.view.View.OnClickListener;
 
 import android.annotation.SuppressLint;
+import android.text.method.LinkMovementMethod;
 import android.view.View;
 import android.widget.*;
 
@@ -52,6 +53,7 @@ public class InputDialog extends AppDialog {
 
         getHeader().setText(title != null ? title : "Input");
         getBody().setText(description != null ? description : "Please enter some text");
+        getBody().setMovementMethod(LinkMovementMethod.getInstance());
 
         TextInputLayout inputLayout = getInputLayout();
         if (placeholder != null) inputLayout.setHint(placeholder);

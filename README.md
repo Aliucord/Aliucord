@@ -19,19 +19,6 @@ Aliucord is a modification for the Android Discord app inspired by desktop clien
 Unlike other Android Discord app modifications, you don't need to rebuild the APK when adding or removing plugins, because Aliucord hooks at runtime using the <a href="https://github.com/canyie/pine">Pine</a> java method hook framework.
 </p>
 
-## 📃 Table of contents
-
-- [Important Information](#%EF%B8%8F-important-information)
-  - [Supported Architectures](#supported-architectures)
-  - [Supported Android version(s)](#supported-android-versions)
-  - [Supported Discord version(s)](#supported-discord-versions)
-- [Features](#-features)
-- [Installation](#-installation)
-- [Plugin Installation](#-plugin-installation)
-  - [Troubleshooting](#troubleshooting)
-- [Building from source](#-building-from-source)
-- [Porting Aliucord to the latest Discord version](#-porting-aliucord-to-the-latest-discord-version)
-
 ## ⚠️ Important Information
 
 ### Supported Architectures
@@ -47,7 +34,7 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
 
 ### Supported Discord version(s)
 
-- 89.8 / Beta 89108 (You don't need the apk, the installer will download it for you)
+- 96.3 / Beta 96103 (You don't need the apk, the installer will download it for you)
 
 ## 🎨 Features
 
@@ -73,14 +60,14 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
 1. Download and install [Installer-release.apk](https://github.com/Aliucord/Aliucord/raw/builds/Installer-release.apk) from the `builds` branch
 2. Open the newly installed "Aliucord Installer" app from your app drawer
 3. Click "Install", then choose the "Download" option
-    - ⚠️ DO NOT USE "From installed app" OR "From storage" UNLESS YOU KNOW WHAT YOU'RE DOING, OTHERWISE ALIUCORD WILL LIKELY NOT WORK CORRECTLY
-    - If you get a 404 error [change your dns to 1.1.1.1](https://is.gd/aliucorddns)
 4. Wait for it to finish patching the Discord APK
-5. Click "Install" once prompted by Android and wait for Aliucord to finish installing
-6. If Google Play warns you about this application being unverified, ignore it as it triggers thanks to an unverified signature¹
+5. Click "Install" once prompted by Android and wait for Aliucord to finish installing.
+   If the installer just stops or the apk fails to install just try again and it should work
+6. If Google Play warns you about this application being unverified, ignore it. This happens because Aliucord is built & signed locally on your device 
+   so Play Protect doesn't recognise the signature¹
 7. Open Aliucord, grant access to files (it needs this for finding plugins), log in to your account, and voila! Aliucord is at your fingertips!
 
-> ¹ If you'd like, you can disable this warning by turning off Play Protect in Google Play's settings, it's mostly useless.
+> ¹ If you'd like, you can disable this warning by turning off Play Protect in Google Play's settings, play protect is useless.
 > 
 > Play Protect can be turned off by tapping on your user icon in the top right of Google Play, tapping on "Play Protect," tapping on the cog icon in the top right, and finally toggling "Scan apps with Play Protect" to off. This may result in Google Play "nagging" you to re-enable it sometimes when sideloading apps.*
 
@@ -125,3 +112,7 @@ See `.github/workflows/build.yml` for all build steps.
 8. Restart Aliucord
 9. Ensure you've got a `logcat` catcher ready to go
 10. Open Aliucord and fix any errors that show in `logcat`
+
+## Credits
+
+- [Pine](https://github.com/canyie/pine)

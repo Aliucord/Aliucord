@@ -7,6 +7,7 @@
 package com.aliucord.fragments;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.view.View;
 import android.widget.LinearLayout;
 
@@ -102,5 +103,10 @@ public class SettingsPage extends AppFragment {
     /** Closes this SettingsPage by simulating a back press */
     public final void close() {
         requireActivity().onBackPressed();
+    }
+
+    @Override
+    public final Context getContext() {
+        return view != null ? view.getContext() : super.getContext();
     }
 }
