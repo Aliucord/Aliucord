@@ -272,7 +272,7 @@ public class Plugins extends SettingsPage {
     public void onViewBound(View view) {
         super.onViewBound(view);
         setActionBarTitle("Plugins");
-        setActionBarSubtitle(PluginManager.plugins.size + " Installed")
+        setActionBarSubtitle(PluginManager.plugins.size + " Installed")'
 
         var context = view.getContext();
         int padding = DimenUtils.getDefaultPadding();
