@@ -43,6 +43,8 @@ public final class Injector {
         Log.d(LOG_TAG, "Aliucord Debuggable: " + PineConfig.debuggable);
         PineConfig.disableHiddenApiPolicy = false;
         PineConfig.disableHiddenApiPolicyForPlatformDomain = false;
+        Pine.disableProfileSaver();
+        Pine.disableJitInline();
 
         try {
             Log.d(LOG_TAG, "Hooking AppActivity.onCreate...");
