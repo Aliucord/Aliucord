@@ -44,7 +44,7 @@ public final class Injector {
         Log.d(LOG_TAG, "Aliucord Debuggable: " + PineConfig.debuggable);
         PineConfig.disableHiddenApiPolicy = false;
         PineConfig.disableHiddenApiPolicyForPlatformDomain = false;
-        Pine.disableProfileSaver();
+        // Pine.disableProfileSaver();     // I HATE MIUI I HATE MIUI (Causes crashes on MiUi 12) - FIXME
         Pine.disableJitInline();
 
         try {
