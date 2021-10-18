@@ -46,14 +46,16 @@ public class SmallTextInput extends CardView {
     }
 
     /**
-     * Returns the root {@link TextInputLayout}
+     * Returns the root layout
+     * @return TextInputLayout
      */
     public TextInputLayout getRoot() {
         return layout;
     }
 
     /**
-     * Returns the main {@link TextInputEditText}
+     * Returns the main edit text
+     * @return TextInputEditText
      */
     public TextInputEditText getEditText() {
         return (TextInputEditText) ((ViewGroup) getRoot().getChildAt(0)).getChildAt(0);
