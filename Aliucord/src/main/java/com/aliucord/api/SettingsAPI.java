@@ -8,6 +8,8 @@ package com.aliucord.api;
 import com.aliucord.SettingsUtils;
 
 import java.lang.reflect.Type;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
 public class SettingsAPI {
@@ -28,6 +30,14 @@ public class SettingsAPI {
     public boolean getBool(String key, boolean defValue) {
         return SettingsUtils.getBool(keyPrefix + key, defValue);
     }
+
+    /**
+     * Toggle a boolean item in the preferences
+     * @param key Key of the item
+     * @param defValue Value to set if not found. This is not flipped
+     * @return Flipped value if found, else the defValue
+     */
+    public boolean toggleBool(String key, boolean defValue) { return SettingsUtils.toggleBool(key, defValue); }
 
     /**
      * Writes a {@link boolean} to the settings.
@@ -142,5 +152,30 @@ public class SettingsAPI {
      */
     public void setObject(String key, Object val) {
         SettingsUtils.setObject(keyPrefix + key, val);
+    }
+
+    /**
+     * Checks if a setting exists
+     * @param key Key of the item
+     * @return If setting present
+     */
+    public boolean exists(String key) { return SettingsUtils.exists(keyPrefix + key); }
+
+    /**
+     * Deletes a setting
+     * @param key Key of the item
+     * @return Whether the item existed
+     */
+    public boolean delete(String key) { return SettingsUtils.delete(keyPrefix + key); }
+
+    /**
+     * Gets all settings
+     * @return Key-value map of all settings
+     */
+    public Map<String, ?> getAll() {
+        return SettingsUtils.getAll()
+                .entrySet().stream()
+                .filter(setting -> setting.getKey().startsWith(keyPrefix))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }

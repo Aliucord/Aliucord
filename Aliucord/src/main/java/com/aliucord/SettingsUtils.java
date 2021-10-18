@@ -40,6 +40,18 @@ public class SettingsUtils {
     }
 
     /**
+     * Toggle a boolean item in the preferences
+     * @param key Key of the item
+     * @param defValue Value to set if not found. This is not flipped
+     * @return Flipped value if found, else the defValue
+     */
+    public static boolean toggleBool(String key, boolean defValue) {
+        boolean value = !prefs.getBoolean(key, !defValue);
+        prefs.edit().putBoolean(key, value).apply();
+        return value;
+    }
+
+    /**
      * Get an int from the preferences
      * @param key Key of the value
      * @param defValue Default value
@@ -153,5 +165,33 @@ public class SettingsUtils {
     public static void setObject(String key, Object val) {
         cache.put(key, val);
         setString(key, GsonUtils.toJson(val));
+    }
+
+    /**
+     * Checks if a setting exists
+     * @param key Key of the item
+     * @return If setting present
+     */
+    public static boolean exists(String key) {
+        return prefs.contains(key);
+    }
+
+    /**
+     * Deletes a setting
+     * @param key Key of the item
+     * @return Whether the item existed
+     */
+    public static boolean delete(String key) {
+        boolean exists = prefs.contains(key);
+        prefs.edit().remove(key).apply();
+        return exists;
+    }
+
+    /**
+     * Gets all settings
+     * @return All settings
+     */
+    public static Map<String, ?> getAll() {
+        return prefs.getAll();
     }
 }
