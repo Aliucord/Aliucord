@@ -6,57 +6,136 @@
 
 package com.aliucord.views;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.res.ColorStateList;
-import android.graphics.drawable.GradientDrawable;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.LayoutInflater;
+import android.widget.LinearLayout;
+import android.widget.EditText;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.text.TextWatcher;
 import android.text.Editable;
-import android.text.InputType;
-import android.view.inputmethod.EditorInfo;
 
+import androidx.core.content.ContextCompat;
+import androidx.cardview.widget.CardView;
+import androidx.annotation.StringRes;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.aliucord.Utils;
 import com.aliucord.utils.DimenUtils;
+
 import com.discord.utilities.color.ColorCompat;
-import com.google.android.material.textfield.TextInputEditText;
+import com.discord.utilities.icon.IconUtils;
+
 import com.google.android.material.textfield.TextInputLayout;
+
 import com.lytefast.flexinput.R;
 
-public class TextInput extends TextInputLayout {
-    @SuppressLint("SetTextI18n")
-    public TextInput(Context context) {
+public class TextInput extends CardView {
+    public TextInputLayout layout;
+
+    public TextInput(@NonNull Context context) {
+        this(context, null, null, null, null);
+    }
+
+    public TextInput(@NonNull Context context, @Nullable CharSequence hint) {
+        this(context, hint, null, null, null);
+    }
+
+    public TextInput(@NonNull Context context, @Nullable CharSequence hint, @Nullable String value) {
+        this(context, hint, value, null, null);
+    }
+
+    public TextInput(@NonNull Context context, @Nullable CharSequence hint, @Nullable String value, @Nullable TextWatcher textChangedListener) {
+        this(context, hint, value, textChangedListener, null);
+    }
+
+    public TextInput(@NonNull Context context, @Nullable CharSequence hint, @Nullable String value, @Nullable View.OnClickListener endIconOnClick) {
+        this(context, hint, value, null, endIconOnClick);
+    }
+
+    public TextInput(@NonNull Context context, @Nullable CharSequence hint, @Nullable String value, @Nullable TextWatcher textChangedListener, @Nullable View.OnClickListener endIconOnClick) {
         super(context);
-        int padding = DimenUtils.dpToPx(12);
-        int bgColor = ColorCompat.getThemedColor(context, R.b.colorBackgroundTertiary);
-        ColorStateList hintColor = ColorStateList.valueOf(ColorCompat.getThemedColor(context, R.b.colorHeaderSecondary));
+        LinearLayout root = new LinearLayout(context);
+        LayoutInflater.from(context).inflate(Utils.getResId("widget_change_guild_identity", "layout"), root);
+        layout = (TextInputLayout) root.findViewById(Utils.getResId("set_nickname_text", "id"));
+        ((CardView) layout.getParent()).removeView(layout);
+        addView(layout);
+        setCardBackgroundColor(Color.TRANSPARENT);
+        getRoot().setHint(hint == null ? "Enter Text" : hint);
+        if(value != null && !value.isEmpty()) getEditText().setText(value);
+        //if(placeholder != null && !placeholder.isEmpty()) getEditText().setPlaceholder(placeholder);
+        setRadius(DimenUtils.getDefaultCardRadius());
+        getRoot().setEndIconVisible(false);
+        getEditText().addTextChangedListener(textChangedListener == null ? new TextWatcher() {
+            public void afterTextChanged(Editable s) {
+                getRoot().setEndIconVisible(!s.toString().isEmpty());
+            }
 
-        setHintTextColor(ColorCompat.INSTANCE.createDefaultColorStateList(ColorCompat.getThemedColor(context, R.b.colorTextMuted)));
-        setBoxStrokeWidth(0);
-        setBoxStrokeWidthFocused(0);
-        setErrorTextAppearance(R.h.UiKit_TextAppearance);
-        setHintTextAppearance(R.h.UiKit_TextAppearance_MaterialEditText_Label);
-        setHintTextColor(hintColor);
-        setDefaultHintTextColor(ColorStateList.valueOf(ColorCompat.getThemedColor(context, R.b.colorTextMuted)));
-        setPadding(padding, padding, padding, 0);
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+        } : textChangedListener);
+        getRoot().setEndIconOnClickListener(endIconOnClick == null ? v -> getEditText().setText("") : endIconOnClick);
+    }
 
-        GradientDrawable shape = new GradientDrawable();
-        shape.setCornerRadius(DimenUtils.getDefaultCardRadius());
-        shape.setColor(bgColor);
-        setBackground(shape);
+    /**
+     * Returns the root layout
+     * @return TextInputLayout
+     */
+    @NonNull
+    public TextInputLayout getRoot() {
+        return layout;
+    }
 
-        TextInputEditText input = new TextInputEditText(context);
-        input.setTextSize(16);
-        input.setBackgroundColor(0);
-        input.setTextColor(ColorCompat.getThemedColor(context, R.b.colorHeaderPrimary));
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
-        input.setImeOptions(EditorInfo.IME_ACTION_DONE);
-        input.setPadding(0, padding, 0, padding);
-        input.setOnFocusChangeListener((view, focus) -> {
-            Editable text = input.getText();
-            if (text == null) return;
-            String textStr = text.toString();
-            if (!focus && textStr.equals("")) input.setText(" ");
-            if (focus && textStr.startsWith(" ")) input.setText(textStr.trim().replace(" ", ""));
-        });
-        if (!input.hasFocus() && (input.getText() == null || input.getText().toString().equals(""))) input.setText(" ");
-        addView(input);
+    /**
+     * Returns the main edit text
+     * @return EditText
+     */
+    @NonNull
+    public EditText getEditText() {
+        return (EditText) ((ViewGroup) getRoot().getChildAt(0)).getChildAt(0);
+    }
+
+    /**
+     * Sets the hint message
+     * @param hint The hint
+     * @return self
+     */
+    public TextInput setHint(@NonNull CharSequence hint) {
+        getRoot().setHint(hint);
+        return this;
+    }
+
+    /**
+     * Sets the hint message
+     * @param hint The hint res id
+     * @return self
+     */
+    public TextInput setHint(@NonNull @StringRes int hint) {
+        getRoot().setHint(hint);
+        return this;
+    }
+
+    /**
+     * Sets the end icon to the specified drawable and sets it tint to the users's chosen theme
+     * @param icon End icon drawable
+     * @return self
+     */
+    public TextInput setThemedEndIcon(@NonNull Drawable icon) {
+        getRoot().setEndIconDrawable(Utils.tintToTheme(icon.mutate()));
+        return this;
+    }
+
+    /**
+     * Sets the end icon to the specified drawable and sets it tint to the users's chosen theme
+     * @param icon End icon drawable res id
+     * @return self
+     */
+    public TextInput setThemedEndIcon(@NonNull @DrawableRes int icon) {
+        getRoot().setEndIconDrawable(Utils.tintToTheme(ContextCompat.getDrawable(getRoot().getContext(), icon)));
+        return this;
     }
 }
