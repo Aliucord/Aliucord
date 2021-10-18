@@ -194,4 +194,15 @@ public class SettingsUtils {
     public static Map<String, ?> getAll() {
         return prefs.getAll();
     }
+
+    /**
+     * Deletes all settings for a plugin
+     * @param plugin Plugin ID
+     */
+    public static void reset(String plugin) {
+        SettingsUtils.getAll()
+                .keySet().stream()
+                .filter(key -> key.startsWith("AC_" + plugin + "_"))
+                .forEach(SettingsUtils::delete);
+    }
 }

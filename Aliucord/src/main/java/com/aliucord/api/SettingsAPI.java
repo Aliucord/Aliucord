@@ -178,4 +178,14 @@ public class SettingsAPI {
                 .filter(setting -> setting.getKey().startsWith(keyPrefix))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
+
+    /**
+     * Deletes all the plugin's settings
+     */
+    public void reset() {
+        SettingsUtils.getAll()
+                .keySet().stream()
+                .filter(key -> key.startsWith(keyPrefix))
+                .forEach(SettingsUtils::delete);
+    }
 }
