@@ -20,6 +20,7 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.io.*;
+import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -45,8 +46,10 @@ public final class Injector {
         PineConfig.disableHiddenApiPolicy = false;
         PineConfig.disableHiddenApiPolicyForPlatformDomain = false;
         Pine.disableJitInline();
-        if (!isMiUi() && !new File(BASE_DIRECTORY, ".no_disable_profile").exists())
+        if (!isMiUi() && !new File(BASE_DIRECTORY, ".no_disable_profile").exists()) {
+            Log.w(LOG_TAG, "Detected MIUI, not disabling profile saver.");
             Pine.disableProfileSaver(); // (Causes crashes on MiUi 12)
+        }
 
         try {
             Log.d(LOG_TAG, "Hooking AppActivity.onCreate...");
@@ -141,9 +144,17 @@ public final class Injector {
         }
     }
 
+    @SuppressLint("PrivateApi") // Why is there no better way to get props???? System.getProperty doesn't work
     private static boolean isMiUi() {
-        var miuiCrap = System.getProperty("ro.miui.ui.version.name");
-        return miuiCrap != null && !miuiCrap.isEmpty();
+        if (!Build.MANUFACTURER.equalsIgnoreCase("xiaomi")) return false;
+        try {
+            var c = Class.forName("android.os.SystemProperties");
+            var getProp  = c.getMethod("get", String.class);
+            var miuiCrap = (String) getProp.invoke(c, "ro.miui.ui.version.code");
+            return miuiCrap != null && !miuiCrap.isEmpty();
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
 
     /**
