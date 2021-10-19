@@ -57,7 +57,7 @@ class GuildRoleWrapper(private val role: GuildRole) {
       get() = c()
 
     @JvmStatic
-    val GuildRole.icon: String
+    val GuildRole.icon: String?
       get() = d()
 
     @JvmStatic
@@ -81,7 +81,7 @@ class GuildRoleWrapper(private val role: GuildRole) {
       get() = i()
 
     @JvmStatic
-    val GuildRole.unicodeEmoji: String
+    val GuildRole.unicodeEmoji: String?
       get() = j()
   }
 }
