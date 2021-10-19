@@ -15,9 +15,11 @@ import java.util.stream.Collectors;
 public class SettingsAPI {
     /** Prefix for all settings keys: AC_{PLUGIN_NAME}_ */
     public final String keyPrefix;
+    public final String plugin;
 
     /** Creates a SettingsAPI for the specified plugin */
     public SettingsAPI(String plugin) {
+        this.plugin = plugin;
         keyPrefix = "AC_" + plugin + "_";
     }
 
@@ -182,10 +184,5 @@ public class SettingsAPI {
     /**
      * Deletes all the plugin's settings
      */
-    public void reset() {
-        SettingsUtils.getAll()
-                .keySet().stream()
-                .filter(key -> key.startsWith(keyPrefix))
-                .forEach(SettingsUtils::delete);
-    }
+    public void reset() { SettingsUtils.reset(plugin); }
 }
