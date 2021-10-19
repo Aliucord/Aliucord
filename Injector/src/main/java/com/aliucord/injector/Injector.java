@@ -149,7 +149,7 @@ public final class Injector {
         if (!Build.MANUFACTURER.equalsIgnoreCase("xiaomi")) return false;
         try {
             var c = Class.forName("android.os.SystemProperties");
-            var getProp  = c.getMethod("get", String.class);
+            var getProp = c.getMethod("get", String.class);
             var miuiCrap = (String) getProp.invoke(c, "ro.miui.ui.version.code");
             return miuiCrap != null && !miuiCrap.isEmpty();
         } catch (Throwable ignored) {
