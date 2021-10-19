@@ -46,10 +46,11 @@ public final class Injector {
         PineConfig.disableHiddenApiPolicy = false;
         PineConfig.disableHiddenApiPolicyForPlatformDomain = false;
         Pine.disableJitInline();
-        if (!isMiUi() && !new File(BASE_DIRECTORY, ".no_disable_profile").exists()) {
+
+        if (isMiUi()) // (Causes crashes on MiUi 12)
             Log.w(LOG_TAG, "Detected MIUI, not disabling profile saver.");
-            Pine.disableProfileSaver(); // (Causes crashes on MiUi 12)
-        }
+        else if (!new File(BASE_DIRECTORY, ".no_disable_profile").exists())
+            Pine.disableProfileSaver();
 
         try {
             Log.d(LOG_TAG, "Hooking AppActivity.onCreate...");
