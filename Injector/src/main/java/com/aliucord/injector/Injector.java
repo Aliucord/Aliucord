@@ -44,8 +44,9 @@ public final class Injector {
         Log.d(LOG_TAG, "Aliucord Debuggable: " + PineConfig.debuggable);
         PineConfig.disableHiddenApiPolicy = false;
         PineConfig.disableHiddenApiPolicyForPlatformDomain = false;
-        // Pine.disableProfileSaver();     // I HATE MIUI I HATE MIUI (Causes crashes on MiUi 12) - FIXME
         Pine.disableJitInline();
+        if (!isMiUi() && !new File(BASE_DIRECTORY, ".no_disable_profile").exists())
+            Pine.disableProfileSaver(); // (Causes crashes on MiUi 12)
 
         try {
             Log.d(LOG_TAG, "Hooking AppActivity.onCreate...");
@@ -138,6 +139,11 @@ public final class Injector {
                 new File(appActivity.getCodeCacheDir(), "Aliucord.zip").delete();
             } catch (Throwable ignored) {}
         }
+    }
+
+    private static boolean isMiUi() {
+        var miuiCrap = System.getProperty("ro.miui.ui.version.name");
+        return miuiCrap != null && !miuiCrap.isEmpty();
     }
 
     /**
