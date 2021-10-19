@@ -13,7 +13,6 @@ import com.discord.api.guildhash.GuildHashes
 import com.discord.api.guildmember.GuildMember
 import com.discord.api.guildscheduledevent.GuildScheduledEvent
 import com.discord.api.presence.Presence
-import com.discord.api.role.GuildRole
 import com.discord.api.sticker.Sticker
 
 /**
@@ -266,8 +265,8 @@ class GuildWrapper(private val guild: Guild) {
       get() = D()
 
     @JvmStatic
-    val Guild.roles: List<GuildRole>
-      get() = E()
+    val Guild.roles: List<GuildRoleWrapper>
+      get() = E().map { GuildRoleWrapper(it) }
 
     @JvmStatic
     val Guild.rulesChannelId: Long?
