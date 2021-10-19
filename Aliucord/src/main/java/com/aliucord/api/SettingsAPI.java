@@ -5,7 +5,8 @@
 
 package com.aliucord.api;
 
-import com.aliucord.SettingsUtils;
+
+import com.aliucord.SettingsUtilsJSON;
 
 import java.lang.reflect.Type;
 
@@ -13,10 +14,11 @@ import java.lang.reflect.Type;
 public class SettingsAPI {
     /** Prefix for all settings keys: AC_{PLUGIN_NAME}_ */
     public final String keyPrefix;
-
+    SettingsUtilsJSON settings;
     /** Creates a SettingsAPI for the specified plugin */
     public SettingsAPI(String plugin) {
         keyPrefix = "AC_" + plugin + "_";
+        settings= new SettingsUtilsJSON(plugin);
     }
 
     /**
@@ -26,7 +28,7 @@ public class SettingsAPI {
      * @return Stored value, or default value if it doesn't exist.
      */
     public boolean getBool(String key, boolean defValue) {
-        return SettingsUtils.getBool(keyPrefix + key, defValue);
+        return settings.getBool(key, defValue);
     }
 
     /**
@@ -35,7 +37,7 @@ public class SettingsAPI {
      * @param val Value of the setting.
      */
     public void setBool(String key, boolean val) {
-        SettingsUtils.setBool(keyPrefix + key, val);
+        settings.setBool(key, val);
     }
 
     /**
@@ -45,7 +47,7 @@ public class SettingsAPI {
      * @return Stored value, or default value if it doesn't exist.
      */
     public int getInt(String key, int defValue) {
-        return SettingsUtils.getInt(keyPrefix + key, defValue);
+        return settings.getInt(key, defValue);
     }
 
     /**
@@ -54,7 +56,7 @@ public class SettingsAPI {
      * @param val Value of the setting.
      */
     public void setInt(String key, int val) {
-        SettingsUtils.setInt(keyPrefix + key, val);
+        settings.setInt(key, val);
     }
 
     /**
@@ -64,7 +66,7 @@ public class SettingsAPI {
      * @return Stored value, or default value if it doesn't exist.
      */
     public float getFloat(String key, float defValue) {
-        return SettingsUtils.getFloat(keyPrefix + key, defValue);
+        return settings.getFloat(key, defValue);
     }
 
     /**
@@ -73,7 +75,7 @@ public class SettingsAPI {
      * @param val Value of the setting.
      */
     public void setFloat(String key, float val) {
-        SettingsUtils.setFloat(keyPrefix + key, val);
+        settings.setFloat(key, val);
     }
 
     /**
@@ -83,7 +85,7 @@ public class SettingsAPI {
      * @return Stored value, or default value if it doesn't exist.
      */
     public long getLong(String key, long defValue) {
-        return SettingsUtils.getLong(keyPrefix + key, defValue);
+        return settings.getLong(key, defValue);
     }
 
     /**
@@ -92,7 +94,7 @@ public class SettingsAPI {
      * @param val Value of the setting.
      */
     public void setLong(String key, long val) {
-        SettingsUtils.setLong(keyPrefix + key, val);
+        settings.setLong(key, val);
     }
 
     /**
@@ -102,7 +104,7 @@ public class SettingsAPI {
      * @return Stored value, or default value if it doesn't exist.
      */
     public String getString(String key, String defValue) {
-        return SettingsUtils.getString(keyPrefix + key, defValue);
+        return settings.getString(key, defValue);
     }
 
     /**
@@ -111,7 +113,7 @@ public class SettingsAPI {
      * @param val Value of the setting.
      */
     public void setString(String key, String val) {
-        SettingsUtils.setString(keyPrefix + key, val);
+        settings.setString(key, val);
     }
 
     /**
@@ -121,7 +123,7 @@ public class SettingsAPI {
      * @return Stored value, or default value if it doesn't exist.
      */
     public <T> T getObject(String key, T defValue) {
-        return SettingsUtils.getObject(keyPrefix + key, defValue);
+        return settings.getObject(key, defValue);
     }
 
     /**
@@ -132,7 +134,7 @@ public class SettingsAPI {
      * @return Stored value, or default value if it doesn't exist.
      */
     public <T> T getObject(String key, T defValue, Type type) {
-        return SettingsUtils.getObject(keyPrefix + key, defValue, type);
+        return settings.getObject(key, defValue, type);
     }
 
     /**
@@ -141,6 +143,6 @@ public class SettingsAPI {
      * @param val Value of the setting.
      */
     public void setObject(String key, Object val) {
-        SettingsUtils.setObject(keyPrefix + key, val);
+        settings.setObject(key, val);
     }
 }
