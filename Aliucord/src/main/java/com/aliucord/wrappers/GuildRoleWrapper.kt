@@ -61,10 +61,6 @@ class GuildRoleWrapper(private val role: GuildRole) {
       get() = d()
 
     @JvmStatic
-    val GuildRole.id: Long
-      get() = a()
-
-    @JvmStatic
     val GuildRole.managed: Boolean
       get() = e()
 
