@@ -314,7 +314,7 @@ public final class Main {
             var name = f.getName();
             if (name.endsWith(".zip")) {
                 PluginManager.loadPlugin(context, f);
-            } else {
+            } else if (!name.equals("oat")) { // Some roms create this
                 if (f.isDirectory()) {
                     Utils.showToast(String.format("Found directory %s in your plugins folder. DO NOT EXTRACT PLUGIN ZIPS!", name), true);
                 } else if (name.equals("classes.dex") || name.endsWith(".json")) {
