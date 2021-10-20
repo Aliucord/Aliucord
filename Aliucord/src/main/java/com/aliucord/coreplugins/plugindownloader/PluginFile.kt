@@ -19,13 +19,19 @@ internal class PluginFile(val plugin: String): File("${Constants.PLUGINS_PATH}/$
 
     fun install(author: String, repo: String, callback: Runnable? = null) {
         Utils.threadPool.execute {
+            val isReinstall = isInstalled
+
             val url = "https://github.com/$author/$repo/raw/builds/$plugin.zip"
             try {
                 Http.Request(url).execute().let { res ->
                     res.saveToFile(this)
+                    if (isReinstall) {
+                        PluginManager.stopPlugin(plugin)
+                        PluginManager.unloadPlugin(plugin)
+                    }
                     PluginManager.loadPlugin(Utils.appContext, this)
                     PluginManager.startPlugin(plugin)
-                    Utils.showToast("Plugin $plugin successfully installed!")
+                    Utils.showToast("Plugin $plugin successfully ${if (isReinstall) "re" else ""}installed!")
                     callback?.let { Utils.mainThread.post(it) }
                 }
             } catch (ex: IOException) {
@@ -41,7 +47,7 @@ internal class PluginFile(val plugin: String): File("${Constants.PLUGINS_PATH}/$
         Utils.showToast("${if (success) "Successfully uninstalled" else "Failed to uninstall"} $plugin")
         if (success) {
             PluginManager.stopPlugin(plugin)
-            PluginManager.plugins.remove(plugin)
+            PluginManager.unloadPlugin(plugin)
             callback?.let { Utils.mainThread.post(it) }
         }
     }

@@ -96,6 +96,19 @@ public class PluginManager {
     }
 
     /**
+     * Unloads a plugin
+     * @param name Name of the plugin to unload
+     */
+    public static void unloadPlugin(String name) {
+        logger.info("Unloading plugin: " + name);
+        var plugin = plugins.get(name);
+        if (plugin != null) try {
+            plugin.unload(Utils.getAppContext());
+            plugins.remove(name);
+        } catch (Throwable e) { logger.error("Exception while unloading plugin: " + name, e); }
+    }
+
+    /**
      * Enables a loaded plugin if it isn't already enabled
      * @param name Name of the plugin to enable
      */
@@ -116,7 +129,7 @@ public class PluginManager {
         SettingsUtils.setBool(getPluginPrefKey(name), false);
         try {
             stopPlugin(name);
-        } catch (Throwable e) { logger.error("Exception while unloading plugin: " + name, e); }
+        } catch (Throwable e) { logger.error("Exception while stopping plugin: " + name, e); }
     }
 
     /**
@@ -144,7 +157,7 @@ public class PluginManager {
      * @param name Name of the plugin to stop
      */
     public static void stopPlugin(String name) {
-        logger.info("Unloading plugin: " + name);
+        logger.info("Stopping plugin: " + name);
         try {
             Objects.requireNonNull(plugins.get(name)).stop(Utils.getAppContext());
         } catch (Throwable e) { logger.error("Exception while stopping plugin " + name, e); }

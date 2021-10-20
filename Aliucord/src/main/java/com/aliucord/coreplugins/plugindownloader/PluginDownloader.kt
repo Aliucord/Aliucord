@@ -64,8 +64,9 @@ internal class PluginDownloader : Plugin() {
                                 val author = group(1)!!
                                 val repo = group(2)!!
                                 val name = group(3)!!
-                                addEntry(layout, "Install $name") {
-                                    PluginFile(name).install(author, repo)
+                                val plugin = PluginFile(name)
+                                addEntry(layout, "${if (plugin.isInstalled) "Reinstall" else "Install"} $name") {
+                                    plugin.install(author, repo)
                                     actions.dismiss()
                                 }
                             }

@@ -31,8 +31,8 @@ internal class Modal(private val author: String, private val repo: String) : Set
     override fun onViewBound(view: View) {
         super.onViewBound(view)
 
-        setActionBarTitle("Plugin downloader");
-        setActionBarSubtitle("$author/$repo");
+        setActionBarTitle("Plugin downloader")
+        setActionBarSubtitle("$author/$repo")
 
         val ctx = view.context
 
@@ -69,10 +69,10 @@ internal class Modal(private val author: String, private val repo: String) : Set
 
                 plugins!!.mapNotNull { (name, info) ->
                     if (name == "default") return@mapNotNull null
-                    val file = PluginFile(name)
-                    val installed = file.isInstalled
+                    val plugin = PluginFile(name)
+                    val installed = plugin.isInstalled
                     val title = "${if (installed) "Uninstall" else "Install"} $name v${info.version}"
-                    PluginCardInfo(file, title, installed, info.minimumDiscordVersion)
+                    PluginCardInfo(plugin, title, installed, info.minimumDiscordVersion)
                 }.sortedBy { it.title }.forEach { (file, title, exists, minimumDiscordVersion) ->
                     val btn = if (exists) DangerButton(ctx) else Button(ctx)
                     btn.text = title
