@@ -170,6 +170,9 @@ public class PluginUpdater {
             );
         }
 
+        if (PluginManager.isPluginEnabled(plugin)) {
+            Utils.mainThread.post(() -> PluginManager.remountPlugin(plugin));
+        }
         updated.put(plugin, updateInfo.version);
         return true;
     }

@@ -164,6 +164,19 @@ public class PluginManager {
     }
 
     /**
+     * Remounts the plugin (stop -> unload -> load -> start)
+     * @param name
+     */
+    public static void remountPlugin(String name) {
+        if (!plugins.containsKey(name)) throw new IllegalArgumentException("No such plugin: " + name);
+        if (!isPluginEnabled(name)) throw new IllegalArgumentException("Plugin not enabled: " + name);
+        stopPlugin(name);
+        unloadPlugin(name);
+        loadPlugin(Utils.getAppContext(), new File(Constants.PLUGINS_PATH, name + ".zip"));
+        startPlugin(name);
+    }
+
+    /**
      * Gets the preferences key for a plugin. This is used as key for plugin settings.
      * Format: AC_PM_{PLUGIN_NAME}
      * @param name Name of the plugin
