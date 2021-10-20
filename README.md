@@ -74,7 +74,7 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
 
 ## 🔌 Plugin Installation
 
-1. Join our [support server](https://discord.gg/EsNDvBaHVU) and visit the `#plugin-links` channel for a list of available plugins
+1. Join our [support server](https://discord.gg/EsNDvBaHVU) and visit the `#plugins-list` channel for a list of available plugins
 2. Hold down the message (NOT the link, the entire message) with the desired plugin and click "Open PluginDownloader"
 3. Find the desired plugin in the list and click install. It should immediately start working, however some plugins may require you to restart to make them fully work
 
