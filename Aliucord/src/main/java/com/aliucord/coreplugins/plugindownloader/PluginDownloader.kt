@@ -91,7 +91,7 @@ internal class PluginDownloader : Plugin() {
 
     private fun addEntry(layout: ViewGroup, text: String, onClick: View.OnClickListener) {
         val replyView =
-            layout.findViewById<View>(Utils.getResId("dialog_chat_actions_reply", "id")) ?: return
+            layout.findViewById<View>(Utils.getResId("dialog_chat_actions_edit", "id")) ?: return
         val idx = layout.indexOfChild(replyView)
 
         TextView(layout.context, null, 0, R.h.UiKit_Settings_Item_Icon).run {
