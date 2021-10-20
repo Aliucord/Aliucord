@@ -21,6 +21,20 @@ public class SettingsAPI {
         settings= new SettingsUtilsJSON(plugin);
     }
 
+
+    public void reset(){
+        settings.resetSettings();
+    }
+    public boolean removeKey(String key){
+        return settings.removeKey(key);
+    }
+    public boolean toggleBool(String key, boolean defValue){
+        return settings.toggleBool(key,defValue);
+    }
+    public boolean exists(String key){
+        return settings.exists(key);
+    }
+
     /**
      * Reads a {@link boolean} from the settings.
      * @param key Key of the setting.

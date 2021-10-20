@@ -6,14 +6,18 @@
 
 package com.aliucord;
 
+import static com.aliucord.Main.logger;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.aliucord.utils.GsonUtils;
+import com.esotericsoftware.kryo.NotNull;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /** Utility class to store and retrieve preferences */
 @SuppressWarnings("unused")
@@ -153,5 +157,15 @@ public class SettingsUtils {
     public static void setObject(String key, Object val) {
         cache.put(key, val);
         setString(key, GsonUtils.toJson(val));
+    }
+    public static void removeKey(String key){
+        prefs.edit().remove(key).apply();
+    }
+    public static Map<String, ?> getAllSettings(String prefix){
+        return prefs.getAll()
+                .entrySet()
+                .stream()
+                .filter(stringEntry -> (stringEntry.getKey()).startsWith(prefix) && stringEntry.getValue() != null)
+                .collect(Collectors.toMap(a->a.getKey(),a->a.getValue()));
     }
 }
