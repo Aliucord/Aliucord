@@ -78,7 +78,7 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
 2. Hold down the message (NOT the link, the entire message) with the desired plugin and click "Open PluginDownloader"
 3. Find the desired plugin in the list and click install. It should immediately start working, however some plugins may require you to restart to make them fully work
 
-### 🐛 Troubleshooting
+## 🐛 Troubleshooting
 
 - Try closing and then reopening Aliucord
 - Double check that Aliucord has permission to access files
