@@ -137,6 +137,18 @@ public final class Main {
             crashes.setOnClickListener(e -> Utils.openPage(e.getContext(), Crashes.class));
             v.addView(crashes, baseIndex + 4);
 
+            var debug = new TextView(context, null, 0, com.lytefast.flexinput.R.h.UiKit_Settings_Item_Icon);
+            debug.setText("Open Debug Log");
+            debug.setTypeface(font);
+            icon = ContextCompat.getDrawable(context, com.lytefast.flexinput.R.d.ic_audit_logs_24dp);
+            if (icon != null) {
+                Drawable copy = icon.mutate();
+                copy.setTint(iconColor);
+                debug.setCompoundDrawablesRelativeWithIntrinsicBounds(copy, null, null, null);
+            }
+            debug.setOnClickListener(e -> Utils.openPage(e.getContext(), WidgetDebugging.class));
+            v.addView(debug, baseIndex + 5);
+
             TextView version = v.findViewById(Utils.getResId("app_info_header", "id"));
             boolean isDebuggable = (context.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
             version.setText(version.getText() + " | Aliucord " + BuildConfig.GIT_REVISION + (isDebuggable ? " (debuggable)" : ""));
@@ -292,11 +304,35 @@ public final class Main {
         File dir = new File(Constants.BASE_PATH + "/plugins");
         if (!dir.exists()) {
             boolean res = dir.mkdirs();
-            if (!res) logger.error("Failed to create directories!", null);
+            if (!res) {
+                logger.error("Failed to create directories!", null);
+                return;
+            }
         }
-        for (File f : Objects.requireNonNull(dir.listFiles((d, name) -> name.endsWith(".zip"))))
-            PluginManager.loadPlugin(context, f);
+
+        for (File f : dir.listFiles()) {
+            var name = f.getName();
+            if (name.endsWith(".zip")) {
+                PluginManager.loadPlugin(context, f);
+            } else if (!name.equals("oat")) { // Some roms create this
+                if (f.isDirectory()) {
+                    Utils.showToast(String.format("Found directory %s in your plugins folder. DO NOT EXTRACT PLUGIN ZIPS!", name), true);
+                } else if (name.equals("classes.dex") || name.endsWith(".json")) {
+                    Utils.showToast(String.format("Found extracted plugin file %s in your plugins folder. DO NOT EXTRACT PLUGIN ZIPS!", name), true);
+                }
+                rmrf(f);
+            }
+        }
         loadedPlugins = true;
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private static void rmrf(File file) {
+        if (file.isDirectory()) {
+            for (var child: file.listFiles())
+                rmrf(child);
+        }
+        file.delete();
     }
 
     private static void startAllPlugins() {
