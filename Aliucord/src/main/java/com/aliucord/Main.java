@@ -137,6 +137,18 @@ public final class Main {
             crashes.setOnClickListener(e -> Utils.openPage(e.getContext(), Crashes.class));
             v.addView(crashes, baseIndex + 4);
 
+            var debug = new TextView(context, null, 0, com.lytefast.flexinput.R.h.UiKit_Settings_Item_Icon);
+            debug.setText("Open Debug Log");
+            debug.setTypeface(font);
+            icon = ContextCompat.getDrawable(context, com.lytefast.flexinput.R.d.ic_audit_logs_24dp);
+            if (icon != null) {
+                Drawable copy = icon.mutate();
+                copy.setTint(iconColor);
+                debug.setCompoundDrawablesRelativeWithIntrinsicBounds(copy, null, null, null);
+            }
+            debug.setOnClickListener(e -> Utils.openPage(e.getContext(), WidgetDebugging.class));
+            v.addView(debug, baseIndex + 5);
+
             TextView version = v.findViewById(Utils.getResId("app_info_header", "id"));
             boolean isDebuggable = (context.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
             version.setText(version.getText() + " | Aliucord " + BuildConfig.GIT_REVISION + (isDebuggable ? " (debuggable)" : ""));
