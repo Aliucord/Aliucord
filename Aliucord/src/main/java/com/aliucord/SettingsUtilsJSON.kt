@@ -4,42 +4,41 @@ import com.aliucord.PluginManager.logger
 import com.aliucord.utils.GsonUtils
 import org.json.JSONObject
 import java.io.File
-import java.io.FileReader
-import java.io.FileWriter
 import java.lang.reflect.Type
 import java.util.*
 
 /** Utility class to store and retrieve preferences  */
 
-class SettingsUtilsJSON(plugin: String) {
-
+class SettingsUtilsJSON(private val plugin: String) {
 
     private val settingsPath = Constants.BASE_PATH + "/settings/"
     private val settingsFile = Constants.BASE_PATH + "/settings/" + plugin + ".json"
-    var settings: JSONObject = JSONObject()
     private val keyPrefix = "AC_" + plugin + "_"
+    private val settings: JSONObject by lazy {
+        val file = File(settingsFile)
+        if (file.exists()) {
+            val read = file.readText()
+            if (read != "") return@lazy JSONObject(read)
+        }
+        JSONObject()
+    }
 
     init {
         val dir = File(settingsPath)
-
-        if (!dir.exists()) { dir.mkdir() }
-
-        val file = File(settingsFile)
-
-        if (file.exists()) {
-            val read: String = FileReader(file).readText()
-            if (read != "") settings = JSONObject(read)
+        if (!dir.exists()) {
+            try {
+                dir.mkdir()
+            } catch (e: SecurityException) {
+                logger.error(e)
+            }
         }
-
         if (!SettingsUtils.getBool(keyPrefix + "migratedToJson", false)) {
             try {
                 getPreferenceSettings()?.forEach {
-
                     val keyName = it.key.replace(keyPrefix, "").trim()
                     if (keyName == "migratedToJson") return@forEach
                     it.value?.let { it1 -> settings.put(keyName, it1) }
                     SettingsUtils.remove(it.key)
-
                 }
                 SettingsUtils.setBool(keyPrefix + "migratedToJson", true)
                 writeData()
@@ -57,24 +56,21 @@ class SettingsUtilsJSON(plugin: String) {
 
     private fun writeData() {
         if (settings.length() > 0) {
-
             val file = File(settingsFile)
-            if (!file.exists()) file.createNewFile()
-
-            val writer = FileWriter(file)
-            writer.write(settings.toString(4))
-            writer.flush()
-            writer.close()
+            try {
+                file.writeText(settings.toString(4))
+            } catch (e: Throwable) {
+                logger.info("Faled to save settings for $plugin")
+                logger.error(e)
+            }
         }
-
     }
 
     /**
      * Resets All Settings
      * @return true if successful, else false
      */
-    fun resetSettings(): Boolean {
-        settings = JSONObject()
+    fun resetFile(): Boolean {
         return File(settingsFile).delete()
     }
 
@@ -221,7 +217,7 @@ class SettingsUtilsJSON(plugin: String) {
      */
     fun <T> getObject(key: String, defValue: T): T {
         //return settings.get(key) as T ,this works but why change while other one is working fine
-       return getObject(key, defValue, defValue!!::class.java)
+        return getObject(key, defValue, defValue!!::class.java)
     }
 
     /**

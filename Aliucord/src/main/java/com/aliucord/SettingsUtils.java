@@ -6,13 +6,11 @@
 
 package com.aliucord;
 
-import static com.aliucord.Main.logger;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.aliucord.utils.GsonUtils;
-import com.esotericsoftware.kryo.NotNull;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;

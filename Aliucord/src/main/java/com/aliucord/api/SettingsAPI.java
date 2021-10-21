@@ -15,10 +15,12 @@ public class SettingsAPI {
     /** Prefix for all settings keys: AC_{PLUGIN_NAME}_ */
     public final String keyPrefix;
     SettingsUtilsJSON settings;
+    String pluginName;
     /** Creates a SettingsAPI for the specified plugin */
     public SettingsAPI(String plugin) {
         keyPrefix = "AC_" + plugin + "_";
         settings= new SettingsUtilsJSON(plugin);
+        pluginName=plugin;
     }
 
     /**
@@ -26,7 +28,9 @@ public class SettingsAPI {
      * @return true if successful, else false
      */
     public boolean resetSettings(){
-       return settings.resetSettings();
+        var isSuccessful = settings.resetFile();
+        settings= new SettingsUtilsJSON(pluginName);
+       return isSuccessful;
     }
 
 
