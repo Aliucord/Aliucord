@@ -158,7 +158,7 @@ public class SettingsUtils {
         cache.put(key, val);
         setString(key, GsonUtils.toJson(val));
     }
-    public static void removeKey(String key){
+    public static void remove(String key){
         prefs.edit().remove(key).apply();
     }
     public static Map<String, ?> getAllSettings(String prefix){
@@ -166,6 +166,6 @@ public class SettingsUtils {
                 .entrySet()
                 .stream()
                 .filter(stringEntry -> (stringEntry.getKey()).startsWith(prefix) && stringEntry.getValue() != null)
-                .collect(Collectors.toMap(a->a.getKey(),a->a.getValue()));
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }

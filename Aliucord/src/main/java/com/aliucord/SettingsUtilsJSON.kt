@@ -1,6 +1,6 @@
 package com.aliucord
 
-import android.widget.Toast
+import com.aliucord.PluginManager.logger
 import com.aliucord.utils.GsonUtils
 import org.json.JSONObject
 import java.io.File
@@ -12,7 +12,7 @@ import java.util.*
 /** Utility class to store and retrieve preferences  */
 
 class SettingsUtilsJSON(plugin: String) {
-    val logger = Logger("test")
+
 
     val settingsPath = Constants.BASE_PATH + "/settings/"
     val settingsFile = Constants.BASE_PATH + "/settings/" + plugin + ".json"
@@ -39,39 +39,32 @@ class SettingsUtilsJSON(plugin: String) {
         try {
 
 
-            if (!SettingsUtils.getBool(keyPrefix + "migratedToJson", false)) {
+            if (SettingsUtils.getBool(keyPrefix + "migratedToJson", false)) {
                 getPreferenceSettings()?.forEach {
 
-                    val keyName = it.key.replace(keyPrefix, "")
-
+                    val keyName = it.key.replace(keyPrefix, "").trim()
+                    if (keyName == "migratedToJson") return@forEach
                     it.value?.let { it1 -> settings.put(keyName, it1) }
-                    //SettingsUtils.removeKey(it.key);
-                    SettingsUtils.setBool(keyPrefix + "migratedToJson",true);
+                    SettingsUtils.remove(it.key)
+                    SettingsUtils.setBool(keyPrefix + "migratedToJson", true)
                 }
                 writeData()
-
-                Toast.makeText(Utils.appContext,plugin + " Settings Are Migrated",Toast.LENGTH_SHORT).show() //here for debugging for now
+                logger.info("'$plugin' Settings Are Migrated")
 
             }
              } catch (e: Exception) {
-                 Toast.makeText(Utils.appContext,plugin  + "Settings coulnt migrated",Toast.LENGTH_SHORT).show()
+            logger.info("'$plugin' Settings couldn't migrated")
             logger.error(e)
         }
-       // SettingsUtils.setBool(keyPrefix+"migratedToJson",false)
+
 
     }
-
-
-
-
 
     fun getPreferenceSettings(): Map<String, *>? {
         return SettingsUtils.getAllSettings(keyPrefix)
     }
 
     fun writeData() {
-
-
         if (settings.length() > 0) {
 
             val file = File(settingsFile)
@@ -85,26 +78,43 @@ class SettingsUtilsJSON(plugin: String) {
 
     }
 
-    fun resetSettings() {
+    /**
+     * Resets All Settings
+     * @return true if succesful, else false
+     */
+    fun resetSettings(): Boolean {
         settings = JSONObject()
-        writeData()
+        return File(settingsFile).delete()
     }
 
+    /**
+     * Toggles Boolean and returns it
+     * @param key Key of the value
+     * @param defVal Default Value if setting doesnt exist
+     * @return Toggled boolean
+     */
     fun toggleBool(key: String, defVal: Boolean): Boolean {
         getBool(key, !defVal).also {
-            setBool(key, it)
-            return it
+            setBool(key, !it)
+            return !it
         }
     }
 
-    fun removeKey(key: String): Boolean {
-        return settings.remove(key) != null
+    /**
+     * Removes Item from settings
+     * @param key Key of the value
+     * @return True if removed, else false
+     */
+    fun remove(key: String): Boolean {
+        val bool = settings.remove(key) != null
+        writeData()
+        return bool
     }
 
     /**
      * Check if Key exists in settings
      * @param key Key of the value
-     * @return true if found, else false
+     * @return True if found, else false
      */
     fun exists(key: String): Boolean {
         return settings.has(key)
@@ -116,7 +126,6 @@ class SettingsUtilsJSON(plugin: String) {
      * @param defValue Default value
      * @return Value if found, else the defValue
      */
-
     fun getBool(key: String, defValue: Boolean): Boolean {
         return if (settings.has(key)) settings.getBoolean(key) else defValue
     }
@@ -158,7 +167,6 @@ class SettingsUtilsJSON(plugin: String) {
      * @return Value if found, else the defValue
      */
     fun getFloat(key: String, defValue: Float): Float {
-        //TODO take a look to that later
         return if (settings.has(key)) settings.get(key) as Float else defValue
     }
 

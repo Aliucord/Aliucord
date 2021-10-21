@@ -21,16 +21,38 @@ public class SettingsAPI {
         settings= new SettingsUtilsJSON(plugin);
     }
 
+    /**
+     * Resets All Settings
+     * @return true if successful, else false
+     */
+    public boolean resetSettings(){
+       return settings.resetSettings();
+    }
 
-    public void reset(){
-        settings.resetSettings();
+
+    /**
+     * Removes Item from settings
+     * @param key Key of the value
+     * @return True if removed, else false
+     */
+    public boolean remove(String key){
+        return settings.remove(key);
     }
-    public boolean removeKey(String key){
-        return settings.removeKey(key);
-    }
+
+    /**
+     * Toggles Boolean and returns it
+     * @param key Key of the value
+     * @param defValue Default Value if setting doesn't exist
+     * @return Toggled boolean
+     */
     public boolean toggleBool(String key, boolean defValue){
         return settings.toggleBool(key,defValue);
     }
+    /**
+     * Check if Key exists in settings
+     * @param key Key of the value
+     * @return True if found, else false
+     */
     public boolean exists(String key){
         return settings.exists(key);
     }
