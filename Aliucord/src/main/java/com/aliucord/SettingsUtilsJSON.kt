@@ -14,32 +14,25 @@ import java.util.*
 class SettingsUtilsJSON(plugin: String) {
 
 
-    val settingsPath = Constants.BASE_PATH + "/settings/"
-    val settingsFile = Constants.BASE_PATH + "/settings/" + plugin + ".json"
+    private val settingsPath = Constants.BASE_PATH + "/settings/"
+    private val settingsFile = Constants.BASE_PATH + "/settings/" + plugin + ".json"
     var settings: JSONObject = JSONObject()
-    val keyPrefix = "AC_" + plugin + "_"
+    private val keyPrefix = "AC_" + plugin + "_"
 
     init {
         val dir = File(settingsPath)
 
-        if (!dir.exists()) {
-            dir.mkdir()
-        }
+        if (!dir.exists()) { dir.mkdir() }
 
         val file = File(settingsFile)
 
         if (file.exists()) {
             val read: String = FileReader(file).readText()
             if (read != "") settings = JSONObject(read)
-
         }
 
-
-
-        try {
-
-
-            if (SettingsUtils.getBool(keyPrefix + "migratedToJson", false)) {
+        if (SettingsUtils.getBool(keyPrefix + "migratedToJson", false)) {
+            try {
                 getPreferenceSettings()?.forEach {
 
                     val keyName = it.key.replace(keyPrefix, "").trim()
@@ -50,21 +43,18 @@ class SettingsUtilsJSON(plugin: String) {
                 }
                 writeData()
                 logger.info("'$plugin' Settings Are Migrated")
-
+            } catch (e: Exception) {
+                logger.info("'$plugin' Settings couldn't migrated")
+                logger.error(e)
             }
-             } catch (e: Exception) {
-            logger.info("'$plugin' Settings couldn't migrated")
-            logger.error(e)
         }
-
-
     }
 
-    fun getPreferenceSettings(): Map<String, *>? {
+    private fun getPreferenceSettings(): Map<String, *>? {
         return SettingsUtils.getAllSettings(keyPrefix)
     }
 
-    fun writeData() {
+    private fun writeData() {
         if (settings.length() > 0) {
 
             val file = File(settingsFile)
@@ -80,7 +70,7 @@ class SettingsUtilsJSON(plugin: String) {
 
     /**
      * Resets All Settings
-     * @return true if succesful, else false
+     * @return true if successful, else false
      */
     fun resetSettings(): Boolean {
         settings = JSONObject()
@@ -90,7 +80,7 @@ class SettingsUtilsJSON(plugin: String) {
     /**
      * Toggles Boolean and returns it
      * @param key Key of the value
-     * @param defVal Default Value if setting doesnt exist
+     * @param defVal Default Value if setting doesn't exist
      * @return Toggled boolean
      */
     fun toggleBool(key: String, defVal: Boolean): Boolean {
@@ -229,7 +219,7 @@ class SettingsUtilsJSON(plugin: String) {
      * @return Value if found, else the defValue
      */
     fun <T> getObject(key: String, defValue: T): T {
-        //return settings.get(key) as T ,this works but why change while other one is working
+        //return settings.get(key) as T ,this works but why change while other one is working fine
        return getObject(key, defValue, defValue!!::class.java)
     }
 
@@ -259,7 +249,7 @@ class SettingsUtilsJSON(plugin: String) {
     fun setObject(key: String, `val`: Any) {
         //settings.put(key,`val`)
         //writeData()
-        cache.put(key, `val`)
+        cache[key] = `val`
         setString(key, GsonUtils.toJson(`val`))
     }
 }
