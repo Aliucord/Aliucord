@@ -8,6 +8,7 @@ package com.aliucord.settings;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
@@ -19,6 +20,7 @@ import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.*;
 
@@ -27,11 +29,14 @@ import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.ConfirmDialog;
 import com.aliucord.fragments.SettingsPage;
 import com.aliucord.utils.*;
+import com.aliucord.views.Button;
 import com.aliucord.views.TextInput;
 import com.aliucord.views.ToolbarButton;
 import com.aliucord.widgets.PluginCard;
 import com.discord.app.AppBottomSheet;
 import com.discord.app.AppFragment;
+import com.discord.stores.StoreInviteSettings;
+import com.discord.widgets.guilds.invite.WidgetGuildInvite;
 import com.discord.widgets.user.usersheet.WidgetUserSheet;
 import com.lytefast.flexinput.R;
 
@@ -171,14 +176,17 @@ public class Plugins extends SettingsPage {
                     public int getOldListSize() {
                         return getItemCount();
                     }
+
                     @Override
                     public int getNewListSize() {
                         return res.size();
                     }
+
                     @Override
                     public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
                         return data.get(oldItemPosition).getName().equals(res.get(newItemPosition).getName());
                     }
+
                     @Override
                     public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
                         return true;
@@ -212,7 +220,7 @@ public class Plugins extends SettingsPage {
                 String url = getGithubUrl(p);
                 ChangelogUtils.show(ctx, p.getName() + " v" + manifest.version, manifest.changelogMedia, manifest.changelog, new ChangelogUtils.FooterAction(com.lytefast.flexinput.R.d.ic_github_white, url));
             }
-        }   
+        }
 
         public void onSettingsClick(int position) throws Throwable {
             Plugin p = data.get(position);
@@ -276,7 +284,9 @@ public class Plugins extends SettingsPage {
 
         if (getHeaderBar().findViewById(uniqueId) == null) {
             ToolbarButton pluginFolderBtn = new ToolbarButton(context);
+            ToolbarButton deleteAllBtn = new ToolbarButton(context);
             pluginFolderBtn.setId(uniqueId);
+            deleteAllBtn.setId(uniqueId);
 
             Toolbar.LayoutParams params = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
             params.gravity = Gravity.END;
@@ -284,6 +294,9 @@ public class Plugins extends SettingsPage {
             pluginFolderBtn.setLayoutParams(params);
             pluginFolderBtn.setPadding(p, p, p, p);
             pluginFolderBtn.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_open_in_new_white_24dp));
+            deleteAllBtn.setLayoutParams(params);
+            deleteAllBtn.setPadding(p, p, p, p);
+            deleteAllBtn.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_delete_white_24dp));
 
             pluginFolderBtn.setOnClickListener(e -> {
                 File dir = new File(Constants.PLUGINS_PATH);
@@ -294,38 +307,82 @@ public class Plugins extends SettingsPage {
                 Utils.launchFileExplorer(dir);
             });
 
+            deleteAllBtn.setOnClickListener(dn -> {
+                var delet = new ConfirmDialog();
+                delet.setIsDangerous(true).setTitle("WAIT!")
+                        .setDescription("This will delete all of all plugins from the plugins folder, and you will need to re-download them.")
+                        .setOnCancelListener(l -> delet.dismiss()).setOnOkListener(ll -> {
+                    File pp = new File(Constants.PLUGINS_PATH); // pp for plugins path and peepee, fight me
+                    for (Plugin pl : PluginManager.plugins.values()) {
+                        PluginManager.stopPlugin(pl.getName());
+                    }
+                    for (File f : Objects.requireNonNull(pp.listFiles(f -> f.getName().endsWith(".zip")))) {
+                        if (!f.delete()) {
+                            Utils.showToast("Failed to delete plugin " + f.getName());
+                        }
+                    }
+                    delet.dismiss();
+                    PluginManager.logger.info(dn.getContext(), "All plugins deleted!");
+                    Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+                    context.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
+                    Runtime.getRuntime().exit(0);
+                }).show(this.getParentFragmentManager(), "REMOVE_PLUGINS_WARNING");
+            });
+
             addHeaderButton(pluginFolderBtn);
+            addHeaderButton(deleteAllBtn);
         }
 
-        TextInput input = new TextInput(context);
-        input.setHint(context.getString(R.g.search));
+        if (PluginManager.plugins.isEmpty()) {
+            TextView noPlugins = new TextView(context, null, 0, R.h.UiKit_Settings_Item_Header);
+            noPlugins.setAllCaps(false);
+            noPlugins.setText("No plugins installed. Find some in #plugins-list!");
+            noPlugins.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
+            noPlugins.setGravity(Gravity.CENTER);
 
-        RecyclerView recyclerView = new RecyclerView(context);
-        recyclerView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
-        Adapter adapter = new Adapter(this, PluginManager.plugins.values());
-        recyclerView.setAdapter(adapter);
-        ShapeDrawable shape = new ShapeDrawable(new RectShape());
-        shape.setTint(Color.TRANSPARENT);
-        shape.setIntrinsicHeight(padding);
-        DividerItemDecoration decoration = new DividerItemDecoration(context, DividerItemDecoration.VERTICAL);
-        decoration.setDrawable(shape);
-        recyclerView.addItemDecoration(decoration);
-        recyclerView.setPadding(0, padding, 0, 0);
+            Button findPlugins = new Button(context);
+            findPlugins.setOnClickListener(aa -> WidgetGuildInvite.Companion.launch(aa.getContext(),
+                    new StoreInviteSettings.InviteCode(Constants.ALIUCORD_SUPPORT, "", null)));
+            findPlugins.setText("FIND PLUGINS");
+            findPlugins.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
 
-        addView(input);
-        addView(recyclerView);
+            addView(noPlugins);
+            addView(findPlugins);
 
-        EditText editText = input.getEditText();
-        if (editText != null) {
-            editText.setMaxLines(1);
-            editText.addTextChangedListener(new TextWatcher() {
-                public void afterTextChanged(Editable s) {
-                    adapter.getFilter().filter(s);
-                }
+        } else {
+            TextInput input = new TextInput(context);
+            input.setHint(context.getString(R.g.search));
 
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-                public void onTextChanged(CharSequence s, int start, int before, int count) { }
-            });
+            RecyclerView recyclerView = new RecyclerView(context);
+            recyclerView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
+            Adapter adapter = new Adapter(this, PluginManager.plugins.values());
+            recyclerView.setAdapter(adapter);
+            ShapeDrawable shape = new ShapeDrawable(new RectShape());
+            shape.setTint(Color.TRANSPARENT);
+            shape.setIntrinsicHeight(padding);
+            DividerItemDecoration decoration = new DividerItemDecoration(context, DividerItemDecoration.VERTICAL);
+            decoration.setDrawable(shape);
+            recyclerView.addItemDecoration(decoration);
+            recyclerView.setPadding(0, padding, 0, 0);
+
+            addView(input);
+            addView(recyclerView);
+
+            EditText editText = input.getEditText();
+            if (editText != null) {
+                editText.setMaxLines(1);
+                editText.addTextChangedListener(new TextWatcher() {
+                    public void afterTextChanged(Editable s) {
+                        adapter.getFilter().filter(s);
+                    }
+
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                    }
+
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    }
+                });
+            }
         }
     }
 }
