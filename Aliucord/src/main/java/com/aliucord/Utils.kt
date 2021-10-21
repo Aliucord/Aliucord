@@ -28,8 +28,10 @@ import androidx.fragment.app.Fragment
 import c.a.d.j
 import com.aliucord.fragments.AppFragmentProxy
 import com.aliucord.fragments.ConfirmDialog
+import com.aliucord.utils.ReflectUtils
 import com.discord.api.commands.ApplicationCommandType
 import com.discord.api.commands.CommandChoice
+import com.discord.api.message.attachment.MessageAttachment
 import com.discord.api.user.User
 import com.discord.app.AppActivity
 import com.discord.app.AppComponent
@@ -39,8 +41,10 @@ import com.discord.stores.StoreStream
 import com.discord.utilities.SnowflakeUtils
 import com.discord.utilities.fcm.NotificationClient
 import com.discord.views.CheckedSetting
+import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemAttachment
 import com.lytefast.flexinput.R
 import java.io.File
+import java.lang.reflect.Field
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -384,4 +388,25 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
      */
     @JvmStatic
     fun log(msg: String) = Main.logger.debug(msg)
+
+    private val fileNameField: Field = MessageAttachment::class.java.getDeclaredField("filename").apply { isAccessible = true }
+    private val idField: Field = MessageAttachment::class.java.getDeclaredField("id").apply { isAccessible = true }
+    private val urlField: Field = MessageAttachment::class.java.getDeclaredField("url").apply { isAccessible = true }
+    private val proxyUrlField: Field = MessageAttachment::class.java.getDeclaredField("proxyUrl").apply { isAccessible = true }
+
+    @JvmStatic
+    fun openMediaViewer(url: String, filename: String) {
+        val attachment = ReflectUtils.allocateInstance(MessageAttachment::class.java)
+
+        try {
+            fileNameField.set(attachment, filename)
+            idField.set(attachment, SnowflakeUtils.fromTimestamp(System.currentTimeMillis()))
+            urlField.set(attachment, url)
+            proxyUrlField.set(attachment, url)
+        } catch (th: Throwable) {
+            error(th)
+        }
+
+        WidgetChatListAdapterItemAttachment.Companion.`access$navigateToAttachment`(WidgetChatListAdapterItemAttachment.Companion, appActivity, attachment)
+    }
 }

@@ -2,6 +2,7 @@ package com.aliucord.coreplugins;
 
 import android.content.Context;
 
+import com.aliucord.coreplugins.plugindownloader.PluginDownloader;
 import com.aliucord.PluginManager;
 import com.aliucord.entities.Plugin;
 
@@ -17,11 +18,12 @@ public final class CorePlugins {
         corePlugins.put("CommandHandler", new CommandHandler());
         corePlugins.put("CoreCommands", new CoreCommands());
         corePlugins.put("NoTrack", new NoTrack());
+        corePlugins.put("PluginDownloader", new PluginDownloader());
         corePlugins.put("TokenLogin", new TokenLogin());
 
         for (Map.Entry<String, Plugin> entry : corePlugins.entrySet()) {
             Plugin p = entry.getValue();
-            PluginManager.logger.info("Loading coreplugin: " + entry.getKey());
+            PluginManager.logger.info("Loading core plugin: " + entry.getKey());
             try {
                 p.load(context);
             } catch (Throwable e) {
@@ -34,7 +36,7 @@ public final class CorePlugins {
     public static void startAll(Context context) {
         for (Map.Entry<String, Plugin> entry : corePlugins.entrySet()) {
             Plugin p = entry.getValue();
-            PluginManager.logger.info("Starting coreplugin: " + entry.getKey());
+            PluginManager.logger.info("Starting core plugin: " + entry.getKey());
             try {
                 p.start(context);
             } catch (Throwable e) {
