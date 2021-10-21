@@ -63,7 +63,7 @@ class Crashes : SettingsPage() {
         ToolbarButton(ctx).apply {
             layoutParams = Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT).apply {
                 gravity = Gravity.END
-                val m = DimenUtils.getDefaultPadding() / 2
+                val m = DimenUtils.defaultPadding / 2
                 setMargins(m, m, m + marginEnd, m)
             }
 
@@ -77,7 +77,7 @@ class Crashes : SettingsPage() {
         setActionBarTitle("Crash Logs")
 
         val context = view.context
-        val padding = DimenUtils.getDefaultPadding()
+        val padding = DimenUtils.defaultPadding
         val p = padding / 2
 
         val dir = File(Constants.CRASHLOGS_PATH)
