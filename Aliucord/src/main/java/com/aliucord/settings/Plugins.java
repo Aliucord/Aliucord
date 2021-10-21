@@ -284,9 +284,7 @@ public class Plugins extends SettingsPage {
 
         if (getHeaderBar().findViewById(uniqueId) == null) {
             ToolbarButton pluginFolderBtn = new ToolbarButton(context);
-            ToolbarButton deleteAllBtn = new ToolbarButton(context);
             pluginFolderBtn.setId(uniqueId);
-            deleteAllBtn.setId(uniqueId);
 
             Toolbar.LayoutParams params = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
             params.gravity = Gravity.END;
@@ -294,9 +292,6 @@ public class Plugins extends SettingsPage {
             pluginFolderBtn.setLayoutParams(params);
             pluginFolderBtn.setPadding(p, p, p, p);
             pluginFolderBtn.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_open_in_new_white_24dp));
-            deleteAllBtn.setLayoutParams(params);
-            deleteAllBtn.setPadding(p, p, p, p);
-            deleteAllBtn.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_delete_white_24dp));
 
             pluginFolderBtn.setOnClickListener(e -> {
                 File dir = new File(Constants.PLUGINS_PATH);
@@ -307,30 +302,7 @@ public class Plugins extends SettingsPage {
                 Utils.launchFileExplorer(dir);
             });
 
-            deleteAllBtn.setOnClickListener(dn -> {
-                var delet = new ConfirmDialog();
-                delet.setIsDangerous(true).setTitle("WAIT!")
-                        .setDescription("This will delete all of all plugins from the plugins folder, and you will need to re-download them.")
-                        .setOnCancelListener(l -> delet.dismiss()).setOnOkListener(ll -> {
-                    File pp = new File(Constants.PLUGINS_PATH); // pp for plugins path and peepee, fight me
-                    for (Plugin pl : PluginManager.plugins.values()) {
-                        PluginManager.stopPlugin(pl.getName());
-                    }
-                    for (File f : Objects.requireNonNull(pp.listFiles(f -> f.getName().endsWith(".zip")))) {
-                        if (!f.delete()) {
-                            Utils.showToast("Failed to delete plugin " + f.getName());
-                        }
-                    }
-                    delet.dismiss();
-                    PluginManager.logger.info(dn.getContext(), "All plugins deleted!");
-                    Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
-                    context.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
-                    Runtime.getRuntime().exit(0);
-                }).show(this.getParentFragmentManager(), "REMOVE_PLUGINS_WARNING");
-            });
-
             addHeaderButton(pluginFolderBtn);
-            addHeaderButton(deleteAllBtn);
         }
 
         if (PluginManager.plugins.isEmpty()) {
