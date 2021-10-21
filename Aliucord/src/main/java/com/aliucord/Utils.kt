@@ -173,7 +173,7 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
      * @return Pluralised `noun`
      */
     @JvmStatic
-    fun pluralise(amount: Int, noun: String) = "$amount $noun${if (amount == 1) "s" else ""}"
+    fun pluralise(amount: Int, noun: String) = "$amount $noun${if (amount != 1) "s" else ""}"
 
     /**
      * Send a toast from any [Thread]

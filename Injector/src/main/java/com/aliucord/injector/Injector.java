@@ -29,6 +29,7 @@ import top.canyie.pine.Pine;
 import top.canyie.pine.PineConfig;
 import top.canyie.pine.callback.MethodHook;
 
+@SuppressWarnings({"ResultOfMethodCallIgnored", "JavaReflectionMemberAccess"})
 public final class Injector {
     public static final String LOG_TAG = "Aliucord Injector";
     private static final String DATA_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/data.json";
@@ -43,6 +44,12 @@ public final class Injector {
         Log.d(LOG_TAG, "Aliucord Debuggable: " + PineConfig.debuggable);
         PineConfig.disableHiddenApiPolicy = false;
         PineConfig.disableHiddenApiPolicyForPlatformDomain = false;
+        Pine.disableJitInline();
+
+        if (isMiUi()) // (Causes crashes on MiUi 12)
+            Log.w(LOG_TAG, "Detected MIUI, not disabling profile saver.");
+        else if (!new File(BASE_DIRECTORY, ".no_disable_profile").exists())
+            Pine.disableProfileSaver();
 
         try {
             Log.d(LOG_TAG, "Hooking AppActivity.onCreate...");
@@ -66,6 +73,9 @@ public final class Injector {
 
     private static void init(AppActivity appActivity) {
         Logger.d("Initializing Aliucord...");
+        if (!pruneArtProfile(appActivity))
+            Logger.w("Failed to prune art profile");
+
         try {
             var dexFile = new File(appActivity.getCodeCacheDir(), "Aliucord.zip");
 
@@ -134,6 +144,19 @@ public final class Injector {
         }
     }
 
+    @SuppressLint("PrivateApi") // Why is there no better way to get props???? System.getProperty doesn't work
+    private static boolean isMiUi() {
+        if (!Build.MANUFACTURER.equalsIgnoreCase("xiaomi")) return false;
+        try {
+            var c = Class.forName("android.os.SystemProperties");
+            var getProp = c.getMethod("get", String.class);
+            var miuiCrap = (String) getProp.invoke(c, "ro.miui.ui.version.code");
+            return miuiCrap != null && !miuiCrap.isEmpty();
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
     /**
      * Public so it can be manually triggered from Aliucord to update itself
      * outputFile should be new File(context.getCodeCacheDir(), "Aliucord.zip");
@@ -175,5 +198,28 @@ public final class Injector {
             }
             fos.flush();
         }
+    }
+
+    /**
+     * Try to prevent method inlining by deleting the usage profile used by AOT compilation
+     * https://source.android.com/devices/tech/dalvik/configure#how_art_works
+     */
+    private static boolean pruneArtProfile(Context ctx) {
+        Logger.d("Pruning ART usage profile...");
+        var profile = new File("/data/misc/profiles/cur/0/" + ctx.getPackageName() + "/primary.prof");
+
+        if (!profile.exists()) {
+            return false;
+        }
+
+        if (profile.length() > 0) {
+            try {
+                // Delete file contents
+                new FileOutputStream(profile).close();
+            } catch (Throwable ignored) {
+                return false;
+            }
+        }
+        return true;
     }
 }

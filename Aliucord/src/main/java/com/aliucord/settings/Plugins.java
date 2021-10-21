@@ -8,11 +8,9 @@ package com.aliucord.settings;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
-import android.net.Uri;
 import android.text.*;
 import android.text.style.ClickableSpan;
 import android.view.*;
@@ -142,8 +140,6 @@ public class Plugins extends SettingsPage {
             holder.card.titleView.setText(spannableTitle);
         }
 
-        private final Adapter _this = this;
-
         private final Filter filter = new Filter() {
             @Override
             protected FilterResults performFiltering(CharSequence constraint) {
@@ -189,7 +185,7 @@ public class Plugins extends SettingsPage {
                     }
                 }, false);
                 data = res;
-                diff.dispatchUpdatesTo(_this);
+                diff.dispatchUpdatesTo(Adapter.this);
             }
         };
 

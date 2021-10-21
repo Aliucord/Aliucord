@@ -12,5 +12,6 @@ public final class Logger {
     private static final String TAG = "[" + Injector.LOG_TAG + "] ";
 
     public static void d(String msg) { AppLog.g.d(TAG + msg, null); }
+    public static void w(String msg) { AppLog.g.w(TAG + msg, null); }
     public static void e(String msg, Throwable e) { AppLog.g.e(TAG + msg, e, null); }
 }
