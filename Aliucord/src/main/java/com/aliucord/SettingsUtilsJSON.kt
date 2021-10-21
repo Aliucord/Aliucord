@@ -31,7 +31,7 @@ class SettingsUtilsJSON(plugin: String) {
             if (read != "") settings = JSONObject(read)
         }
 
-        if (SettingsUtils.getBool(keyPrefix + "migratedToJson", false)) {
+        if (!SettingsUtils.getBool(keyPrefix + "migratedToJson", false)) {
             try {
                 getPreferenceSettings()?.forEach {
 
@@ -39,8 +39,9 @@ class SettingsUtilsJSON(plugin: String) {
                     if (keyName == "migratedToJson") return@forEach
                     it.value?.let { it1 -> settings.put(keyName, it1) }
                     SettingsUtils.remove(it.key)
-                    SettingsUtils.setBool(keyPrefix + "migratedToJson", true)
+
                 }
+                SettingsUtils.setBool(keyPrefix + "migratedToJson", true)
                 writeData()
                 logger.info("'$plugin' Settings Are Migrated")
             } catch (e: Exception) {
