@@ -25,13 +25,7 @@ class SettingsUtilsJSON(private val plugin: String) {
 
     init {
         val dir = File(settingsPath)
-        if (!dir.exists()) {
-            try {
-                dir.mkdir()
-            } catch (e: SecurityException) {
-                logger.error(e)
-            }
-        }
+        if (!dir.exists() && !dir.mkdir()) throw RuntimeException("Failed to create settings dir")
         if (!SettingsUtils.getBool(keyPrefix + "migratedToJson", false)) {
             try {
                 getPreferenceSettings()?.forEach {
