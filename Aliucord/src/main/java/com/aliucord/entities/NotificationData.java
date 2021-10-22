@@ -15,7 +15,7 @@ import com.discord.app.AppComponent;
 
 import java.util.List;
 
-import d0.e0.c;
+import c0.e0.c;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 

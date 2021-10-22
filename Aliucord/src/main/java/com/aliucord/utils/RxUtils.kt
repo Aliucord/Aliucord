@@ -45,7 +45,7 @@ object RxUtils {
    * @see [ReactiveX operators documentation: Subscribe](http://reactivex.io/documentation/operators/subscribe.html)
    */
   @JvmStatic
-  fun <T> Observable<T>.subscribe(subscriber: Subscriber<in T>): Subscription = this.T(subscriber)
+  fun <T> Observable<T>.subscribe(subscriber: Subscriber<in T>): Subscription = this.U(subscriber)
 
   /**
    * Subscribe to the [Observable]. This is equivalent to subscribe(createActionSubscriber(onNext))
@@ -118,7 +118,7 @@ object RxUtils {
     onNext: Action1<in T>,
     onError: Action1<Throwable> = Action1 {},
     onCompleted: Action0 = Action0 {}
-  ): Subscriber<T> = j0.l.e.b(onNext, onError, onCompleted)
+  ): Subscriber<T> = i0.l.e.b(onNext, onError, onCompleted)
 
   /**
    * Returns an [Observable] that emits `0L` after a specified delay, and then completes.
@@ -129,7 +129,7 @@ object RxUtils {
    * @see [ReactiveX operators documentation: Timer](http://reactivex.io/documentation/operators/timer.html)
    */
   @JvmStatic
-  fun timer(delay: Long, unit: TimeUnit?): Observable<Long> = Observable.d0(delay, unit, j0.p.a.a())
+  fun timer(delay: Long, unit: TimeUnit?): Observable<Long> = Observable.e0(delay, unit, i0.p.a.a())
 
   /**
    * Runs the callback after the specified delay

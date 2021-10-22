@@ -82,6 +82,6 @@ class GuildRoleWrapper(private val role: GuildRole) {
 
     @JvmStatic
     val GuildRole.unicodeEmoji: String?
-      get() = j()
+      get() = k()
   }
 }

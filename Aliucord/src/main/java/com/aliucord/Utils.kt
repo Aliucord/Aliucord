@@ -282,6 +282,8 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
         choices: List<CommandChoice> = emptyList(),
         subCommandOptions: List<ApplicationCommandOption> = emptyList(),
         autocomplete: Boolean = false,
+        minValue: Number = 0,
+        maxValue: Number = 0,
     ) = ApplicationCommandOption(
         type,
         name,
@@ -292,7 +294,9 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
         channelTypes,
         choices,
         subCommandOptions,
-        autocomplete
+        autocomplete,
+        minValue,
+        maxValue
     )
 
     /**
