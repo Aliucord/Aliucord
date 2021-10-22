@@ -19,8 +19,8 @@ public final class ChannelUtils {
         return com.discord.api.channel.ChannelUtils.g(channel);
     }
 
-    public static boolean isGuildTextChannel(Channel channel) {
-        return com.discord.api.channel.ChannelUtils.q(channel);
+    public static boolean isGuildTextyChannel(Channel channel) {
+        return com.discord.api.channel.ChannelUtils.r(channel);
     }
 
     public static User getDMRecipient(Channel channel) {
