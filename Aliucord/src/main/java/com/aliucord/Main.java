@@ -52,6 +52,7 @@ import java.io.*;
 import java.lang.reflect.Field;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import dalvik.system.PathClassLoader;
 
@@ -310,7 +311,9 @@ public final class Main {
             }
         }
 
-        for (File f : dir.listFiles()) {
+        List<File> sortedPlugins = Arrays.stream(dir.listFiles()).sorted(Comparator.comparing(File::getName)).collect(Collectors.toList());
+
+        for (File f : sortedPlugins) {
             var name = f.getName();
             if (name.endsWith(".zip")) {
                 PluginManager.loadPlugin(context, f);
@@ -329,14 +332,16 @@ public final class Main {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private static void rmrf(File file) {
         if (file.isDirectory()) {
-            for (var child: file.listFiles())
+            for (var child : file.listFiles())
                 rmrf(child);
         }
         file.delete();
     }
 
     private static void startAllPlugins() {
-        for (String name : PluginManager.plugins.keySet()) {
+        List<String> sortedPlugins = PluginManager.plugins.keySet().stream().sorted().collect(Collectors.toList());
+
+        for (String name : sortedPlugins) {
             try {
                 if (PluginManager.isPluginEnabled(name))
                     PluginManager.startPlugin(name);
