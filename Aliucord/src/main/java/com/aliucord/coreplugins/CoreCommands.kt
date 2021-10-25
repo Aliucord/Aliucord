@@ -15,6 +15,7 @@ import com.aliucord.api.CommandsAPI.CommandResult
 import com.aliucord.entities.Plugin
 import com.discord.api.commands.ApplicationCommandType
 import java.io.File
+import java.util.*
 
 internal class CoreCommands : Plugin() {
     init {
@@ -44,20 +45,30 @@ internal class CoreCommands : Plugin() {
         commands.registerCommand(
             "plugins",
             "Lists installed plugins",
-            Utils.createCommandOption(
-                type = ApplicationCommandType.BOOLEAN,
-                name = "send",
-                description = "Whether the result should be visible for everyone",
+            listOf(
+                Utils.createCommandOption(
+                    type = ApplicationCommandType.BOOLEAN,
+                    name = "send",
+                    description = "Whether the result should be visible for everyone",
+                ),
+                Utils.createCommandOption(
+                    type = ApplicationCommandType.BOOLEAN,
+                    name = "allPlugins",
+                    description = "Whether the result should contain all plugins",
+                )
             )
         ) {
-            val plugins = PluginManager.plugins.keys
+            val allPlugins = it.getBoolOrDefault("allPlugins", false)
+            val type = if (allPlugins) "installed" else "enabled"
+            val plugins = PluginManager.plugins.keys.run {
+                if (!allPlugins) filter { pluginName -> PluginManager.isPluginEnabled(pluginName) } else this
+            }
+
             if (plugins.isEmpty())
-                CommandResult("No plugins installed", null, false)
+                CommandResult("No plugins $type", null, false)
             else
                 CommandResult(
-                    "**Installed Plugins (${plugins.size}):**\n>>> ${
-                        plugins.sorted().joinToString()
-                    }",
+                    "**${type.replaceFirstChar { char -> char.uppercase() }} Plugins (${plugins.size}):**\n>>> ${plugins.sorted().joinToString()}",
                     null,
                     it.getBoolOrDefault("send", false)
                 )
