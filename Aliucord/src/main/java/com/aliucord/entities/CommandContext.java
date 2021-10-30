@@ -433,36 +433,4 @@ public class CommandContext {
         GuildRole role = getRole(key);
         return role != null ? role : defaultValue;
     }
-
-    /**
-     * Gets the mentionable argument with the specified key
-     * @param key The key of the argument
-     * @return User or Role
-     */
-    @Nullable
-    public Object getMentionable(String key) {
-        Object user = getUser(key);
-        return user != null ? user : getRole(key);
-    }
-
-    /**
-     * Gets the <strong>required</strong> mentionable argument with the specified key
-     * @param key The key of the argument
-     * @return User or Role
-     */
-    @NonNull
-    public Object getRequiredMentionable(String key) {
-        return requireNonNull(key, getMentionable(key));
-    }
-
-    /**
-     * Gets the mentionable argument with the specified key or the defaultValue if no such argument is present
-     * @param key The key of the argument
-     * @return User or Role
-     */
-    @NonNull
-    public Object getMentionableOrDefault(String key, Object defaultValue) {
-        Object value = getMentionable(key);
-        return value != null ? value : defaultValue;
-    }
 }
