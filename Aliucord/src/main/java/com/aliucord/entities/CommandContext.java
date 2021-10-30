@@ -12,7 +12,6 @@ import androidx.annotation.Nullable;
 
 import com.aliucord.wrappers.ChannelWrapper;
 import com.aliucord.wrappers.GuildRoleWrapper;
-import com.discord.api.channel.Channel;
 import com.discord.api.message.LocalAttachment;
 import com.discord.api.message.MessageReference;
 import com.discord.api.role.GuildRole;
@@ -391,7 +390,7 @@ public class CommandContext {
      * @param key Key of the argument
      */
     @Nullable
-    public ChannelWrapper getCurrentChannel(String key) {
+    public ChannelWrapper getChannel(String key) {
         Long id = getLong(key);
         return id != null ? new ChannelWrapper(StoreStream.getChannels().getChannel(id)) : null;
     }
@@ -402,7 +401,7 @@ public class CommandContext {
      */
     @NonNull
     public ChannelWrapper getRequiredChannel(String key) {
-        return requireNonNull(key, getCurrentChannel(key));
+        return requireNonNull(key, getChannel(key));
     }
 
     /**
@@ -411,7 +410,7 @@ public class CommandContext {
      */
     @NonNull
     public ChannelWrapper getChannelOrDefault(String key, ChannelWrapper defaultValue) {
-        ChannelWrapper channel = getCurrentChannel(key);
+        ChannelWrapper channel = getChannel(key);
         return channel != null ? channel : defaultValue;
     }
 
