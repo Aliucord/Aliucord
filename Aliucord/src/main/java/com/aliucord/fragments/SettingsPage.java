@@ -69,12 +69,12 @@ public class SettingsPage extends AppFragment {
         getLinearLayout().setPadding(p, p, p, p);
     }
 
-    /** Removes a button from the Toolbar associated with this Page */
+    /** Adds a button from the Toolbar associated with this Page */
     public final void addHeaderButton(ToolbarButton button) {
         getHeaderBar().addView(button);
     }
 
-    /** Adds a button to the Toolbar associated with this Page */
+    /** Removes a button to the Toolbar associated with this Page */
     public final void removeHeaderButton(ToolbarButton button) {
         getHeaderBar().removeView(button);
     }
