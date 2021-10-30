@@ -121,9 +121,19 @@ public class CommandContext {
         _this.$chatInput.setChannelId(id);
     }
 
+    /**
+     * Returns the current channel
+     * @deprecated This method is deprecated in favor of getCurrentChannel()
+     */
+    @NonNull
+    @Deprecated
+    public ChannelWrapper getChannel() {
+        return getCurrentChannel();
+    }
+
     /** Returns the current channel */
     @NonNull
-    public ChannelWrapper getChannel() {
+    public ChannelWrapper getCurrentChannel() {
         return new ChannelWrapper(viewState.getChannel());
     }
 
@@ -380,7 +390,7 @@ public class CommandContext {
      * @param key Key of the argument
      */
     @Nullable
-    public Channel getChannelOption(String key) {
+    public Channel getCurrentChannel(String key) {
         Long id = getLong(key);
         return id != null ? StoreStream.getChannels().getChannel(id) : null;
     }
@@ -390,8 +400,8 @@ public class CommandContext {
      * @param key The key of the argument
      */
     @NonNull
-    public Channel getRequiredChannelOption(String key) {
-        return requireNonNull(key, getChannelOption(key));
+    public Channel getRequiredChannel(String key) {
+        return requireNonNull(key, getCurrentChannel(key));
     }
 
     /**
@@ -399,8 +409,8 @@ public class CommandContext {
      * @param key The key of the argument
      */
     @NonNull
-    public Channel getChannelOptionOrDefault(String key, Channel defaultValue) {
-        Channel channel = getChannelOption(key);
+    public Channel getChannelOrDefault(String key, Channel defaultValue) {
+        Channel channel = getCurrentChannel(key);
         return channel != null ? channel : defaultValue;
     }
 
@@ -411,7 +421,7 @@ public class CommandContext {
     @Nullable
     public GuildRole getRole(String key) {
         Long id = getLong(key);
-        Map<Long, GuildRole> roles = StoreStream.getGuilds().getRoles().get(getChannel().getGuildId());
+        Map<Long, GuildRole> roles = StoreStream.getGuilds().getRoles().get(getCurrentChannel().getGuildId());
         return id != null && roles != null ? roles.get(id) : null;
     }
 
