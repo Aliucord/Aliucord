@@ -11,8 +11,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.aliucord.wrappers.ChannelWrapper;
+import com.discord.api.channel.Channel;
 import com.discord.api.message.LocalAttachment;
 import com.discord.api.message.MessageReference;
+import com.discord.api.role.GuildRole;
 import com.discord.models.member.GuildMember;
 import com.discord.models.message.Message;
 import com.discord.models.user.MeUser;
@@ -325,7 +327,6 @@ public class CommandContext {
         if (val instanceof Boolean) return (Boolean) val;
         if (val instanceof String) return Boolean.valueOf((String) val);
         throw new ClassCastException(String.format("Argument %s is of type %s which cannot be cast to Boolean.", key, val.getClass().getSimpleName()));
-
     }
 
     /**
@@ -372,5 +373,96 @@ public class CommandContext {
     public User getUserOrDefault(String key, User defaultValue) {
         User val = getUser(key);
         return val != null ? val : defaultValue;
+    }
+
+    /**
+     * Gets the Channel argument with the specified key
+     * @param key Key of the argument
+     */
+    @Nullable
+    public Channel getChannelOption(String key) {
+        Long id = getLong(key);
+        return id != null ? StoreStream.getChannels().getChannel(id) : null;
+    }
+
+    /**
+     * Gets the <strong>required</strong> channel argument with the specified key
+     * @param key The key of the argument
+     */
+    @NonNull
+    public Channel getRequiredChannelOption(String key) {
+        return requireNonNull(key, getChannelOption(key));
+    }
+
+    /**
+     * Gets the channel argument with the specified key or the defaultValue if no such argument is present
+     * @param key The key of the argument
+     */
+    @NonNull
+    public Channel getChannelOptionOrDefault(String key, Channel defaultValue) {
+        Channel channel = getChannelOption(key);
+        return channel != null ? channel : defaultValue;
+    }
+
+    /**
+     * Gets the Role argument with the specified key
+     * @param key Key of the argument
+     */
+    @Nullable
+    public GuildRole getRole(String key) {
+        Long id = getLong(key);
+        Map<Long, GuildRole> roles = StoreStream.getGuilds().getRoles().get(getChannel().getGuildId());
+        return id != null && roles != null ? roles.get(id) : null;
+    }
+
+    /**
+     * Gets the <strong>required</strong> Role argument with the specified key
+     * @param key Key of the argument
+     */
+    @NonNull
+    public GuildRole getRequiredRole(String key) {
+        return requireNonNull(key, getRole(key));
+    }
+
+    /**
+     * Gets the Role argument with the specified key or the defaultValue if no such argument is present
+     * @param key The key of the argument
+     */
+    @NonNull
+    public GuildRole getRoleOrDefault(String key, GuildRole defaultValue) {
+        GuildRole role = getRole(key);
+        return role != null ? role : defaultValue;
+    }
+
+    /**
+     * Gets the mentionable argument with the specified key
+     * @param key The key of the argument
+     * @return User or Role
+     */
+    @Nullable
+    public Object getMentionable(String key) {
+        Object user = getUser(key);
+        return user != null ? user : getRole(key);
+    }
+
+    /**
+     * Gets the <strong>required</strong> mentionable argument with the specified key
+     * @param key The key of the argument
+     * @return User or Role
+     */
+    @NonNull
+    public Object getRequiredMentionable(String key) {
+        return requireNonNull(key, getMentionable(key));
+    }
+
+    /**
+     * Gets the mentionable argument with the specified key or the defaultValue if no such argument is present
+     * @param key The key of the argument
+     * @return User or Role
+     */
+    @NonNull
+    public Object getMentionableOrDefault(String key, Object defaultValue) {
+        Object value = getMentionable(key);
+        return value != null ? value : defaultValue;
     }
 }
