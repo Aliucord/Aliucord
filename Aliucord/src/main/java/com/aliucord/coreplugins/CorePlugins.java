@@ -6,10 +6,11 @@ import com.aliucord.coreplugins.plugindownloader.PluginDownloader;
 import com.aliucord.PluginManager;
 import com.aliucord.entities.Plugin;
 
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 /** CorePlugins Manager */
@@ -24,9 +25,10 @@ public final class CorePlugins {
         corePlugins.put("PluginDownloader", new PluginDownloader());
         corePlugins.put("TokenLogin", new TokenLogin());
 
-        List<Map.Entry<String, Plugin>> sortedPlugins = corePlugins.entrySet().stream().sorted(Map.Entry.comparingByKey()).collect(Collectors.toList());
+        List<Entry<String, Plugin>> sortedPlugins = new ArrayList<>(corePlugins.entrySet());
+        sortedPlugins.sort(Entry.comparingByKey());
 
-        for (Map.Entry<String, Plugin> entry : sortedPlugins) {
+        for (Entry<String, Plugin> entry : sortedPlugins) {
             Plugin p = entry.getValue();
             PluginManager.logger.info("Loading core plugin: " + entry.getKey());
             try {
@@ -39,9 +41,9 @@ public final class CorePlugins {
 
     /** Starts all core plugins */
     public static void startAll(Context context) {
-        List<Map.Entry<String, Plugin>> sortedPlugins = corePlugins.entrySet().stream().sorted(Map.Entry.comparingByKey()).collect(Collectors.toList());
+        List<Entry<String, Plugin>> sortedPlugins = corePlugins.entrySet().stream().sorted(Entry.comparingByKey()).collect(Collectors.toList());
 
-        for (Map.Entry<String, Plugin> entry : sortedPlugins) {
+        for (Entry<String, Plugin> entry : sortedPlugins) {
             Plugin p = entry.getValue();
             PluginManager.logger.info("Starting core plugin: " + entry.getKey());
             try {

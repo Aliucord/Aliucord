@@ -52,7 +52,6 @@ import java.io.*;
 import java.lang.reflect.Field;
 import java.sql.Timestamp;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import dalvik.system.PathClassLoader;
 
@@ -311,7 +310,8 @@ public final class Main {
             }
         }
 
-        List<File> sortedPlugins = Arrays.stream(dir.listFiles()).sorted(Comparator.comparing(File::getName)).collect(Collectors.toList());
+        File[] sortedPlugins = dir.listFiles();
+        Arrays.sort(sortedPlugins, Comparator.comparing(File::getName));
 
         for (File f : sortedPlugins) {
             var name = f.getName();
@@ -339,9 +339,10 @@ public final class Main {
     }
 
     private static void startAllPlugins() {
-        List<String> sortedPlugins = PluginManager.plugins.keySet().stream().sorted().collect(Collectors.toList());
+        List<String> plugins = new ArrayList<>(PluginManager.plugins.keySet());
+        Collections.sort(plugins);
 
-        for (String name : sortedPlugins) {
+        for (String name : plugins) {
             try {
                 if (PluginManager.isPluginEnabled(name))
                     PluginManager.startPlugin(name);
