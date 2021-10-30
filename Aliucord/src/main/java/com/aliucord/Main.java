@@ -339,10 +339,7 @@ public final class Main {
     }
 
     private static void startAllPlugins() {
-        List<String> plugins = new ArrayList<>(PluginManager.plugins.keySet());
-        Collections.sort(plugins);
-
-        for (String name : plugins) {
+        for (String name : PluginManager.plugins.keySet()) {
             try {
                 if (PluginManager.isPluginEnabled(name))
                     PluginManager.startPlugin(name);

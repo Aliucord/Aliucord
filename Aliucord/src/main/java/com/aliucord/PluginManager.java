@@ -22,7 +22,7 @@ import dalvik.system.PathClassLoader;
 /** Aliucord's Plugin Manager */
 public class PluginManager {
     /** Map containing all loaded plugins */
-    public static final Map<String, Plugin> plugins = new HashMap<>();
+    public static final Map<String, Plugin> plugins = new LinkedHashMap<>();
     public static final Map<PathClassLoader, Plugin> classLoaders = new HashMap<>();
     public static final Logger logger = new Logger("PM");
 
