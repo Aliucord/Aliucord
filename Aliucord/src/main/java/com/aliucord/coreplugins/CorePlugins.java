@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 /** CorePlugins Manager */
 public final class CorePlugins {
@@ -41,7 +40,8 @@ public final class CorePlugins {
 
     /** Starts all core plugins */
     public static void startAll(Context context) {
-        List<Entry<String, Plugin>> sortedPlugins = corePlugins.entrySet().stream().sorted(Entry.comparingByKey()).collect(Collectors.toList());
+        List<Entry<String, Plugin>> sortedPlugins = new ArrayList<>(corePlugins.entrySet());
+        sortedPlugins.sort(Entry.comparingByKey());
 
         for (Entry<String, Plugin> entry : sortedPlugins) {
             Plugin p = entry.getValue();
