@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.aliucord.wrappers.ChannelWrapper;
+import com.aliucord.wrappers.GuildRoleWrapper;
 import com.discord.api.channel.Channel;
 import com.discord.api.message.LocalAttachment;
 import com.discord.api.message.MessageReference;
@@ -390,9 +391,9 @@ public class CommandContext {
      * @param key Key of the argument
      */
     @Nullable
-    public Channel getCurrentChannel(String key) {
+    public ChannelWrapper getCurrentChannel(String key) {
         Long id = getLong(key);
-        return id != null ? StoreStream.getChannels().getChannel(id) : null;
+        return id != null ? new ChannelWrapper(StoreStream.getChannels().getChannel(id)) : null;
     }
 
     /**
@@ -400,7 +401,7 @@ public class CommandContext {
      * @param key The key of the argument
      */
     @NonNull
-    public Channel getRequiredChannel(String key) {
+    public ChannelWrapper getRequiredChannel(String key) {
         return requireNonNull(key, getCurrentChannel(key));
     }
 
@@ -409,8 +410,8 @@ public class CommandContext {
      * @param key The key of the argument
      */
     @NonNull
-    public Channel getChannelOrDefault(String key, Channel defaultValue) {
-        Channel channel = getCurrentChannel(key);
+    public ChannelWrapper getChannelOrDefault(String key, ChannelWrapper defaultValue) {
+        ChannelWrapper channel = getCurrentChannel(key);
         return channel != null ? channel : defaultValue;
     }
 
@@ -419,10 +420,13 @@ public class CommandContext {
      * @param key Key of the argument
      */
     @Nullable
-    public GuildRole getRole(String key) {
+    public GuildRoleWrapper getRole(String key) {
         Long id = getLong(key);
         Map<Long, GuildRole> roles = StoreStream.getGuilds().getRoles().get(getCurrentChannel().getGuildId());
-        return id != null && roles != null ? roles.get(id) : null;
+        if (id == null || roles == null) return null;
+
+        GuildRole role = roles.get(id);
+        return role != null ? new GuildRoleWrapper(role) : null;
     }
 
     /**
@@ -430,7 +434,7 @@ public class CommandContext {
      * @param key Key of the argument
      */
     @NonNull
-    public GuildRole getRequiredRole(String key) {
+    public GuildRoleWrapper getRequiredRole(String key) {
         return requireNonNull(key, getRole(key));
     }
 
@@ -439,8 +443,8 @@ public class CommandContext {
      * @param key The key of the argument
      */
     @NonNull
-    public GuildRole getRoleOrDefault(String key, GuildRole defaultValue) {
-        GuildRole role = getRole(key);
+    public GuildRoleWrapper getRoleOrDefault(String key, GuildRoleWrapper defaultValue) {
+        GuildRoleWrapper role = getRole(key);
         return role != null ? role : defaultValue;
     }
 }
