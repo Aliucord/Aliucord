@@ -10,7 +10,9 @@ import static android.view.View.OnClickListener;
 import android.annotation.SuppressLint;
 import android.text.method.LinkMovementMethod;
 import android.view.View;
-import android.widget.*;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 import com.aliucord.Utils;
 import com.discord.app.AppDialog;
@@ -32,7 +34,7 @@ public class InputDialog extends AppDialog {
     public InputDialog() {
         super(resId);
     }
-    private OnDialogShownListener onDialogShownListener;
+    private InputDialog.onDialogShownListener onDialogShownListener;
     private WidgetKickUserBinding binding;
     private CharSequence title;
     private CharSequence description;
@@ -70,8 +72,7 @@ public class InputDialog extends AppDialog {
         okButton.setOnClickListener(onOkListener != null ? onOkListener : e -> dismiss());
 
         getCancelButton().setOnClickListener(onCancelListener != null ? onCancelListener : e -> dismiss());
-        if (onDialogShownListener!=null)onDialogShownListener.OnDialogShown(view);
-
+        if (onDialogShownListener != null) onDialogShownListener.onDialogShown(view);
     }
 
     /**
@@ -182,17 +183,16 @@ public class InputDialog extends AppDialog {
         inputType = type;
         return this;
     }
+
     /**
-     * Sets the {@link OnDialogShownListener} that will be called when the dialog is shown
+     * Sets the {@link InputDialog.onDialogShownListener} that will be called when the dialog is shown
      * @param listener Listener
      */
-    public void setOnDialogShownListener(OnDialogShownListener listener){
+    public void setOnDialogShownListener(InputDialog.onDialogShownListener listener) {
         onDialogShownListener = listener;
     }
 
-
-    public interface OnDialogShownListener {
-        void OnDialogShown(View v);
+    public interface onDialogShownListener {
+        void onDialogShown(View v);
     }
-
 }
