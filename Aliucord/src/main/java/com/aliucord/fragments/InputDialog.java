@@ -32,7 +32,7 @@ public class InputDialog extends AppDialog {
     public InputDialog() {
         super(resId);
     }
-
+    private OnDialogShownListener onDialogShownListener;
     private WidgetKickUserBinding binding;
     private CharSequence title;
     private CharSequence description;
@@ -70,6 +70,8 @@ public class InputDialog extends AppDialog {
         okButton.setOnClickListener(onOkListener != null ? onOkListener : e -> dismiss());
 
         getCancelButton().setOnClickListener(onCancelListener != null ? onCancelListener : e -> dismiss());
+        if (onDialogShownListener!=null)onDialogShownListener.OnDialogShown(view);
+
     }
 
     /**
@@ -180,4 +182,17 @@ public class InputDialog extends AppDialog {
         inputType = type;
         return this;
     }
+    /**
+     * Sets the {@link OnDialogShownListener} that will be called when the dialog is shown
+     * @param listener Listener
+     */
+    public void setOnDialogShownListener(OnDialogShownListener listener){
+        onDialogShownListener = listener;
+    }
+
+
+    public interface OnDialogShownListener {
+        void OnDialogShown(View v);
+    }
+
 }
