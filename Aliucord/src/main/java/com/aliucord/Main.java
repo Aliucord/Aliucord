@@ -310,7 +310,10 @@ public final class Main {
             }
         }
 
-        for (File f : dir.listFiles()) {
+        File[] sortedPlugins = dir.listFiles();
+        Arrays.sort(sortedPlugins, Comparator.comparing(File::getName));
+
+        for (File f : sortedPlugins) {
             var name = f.getName();
             if (name.endsWith(".zip")) {
                 PluginManager.loadPlugin(context, f);
@@ -329,7 +332,7 @@ public final class Main {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private static void rmrf(File file) {
         if (file.isDirectory()) {
-            for (var child: file.listFiles())
+            for (var child : file.listFiles())
                 rmrf(child);
         }
         file.delete();
