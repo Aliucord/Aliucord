@@ -191,6 +191,6 @@ public abstract class Plugin {
     protected PatcherAPI patcher = new PatcherAPI();
     /** The {@link SettingsAPI} of your plugin. Use this to store persistent data */
     public SettingsAPI settings = new SettingsAPI(name);
-    /** The {@link Logger} of your plugin. Use this to store persistent data */
+    /** The {@link Logger} of your plugin. Use this to log information */
     public final Logger logger = new Logger(getName());
 }
