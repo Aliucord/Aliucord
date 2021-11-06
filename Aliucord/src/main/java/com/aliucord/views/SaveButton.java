@@ -20,7 +20,7 @@ public class SaveButton extends LinearLayout {
     public SaveButton(Context context) {
         super(context);
         FloatingActionButton saveButton = new FloatingActionButton(context);
-        saveButton.setImageDrawable(ContextCompat.getDrawable(context, R.d.icon_save));
+        saveButton.setImageDrawable(ContextCompat.getDrawable(context, R.e.icon_save));
         saveButton.setBackgroundTintList(ColorStateList.valueOf(context.getResources().getColor(R.c.brand, context.getTheme())));
         setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, 1));
         setHorizontalGravity(Gravity.RIGHT);

@@ -210,7 +210,7 @@ public class Plugins extends SettingsPage {
             Plugin.Manifest manifest = p.getManifest();
             if (manifest.changelog != null) {
                 String url = getGithubUrl(p);
-                ChangelogUtils.show(ctx, p.getName() + " v" + manifest.version, manifest.changelogMedia, manifest.changelog, new ChangelogUtils.FooterAction(com.lytefast.flexinput.R.d.ic_github_white, url));
+                ChangelogUtils.show(ctx, p.getName() + " v" + manifest.version, manifest.changelogMedia, manifest.changelog, new ChangelogUtils.FooterAction(R.e.ic_account_github_white_24dp, url));
             }
         }   
 
@@ -283,7 +283,7 @@ public class Plugins extends SettingsPage {
             params.setMarginEnd(p);
             pluginFolderBtn.setLayoutParams(params);
             pluginFolderBtn.setPadding(p, p, p, p);
-            pluginFolderBtn.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_open_in_new_white_24dp));
+            pluginFolderBtn.setImageDrawable(ContextCompat.getDrawable(context, R.e.ic_open_in_new_white_24dp));
 
             pluginFolderBtn.setOnClickListener(e -> {
                 File dir = new File(Constants.PLUGINS_PATH);
@@ -298,7 +298,7 @@ public class Plugins extends SettingsPage {
         }
 
         TextInput input = new TextInput(context);
-        input.setHint(context.getString(R.g.search));
+        input.setHint(context.getString(R.h.search));
 
         RecyclerView recyclerView = new RecyclerView(context);
         recyclerView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));

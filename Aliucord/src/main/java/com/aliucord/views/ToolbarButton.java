@@ -17,7 +17,7 @@ public class ToolbarButton extends AppCompatImageButton {
      * @param context {@link Context}
      */
     public ToolbarButton(Context context) {
-        super(new ContextThemeWrapper(context, R.h.UiKit_ImageView_Clickable), null, 0);
+        super(new ContextThemeWrapper(context, R.i.UiKit_ImageView_Clickable), null, 0);
     }
 
     @Override

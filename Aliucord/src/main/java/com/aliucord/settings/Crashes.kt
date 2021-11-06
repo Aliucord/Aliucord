@@ -7,30 +7,25 @@ package com.aliucord.settings
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.view.Gravity
-import androidx.core.content.ContextCompat
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.widget.TextView
-import androidx.core.content.res.ResourcesCompat
-import com.aliucord.views.DangerButton
-import com.aliucord.utils.MDUtils
 import android.text.SpannableStringBuilder
+import android.view.Gravity
 import android.view.View
+import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.appcompat.widget.Toolbar
-import com.aliucord.Constants
-import com.aliucord.SettingsUtils
-import com.aliucord.Utils
+import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
+import com.aliucord.*
 import com.aliucord.fragments.SettingsPage
 import com.aliucord.utils.DimenUtils
+import com.aliucord.utils.MDUtils
+import com.aliucord.views.DangerButton
 import com.aliucord.views.ToolbarButton
 import com.aliucord.widgets.BottomSheet
 import com.discord.views.CheckedSetting
 import com.lytefast.flexinput.R
 import java.io.File
-import java.lang.RuntimeException
 import java.util.*
 
 const val autoDisableKey = "autoDisableCrashingPlugins"
@@ -85,14 +80,14 @@ class Crashes : SettingsPage() {
         val hasCrashes = files != null && files.isNotEmpty()
 
         if (headerBar.findViewById<View?>(uniqueId) == null) {
-            createToolbarButton(context, R.d.ic_settings_24dp, p) {
+            createToolbarButton(context, R.e.ic_settings_24dp, p) {
                 CrashSettings().show(parentFragmentManager, "Crash Settings")
             }.run {
                 id = uniqueId
                 addHeaderButton(this)
             }
 
-            createToolbarButton(context, R.d.ic_open_in_new_white_24dp, 0) {
+            createToolbarButton(context, R.e.ic_open_in_new_white_24dp, 0) {
                 if (!dir.exists() && !dir.mkdir()) {
                     Utils.showToast("Failed to create crashlogs directory!", true)
                 } else {
@@ -102,7 +97,7 @@ class Crashes : SettingsPage() {
                 addHeaderButton(this)
             }
 
-            createToolbarButton(context, R.d.ic_delete_white_24dp, 0) { v ->
+            createToolbarButton(context, R.e.ic_delete_white_24dp, 0) { v ->
                 files?.forEach { it.delete() }
                 v.alpha = 0.5f
                 v.isClickable = false
@@ -116,7 +111,7 @@ class Crashes : SettingsPage() {
 
         val crashes = getCrashes()
         if (crashes == null || crashes.isEmpty()) {
-            TextView(context, null, 0, R.h.UiKit_Settings_Item_Header).run {
+            TextView(context, null, 0, R.i.UiKit_Settings_Item_Header).run {
                 isAllCaps = false
                 text = "Woah, no crashes :O"
                 typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold)
@@ -133,14 +128,14 @@ class Crashes : SettingsPage() {
                 linearLayout.addView(this)
             }
         } else {
-            TextView(context, null, 0, R.h.UiKit_Settings_Item_SubText).run {
+            TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).run {
                 text = "Hint: Crashlogs are accesible via your file explorer at Aliucord/crashlogs"
                 typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
                 gravity = Gravity.CENTER
                 linearLayout.addView(this)
             }
             crashes.values.forEach { (timestamp, stacktrace, times) ->
-                TextView(context, null, 0, R.h.UiKit_Settings_Item_Header).run {
+                TextView(context, null, 0, R.i.UiKit_Settings_Item_Header).run {
                     var title = timestamp
                     if (times > 1)
                         title += " ($times)"
