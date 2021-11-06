@@ -76,7 +76,7 @@ public class Plugins extends SettingsPage {
             }
 
             public void onToggleClick(boolean checked) {
-                adapter.onToggleClick(this, checked, getAdapterPosition());
+                adapter.onToggleClick(getAdapterPosition());
             }
 
             public void onUninstallClick(View view) {
@@ -121,7 +121,6 @@ public class Plugins extends SettingsPage {
             holder.card.switchHeader.setChecked(enabled);
             holder.card.descriptionView.setText(p.getManifest().description);
             holder.card.settingsButton.setVisibility(p.settingsTab != null ? View.VISIBLE : View.GONE);
-            holder.card.settingsButton.setEnabled(enabled);
             holder.card.changeLogButton.setVisibility(p.getManifest().changelog != null ? View.VISIBLE : View.GONE);
 
             String title = String.format("%s v%s by %s", p.getName(), manifest.version, TextUtils.join(", ", manifest.authors));
@@ -230,10 +229,9 @@ public class Plugins extends SettingsPage {
             }
         }
 
-        public void onToggleClick(ViewHolder holder, boolean state, int position) {
+        public void onToggleClick(int position) {
             String name = data.get(position).getName();
             PluginManager.togglePlugin(name);
-            holder.card.settingsButton.setEnabled(state);
         }
 
         public void onUninstallClick(int position) {
