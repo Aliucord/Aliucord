@@ -11,6 +11,7 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 
+import com.aliucord.Logger;
 import com.aliucord.api.CommandsAPI;
 import com.aliucord.api.PatcherAPI;
 import com.aliucord.api.SettingsAPI;
@@ -190,4 +191,6 @@ public abstract class Plugin {
     protected PatcherAPI patcher = new PatcherAPI();
     /** The {@link SettingsAPI} of your plugin. Use this to store persistent data */
     public SettingsAPI settings = new SettingsAPI(name);
+    /** The {@link Logger} of your plugin. Use this to store persistent data */
+    public final Logger logger = new Logger(getName());
 }
