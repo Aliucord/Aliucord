@@ -7,32 +7,21 @@
 package com.aliucord.views;
 
 import android.content.Context;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.LayoutInflater;
-import android.widget.LinearLayout;
-import android.widget.EditText;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.text.TextWatcher;
 import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.*;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 
-import androidx.core.content.ContextCompat;
+import androidx.annotation.*;
 import androidx.cardview.widget.CardView;
-import androidx.annotation.StringRes;
-import androidx.annotation.DrawableRes;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
 import com.aliucord.Utils;
 import com.aliucord.utils.DimenUtils;
-
-import com.discord.utilities.color.ColorCompat;
-import com.discord.utilities.icon.IconUtils;
-
 import com.google.android.material.textfield.TextInputLayout;
-
-import com.lytefast.flexinput.R;
 
 public class TextInput extends CardView {
     public TextInputLayout layout;

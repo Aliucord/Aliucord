@@ -34,7 +34,7 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
 
 ### Supported Discord version(s)
 
-- 96.3 / Beta 96103 (You don't need the apk, the installer will download it for you)
+- 101.3 / Alpha 101203 (You don't need the apk, the installer will download it for you)
 
 ## 🎨 Features
 
@@ -74,23 +74,20 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
 
 ## 🔌 Plugin Installation
 
-1. Open your preferred file manager
-2. Navigate to your internal storage (likely `/storage/emulated/0/` or `/sdcard/`)
-3. Look for the folder named "Aliucord" and open it
-4. Open the "plugins" folder, or if it doesn't exist, create it yourself. Remember: LOWERCASE "p"
-5. Either search GitHub or join our [support server](https://discord.gg/EsNDvBaHVU) and visit the `#plugin-links` channel for plugins to download
-6. Visit the `builds` branch of any GitHub repositories you get linked to and download the ZIP files of the plugins you wish to load with Aliucord
-7. Once you've downloaded the plugins, move them into the `Aliucord/plugins` folder (Do not extract the zip)
-8. Open Aliucord, check the plugins tab and hopefully see your plugin(s) listed!
-
-> Hint: There is a [PluginDownloader plugin](https://github.com/Vendicated/AliucordPlugins/blob/builds/PluginDownloader.zip?raw=true) that makes installing plugins a lot easier by adding download buttons to messages in either of the plugin channels
+1. Join our [support server](https://discord.gg/EsNDvBaHVU) and visit the `#plugins-list` channel for a list of available plugins
+2. Hold down the message (NOT the link, the entire message) with the desired plugin and click "Open PluginDownloader"
+3. Find the desired plugin in the list and click install. It should immediately start working, however some plugins may require you to restart to make them fully work
 
 
-### Troubleshooting
+⚠️ IF YOU CAME HERE FROM A YOUTUBE TUTORIAL:
+> - PluginDownloader now comes preinstalled with Aliucord so you don't need to install it
+> - If you were promised free nitro, you were clickbaited. The most that is possible is free emotes (sends emote image links instead)
+ 
+## 🐛 Troubleshooting
 
 - Try closing and then reopening Aliucord
 - Double check that Aliucord has permission to access files
-- Reinstall Aliucord, making sure to use the "Download" option
+- Reinstall Aliucord using the installer
 
 ...and if none of these work, please visit our [support server](https://discord.gg/EsNDvBaHVU) and go to `#support` for help!
 

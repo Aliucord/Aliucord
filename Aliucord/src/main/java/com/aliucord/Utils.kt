@@ -3,13 +3,11 @@
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
+
 package com.aliucord
 
 import android.annotation.SuppressLint
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
+import android.content.*
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -28,8 +26,10 @@ import androidx.fragment.app.Fragment
 import c.a.d.j
 import com.aliucord.fragments.AppFragmentProxy
 import com.aliucord.fragments.ConfirmDialog
+import com.aliucord.utils.ReflectUtils
 import com.discord.api.commands.ApplicationCommandType
 import com.discord.api.commands.CommandChoice
+import com.discord.api.message.attachment.MessageAttachment
 import com.discord.api.user.User
 import com.discord.app.AppActivity
 import com.discord.app.AppComponent
@@ -39,8 +39,10 @@ import com.discord.stores.StoreStream
 import com.discord.utilities.SnowflakeUtils
 import com.discord.utilities.fcm.NotificationClient
 import com.discord.views.CheckedSetting
+import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemAttachment
 import com.lytefast.flexinput.R
 import java.io.File
+import java.lang.reflect.Field
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -251,6 +253,7 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
     fun createCommandChoice(name: String, value: String) = CommandChoice(name, value)
 
 
+    // kept for compatibility
     /**
      * Creates a CommandOption that can be used for commands
      *
@@ -278,6 +281,50 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
         choices: List<CommandChoice> = emptyList(),
         subCommandOptions: List<ApplicationCommandOption> = emptyList(),
         autocomplete: Boolean = false,
+    ) = createCommandOption(
+        type,
+        name,
+        description,
+        descriptionRes,
+        required,
+        default,
+        channelTypes,
+        choices,
+        subCommandOptions,
+        autocomplete,
+        null
+    )
+
+    /**
+     * Creates a CommandOption that can be used for commands
+     *
+     * @param type The type of this argument
+     * @param name The name of this argument
+     * @param description The description of this argument
+     * @param descriptionRes Optional ID of a string resource that will be used as description
+     * @param required Whether this option is required
+     * @param default Whether this option is the default selection (I think so at least I'm not 100% sure lol)
+     * @param channelTypes Channel types this command is enabled in
+     * @param choices List of choices the user may pick from
+     * @param subCommandOptions List of command options if this argument is of [type] [ApplicationCommandType.SUBCOMMAND]
+     * @param autocomplete Whether autocomplete is enabled
+     * @param minValue minValue for number type options
+     * @param maxValue maxValue for number type options
+     */
+    @JvmStatic
+    fun createCommandOption(
+        type: ApplicationCommandType = ApplicationCommandType.STRING,
+        name: String,
+        description: String? = null,
+        descriptionRes: Int? = null,
+        required: Boolean = false,
+        default: Boolean = false,
+        channelTypes: List<Int?> = emptyList(),
+        choices: List<CommandChoice> = emptyList(),
+        subCommandOptions: List<ApplicationCommandOption> = emptyList(),
+        autocomplete: Boolean = false,
+        minValue: Number? = null,
+        maxValue: Number? = null,
     ) = ApplicationCommandOption(
         type,
         name,
@@ -288,7 +335,9 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
         channelTypes,
         choices,
         subCommandOptions,
-        autocomplete
+        autocomplete,
+        minValue,
+        maxValue
     )
 
     /**
@@ -384,4 +433,25 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
      */
     @JvmStatic
     fun log(msg: String) = Main.logger.debug(msg)
+
+    private val fileNameField: Field = MessageAttachment::class.java.getDeclaredField("filename").apply { isAccessible = true }
+    private val idField: Field = MessageAttachment::class.java.getDeclaredField("id").apply { isAccessible = true }
+    private val urlField: Field = MessageAttachment::class.java.getDeclaredField("url").apply { isAccessible = true }
+    private val proxyUrlField: Field = MessageAttachment::class.java.getDeclaredField("proxyUrl").apply { isAccessible = true }
+
+    @JvmStatic
+    fun openMediaViewer(url: String, filename: String) {
+        val attachment = ReflectUtils.allocateInstance(MessageAttachment::class.java)
+
+        try {
+            fileNameField.set(attachment, filename)
+            idField.set(attachment, SnowflakeUtils.fromTimestamp(System.currentTimeMillis()))
+            urlField.set(attachment, url)
+            proxyUrlField.set(attachment, url)
+        } catch (th: Throwable) {
+            error(th)
+        }
+
+        WidgetChatListAdapterItemAttachment.Companion.`access$navigateToAttachment`(WidgetChatListAdapterItemAttachment.Companion, appActivity, attachment)
+    }
 }

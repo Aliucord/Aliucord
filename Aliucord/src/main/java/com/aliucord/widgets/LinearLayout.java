@@ -12,6 +12,6 @@ import com.lytefast.flexinput.R;
 /** Discord themed LinearLayout */
 public class LinearLayout extends android.widget.LinearLayout {
     public LinearLayout(Context context) {
-        super(context, null, 0, R.h.UiKit_ViewGroup_LinearLayout);
+        super(context, null, 0, R.i.UiKit_ViewGroup_LinearLayout);
     }
 }
