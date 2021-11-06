@@ -8,27 +8,43 @@ package com.aliucord.settings;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
-import android.text.*;
+import android.text.Editable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.text.style.ClickableSpan;
-import android.view.*;
-import android.widget.*;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.Filter;
+import android.widget.Filterable;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.*;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import com.aliucord.*;
+import com.aliucord.CollectionUtils;
+import com.aliucord.Constants;
+import com.aliucord.PluginManager;
+import com.aliucord.Utils;
 import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.ConfirmDialog;
 import com.aliucord.fragments.SettingsPage;
-import com.aliucord.utils.*;
+import com.aliucord.utils.ChangelogUtils;
+import com.aliucord.utils.DimenUtils;
+import com.aliucord.utils.ReflectUtils;
 import com.aliucord.views.Button;
 import com.aliucord.views.TextInput;
 import com.aliucord.views.ToolbarButton;
@@ -41,7 +57,10 @@ import com.discord.widgets.user.usersheet.WidgetUserSheet;
 import com.lytefast.flexinput.R;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 
 public class Plugins extends SettingsPage {
     private static final int uniqueId = View.generateViewId();
