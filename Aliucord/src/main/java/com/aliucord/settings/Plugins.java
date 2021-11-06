@@ -11,12 +11,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
-import android.text.Editable;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.TextUtils;
-import android.text.TextWatcher;
-import android.text.style.ClickableSpan;
+import android.text.*;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -237,7 +232,7 @@ public class Plugins extends SettingsPage {
             Plugin.Manifest manifest = p.getManifest();
             if (manifest.changelog != null) {
                 String url = getGithubUrl(p);
-                ChangelogUtils.show(ctx, p.getName() + " v" + manifest.version, manifest.changelogMedia, manifest.changelog, new ChangelogUtils.FooterAction(com.lytefast.flexinput.R.d.ic_github_white, url));
+                ChangelogUtils.show(ctx, p.getName() + " v" + manifest.version, manifest.changelogMedia, manifest.changelog, new ChangelogUtils.FooterAction(R.e.ic_account_github_white_24dp, url));
             }
         }
 
@@ -310,7 +305,7 @@ public class Plugins extends SettingsPage {
             params.setMarginEnd(p);
             pluginFolderBtn.setLayoutParams(params);
             pluginFolderBtn.setPadding(p, p, p, p);
-            pluginFolderBtn.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_open_in_new_white_24dp));
+            pluginFolderBtn.setImageDrawable(ContextCompat.getDrawable(context, R.e.ic_open_in_new_white_24dp));
 
             pluginFolderBtn.setOnClickListener(e -> {
                 File dir = new File(Constants.PLUGINS_PATH);
@@ -324,6 +319,8 @@ public class Plugins extends SettingsPage {
             addHeaderButton(pluginFolderBtn);
         }
 
+        TextInput input = new TextInput(context);
+        input.setHint(context.getString(R.g.search));
         if (PluginManager.plugins.isEmpty()) {
             TextView noPlugins = new TextView(context, null, 0, R.h.UiKit_Settings_Item_Header);
             noPlugins.setAllCaps(false);
@@ -355,6 +352,8 @@ public class Plugins extends SettingsPage {
             decoration.setDrawable(shape);
             recyclerView.addItemDecoration(decoration);
             recyclerView.setPadding(0, padding, 0, 0);
+        TextInput input = new TextInput(context);
+        input.setHint(context.getString(R.h.search));
 
             addView(input);
             addView(recyclerView);

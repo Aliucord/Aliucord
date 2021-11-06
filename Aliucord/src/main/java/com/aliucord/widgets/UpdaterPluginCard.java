@@ -47,7 +47,7 @@ public class UpdaterPluginCard extends MaterialCardView {
         assert p != null;
 
         ConstraintLayout layout = new ConstraintLayout(context);
-        TextView tv = new TextView(context, null, 0, R.h.UiKit_TextView_H2);
+        TextView tv = new TextView(context, null, 0, R.i.UiKit_TextView_H2);
         tv.setText(plugin);
         int id = View.generateViewId();
         tv.setId(id);
@@ -68,15 +68,15 @@ public class UpdaterPluginCard extends MaterialCardView {
         int btnLayoutId = View.generateViewId();
         buttonLayout.setId(btnLayoutId);
 
-        tv = new TextView(context, null, 0, R.h.UiKit_TextView_Subtext);
+        tv = new TextView(context, null, 0, R.i.UiKit_TextView_Subtext);
         try {
             PluginUpdater.UpdateInfo info = PluginUpdater.getUpdateInfo(p);
             tv.setText(String.format("%s -> v%s", p.getManifest().version, info != null ? info.version : "?"));
             if (info != null && info.changelog != null) {
                 ToolbarButton changeLogButton = new ToolbarButton(context);
-                changeLogButton.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_history_white_24dp));
+                changeLogButton.setImageDrawable(ContextCompat.getDrawable(context, R.e.ic_history_white_24dp));
                 changeLogButton.setPadding(paddingHalf, paddingHalf, paddingHalf, paddingHalf);
-                changeLogButton.setOnClickListener(e -> ChangelogUtils.show(context, p.name + " v" + info.version, info.changelogMedia, info.changelog));
+                changeLogButton.setOnClickListener(e -> ChangelogUtils.show(context, p.getName() + " v" + info.version, info.changelogMedia, info.changelog));
 
                 GridLayout.LayoutParams clParams = new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(0));
                 clParams.setGravity(Gravity.CENTER_VERTICAL);
@@ -95,7 +95,7 @@ public class UpdaterPluginCard extends MaterialCardView {
         set.applyTo(layout);
 
         ToolbarButton update = new ToolbarButton(context);
-        update.setImageDrawable(ContextCompat.getDrawable(context, R.d.ic_file_download_white_24dp));
+        update.setImageDrawable(ContextCompat.getDrawable(context, R.e.ic_file_download_white_24dp));
         update.setPadding(paddingHalf, paddingHalf, 0, paddingHalf);
         update.setOnClickListener(e -> {
             update.setEnabled(false);
@@ -103,9 +103,9 @@ public class UpdaterPluginCard extends MaterialCardView {
                 try {
                     PluginUpdater.update(plugin);
                     PluginUpdater.updates.remove(plugin);
-                    PluginManager.logger.info(context, "Successfully updated " + p.name);
+                    PluginManager.logger.info(context, "Successfully updated " + p.getName());
                 } catch (Throwable t) {
-                    PluginManager.logger.error(context, "Sorry, something went wrong while updating " + p.name, t);
+                    PluginManager.logger.error(context, "Sorry, something went wrong while updating " + p.getName(), t);
                 } finally {
                     Utils.mainThread.post(forceUpdate);
                 }

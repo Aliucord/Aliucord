@@ -122,7 +122,7 @@ public class CommandsAPI {
     /** ID of the Aliucord Application */
     public static final long ALIUCORD_APP_ID = generateId();
     public static final String DONT_SEND_RESULT = "{ALIUCORD_COMMAND}";
-    private static final Application aliucordApplication = new Application(ALIUCORD_APP_ID, "Aliucord", null, R.d.ic_slash_command_24dp, 0, null, true);
+    private static final Application aliucordApplication = new Application(ALIUCORD_APP_ID, "Aliucord", null, R.e.ic_slash_command_24dp, 0, null, true);
     /** List of all registered commands */
     public static Map<String, RemoteApplicationCommand> commands = new HashMap<>();
     /** Mapping of all registered commands to the plugin that registered them */
@@ -131,10 +131,10 @@ public class CommandsAPI {
     public static Map<Long, WidgetApplicationCommandBottomSheetViewModel.StoreState> interactionsStore = new HashMap<>();
     /** Optional CommandOption of type String */
     public static ApplicationCommandOption messageOption =
-            Utils.createCommandOption(ApplicationCommandType.STRING, "message", null, R.g.command_shrug_message_description);
+            Utils.createCommandOption(ApplicationCommandType.STRING, "message", null, R.h.command_shrug_message_description);
     /** Required CommandOption of type String */
     public static ApplicationCommandOption requiredMessageOption =
-            Utils.createCommandOption(ApplicationCommandType.STRING, "message", null, R.g.command_shrug_message_description, true);
+            Utils.createCommandOption(ApplicationCommandType.STRING, "message", null, R.h.command_shrug_message_description, true);
 
     @SuppressWarnings("unchecked")
     private static void _registerCommand(

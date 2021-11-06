@@ -7,6 +7,7 @@
 package com.aliucord.wrappers
 
 import com.discord.api.role.GuildRole
+import com.discord.api.role.GuildRoleTags
 
 /**
  * Wraps the obfuscated [GuildRole] class to provide nice method names and require only one central
@@ -43,6 +44,9 @@ class GuildRoleWrapper(private val role: GuildRole) {
 
   val position
     get() = role.position
+
+  val tags
+    get() = role.tags
 
   val unicodeEmoji
     get() = role.unicodeEmoji
@@ -81,7 +85,11 @@ class GuildRoleWrapper(private val role: GuildRole) {
       get() = i()
 
     @JvmStatic
-    val GuildRole.unicodeEmoji: String?
+    val GuildRole.tags: GuildRoleTags?
       get() = j()
+
+    @JvmStatic
+    val GuildRole.unicodeEmoji: String?
+      get() = k()
   }
 }

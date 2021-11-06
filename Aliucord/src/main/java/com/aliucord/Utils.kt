@@ -3,13 +3,11 @@
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
+
 package com.aliucord
 
 import android.annotation.SuppressLint
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
+import android.content.*
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -255,6 +253,7 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
     fun createCommandChoice(name: String, value: String) = CommandChoice(name, value)
 
 
+    // kept for compatibility
     /**
      * Creates a CommandOption that can be used for commands
      *
@@ -282,6 +281,50 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
         choices: List<CommandChoice> = emptyList(),
         subCommandOptions: List<ApplicationCommandOption> = emptyList(),
         autocomplete: Boolean = false,
+    ) = createCommandOption(
+        type,
+        name,
+        description,
+        descriptionRes,
+        required,
+        default,
+        channelTypes,
+        choices,
+        subCommandOptions,
+        autocomplete,
+        null
+    )
+
+    /**
+     * Creates a CommandOption that can be used for commands
+     *
+     * @param type The type of this argument
+     * @param name The name of this argument
+     * @param description The description of this argument
+     * @param descriptionRes Optional ID of a string resource that will be used as description
+     * @param required Whether this option is required
+     * @param default Whether this option is the default selection (I think so at least I'm not 100% sure lol)
+     * @param channelTypes Channel types this command is enabled in
+     * @param choices List of choices the user may pick from
+     * @param subCommandOptions List of command options if this argument is of [type] [ApplicationCommandType.SUBCOMMAND]
+     * @param autocomplete Whether autocomplete is enabled
+     * @param minValue minValue for number type options
+     * @param maxValue maxValue for number type options
+     */
+    @JvmStatic
+    fun createCommandOption(
+        type: ApplicationCommandType = ApplicationCommandType.STRING,
+        name: String,
+        description: String? = null,
+        descriptionRes: Int? = null,
+        required: Boolean = false,
+        default: Boolean = false,
+        channelTypes: List<Int?> = emptyList(),
+        choices: List<CommandChoice> = emptyList(),
+        subCommandOptions: List<ApplicationCommandOption> = emptyList(),
+        autocomplete: Boolean = false,
+        minValue: Number? = null,
+        maxValue: Number? = null,
     ) = ApplicationCommandOption(
         type,
         name,
@@ -292,7 +335,9 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
         channelTypes,
         choices,
         subCommandOptions,
-        autocomplete
+        autocomplete,
+        minValue,
+        maxValue
     )
 
     /**
