@@ -31,8 +31,8 @@ public class TextInput extends TextInputLayout {
         setHintTextColor(ColorCompat.INSTANCE.createDefaultColorStateList(ColorCompat.getThemedColor(context, R.b.colorTextMuted)));
         setBoxStrokeWidth(0);
         setBoxStrokeWidthFocused(0);
-        setErrorTextAppearance(R.h.UiKit_TextAppearance);
-        setHintTextAppearance(R.h.UiKit_TextAppearance_MaterialEditText_Label);
+        setErrorTextAppearance(R.i.UiKit_TextAppearance);
+        setHintTextAppearance(R.i.UiKit_TextAppearance_MaterialEditText_Label);
         setHintTextColor(hintColor);
         setDefaultHintTextColor(ColorStateList.valueOf(ColorCompat.getThemedColor(context, R.b.colorTextMuted)));
         setPadding(padding, padding, padding, 0);

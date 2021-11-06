@@ -64,7 +64,7 @@ public class PluginCard extends MaterialCardView {
         root.addView(switchHeader);
         root.addView(new Divider(ctx));
 
-        descriptionView = new TextView(ctx, null, 0, R.h.UiKit_Settings_Item_Addition);
+        descriptionView = new TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Addition);
         descriptionView.setPadding(p, p, p, p2);
         root.addView(descriptionView);
 
@@ -81,10 +81,10 @@ public class PluginCard extends MaterialCardView {
         uninstallButton.setText("Uninstall");
 
         repoButton = new ToolbarButton(ctx);
-        repoButton.setImageDrawable(ContextCompat.getDrawable(ctx, R.d.ic_github_white));
+        repoButton.setImageDrawable(ContextCompat.getDrawable(ctx, R.e.ic_account_github_white_24dp));
 
         changeLogButton = new ToolbarButton(ctx);
-        changeLogButton.setImageDrawable(ContextCompat.getDrawable(ctx, R.d.ic_history_white_24dp));
+        changeLogButton.setImageDrawable(ContextCompat.getDrawable(ctx, R.e.ic_history_white_24dp));
 
         buttonLayout.addView(settingsButton, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(3)));
         buttonLayout.addView(uninstallButton, new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(4)));

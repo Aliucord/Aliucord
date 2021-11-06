@@ -38,7 +38,7 @@ internal class Modal(private val author: String, private val repo: String) : Set
 
         when {
             throwable != null -> {
-                TextView(ctx, null, 0, R.h.UiKit_Settings_Item_SubText).run {
+                TextView(ctx, null, 0, R.i.UiKit_Settings_Item_SubText).run {
                     val sw = StringWriter()
                     val pw = PrintWriter(sw)
                     throwable!!.printStackTrace(pw)
@@ -61,7 +61,7 @@ internal class Modal(private val author: String, private val repo: String) : Set
             }
             else -> {
                 val outdatedDiscordWarning =
-                    TextView(ctx, null, 0, R.h.UiKit_Settings_Item_SubText).apply {
+                    TextView(ctx, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
                         text = "Note: Some buttons are disabled because they require a newer Discord version. Please update Aliucord using the installer first."
                         visibility = View.GONE
                         addView(this)

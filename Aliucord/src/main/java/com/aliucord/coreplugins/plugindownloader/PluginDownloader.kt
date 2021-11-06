@@ -95,11 +95,11 @@ internal class PluginDownloader : Plugin() {
             layout.findViewById<View>(Utils.getResId("dialog_chat_actions_edit", "id")) ?: return
         val idx = layout.indexOfChild(replyView)
 
-        TextView(layout.context, null, 0, R.h.UiKit_Settings_Item_Icon).run {
+        TextView(layout.context, null, 0, R.i.UiKit_Settings_Item_Icon).run {
             id = viewId
             setText(text)
             setOnClickListener(onClick)
-            ContextCompat.getDrawable(layout.context, R.d.ic_file_download_white_24dp)?.run {
+            ContextCompat.getDrawable(layout.context, R.e.ic_file_download_white_24dp)?.run {
                 mutate()
                 setTint(ColorCompat.getThemedColor(layout.context, R.b.colorInteractiveNormal))
                 setCompoundDrawablesRelativeWithIntrinsicBounds(this, null, null, null)

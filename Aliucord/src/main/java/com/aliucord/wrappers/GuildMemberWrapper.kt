@@ -7,6 +7,7 @@
 package com.aliucord.wrappers
 
 import com.discord.api.guildmember.GuildMember
+import com.discord.api.presence.Presence
 import com.discord.api.user.User
 import com.discord.api.utcdatetime.UtcDateTime
 
@@ -21,6 +22,12 @@ class GuildMemberWrapper(private val guildMember: GuildMember) {
 
   val avatar
     get() = guildMember.avatar
+
+  val banner
+    get() = guildMember.banner
+
+  val bio
+    get() = guildMember.bio
 
   val guildId
     get() = guildMember.guildId
@@ -37,6 +44,9 @@ class GuildMemberWrapper(private val guildMember: GuildMember) {
   val premiumSince
     get() = guildMember.premiumSince
 
+  val presence
+    get() = guildMember.presence
+
   val roles
     get() = guildMember.roles
 
@@ -52,35 +62,47 @@ class GuildMemberWrapper(private val guildMember: GuildMember) {
       get() = b()
 
     @JvmStatic
-    val GuildMember.guildId
+    val GuildMember.banner: String?
       get() = c()
 
     @JvmStatic
-    val GuildMember.joinedAt: UtcDateTime?
+    val GuildMember.bio: String?
       get() = d()
 
     @JvmStatic
-    val GuildMember.nick: String?
+    val GuildMember.guildId
       get() = e()
 
     @JvmStatic
-    val GuildMember.isPending
+    val GuildMember.joinedAt: UtcDateTime?
       get() = f()
 
     @JvmStatic
-    val GuildMember.premiumSince: String?
+    val GuildMember.nick: String?
       get() = g()
 
     @JvmStatic
-    val GuildMember.roles: List<Long>
+    val GuildMember.isPending
+      get() = h()
+
+    @JvmStatic
+    val GuildMember.premiumSince: String?
       get() = i()
 
     @JvmStatic
-    val GuildMember.user: User?
+    val GuildMember.presence: Presence?
       get() = j()
 
     @JvmStatic
-    val GuildMember.userId: Long?
+    val GuildMember.roles: List<Long>
       get() = k()
+
+    @JvmStatic
+    val GuildMember.user: User?
+      get() = l()
+
+    @JvmStatic
+    val GuildMember.userId: Long?
+      get() = m()
   }
 }

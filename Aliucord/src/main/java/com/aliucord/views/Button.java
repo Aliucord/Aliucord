@@ -18,6 +18,6 @@ public class Button extends MaterialButton {
      * @param context {@link Context}
      */
     public Button(Context context) {
-        super(new ContextThemeWrapper(context, R.h.UiKit_Material_Button), null, 0);
+        super(new ContextThemeWrapper(context, R.i.UiKit_Material_Button), null, 0);
     }
 }
