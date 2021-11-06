@@ -11,8 +11,8 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
-import android.net.Uri;
 import android.text.*;
+import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.view.*;
 import android.widget.*;
@@ -35,7 +35,9 @@ import com.aliucord.widgets.PluginCard;
 import com.discord.app.AppBottomSheet;
 import com.discord.app.AppFragment;
 import com.discord.stores.StoreInviteSettings;
+import com.discord.stores.StoreStream;
 import com.discord.widgets.guilds.invite.WidgetGuildInvite;
+import com.discord.widgets.tabs.NavigationTab;
 import com.discord.widgets.user.usersheet.WidgetUserSheet;
 import com.lytefast.flexinput.R;
 
@@ -307,10 +309,23 @@ public class Plugins extends SettingsPage {
         if (PluginManager.plugins.isEmpty()) {
             TextView noPlugins = new TextView(context, null, 0, R.i.UiKit_Settings_Item_Header);
             noPlugins.setAllCaps(false);
-            noPlugins.setText("No plugins installed. Find some in #plugins-list!");
+            var npText = "No plugins installed. Find some in #plugins-list!";
+            var link = "#plugins-list";
+            var start = npText.indexOf(link);
+            var end = start + link.length();
+            SpannableStringBuilder ssb = new SpannableStringBuilder(npText);
+            ssb.setSpan(new ClickableSpan() {
+                @Override
+                public void onClick(@NonNull View view) {
+                    close();
+                    StoreStream.Companion.getTabsNavigation().selectTab(NavigationTab.HOME, true);
+                    StoreStream.Companion.getMessagesLoader().jumpToMessage(Constants.PLUGIN_LINKS_CHANNEL_ID, 835554229484519484L);
+                }
+            }, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            noPlugins.setMovementMethod(LinkMovementMethod.getInstance());
+            noPlugins.setText(ssb);
             noPlugins.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
             noPlugins.setGravity(Gravity.CENTER);
-            noPlugins.setOnClickListener(l -> Utils.launchUrl(Uri.parse("https://discord.com/channels/811255666990907402/811275162715553823")));
 
             Button findPlugins = new Button(context);
             findPlugins.setPadding(p, p, p, p);
