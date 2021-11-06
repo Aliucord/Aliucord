@@ -11,38 +11,26 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
+import android.net.Uri;
 import android.text.*;
-import android.view.Gravity;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.Filter;
-import android.widget.Filterable;
-import android.widget.TextView;
+import android.text.style.ClickableSpan;
+import android.view.*;
+import android.widget.*;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.DiffUtil;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.*;
 
-import com.aliucord.CollectionUtils;
-import com.aliucord.Constants;
-import com.aliucord.PluginManager;
-import com.aliucord.Utils;
+import com.aliucord.*;
 import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.ConfirmDialog;
 import com.aliucord.fragments.SettingsPage;
-import com.aliucord.utils.ChangelogUtils;
-import com.aliucord.utils.DimenUtils;
-import com.aliucord.utils.ReflectUtils;
+import com.aliucord.utils.*;
 import com.aliucord.views.Button;
-import com.aliucord.views.TextInput;
-import com.aliucord.views.ToolbarButton;
+import com.aliucord.views.*;
 import com.aliucord.widgets.PluginCard;
 import com.discord.app.AppBottomSheet;
 import com.discord.app.AppFragment;
@@ -52,10 +40,7 @@ import com.discord.widgets.user.usersheet.WidgetUserSheet;
 import com.lytefast.flexinput.R;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 public class Plugins extends SettingsPage {
     private static final int uniqueId = View.generateViewId();
@@ -319,27 +304,29 @@ public class Plugins extends SettingsPage {
             addHeaderButton(pluginFolderBtn);
         }
 
-        TextInput input = new TextInput(context);
-        input.setHint(context.getString(R.g.search));
         if (PluginManager.plugins.isEmpty()) {
-            TextView noPlugins = new TextView(context, null, 0, R.h.UiKit_Settings_Item_Header);
+            TextView noPlugins = new TextView(context, null, 0, R.i.UiKit_Settings_Item_Header);
             noPlugins.setAllCaps(false);
             noPlugins.setText("No plugins installed. Find some in #plugins-list!");
             noPlugins.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
             noPlugins.setGravity(Gravity.CENTER);
+            noPlugins.setOnClickListener(l -> Utils.launchUrl(Uri.parse("https://discord.com/channels/811255666990907402/811275162715553823")));
 
             Button findPlugins = new Button(context);
+            findPlugins.setPadding(p, p, p, p);
             findPlugins.setOnClickListener(aa -> WidgetGuildInvite.Companion.launch(aa.getContext(),
                     new StoreInviteSettings.InviteCode(Constants.ALIUCORD_SUPPORT, "", null)));
-            findPlugins.setText("FIND PLUGINS");
+            findPlugins.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
+            findPlugins.setText("Find Plugins");
+            findPlugins.setAllCaps(true);
             findPlugins.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
 
             addView(noPlugins);
             addView(findPlugins);
-
         } else {
+
             TextInput input = new TextInput(context);
-            input.setHint(context.getString(R.g.search));
+            input.setHint(context.getString(R.h.search));
 
             RecyclerView recyclerView = new RecyclerView(context);
             recyclerView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
@@ -352,8 +339,6 @@ public class Plugins extends SettingsPage {
             decoration.setDrawable(shape);
             recyclerView.addItemDecoration(decoration);
             recyclerView.setPadding(0, padding, 0, 0);
-        TextInput input = new TextInput(context);
-        input.setHint(context.getString(R.h.search));
 
             addView(input);
             addView(recyclerView);
