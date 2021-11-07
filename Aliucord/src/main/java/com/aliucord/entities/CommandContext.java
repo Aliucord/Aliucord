@@ -11,8 +11,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.aliucord.wrappers.ChannelWrapper;
+import com.aliucord.wrappers.GuildRoleWrapper;
 import com.discord.api.message.LocalAttachment;
 import com.discord.api.message.MessageReference;
+import com.discord.api.role.GuildRole;
 import com.discord.models.member.GuildMember;
 import com.discord.models.message.Message;
 import com.discord.models.user.MeUser;
@@ -119,9 +121,19 @@ public class CommandContext {
         _this.$chatInput.setChannelId(id);
     }
 
+    /**
+     * Returns the current channel
+     * @deprecated This method is deprecated in favor of getCurrentChannel()
+     */
+    @NonNull
+    @Deprecated
+    public ChannelWrapper getChannel() {
+        return getCurrentChannel();
+    }
+
     /** Returns the current channel */
     @NonNull
-    public ChannelWrapper getChannel() {
+    public ChannelWrapper getCurrentChannel() {
         return new ChannelWrapper(viewState.getChannel());
     }
 
@@ -325,7 +337,6 @@ public class CommandContext {
         if (val instanceof Boolean) return (Boolean) val;
         if (val instanceof String) return Boolean.valueOf((String) val);
         throw new ClassCastException(String.format("Argument %s is of type %s which cannot be cast to Boolean.", key, val.getClass().getSimpleName()));
-
     }
 
     /**
@@ -372,5 +383,67 @@ public class CommandContext {
     public User getUserOrDefault(String key, User defaultValue) {
         User val = getUser(key);
         return val != null ? val : defaultValue;
+    }
+
+    /**
+     * Gets the Channel argument with the specified key
+     * @param key Key of the argument
+     */
+    @Nullable
+    public ChannelWrapper getChannel(String key) {
+        Long id = getLong(key);
+        return id != null ? new ChannelWrapper(StoreStream.getChannels().getChannel(id)) : null;
+    }
+
+    /**
+     * Gets the <strong>required</strong> channel argument with the specified key
+     * @param key The key of the argument
+     */
+    @NonNull
+    public ChannelWrapper getRequiredChannel(String key) {
+        return requireNonNull(key, getChannel(key));
+    }
+
+    /**
+     * Gets the channel argument with the specified key or the defaultValue if no such argument is present
+     * @param key The key of the argument
+     */
+    @NonNull
+    public ChannelWrapper getChannelOrDefault(String key, ChannelWrapper defaultValue) {
+        ChannelWrapper channel = getChannel(key);
+        return channel != null ? channel : defaultValue;
+    }
+
+    /**
+     * Gets the Role argument with the specified key
+     * @param key Key of the argument
+     */
+    @Nullable
+    public GuildRoleWrapper getRole(String key) {
+        Long id = getLong(key);
+        Map<Long, GuildRole> roles = StoreStream.getGuilds().getRoles().get(getCurrentChannel().getGuildId());
+        if (id == null || roles == null) return null;
+
+        GuildRole role = roles.get(id);
+        return role != null ? new GuildRoleWrapper(role) : null;
+    }
+
+    /**
+     * Gets the <strong>required</strong> Role argument with the specified key
+     * @param key Key of the argument
+     */
+    @NonNull
+    public GuildRoleWrapper getRequiredRole(String key) {
+        return requireNonNull(key, getRole(key));
+    }
+
+    /**
+     * Gets the Role argument with the specified key or the defaultValue if no such argument is present
+     * @param key The key of the argument
+     */
+    @NonNull
+    public GuildRoleWrapper getRoleOrDefault(String key, GuildRoleWrapper defaultValue) {
+        GuildRoleWrapper role = getRole(key);
+        return role != null ? role : defaultValue;
     }
 }

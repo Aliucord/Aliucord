@@ -47,6 +47,7 @@ import com.discord.widgets.changelog.WidgetChangeLog;
 import com.discord.widgets.debugging.WidgetDebugging;
 import com.discord.widgets.guilds.invite.WidgetGuildInvite;
 import com.discord.widgets.settings.WidgetSettings;
+import com.lytefast.flexinput.R;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -55,7 +56,7 @@ import java.util.*;
 
 import dalvik.system.PathClassLoader;
 
-@SuppressWarnings("ConstantConditions")
+@SuppressWarnings({ "ConstantConditions", "unused" })
 public final class Main {
     /** Whether Aliucord has been preInitialized */
     public static boolean preInitialized = false;
@@ -75,9 +76,8 @@ public final class Main {
 
         if (checkPermissions(activity)) loadAllPlugins(activity);
 
-        Patcher.addPatch(AppActivity.class, "onCreate", new Class<?>[] { Bundle.class}, new Hook(param -> {
-            Utils.appActivity = (AppActivity) param.thisObject;
-        }));
+        Patcher.addPatch(AppActivity.class, "onCreate", new Class<?>[] { Bundle.class}, new Hook(param ->
+            Utils.appActivity = (AppActivity) param.thisObject));
     }
 
     /** Aliucord's init hook. Plugins are started here */
@@ -94,17 +94,17 @@ public final class Main {
 
             int baseIndex = v.indexOfChild(v.findViewById(Utils.getResId("developer_options_divider", "id")));
             v.addView(new Divider(context), baseIndex);
-            TextView header = new TextView(context, null, 0, com.lytefast.flexinput.R.h.UiKit_Settings_Item_Header);
+            TextView header = new TextView(context, null, 0, R.i.UiKit_Settings_Item_Header);
             header.setText("Aliucord");
             header.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
             v.addView(header, baseIndex + 1);
 
             Typeface font = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium);
-            TextView plugins = new TextView(context, null, 0, com.lytefast.flexinput.R.h.UiKit_Settings_Item_Icon);
+            TextView plugins = new TextView(context, null, 0, R.i.UiKit_Settings_Item_Icon);
             plugins.setText("Plugins");
             plugins.setTypeface(font);
-            int iconColor = ColorCompat.getThemedColor(context, com.lytefast.flexinput.R.b.colorInteractiveNormal);
-            Drawable icon = ContextCompat.getDrawable(context, com.lytefast.flexinput.R.d.ic_clear_all_white_24dp);
+            int iconColor = ColorCompat.getThemedColor(context, R.b.colorInteractiveNormal);
+            Drawable icon = ContextCompat.getDrawable(context, R.e.ic_clear_all_white_24dp);
             if (icon != null) {
                 Drawable copy = icon.mutate();
                 copy.setTint(iconColor);
@@ -113,10 +113,10 @@ public final class Main {
             plugins.setOnClickListener(e -> Utils.openPage(e.getContext(), Plugins.class));
             v.addView(plugins, baseIndex + 2);
 
-            TextView updater = new TextView(context, null, 0, com.lytefast.flexinput.R.h.UiKit_Settings_Item_Icon);
+            TextView updater = new TextView(context, null, 0, R.i.UiKit_Settings_Item_Icon);
             updater.setText("Updater");
             updater.setTypeface(font);
-            icon = ContextCompat.getDrawable(context, com.lytefast.flexinput.R.d.ic_file_download_white_24dp);
+            icon = ContextCompat.getDrawable(context, R.e.ic_file_download_white_24dp);
             if (icon != null) {
                 Drawable copy = icon.mutate();
                 copy.setTint(iconColor);
@@ -125,10 +125,10 @@ public final class Main {
             updater.setOnClickListener(e -> Utils.openPage(e.getContext(), Updater.class));
             v.addView(updater, baseIndex + 3);
 
-            TextView crashes = new TextView(context, null, 0, com.lytefast.flexinput.R.h.UiKit_Settings_Item_Icon);
+            TextView crashes = new TextView(context, null, 0, R.i.UiKit_Settings_Item_Icon);
             crashes.setText("Crashes");
             crashes.setTypeface(font);
-            icon = ContextCompat.getDrawable(context, com.lytefast.flexinput.R.d.ic_history_white_24dp);
+            icon = ContextCompat.getDrawable(context, R.e.ic_history_white_24dp);
             if (icon != null) {
                 Drawable copy = icon.mutate();
                 copy.setTint(iconColor);
@@ -137,10 +137,10 @@ public final class Main {
             crashes.setOnClickListener(e -> Utils.openPage(e.getContext(), Crashes.class));
             v.addView(crashes, baseIndex + 4);
 
-            var debug = new TextView(context, null, 0, com.lytefast.flexinput.R.h.UiKit_Settings_Item_Icon);
+            var debug = new TextView(context, null, 0, R.i.UiKit_Settings_Item_Icon);
             debug.setText("Open Debug Log");
             debug.setTypeface(font);
-            icon = ContextCompat.getDrawable(context, com.lytefast.flexinput.R.d.ic_audit_logs_24dp);
+            icon = ContextCompat.getDrawable(context, R.e.ic_audit_logs_24dp);
             if (icon != null) {
                 Drawable copy = icon.mutate();
                 copy.setTint(iconColor);
@@ -310,7 +310,10 @@ public final class Main {
             }
         }
 
-        for (File f : dir.listFiles()) {
+        File[] sortedPlugins = dir.listFiles();
+        Arrays.sort(sortedPlugins, Comparator.comparing(File::getName));
+
+        for (File f : sortedPlugins) {
             var name = f.getName();
             if (name.endsWith(".zip")) {
                 PluginManager.loadPlugin(context, f);
@@ -329,7 +332,7 @@ public final class Main {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private static void rmrf(File file) {
         if (file.isDirectory()) {
-            for (var child: file.listFiles())
+            for (var child : file.listFiles())
                 rmrf(child);
         }
         file.delete();

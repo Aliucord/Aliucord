@@ -34,7 +34,7 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
 
 ### Supported Discord version(s)
 
-- 96.3 / Beta 96103 (You don't need the apk, the installer will download it for you)
+- 101.3 / Alpha 101203 (You don't need the apk, the installer will download it for you)
 
 ## 🎨 Features
 
@@ -78,6 +78,11 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
 2. Hold down the message (NOT the link, the entire message) with the desired plugin and click "Open PluginDownloader"
 3. Find the desired plugin in the list and click install. It should immediately start working, however some plugins may require you to restart to make them fully work
 
+
+⚠️ IF YOU CAME HERE FROM A YOUTUBE TUTORIAL:
+> - PluginDownloader now comes preinstalled with Aliucord so you don't need to install it
+> - If you were promised free nitro, you were clickbaited. The most that is possible is free emotes (sends emote image links instead)
+ 
 ## 🐛 Troubleshooting
 
 - Try closing and then reopening Aliucord
