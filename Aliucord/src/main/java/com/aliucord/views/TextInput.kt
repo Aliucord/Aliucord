@@ -33,10 +33,6 @@ class TextInput @JvmOverloads constructor(
     textChangedListener: TextWatcher? = null,
     endIconOnClick: OnClickListener? = null
 ) : CardView(context) {
-    /**
-     * Returns the root layout
-     * @return TextInputLayout
-     */
     var layout: TextInputLayout
 
     constructor(
