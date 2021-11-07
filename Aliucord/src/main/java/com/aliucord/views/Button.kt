@@ -16,3 +16,4 @@ import com.lytefast.flexinput.R
  */
 class Button(context: Context?) :
     MaterialButton(ContextThemeWrapper(context, R.i.UiKit_Material_Button), null, 0)
+
