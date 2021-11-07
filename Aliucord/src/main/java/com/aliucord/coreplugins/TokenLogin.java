@@ -14,8 +14,8 @@ import android.widget.RelativeLayout;
 
 import com.aliucord.Utils;
 import com.aliucord.entities.Plugin;
-import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.Hook;
+import com.aliucord.patcher.Patcher;
 import com.aliucord.utils.DimenUtils;
 import com.aliucord.views.Button;
 import com.discord.app.AppActivity;

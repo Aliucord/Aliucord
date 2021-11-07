@@ -6,10 +6,7 @@
 
 package com.aliucord.settings;
 
-import static com.aliucord.updater.Updater.isAliucordOutdated;
-import static com.aliucord.updater.Updater.isDiscordOutdated;
-import static com.aliucord.updater.Updater.updateAliucord;
-import static com.aliucord.updater.Updater.usingDexFromStorage;
+import static com.aliucord.updater.Updater.*;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -36,8 +33,6 @@ import com.discord.views.CheckedSetting;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.lytefast.flexinput.R;
-
-import java.lang.Runtime;
 
 public class Updater extends SettingsPage {
     public static class UpdaterSettings extends BottomSheet {
