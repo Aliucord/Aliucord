@@ -5,15 +5,16 @@ import com.aliucord.utils.GsonUtils
 import org.json.JSONObject
 import java.io.File
 import java.lang.reflect.Type
+import java.math.BigDecimal
 import java.util.*
 
 /** Utility class to store and retrieve preferences  */
-
 class SettingsUtilsJSON(private val plugin: String) {
 
     private val settingsPath = Constants.BASE_PATH + "/settings/"
     private val settingsFile = Constants.BASE_PATH + "/settings/" + plugin + ".json"
     private val keyPrefix = "AC_" + plugin + "_"
+    private val cache: MutableMap<String, Any> = HashMap()
     private val settings: JSONObject by lazy {
         val file = File(settingsFile)
         if (file.exists()) {
@@ -44,9 +45,7 @@ class SettingsUtilsJSON(private val plugin: String) {
         }
     }
 
-    private fun getPreferenceSettings(): Map<String, *>? {
-        return SettingsUtils.getAllSettings(keyPrefix)
-    }
+    private fun getPreferenceSettings() = SettingsUtils.getAllSettings(keyPrefix)
 
     private fun writeData() {
         if (settings.length() > 0) {
@@ -54,7 +53,7 @@ class SettingsUtilsJSON(private val plugin: String) {
             try {
                 file.writeText(settings.toString(4))
             } catch (e: Throwable) {
-                logger.info("Faled to save settings for $plugin")
+                logger.info("Failed to save settings for $plugin")
                 logger.error(e)
             }
         }
@@ -64,9 +63,7 @@ class SettingsUtilsJSON(private val plugin: String) {
      * Resets All Settings
      * @return true if successful, else false
      */
-    fun resetFile(): Boolean {
-        return File(settingsFile).delete()
-    }
+    fun resetFile() = File(settingsFile).delete()
 
     /**
      * Toggles Boolean and returns it
@@ -97,9 +94,7 @@ class SettingsUtilsJSON(private val plugin: String) {
      * @param key Key of the value
      * @return True if found, else false
      */
-    fun exists(key: String): Boolean {
-        return settings.has(key)
-    }
+    fun exists(key: String): Boolean = settings.has(key)
 
     /**
      * Get a boolean from the preferences
@@ -107,17 +102,15 @@ class SettingsUtilsJSON(private val plugin: String) {
      * @param defValue Default value
      * @return Value if found, else the defValue
      */
-    fun getBool(key: String, defValue: Boolean): Boolean {
-        return if (settings.has(key)) settings.getBoolean(key) else defValue
-    }
+    fun getBool(key: String, defValue: Boolean) = if (settings.has(key)) settings.getBoolean(key) else defValue
 
     /**
      * Set a boolean item
      * @param key Key of the item
-     * @param val Value
+     * @param value Value
      */
-    fun setBool(key: String, `val`: Boolean) {
-        settings.put(key, `val`)
+    fun setBool(key: String, value: Boolean) {
+        settings.put(key, value)
         writeData()
     }
 
@@ -127,17 +120,15 @@ class SettingsUtilsJSON(private val plugin: String) {
      * @param defValue Default value
      * @return Value if found, else the defValue
      */
-    fun getInt(key: String, defValue: Int): Int {
-        return if (settings.has(key)) settings.getInt(key) else defValue
-    }
+    fun getInt(key: String, defValue: Int) = if (settings.has(key)) settings.getInt(key) else defValue
 
     /**
      * Set an int item
      * @param key Key of the item
-     * @param val Value
+     * @param value Value
      */
-    fun setInt(key: String, `val`: Int) {
-        settings.put(key, `val`)
+    fun setInt(key: String, value: Int) {
+        settings.put(key, value)
         writeData()
     }
 
@@ -147,17 +138,16 @@ class SettingsUtilsJSON(private val plugin: String) {
      * @param defValue Default value
      * @return Value if found, else the defValue
      */
-    fun getFloat(key: String, defValue: Float): Float {
-        return if (settings.has(key)) settings.get(key) as Float else defValue
-    }
+    fun getFloat(key: String, defValue: Float) =
+        if (settings.has(key)) BigDecimal.valueOf(settings.getDouble(key)).toFloat() else defValue
 
     /**
      * Set a float item
      * @param key Key of the item
-     * @param val Value
+     * @param value Value
      */
-    fun setFloat(key: String, `val`: Float) {
-        settings.put(key, `val`)
+    fun setFloat(key: String, value: Float) {
+        settings.put(key, value)
         writeData()
     }
 
@@ -167,17 +157,15 @@ class SettingsUtilsJSON(private val plugin: String) {
      * @param defValue Default value
      * @return Value if found, else the defValue
      */
-    fun getLong(key: String, defValue: Long): Long {
-        return if (settings.has(key)) settings.getLong(key) else defValue
-    }
+    fun getLong(key: String, defValue: Long) = if (settings.has(key)) settings.getLong(key) else defValue
 
     /**
      * Set a long item
      * @param key Key of the item
-     * @param val Value
+     * @param value Value
      */
-    fun setLong(key: String, `val`: Long) {
-        settings.put(key, `val`)
+    fun setLong(key: String, value: Long) {
+        settings.put(key, value)
         writeData()
     }
 
@@ -187,21 +175,17 @@ class SettingsUtilsJSON(private val plugin: String) {
      * @param defValue Default value
      * @return Value if found, else the defValue
      */
-    fun getString(key: String, defValue: String?): String? {
-        return if (settings.has(key)) settings.getString(key) else defValue
-    }
+    fun getString(key: String, defValue: String?) = if (settings.has(key)) settings.getString(key) else defValue
 
     /**
      * Set a [String] item
      * @param key Key of the item
-     * @param val Value
+     * @param value Value
      */
-    fun setString(key: String, `val`: String?) {
-        settings.put(key, `val`)
+    fun setString(key: String, value: String?) {
+        settings.put(key, value)
         writeData()
     }
-
-    private val cache: MutableMap<String, Any> = HashMap()
 
     /**
      * Get an [Object] from the preferences
@@ -209,10 +193,7 @@ class SettingsUtilsJSON(private val plugin: String) {
      * @param defValue Default value
      * @return Value if found, else the defValue
      */
-    fun <T> getObject(key: String, defValue: T): T {
-        //return settings.get(key) as T ,this works but why change while other one is working fine
-        return getObject(key, defValue, defValue!!::class.java)
-    }
+    fun <T> getObject(key: String, defValue: T): T = getObject(key, defValue, defValue!!::class.java)
 
     /**
      * Get an [Object] from the preferences
@@ -221,12 +202,12 @@ class SettingsUtilsJSON(private val plugin: String) {
      * @param type Type of the object
      * @return Value if found, else the defValue
      */
+    @Suppress("UNCHECKED_CAST")
     fun <T> getObject(key: String, defValue: T, type: Type?): T {
         val cached = cache[key]
         if (cached != null) try {
             return cached as T
-        } catch (ignored: Throwable) {
-        }
+        } catch (ignored: Throwable) {}
         val json = getString(key, null) ?: return defValue
         val t: T = GsonUtils.fromJson(json, type)
         return t ?: defValue
@@ -235,12 +216,10 @@ class SettingsUtilsJSON(private val plugin: String) {
     /**
      * Set an [Object] item
      * @param key Key of the item
-     * @param val Value
+     * @param value Value
      */
-    fun setObject(key: String, `val`: Any) {
-        //settings.put(key,`val`)
-        //writeData()
-        cache[key] = `val`
-        setString(key, GsonUtils.toJson(`val`))
+    fun setObject(key: String, value: Any) {
+        cache[key] = value
+        setString(key, GsonUtils.toJson(value))
     }
 }
