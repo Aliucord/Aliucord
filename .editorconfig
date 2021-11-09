@@ -1,0 +1,38 @@
+# Android Studio: Settings > Editor > Code Style > Enable EditorConfig support
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+indent_style = space
+max_line_length = 150
+trim_trailing_whitespace = true
+insert_final_newline = true
+indent_size = 4
+# these are Intellij specific so they will only work in Android Studio / IDEA
+ij_continuation_indent_size = 4
+
+[*.java]
+ij_java_names_count_to_use_import_on_demand = 3
+ij_java_class_count_to_use_import_on_demand = 3
+ij_java_blank_lines_around_method_in_interface = 0
+ij_java_doc_do_not_wrap_if_one_line = true
+ij_java_keep_first_column_comment = false
+ij_java_keep_simple_blocks_in_one_line = true
+ij_java_keep_simple_classes_in_one_line = true
+ij_java_keep_simple_lambdas_in_one_line = true
+ij_java_keep_simple_methods_in_one_line = true
+ij_java_line_comment_add_space = true
+ij_java_line_comment_at_first_column = false
+ij_java_spaces_within_array_initializer_braces = true
+
+[*.kt]
+ij_kotlin_name_count_to_use_star_import = 3
+ij_kotlin_name_count_to_use_star_import_for_members = 3
+ij_kotlin_keep_first_column_comment = false
+ij_kotlin_line_comment_add_space = true
+ij_kotlin_line_comment_at_first_column = false
+
+[*.{xml,yml}]
+indent_size = 2
