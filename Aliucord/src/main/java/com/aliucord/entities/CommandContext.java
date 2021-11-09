@@ -31,6 +31,18 @@ import java.util.*;
 /** Context passed to command executors */
 @SuppressWarnings({ "unused"})
 public class CommandContext {
+    /**
+     * Looks like Discord's required args are unreliable and are sometimes accepted even if empty.
+     * Or a plugin dev may just forget to mark an argument as required which leads to ugly NPEs.
+     * Thus, throw a custom exception and handle it in the command handler to present the user a simple message, not a scary
+     * stacktrace.
+     */
+    public static class RequiredArgumentWasNullException extends RuntimeException {
+        public RequiredArgumentWasNullException(String name) {
+            super(String.format("Required argument %s was null. Please specify a value for it and try again.", name));
+        }
+    }
+
     private final Map<String, ?> args;
     private final WidgetChatInput$configureSendListeners$2 _this;
     private final MessageContent messageContent;
@@ -47,7 +59,8 @@ public class CommandContext {
     }
 
     private static <T> T requireNonNull(String key, T val) {
-        return Objects.requireNonNull(val, String.format("Required argument %s was null", key));
+        if (val != null) return val;
+        throw new RequiredArgumentWasNullException(key);
     }
 
     /** Returns the ViewState associated with this Context */
@@ -204,6 +217,16 @@ public class CommandContext {
      * @param key Key of the subcommand
      */
     @SuppressWarnings("unchecked")
+    @NonNull
+    public Map<String, ?> getRequiredSubCommandArgs(String key) {
+        return (Map<String, ?>) requireNonNull(key, args.get(key));
+    }
+
+    /**
+     * Gets the arguments object for the specified subcommand
+     * @param key Key of the subcommand
+     */
+    @SuppressWarnings("unchecked")
     @Nullable
     public Map<String, ?> getSubCommandArgs(String key) {
         return (Map<String, ?>) args.get(key);
@@ -275,6 +298,7 @@ public class CommandContext {
         Object val = get(key);
         if (val == null) return null;
         if (val instanceof Integer) return (Integer) val;
+        if (val instanceof Long) return ((Long) val).intValue();
         if (val instanceof String) return Integer.valueOf((String) val);
         throw new ClassCastException(String.format("Argument %s is of type %s which cannot be cast to Integer.", key, val.getClass().getSimpleName()));
     }
@@ -305,6 +329,7 @@ public class CommandContext {
         Object val = get(key);
         if (val == null) return null;
         if (val instanceof Long) return (Long) val;
+        if (val instanceof Integer) return ((Integer) val).longValue();
         if (val instanceof String) return Long.valueOf((String) val);
         throw new ClassCastException(String.format("Argument %s is of type %s which cannot be cast to Long.", key, val.getClass().getSimpleName()));
     }
