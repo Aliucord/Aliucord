@@ -247,24 +247,29 @@ public class CommandsAPI {
                     }
                     storeMessages.deleteMessage(thinkingMsg);
                 } catch (Throwable t) {
-                    t.printStackTrace();
                     storeMessages.deleteMessage(thinkingMsg);
-                    logger.error(String.format("[%s]", name), t);
 
-                    StringBuilder argStringB = new StringBuilder();
-                    for (Map.Entry<String, ?> entry : args.entrySet()) {
-                        argStringB.append(entry).append('\n');
-                    }
-                    String argString = argStringB.toString();
+                    String detailedError;
 
-                    Plugin.Manifest manifest = Objects.requireNonNull(PluginManager.plugins.get(pluginName)).getManifest();
+                    if (t instanceof CommandContext.RequiredArgumentWasNullException) {
+                        detailedError = t.getMessage();
+                    } else {
+                        logger.error(String.format("[%s]", name), t);
 
-                    String detailedError = String.format(
+                        StringBuilder argStringB = new StringBuilder();
+                        for (Map.Entry<String, ?> entry : args.entrySet()) {
+                            argStringB.append(entry).append('\n');
+                        }
+                        String argString = argStringB.toString();
+
+                        Plugin.Manifest manifest = Objects.requireNonNull(PluginManager.plugins.get(pluginName)).getManifest();
+
+                        detailedError = String.format(
                             Locale.ENGLISH,
                             "Oops! Something went wrong while running this command:\n```java\n%s```\n" +
-                            "Please search for this error on the Aliucord server to see if it's a known issue. " +
-                            "If it isn't, report it to the plugin %s%s.\n\n" +
-                            "Debug:```\nCommand: %s\nPlugin: %s v%s\nDiscord v%s\nAndroid %s (SDK %d)\nAliucord %s```\nArguments:```\n%s```\n",
+                                "Please search for this error on the Aliucord server to see if it's a known issue. " +
+                                "If it isn't, report it to the plugin %s%s.\n\n" +
+                                "Debug:```\nCommand: %s\nPlugin: %s v%s\nDiscord v%s\nAndroid %s (SDK %d)\nAliucord %s```\nArguments:```\n%s```\n",
                             t.toString(),
                             manifest.authors.length == 1 ? "author" : "authors",
                             manifest.authors.length != 0 ? " (" + TextUtils.join(", ", manifest.authors) + ")" : "",
@@ -276,7 +281,9 @@ public class CommandsAPI {
                             Build.VERSION.SDK_INT,
                             BuildConfig.GIT_REVISION,
                             argString.length() != 0 ? argString : "-"
-                    );
+                        );
+                    }
+
                     Message commandMessage = LocalMessageCreatorsKt.createLocalMessage(detailedError, channelId, Utils.buildClyde(null, null), null, false, false, null, null, clock, null, null, null, null, null, null, null);
 
                     try {

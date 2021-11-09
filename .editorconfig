@@ -4,7 +4,7 @@ root = true
 
 [*]
 charset = utf-8
-end_of_line = crlf
+end_of_line = lf
 indent_style = space
 max_line_length = 150
 trim_trailing_whitespace = true
