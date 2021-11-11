@@ -407,7 +407,7 @@ public class Http {
          * @throws IOException If an I/O exception occurs
          */
         public DiscordRequest(String url, String method) throws IOException, NoSuchFieldException, IllegalAccessException {
-            super(url, method);
+            super(!url.startsWith("http") ? "https://discord.com/api/v9" + url : url, method);
             conn = (HttpURLConnection) new URL(!url.startsWith("http") ? "https://discord.com/api/v9" + url : url).openConnection();
             conn.setRequestMethod(method.toUpperCase());
             conn.addRequestProperty("Authorization", (String) ReflectUtils.getField(StoreStream.getAuthentication(), "authToken"));
