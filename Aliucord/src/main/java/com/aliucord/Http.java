@@ -410,10 +410,10 @@ public class Http {
             super(!url.startsWith("http") ? "https://discord.com/api/v9" + url : url, method);
             conn = (HttpURLConnection) new URL(!url.startsWith("http") ? "https://discord.com/api/v9" + url : url).openConnection();
             conn.setRequestMethod(method.toUpperCase());
-            conn.addRequestProperty("Authorization", (String) ReflectUtils.getField(StoreStream.getAuthentication(), "authToken"));
-            conn.addRequestProperty("User-Agent", RestAPI.AppHeadersProvider.INSTANCE.getUserAgent());
-            conn.addRequestProperty("X-Super-Properties", AnalyticSuperProperties.INSTANCE.getSuperPropertiesStringBase64());
-            conn.addRequestProperty("Accept", "*/*");
+            setHeader("Authorization", (String) ReflectUtils.getField(StoreStream.getAuthentication(), "authToken"));
+            setHeader("User-Agent", RestAPI.AppHeadersProvider.INSTANCE.getUserAgent());
+            setHeader("X-Super-Properties", AnalyticSuperProperties.INSTANCE.getSuperPropertiesStringBase64());
+            setHeader("Accept", "*/*");
         }
     }
 
