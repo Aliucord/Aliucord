@@ -11,6 +11,10 @@ import androidx.annotation.Nullable;
 
 import com.aliucord.utils.*;
 
+import com.discord.stores.StoreStream;
+import com.discord.utilities.analytics.AnalyticSuperProperties;
+import com.discord.utilities.rest.RestAPI;
+
 import java.io.*;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
@@ -370,6 +374,46 @@ public class Http {
         @Override
         public void close() {
             req.close();
+        }
+    }
+
+    /** Request Builder */
+    public static class DiscordRequest extends Request {
+        /** The connection of this Request */
+        public final HttpURLConnection conn;
+
+        /**
+         * Builds a GET request with the specified QueryBuilder
+         * @param builder QueryBuilder
+         * @throws IOException If an I/O exception occurs
+         */
+        public DiscordRequest(QueryBuilder builder) throws IOException, NoSuchFieldException, IllegalAccessException {
+            this(builder.toString(), "GET");
+        }
+
+        /**
+         * Builds a GET request with the specified url
+         * @param url Url
+         * @throws IOException If an I/O exception occurs
+         */
+        public DiscordRequest(String url) throws IOException, NoSuchFieldException, IllegalAccessException {
+            this(url, "GET");
+        }
+
+        /**
+         * Builds a request with the specified url and method
+         * @param url Url
+         * @param method <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods">HTTP method</a>
+         * @throws IOException If an I/O exception occurs
+         */
+        public DiscordRequest(String url, String method) throws IOException, NoSuchFieldException, IllegalAccessException {
+            super(url, method);
+            conn = (HttpURLConnection) new URL(!url.startsWith("http") ? "https://discord.com/api/v9" + url : url).openConnection();
+            conn.setRequestMethod(method.toUpperCase());
+            conn.addRequestProperty("Authorization", (String) ReflectUtils.getField(StoreStream.getAuthentication(), "authToken"));
+            conn.addRequestProperty("User-Agent", RestAPI.AppHeadersProvider.INSTANCE.getUserAgent());
+            conn.addRequestProperty("X-Super-Properties", AnalyticSuperProperties.INSTANCE.getSuperPropertiesStringBase64());
+            conn.addRequestProperty("Accept", "*/*");
         }
     }
 
