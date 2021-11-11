@@ -379,13 +379,12 @@ public class Http {
 
     /** Request Builder */
     public static class DiscordRequest extends Request {
-        /** The connection of this Request */
-        public final HttpURLConnection conn;
 
         /**
          * Builds a GET request with the specified QueryBuilder
          * @param builder QueryBuilder
          * @throws IOException If an I/O exception occurs
+         * @throws NoSuchFieldException,IllegalAccessException If unable to get authentication token
          */
         public DiscordRequest(QueryBuilder builder) throws IOException, NoSuchFieldException, IllegalAccessException {
             this(builder.toString(), "GET");
@@ -395,6 +394,7 @@ public class Http {
          * Builds a GET request with the specified url
          * @param url Url
          * @throws IOException If an I/O exception occurs
+         * @throws NoSuchFieldException,IllegalAccessException If unable to get authentication token
          */
         public DiscordRequest(String url) throws IOException, NoSuchFieldException, IllegalAccessException {
             this(url, "GET");
@@ -405,11 +405,10 @@ public class Http {
          * @param url Url
          * @param method <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods">HTTP method</a>
          * @throws IOException If an I/O exception occurs
+         * @throws NoSuchFieldException,IllegalAccessException If unable to get authentication token
          */
         public DiscordRequest(String url, String method) throws IOException, NoSuchFieldException, IllegalAccessException {
             super(!url.startsWith("http") ? "https://discord.com/api/v9" + url : url, method);
-            conn = (HttpURLConnection) new URL(!url.startsWith("http") ? "https://discord.com/api/v9" + url : url).openConnection();
-            conn.setRequestMethod(method.toUpperCase());
             setHeader("Authorization", (String) ReflectUtils.getField(StoreStream.getAuthentication(), "authToken"));
             setHeader("User-Agent", RestAPI.AppHeadersProvider.INSTANCE.getUserAgent());
             setHeader("X-Super-Properties", AnalyticSuperProperties.INSTANCE.getSuperPropertiesStringBase64());
