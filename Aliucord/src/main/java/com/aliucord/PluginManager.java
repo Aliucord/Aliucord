@@ -124,7 +124,7 @@ public class PluginManager {
 
     /**
      * Disables a loaded plugin if it isn't already disables
-     * @param name Name of the plugin to disabled
+     * @param name Name of the plugin to disable
      */
     public static void disablePlugin(String name) {
         if (!isPluginEnabled(name)) return;
