@@ -44,6 +44,7 @@ import com.discord.models.domain.emoji.ModelEmojiUnicode;
 import com.discord.stores.StoreInviteSettings;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.widgets.changelog.WidgetChangeLog;
+import com.discord.widgets.chat.list.WidgetChatList;
 import com.discord.widgets.debugging.WidgetDebugging;
 import com.discord.widgets.guilds.invite.WidgetGuildInvite;
 import com.discord.widgets.settings.WidgetSettings;
@@ -76,8 +77,15 @@ public final class Main {
 
         if (checkPermissions(activity)) loadAllPlugins(activity);
 
-        Patcher.addPatch(AppActivity.class, "onCreate", new Class<?>[] { Bundle.class}, new Hook(param ->
+        Patcher.addPatch(AppActivity.class, "onCreate", new Class<?>[] { Bundle.class }, new Hook(param ->
             Utils.appActivity = (AppActivity) param.thisObject));
+
+        try {
+            Patcher.addPatch(WidgetChatList.class.getDeclaredConstructor(), new Hook(param ->
+                Utils.widgetChatList = (WidgetChatList) param.thisObject));
+        } catch (Exception e) {
+            Patcher.logger.error(e);
+        }
     }
 
     /** Aliucord's init hook. Plugins are started here */
