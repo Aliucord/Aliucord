@@ -210,7 +210,7 @@ public class PluginManager {
      */
     public static void promptRestart() {
         var view = Utils.appActivity.findViewById(android.R.id.content);
-        Snackbar.make(view, "A plugin requires to be restarted. Restart?", Snackbar.LENGTH_INDEFINITE)
+        Snackbar.make(view, "A restart is required. Restart?", Snackbar.LENGTH_INDEFINITE)
             .setAction("Restart", v -> {
                 Context ctx = v.getContext();
                 Intent intent = ctx.getPackageManager().getLaunchIntentForPackage(ctx.getPackageName());
