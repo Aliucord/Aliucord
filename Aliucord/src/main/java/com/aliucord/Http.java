@@ -230,6 +230,41 @@ public class Http {
         public void close() {
             conn.disconnect();
         }
+
+        /**
+         * Performs a GET request to a Discord route
+         * @param builder QueryBuilder
+         * @throws IOException If an I/O exception occurs
+         * @throws NoSuchFieldException,IllegalAccessException If unable to get authentication token
+         */
+        public static Request newDiscordRequest(QueryBuilder builder) throws IOException, NoSuchFieldException, IllegalAccessException {
+            return newDiscordRequest(builder.toString(), "GET");
+        }
+
+        /**
+         * Performs a GET request to a Discord route
+         * @param route A Discord route, such as `/users/@me`
+         * @throws IOException If an I/O exception occurs
+         * @throws NoSuchFieldException,IllegalAccessException If unable to get authentication token
+         */
+        public static Request newDiscordRequest(String route) throws IOException, NoSuchFieldException, IllegalAccessException {
+            return newDiscordRequest(route, "GET");
+        }
+
+        /**
+         * Performs a request to a Discord route
+         * @param route A Discord route, such as `/users/@me`
+         * @throws IOException If an I/O exception occurs
+         * @throws NoSuchFieldException,IllegalAccessException If unable to get authentication token
+         */
+        public static Request newDiscordRequest(String route, String method) throws IOException, NoSuchFieldException, IllegalAccessException {
+            Request req = new Request(!route.startsWith("http") ? "https://discord.com/api/v9" + route : route, method);
+            req.setHeader("Authorization", (String) ReflectUtils.getField(StoreStream.getAuthentication(), "authToken"))
+                .setHeader("User-Agent", RestAPI.AppHeadersProvider.INSTANCE.getUserAgent())
+                .setHeader("X-Super-Properties", AnalyticSuperProperties.INSTANCE.getSuperPropertiesStringBase64())
+                .setHeader("Accept", "*/*");
+            return req;
+        }
     }
 
     /** Response obtained by calling Request.execute() */
@@ -374,45 +409,6 @@ public class Http {
         @Override
         public void close() {
             req.close();
-        }
-    }
-
-    /** Request Builder */
-    public static class DiscordRequest extends Request {
-
-        /**
-         * Builds a GET request with the specified QueryBuilder
-         * @param builder QueryBuilder
-         * @throws IOException If an I/O exception occurs
-         * @throws NoSuchFieldException,IllegalAccessException If unable to get authentication token
-         */
-        public DiscordRequest(QueryBuilder builder) throws IOException, NoSuchFieldException, IllegalAccessException {
-            this(builder.toString(), "GET");
-        }
-
-        /**
-         * Builds a GET request with the specified url
-         * @param url Url
-         * @throws IOException If an I/O exception occurs
-         * @throws NoSuchFieldException,IllegalAccessException If unable to get authentication token
-         */
-        public DiscordRequest(String url) throws IOException, NoSuchFieldException, IllegalAccessException {
-            this(url, "GET");
-        }
-
-        /**
-         * Builds a request with the specified url and method
-         * @param url Url
-         * @param method <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods">HTTP method</a>
-         * @throws IOException If an I/O exception occurs
-         * @throws NoSuchFieldException,IllegalAccessException If unable to get authentication token
-         */
-        public DiscordRequest(String url, String method) throws IOException, NoSuchFieldException, IllegalAccessException {
-            super(!url.startsWith("http") ? "https://discord.com/api/v9" + url : url, method);
-            setHeader("Authorization", (String) ReflectUtils.getField(StoreStream.getAuthentication(), "authToken"));
-            setHeader("User-Agent", RestAPI.AppHeadersProvider.INSTANCE.getUserAgent());
-            setHeader("X-Super-Properties", AnalyticSuperProperties.INSTANCE.getSuperPropertiesStringBase64());
-            setHeader("Accept", "*/*");
         }
     }
 
