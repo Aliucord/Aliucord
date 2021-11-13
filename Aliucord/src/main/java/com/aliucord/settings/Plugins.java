@@ -259,6 +259,8 @@ public class Plugins extends SettingsPage {
                 data.remove(position);
                 if (originalData != data) originalData.remove(p);
                 notifyItemRemoved(position);
+
+                if (p.requiresRestart()) PluginManager.promptRestart();
             });
 
             dialog.show(fragment.getParentFragmentManager(), "Confirm Plugin Uninstall");

@@ -8,9 +8,10 @@ package com.aliucord.annotations
 annotation class AliucordPlugin(
     /**
      * Prompts the user to restart Aliucord after:
-     * - Enabling manually / dropping into plugins folder
+     * - Enabling manually
      * - Disabling manually
      * - Updating
+     * - Uninstalling
      */
     val requiresRestart: Boolean = false
 )
