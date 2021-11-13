@@ -237,7 +237,7 @@ public class Http {
          * @throws IOException If an I/O exception occurs
          * @throws NoSuchFieldException,IllegalAccessException If unable to get authentication token
          */
-        public static Request newDiscordRequest(QueryBuilder builder) throws IOException, NoSuchFieldException, IllegalAccessException {
+        public static Request newDiscordRequest(QueryBuilder builder) throws IOException {
             return newDiscordRequest(builder.toString(), "GET");
         }
 
