@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.robv.android.xposed.XC_MethodHook;
+import rx.functions.Action1;
 import top.canyie.pine.callback.MethodHook;
 
 @SuppressWarnings({"unused", "deprecation"})
@@ -130,6 +131,17 @@ public class PatcherAPI {
      */
     public Runnable patch(@NonNull Member m, @NonNull XC_MethodHook hook) {
         return createUnpatch(Patcher.addPatch(m, hook));
+    }
+
+    /**
+     * Patches a method or constructor.
+     *
+     * @param m    Method or constructor to patch. see {@link Member}.
+     * @param callback Callback for the patch.
+     * @return Method that will remove the patch when invoked
+     */
+    public Runnable patch(@NonNull Member m, @NonNull Action1<XC_MethodHook.MethodHookParam> callback) {
+        return createUnpatch(Patcher.addPatch(m, new Hook(callback)));
     }
 
     /**
