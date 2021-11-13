@@ -21,6 +21,9 @@ import com.discord.app.AppFragment;
 /** Base Plugin class all plugins must extend */
 @SuppressWarnings("unused")
 public abstract class Plugin {
+    /** The {@link Logger} of your plugin. Use this to log information */
+    public Logger logger;
+
     /** Plugin Manifest */
     public static class Manifest {
         /** Plugin Author */
@@ -138,6 +141,7 @@ public abstract class Plugin {
             throw new IllegalStateException("This plugin was already initialized");
         }
 
+        this.logger = new Logger(manifest.name);
         this.manifest = manifest;
     }
 
@@ -191,6 +195,4 @@ public abstract class Plugin {
     protected PatcherAPI patcher = new PatcherAPI();
     /** The {@link SettingsAPI} of your plugin. Use this to store persistent data */
     public SettingsAPI settings = new SettingsAPI(name);
-    /** The {@link Logger} of your plugin. Use this to log information */
-    public final Logger logger = new Logger(getName());
 }
