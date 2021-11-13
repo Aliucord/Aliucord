@@ -212,7 +212,7 @@ public class Plugins extends SettingsPage {
                 String url = getGithubUrl(p);
                 ChangelogUtils.show(ctx, p.getName() + " v" + manifest.version, manifest.changelogMedia, manifest.changelog, new ChangelogUtils.FooterAction(R.e.ic_account_github_white_24dp, url));
             }
-        }   
+        }
 
         public void onSettingsClick(int position) throws Throwable {
             Plugin p = data.get(position);
@@ -234,6 +234,8 @@ public class Plugins extends SettingsPage {
             String name = data.get(position).getName();
             PluginManager.togglePlugin(name);
             holder.card.settingsButton.setEnabled(state);
+            var p = Objects.requireNonNull(PluginManager.plugins.get(name));
+            if (p.requiresRestart()) PluginManager.promptRestart();
         }
 
         public void onUninstallClick(int position) {

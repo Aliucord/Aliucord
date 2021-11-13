@@ -7,11 +7,13 @@
 package com.aliucord;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 
 import com.aliucord.entities.Plugin;
 import com.aliucord.utils.*;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.io.*;
 import java.lang.reflect.Method;
@@ -122,7 +124,7 @@ public class PluginManager {
 
     /**
      * Disables a loaded plugin if it isn't already disables
-     * @param name Name of the plugin to disable
+     * @param name Name of the plugin to disabled
      */
     public static void disablePlugin(String name) {
         if (!isPluginEnabled(name)) return;
@@ -165,7 +167,7 @@ public class PluginManager {
 
     /**
      * Remounts the plugin (stop -> unload -> load -> start)
-     * @param name
+     * @param name Name of the plugin to remount
      */
     public static void remountPlugin(String name) {
         if (!plugins.containsKey(name)) throw new IllegalArgumentException("No such plugin: " + name);
@@ -201,5 +203,18 @@ public class PluginManager {
     @SuppressWarnings("unused")
     public static boolean isPluginEnabled(Plugin plugin) {
         return isPluginEnabled(MapUtils.getMapKey(plugins, plugin));
+    }
+
+    /**
+     * Prompts the user to restart Aliucord because of a plugin that requires a restart
+     */
+    public static void promptRestart() {
+        var view = Utils.appActivity.findViewById(android.R.id.content);
+        Snackbar.make(view, "A plugin requires to be restarted. Restart?", Snackbar.LENGTH_INDEFINITE)
+            .setAction("Restart", v -> {
+                Context ctx = v.getContext();
+                Intent intent = ctx.getPackageManager().getLaunchIntentForPackage(ctx.getPackageName());
+                Utils.appActivity.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
+            }).show();
     }
 }

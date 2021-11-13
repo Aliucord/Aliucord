@@ -11,11 +11,14 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 
+import com.aliucord.annotations.AliucordPlugin;
 import com.aliucord.api.CommandsAPI;
 import com.aliucord.api.PatcherAPI;
 import com.aliucord.api.SettingsAPI;
 import com.discord.app.AppBottomSheet;
 import com.discord.app.AppFragment;
+
+import java.util.Objects;
 
 /** Base Plugin class all plugins must extend */
 @SuppressWarnings("unused")
@@ -138,6 +141,17 @@ public abstract class Plugin {
         }
 
         this.manifest = manifest;
+    }
+
+    /**
+     * Returns whether the user will be prompted to restart after enabling/disabling.
+     * @throws NullPointerException If missing an {@link AliucordPlugin} annotation
+     * @return {@link AliucordPlugin#requiresRestart()}
+     */
+    public boolean requiresRestart() {
+        AliucordPlugin annotation = this.getClass().getAnnotation(AliucordPlugin.class);
+        Objects.requireNonNull(annotation);
+        return annotation.requiresRestart();
     }
 
     /**
