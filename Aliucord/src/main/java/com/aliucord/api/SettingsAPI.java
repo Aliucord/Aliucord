@@ -12,52 +12,61 @@ import java.lang.reflect.Type;
 
 @SuppressWarnings("unused")
 public class SettingsAPI {
-    /** Prefix for all settings keys: AC_{PLUGIN_NAME}_ */
-    public final String keyPrefix;
-    SettingsUtilsJSON settings;
-    String pluginName;
-    /** Creates a SettingsAPI for the specified plugin */
+    /**
+     * Prefix for all settings keys: AC_{PLUGIN_NAME}_
+     */
+    private final String keyPrefix;
+    private SettingsUtilsJSON settings;
+    private final String pluginName;
+
+    /**
+     * Creates a SettingsAPI for the specified plugin
+     */
     public SettingsAPI(String plugin) {
         keyPrefix = "AC_" + plugin + "_";
-        settings= new SettingsUtilsJSON(plugin);
-        pluginName=plugin;
+        settings = new SettingsUtilsJSON(plugin);
+        pluginName = plugin;
     }
 
     /**
      * Resets All Settings
+     *
      * @return true if successful, else false
      */
-    public boolean resetSettings(){
+    public boolean resetSettings() {
         var isSuccessful = settings.resetFile();
-        settings= new SettingsUtilsJSON(pluginName);
-       return isSuccessful;
+        settings = new SettingsUtilsJSON(pluginName);
+        return isSuccessful;
     }
-
 
     /**
      * Removes Item from settings
+     *
      * @param key Key of the value
      * @return True if removed, else false
      */
-    public boolean remove(String key){
+    public boolean remove(String key) {
         return settings.remove(key);
     }
 
     /**
      * Toggles Boolean and returns it
+     *
      * @param key Key of the value
      * @param defValue Default Value if setting doesn't exist
      * @return Toggled boolean
      */
-    public boolean toggleBool(String key, boolean defValue){
-        return settings.toggleBool(key,defValue);
+    public boolean toggleBool(String key, boolean defValue) {
+        return settings.toggleBool(key, defValue);
     }
+
     /**
      * Check if Key exists in settings
+     *
      * @param key Key of the value
      * @return True if found, else false
      */
-    public boolean exists(String key){
+    public boolean exists(String key) {
         return settings.exists(key);
     }
 

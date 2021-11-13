@@ -10,7 +10,6 @@ import java.util.*
 
 /** Utility class to store and retrieve preferences  */
 class SettingsUtilsJSON(private val plugin: String) {
-
     private val settingsPath = Constants.BASE_PATH + "/settings/"
     private val settingsFile = Constants.BASE_PATH + "/settings/" + plugin + ".json"
     private val keyPrefix = "AC_" + plugin + "_"
@@ -39,8 +38,7 @@ class SettingsUtilsJSON(private val plugin: String) {
                 writeData()
                 logger.info("'$plugin' Settings Are Migrated")
             } catch (e: Exception) {
-                logger.info("'$plugin' Settings couldn't migrated")
-                logger.error(e)
+                logger.error("'$plugin' Settings couldn't migrated", e)
             }
         }
     }
@@ -53,8 +51,7 @@ class SettingsUtilsJSON(private val plugin: String) {
             try {
                 file.writeText(settings.toString(4))
             } catch (e: Throwable) {
-                logger.info("Failed to save settings for $plugin")
-                logger.error(e)
+                logger.error("Failed to save settings", e)
             }
         }
     }
