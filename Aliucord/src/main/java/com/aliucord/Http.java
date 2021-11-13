@@ -235,7 +235,6 @@ public class Http {
          * Performs a GET request to a Discord route
          * @param builder QueryBuilder
          * @throws IOException If an I/O exception occurs
-         * @throws NoSuchFieldException,IllegalAccessException If unable to get authentication token
          */
         public static Request newDiscordRequest(QueryBuilder builder) throws IOException {
             return newDiscordRequest(builder.toString(), "GET");
