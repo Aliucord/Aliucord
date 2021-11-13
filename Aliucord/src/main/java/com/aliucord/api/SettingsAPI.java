@@ -9,6 +9,7 @@ package com.aliucord.api;
 import com.aliucord.SettingsUtilsJSON;
 
 import java.lang.reflect.Type;
+import java.util.List;
 
 @SuppressWarnings("unused")
 public class SettingsAPI {
@@ -47,6 +48,14 @@ public class SettingsAPI {
      */
     public boolean remove(String key) {
         return settings.remove(key);
+    }
+
+    /**
+     * Gets All Keys from settings
+     * @return List of all keys
+     */
+    public List<String> getAllKeys(){
+        return settings.getAllKeys();
     }
 
     /**

@@ -87,6 +87,17 @@ class SettingsUtilsJSON(private val plugin: String) {
     }
 
     /**
+     * Gets All Keys from settings
+     * @return List of all keys
+     */
+    fun getAllKeys(): List<String> {
+        val iter: Iterator<String> = settings.keys()
+        val copy: MutableList<String> = ArrayList()
+        while (iter.hasNext()) copy.add(iter.next())
+        return copy
+    }
+
+    /**
      * Check if Key exists in settings
      * @param key Key of the value
      * @return True if found, else false

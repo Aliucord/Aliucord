@@ -157,11 +157,19 @@ public class SettingsUtils {
         setString(key, GsonUtils.toJson(val));
     }
 
-    public static void remove(String key){
+    /**
+     * Removes Item from settings
+     * @param key Key of the value
+     */
+    public static void remove(String key) {
         prefs.edit().remove(key).apply();
     }
 
-    public static Map<String, ?> getAllSettings(String prefix){
+    /**
+     * Gets All Settings
+     * @return All settings
+     */
+    public static Map<String, ?> getAllSettings(String prefix) {
         return prefs.getAll()
                 .entrySet()
                 .stream()
