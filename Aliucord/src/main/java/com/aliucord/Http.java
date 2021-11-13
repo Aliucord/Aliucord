@@ -245,9 +245,8 @@ public class Http {
          * Performs a GET request to a Discord route
          * @param route A Discord route, such as `/users/@me`
          * @throws IOException If an I/O exception occurs
-         * @throws NoSuchFieldException,IllegalAccessException If unable to get authentication token
          */
-        public static Request newDiscordRequest(String route) throws IOException, NoSuchFieldException, IllegalAccessException {
+        public static Request newDiscordRequest(String route) throws IOException {
             return newDiscordRequest(route, "GET");
         }
 
@@ -255,14 +254,15 @@ public class Http {
          * Performs a request to a Discord route
          * @param route A Discord route, such as `/users/@me`
          * @throws IOException If an I/O exception occurs
-         * @throws NoSuchFieldException,IllegalAccessException If unable to get authentication token
          */
-        public static Request newDiscordRequest(String route, String method) throws IOException, NoSuchFieldException, IllegalAccessException {
+        public static Request newDiscordRequest(String route, String method) throws IOException {
             Request req = new Request(!route.startsWith("http") ? "https://discord.com/api/v9" + route : route, method);
-            req.setHeader("Authorization", (String) ReflectUtils.getField(StoreStream.getAuthentication(), "authToken"))
-                .setHeader("User-Agent", RestAPI.AppHeadersProvider.INSTANCE.getUserAgent())
+            req.setHeader("User-Agent", RestAPI.AppHeadersProvider.INSTANCE.getUserAgent())
                 .setHeader("X-Super-Properties", AnalyticSuperProperties.INSTANCE.getSuperPropertiesStringBase64())
                 .setHeader("Accept", "*/*");
+            try {
+                req.setHeader("Authorization", (String) ReflectUtils.getField(StoreStream.getAuthentication(), "authToken"));
+            } catch (ReflectiveOperationException ignored){}
             return req;
         }
     }
