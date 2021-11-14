@@ -60,7 +60,6 @@ public class ButtonsAPI {
 
     private static int generateListenerID(View.OnClickListener listener) {
         listeners.put(lastListenerID, listener);
-        logger.info(String.valueOf(lastListenerID));
         return lastListenerID++;
     }
 
