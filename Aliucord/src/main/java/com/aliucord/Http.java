@@ -112,12 +112,14 @@ public class Http {
         private static final String LINE_FEED = "\r\n";
         private static final String PREFIX = "--";
 
-        private final StringBuilder sb;
+        private final ByteArrayOutputStream outputStream;
+        private final PrintWriter writer;
         private final String boundary;
 
         public MultiBuilder(String boundary) {
             this.boundary = boundary;
-            sb = new StringBuilder();
+            outputStream = new ByteArrayOutputStream();
+            writer = new PrintWriter(outputStream, true);
         }
 
         /**
@@ -127,48 +129,59 @@ public class Http {
          * @return self
          */
         public MultiBuilder appendFile(String fieldName, File uploadFile) throws IOException {
-            sb.append(PREFIX).append(boundary).append(LINE_FEED);
-            sb.append(
+            writer.append(PREFIX).append(boundary).append(LINE_FEED);
+            writer.append(
                 "Content-Disposition: form-data; name=\"" + fieldName
                     + "\"; filename=\"" + uploadFile.getName() + "\"")
                 .append(LINE_FEED);
-            sb.append(
+            writer.append(
                 "Content-Type: "
                     + URLConnection.guessContentTypeFromName(uploadFile.getName()))
                 .append(LINE_FEED);
-            sb.append("Content-Transfer-Encoding: binary").append(LINE_FEED);
-            sb.append(LINE_FEED);
+            writer.append("Content-Transfer-Encoding: binary").append(LINE_FEED);
+            writer.append(LINE_FEED);
+            writer.flush();
 
             FileInputStream inputStream = new FileInputStream(uploadFile);
             byte[] buffer = new byte[4096];
             int bytesRead = -1;
             while ((bytesRead = inputStream.read(buffer)) != -1) {
-                sb.append(new String(buffer, 0, bytesRead)); // what the fuck am i doing
+                outputStream.write(buffer, 0, bytesRead); // what the fuck am i doing
             }
+            outputStream.flush();
+            inputStream.close();
+
+            writer.append(LINE_FEED);
+            writer.flush();
 
             return this;
         }
 
         public MultiBuilder appendField(String fieldName, String value) {
-            sb.append(PREFIX).append(boundary).append(LINE_FEED);
-            sb.append("Content-Disposition: form-data; name=\"" + fieldName + "\"")
+            writer.append(PREFIX).append(boundary).append(LINE_FEED);
+            writer.append("Content-Disposition: form-data; name=\"" + fieldName + "\"")
                 .append(LINE_FEED);
-            sb.append("Content-Type: text/plain; charset=UTF-8").append(
+            writer.append("Content-Type: text/plain; charset=UTF-8").append(
                 LINE_FEED);
-            sb.append(LINE_FEED);
-            sb.append(value).append(LINE_FEED);
+            writer.append(LINE_FEED);
+            writer.append(value).append(LINE_FEED);
+            writer.flush();
 
             return this;
         }
 
         /**
          * Build the finished Url
+         * @return
          */
         @NonNull
-        public String toString() {
-            sb.append(LINE_FEED);
-            sb.append(PREFIX).append(boundary).append(PREFIX).append(LINE_FEED);
-            return sb.toString();
+        public byte[] getBytes() {
+            writer.append(LINE_FEED);
+            writer.append(PREFIX).append(boundary).append(PREFIX).append(LINE_FEED);
+            writer.flush();
+            writer.close();
+
+            return outputStream.toByteArray();
         }
     }
 
@@ -254,7 +267,14 @@ public class Http {
          */
         public Response executeWithBody(String body) throws IOException {
             if (conn.getRequestMethod().equals("GET")) throw new IOException("Body may not be specified in GET requests");
+
             byte[] bytes = body.getBytes();
+            return executeWithBody(bytes);
+        }
+
+        public Response executeWithBody(byte[] bytes) throws IOException {
+            if (conn.getRequestMethod().equals("GET")) throw new IOException("Body may not be specified in GET requests");
+
             setHeader("Content-Length", Integer.toString(bytes.length));
             conn.setDoOutput(true);
             try (OutputStream out = conn.getOutputStream()) {
@@ -308,7 +328,7 @@ public class Http {
             for (Map.Entry<String, File> entry : files.entrySet())
                 mb.appendFile(entry.getKey(), entry.getValue());
 
-            return setHeader("Content-Type", "multipart/form-data; boundary=" + boundary).executeWithBody(mb.toString());
+            return setHeader("Content-Type", "multipart/form-data; boundary=" + boundary).executeWithBody(mb.getBytes());
         }
 
         /** Closes this request */
