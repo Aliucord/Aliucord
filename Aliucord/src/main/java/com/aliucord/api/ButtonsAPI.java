@@ -1,7 +1,5 @@
 package com.aliucord.api;
 
-import static com.aliucord.Main.logger;
-
 import android.view.View;
 
 import com.aliucord.utils.ReflectUtils;
@@ -32,7 +30,10 @@ public class ButtonsAPI {
             }
         }
         components.add(buttonComponent);
-        StoreStream.access$handleMessageUpdate(StoreStream.getPresences().getStream(), message.synthesizeApiMessage());
+        StoreStream.access$getDispatcher$p(StoreStream.getPresences().getStream()).schedule(() -> {
+            StoreStream.access$handleMessageUpdate(StoreStream.getPresences().getStream(), message.synthesizeApiMessage());
+            return null;
+        });
     }
 
     /**
