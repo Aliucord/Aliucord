@@ -1,7 +1,6 @@
 package com.aliucord.patcher
 
 import com.aliucord.api.PatcherAPI
-import com.aliucord.coreplugins.plugindownloader.logger
 import de.robv.android.xposed.XC_MethodHook
 
 private typealias HookCallback<T> = T.(XC_MethodHook.MethodHookParam) -> Unit
