@@ -68,7 +68,7 @@ public final class Main {
     private static boolean loadedPlugins;
 
     /** Aliucord's preInit hook. Plugins are loaded here */
-    public static void preInit(AppActivity activity) {
+    public static void preInit(AppActivity activity) throws NoSuchMethodException {
         if (preInitialized) return;
         preInitialized = true;
 
@@ -80,12 +80,8 @@ public final class Main {
         Patcher.addPatch(AppActivity.class, "onCreate", new Class<?>[] { Bundle.class }, new Hook(param ->
             Utils.appActivity = (AppActivity) param.thisObject));
 
-        try {
-            Patcher.addPatch(WidgetChatList.class.getDeclaredConstructor(), new Hook(param ->
-                Utils.widgetChatList = (WidgetChatList) param.thisObject));
-        } catch (Exception e) {
-            Patcher.logger.error(e);
-        }
+        Patcher.addPatch(WidgetChatList.class.getDeclaredConstructor(), new Hook(param ->
+            Utils.widgetChatList = (WidgetChatList) param.thisObject));
     }
 
     /** Aliucord's init hook. Plugins are started here */
