@@ -11,6 +11,10 @@ import androidx.annotation.Nullable;
 
 import com.aliucord.utils.*;
 
+import com.discord.stores.StoreStream;
+import com.discord.utilities.analytics.AnalyticSuperProperties;
+import com.discord.utilities.rest.RestAPI;
+
 import java.io.*;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
@@ -225,6 +229,40 @@ public class Http {
         @Override
         public void close() {
             conn.disconnect();
+        }
+
+        /**
+         * Performs a GET request to a Discord route
+         * @param builder QueryBuilder
+         * @throws IOException If an I/O exception occurs
+         */
+        public static Request newDiscordRequest(QueryBuilder builder) throws IOException {
+            return newDiscordRequest(builder.toString(), "GET");
+        }
+
+        /**
+         * Performs a GET request to a Discord route
+         * @param route A Discord route, such as `/users/@me`
+         * @throws IOException If an I/O exception occurs
+         */
+        public static Request newDiscordRequest(String route) throws IOException {
+            return newDiscordRequest(route, "GET");
+        }
+
+        /**
+         * Performs a request to a Discord route
+         * @param route A Discord route, such as `/users/@me`
+         * @throws IOException If an I/O exception occurs
+         */
+        public static Request newDiscordRequest(String route, String method) throws IOException {
+            Request req = new Request(!route.startsWith("http") ? "https://discord.com/api/v9" + route : route, method);
+            req.setHeader("User-Agent", RestAPI.AppHeadersProvider.INSTANCE.getUserAgent())
+                .setHeader("X-Super-Properties", AnalyticSuperProperties.INSTANCE.getSuperPropertiesStringBase64())
+                .setHeader("Accept", "*/*");
+            try {
+                req.setHeader("Authorization", (String) ReflectUtils.getField(StoreStream.getAuthentication(), "authToken"));
+            } catch (ReflectiveOperationException ignored){}
+            return req;
         }
     }
 
