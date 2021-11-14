@@ -192,7 +192,7 @@ public abstract class Plugin {
     /** The {@link CommandsAPI} of your plugin. You can register/unregister commands here */
     protected CommandsAPI commands = new CommandsAPI(name);
     /** The {@link PatcherAPI} of your plugin. You can add/remove patches here */
-    protected PatcherAPI patcher = new PatcherAPI();
+    protected PatcherAPI patcher = new PatcherAPI(name);
     /** The {@link SettingsAPI} of your plugin. Use this to store persistent data */
     public SettingsAPI settings = new SettingsAPI(name);
 }

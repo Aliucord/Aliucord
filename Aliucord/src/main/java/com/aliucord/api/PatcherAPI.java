@@ -7,6 +7,7 @@ package com.aliucord.api;
 
 import androidx.annotation.NonNull;
 
+import com.aliucord.Logger;
 import com.aliucord.patcher.*;
 
 import java.lang.reflect.Member;
@@ -19,7 +20,12 @@ import top.canyie.pine.callback.MethodHook;
 
 @SuppressWarnings({"unused", "deprecation"})
 public class PatcherAPI {
+    public final Logger logger;
     public List<Runnable> unpatches = new ArrayList<>();
+
+    public PatcherAPI(String pluginName) {
+        this.logger = new Logger(pluginName);
+    }
 
     private Runnable createUnpatch(Runnable _unpatch) {
         Runnable unpatch = new Runnable() {
