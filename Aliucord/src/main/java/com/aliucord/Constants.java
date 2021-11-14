@@ -54,7 +54,7 @@ public final class Constants {
     public static final String NAMESPACE_ANDROID = "http://schemas.android.com/apk/res/android";
     public static final String NAMESPACE_APP = "http://schemas.android.com/apk/res-auto";
 
-    public static String RELEASE_SUFFIX = "app_productionCanaryRelease";
+    public static String RELEASE_SUFFIX = "app_productionBetaRelease";
 
     public static final int DISCORD_VERSION;
 
