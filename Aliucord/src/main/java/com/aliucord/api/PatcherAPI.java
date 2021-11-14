@@ -23,8 +23,8 @@ public class PatcherAPI {
     public final Logger logger;
     public List<Runnable> unpatches = new ArrayList<>();
 
-    public PatcherAPI(String pluginName) {
-        this.logger = new Logger(pluginName);
+    public PatcherAPI(Logger logger) {
+        this.logger = logger;
     }
 
     private Runnable createUnpatch(Runnable _unpatch) {
