@@ -30,6 +30,7 @@ public class ButtonsAPI {
             }
         }
         components.add(buttonComponent);
+        // this calls handleMessageUpdate on StoreThread otherwise it sometimes throws error saying its not running on StoreThread
         StoreStream.access$getDispatcher$p(StoreStream.getPresences().getStream()).schedule(() -> {
             StoreStream.access$handleMessageUpdate(StoreStream.getPresences().getStream(), message.synthesizeApiMessage());
             return null;
@@ -59,7 +60,7 @@ public class ButtonsAPI {
         }
     }
 
-    private static int generateListenerID(View.OnClickListener listener) {
+    private static synchronized int generateListenerID(View.OnClickListener listener) {
         listeners.put(lastListenerID, listener);
         return lastListenerID++;
     }
