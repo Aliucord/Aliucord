@@ -90,7 +90,7 @@ public final class Constants {
             //      101207 -> 2
             //      101107 -> 1
             //      101007 -> 0
-            int release = (version / (int) Math.pow(10, 2)) % 10;
+            int release = (version / 100) % 10;
             suffix = new String[] { "app_productionStableRelease", "app_productionBetaRelease", "app_productionCanaryRelease" }[release];
         } catch (Throwable e) {
             Main.logger.error("Failed to determine discord release. Defaulting to beta", e);
