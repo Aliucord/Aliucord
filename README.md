@@ -112,4 +112,7 @@ See `.github/workflows/build.yml` for all build steps.
 
 ## Credits
 
-- [Pine](https://github.com/canyie/pine)
+- [Pine](https://github.com/canyie/pine) - Dynamic java method hook framework on ART
+- [apktool](https://ibotpeaches.github.io/Apktool/) - A tool for reverse engineering Android apk files
+- [jadx](https://github.com/skylot/jadx) - Dex to Java decompiler
+- [dex2jar](https://github.com/pxb1988/dex2jar) - Tools to work with android .dex and java .class files
