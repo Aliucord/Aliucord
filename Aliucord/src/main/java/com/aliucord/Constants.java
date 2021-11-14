@@ -54,19 +54,50 @@ public final class Constants {
     public static final String NAMESPACE_ANDROID = "http://schemas.android.com/apk/res/android";
     public static final String NAMESPACE_APP = "http://schemas.android.com/apk/res-auto";
 
-    public static String RELEASE_SUFFIX = "app_productionCanaryRelease";
+    /**
+     * The release suffix of the currently running Discord. Some methods have this as their suffix and it changes with release, so in those
+     * cases use {@code "someMethod$" + Constants.RELEASE_SUFFIX} with reflection so that it works on all releases.
+     * <hr><br>
+     * <h3>One of</h3>
+     * <ul>
+     *     <li>app_productionStableRelease</li>
+     *     <li>app_productionBetaRelease</li>
+     *     <li>app_productionCanaryRelease</li>
+     * </ul>
+     */
+    public static final String RELEASE_SUFFIX;
 
+    /** The version int of the currently running Discord, currently {@value BuildConfig#DISCORD_VERSION} */
     public static final int DISCORD_VERSION;
 
     static {
-        int version = 0;
+        int version;
+        String suffix;
+
         try {
             //noinspection ConstantConditions
             version = (int) ReflectUtils.getField(
                     ReflectUtils.getField(StoreStream.Companion.access$getCollector$p(StoreStream.Companion), "clientVersion"),
                     "clientVersion"
             );
-        } catch (Throwable e) { Main.logger.error(e); }
+
+        } catch (Throwable e) {
+            Main.logger.error("Failed to retrieve client version", e);
+            version = BuildConfig.DISCORD_VERSION;
+        }
+        try {
+            // Calculate the third digit of the number:
+            //      101207 -> 2
+            //      101107 -> 1
+            //      101007 -> 0
+            int release = (version / (int) Math.pow(10, 2)) % 10;
+            suffix = new String[] { "app_productionStableRelease", "app_productionBetaRelease", "app_productionCanaryRelease" }[release];
+        } catch (Throwable e) {
+            Main.logger.error("Failed to determine discord release. Defaulting to beta", e);
+            suffix = "app_productionBetaRelease";
+        }
+
         DISCORD_VERSION = version;
+        RELEASE_SUFFIX = suffix;
     }
 }
