@@ -7,17 +7,23 @@
 package com.aliucord.coreplugins
 
 import android.content.Context
+import android.view.View
 import android.widget.TextView
+import com.aliucord.Main.logger
+import com.aliucord.api.ButtonsAPI
 import com.aliucord.api.CommandsAPI
 import com.aliucord.entities.Plugin
 import com.aliucord.patcher.*
+import com.aliucord.utils.ReflectUtils
 import com.discord.api.message.MessageTypes
 import com.discord.databinding.WidgetChatInputAutocompleteItemBinding
+import com.discord.models.botuikit.ButtonMessageComponent
 import com.discord.models.commands.*
 import com.discord.models.message.Message
 import com.discord.models.user.CoreUser
 import com.discord.stores.*
 import com.discord.utilities.view.text.SimpleDraweeSpanTextView
+import com.discord.widgets.botuikit.views.`ButtonComponentView$configure$1`
 import com.discord.widgets.chat.input.`WidgetChatInput$configureSendListeners$2`
 import com.discord.widgets.chat.input.autocomplete.ApplicationCommandAutocompletable
 import com.discord.widgets.chat.input.autocomplete.adapter.AutocompleteItemViewHolder
@@ -108,33 +114,54 @@ internal class CommandHandler : Plugin() {
       }
     )
 
-    Patcher.addPatch(Message::class.java, "isLocalApplicationCommand", arrayOf(), PreHook {
-      with(it.thisObject as Message) {
-        val type = type ?: return@PreHook
-        if (isLoading && type != MessageTypes.LOCAL_APPLICATION_COMMAND && type != MessageTypes.LOCAL_APPLICATION_COMMAND_SEND_FAILED)
-          it.result = true
-      }
-    })
+      Patcher.addPatch(Message::class.java, "isLocalApplicationCommand", arrayOf(), PreHook {
+          with(it.thisObject as Message) {
+              val type = type ?: return@PreHook
+              if (isLoading && type != MessageTypes.LOCAL_APPLICATION_COMMAND && type != MessageTypes.LOCAL_APPLICATION_COMMAND_SEND_FAILED)
+                  it.result = true
+          }
+      })
 
-    // don't mark Aliucord command messages as
-    Patcher.addPatch(
-      WidgetChatListAdapterItemMessage::class.java.getDeclaredMethod("processMessageText", SimpleDraweeSpanTextView::class.java, MessageEntry::class.java),
-      Hook {
-        val message = (it.args[1] as MessageEntry).message ?: return@Hook
-        if (message.isLocal && CoreUser(message.author).id == -1L) with(it.args[0] as TextView) {
-          if (alpha != 1.0f) alpha = 1.0f
-        }
-      }
-    )
+      // don't mark Aliucord command messages as
+      Patcher.addPatch(
+          WidgetChatListAdapterItemMessage::class.java.getDeclaredMethod(
+              "processMessageText",
+              SimpleDraweeSpanTextView::class.java,
+              MessageEntry::class.java),
+          Hook {
+              val message = (it.args[1] as MessageEntry).message ?: return@Hook
+              if (message.isLocal && CoreUser(message.author).id == -1L) with(it.args[0] as TextView) {
+                  if (alpha != 1.0f) alpha = 1.0f
+              }
+          }
+      )
 
-    Patcher.addPatch(WidgetApplicationCommandBottomSheetViewModel::class.java, "requestInteractionData", arrayOf(), PreHook {
-      with(it.thisObject as WidgetApplicationCommandBottomSheetViewModel) {
-        if (applicationId != -1L) return@PreHook
-        val state = CommandsAPI.interactionsStore[interactionId]
-        if (state != null) WidgetApplicationCommandBottomSheetViewModel.`access$handleStoreState`(this, state)
-        it.result = null
-      }
-    })
+      Patcher.addPatch(WidgetApplicationCommandBottomSheetViewModel::class.java, "requestInteractionData", arrayOf(), PreHook {
+          with(it.thisObject as WidgetApplicationCommandBottomSheetViewModel) {
+              if (applicationId != -1L) return@PreHook
+              val state = CommandsAPI.interactionsStore[interactionId]
+              if (state != null) WidgetApplicationCommandBottomSheetViewModel.`access$handleStoreState`(this, state)
+              it.result = null
+          }
+      })
+
+      //patching onClick method on ButtonComponentView so we can use custom listeners
+      Patcher.addPatch(
+          `ButtonComponentView$configure$1`::class.java.getDeclaredMethod("onClick", View::class.java),
+          PreHook { cf ->
+              try {
+                  val component = ReflectUtils.getField(cf.thisObject, "\$component") as ButtonMessageComponent?
+                  val url = component!!.url
+                  if (url.startsWith("aliucord://")) {
+                      val idStr = url.split("aliucord://")[1]
+                      if (idStr.matches(Regex("\\d+"))) ButtonsAPI.callListenerWithID(idStr.toInt(), cf.args[0] as View?) else
+                          logger.error(Throwable("[ButtonsAPI] Invalid ID $idStr"))
+                      cf.result = null
+                  }
+              } catch (e: Throwable) {
+                  logger.error(e)
+              }
+          })
   }
 
   private fun addValues(map: LinkedHashMap<String, Any?>, values: List<ApplicationCommandValue>) {

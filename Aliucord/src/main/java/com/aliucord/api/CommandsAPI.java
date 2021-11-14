@@ -16,6 +16,7 @@ import com.aliucord.entities.CommandContext;
 import com.aliucord.entities.Plugin;
 import com.aliucord.utils.ReflectUtils;
 import com.aliucord.wrappers.ChannelWrapper;
+import com.discord.api.botuikit.ButtonComponent;
 import com.discord.api.commands.ApplicationCommandData;
 import com.discord.api.commands.ApplicationCommandType;
 import com.discord.api.message.MessageFlags;
@@ -63,6 +64,8 @@ public class CommandsAPI {
         public String username;
         /** The avatar url of the pseudo clyde associated with this CommandResult */
         public String avatarUrl;
+        /** The Button object that will be shown below messages */
+        public ButtonComponent buttonComponent;
 
         /**
          * calls {@link CommandResult#CommandResult(String, List, boolean)} with default arguments.
@@ -116,6 +119,15 @@ public class CommandsAPI {
             this.username = username;
             this.avatarUrl = avatarUrl;
             this.send = send;
+        }
+
+        public CommandResult(@Nullable String content, @Nullable List<MessageEmbed> embeds, boolean send, @Nullable String username, @Nullable String avatarUrl, @Nullable ButtonComponent buttonComponent) {
+            this.content = content;
+            this.embeds = embeds;
+            this.username = username;
+            this.avatarUrl = avatarUrl;
+            this.send = send;
+            this.buttonComponent = buttonComponent;
         }
     }
 
@@ -223,6 +235,7 @@ public class CommandsAPI {
                             ));
 
                             StoreMessages.access$handleLocalMessageCreate(storeMessages, commandMessage);
+                            if (res.buttonComponent != null) ButtonsAPI.addButton(commandMessage, res.buttonComponent);
                         } catch (Throwable e) { logger.error((String) null, e); }
                     } else {
                         if (hasEmbeds)
