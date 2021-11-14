@@ -97,18 +97,18 @@ See `.github/workflows/build.yml` for all build steps.
 
 ## ⏭️ Porting Aliucord to the latest Discord version
 
-1. Acquire the version of the Discord APK you'd like to port Aliucord to
+1. Download the apk of the version you want to port to (#official-discord-updates in Aliucord server)
 2. Decompile it using [Apktool](https://github.com/iBotPeaches/Apktool)
-    - e.g `apktool d discord-n.apk` (replace n with build number)
-3. Apply `manifest.patch` to the `AndroidManifest.xml` file
+    - `apktool d discord.apk` (Replace discord.apk with whatever the file name is)
+3. Apply `manifest.patch` to the `AndroidManifest.xml` file (Using git bash or any shell on Linux or Macos run in the apktool decompile folder: `patch < manifest.patch`)
 4. Rebuild the Discord APK using Apktool
-    - e.g `apktool b discord-n.apk` (replace n with build number)
+    - `apktool b discord` (Replace discord with the folder name)
 5. Copy `build/apk/AndroidManifest.xml` to `.assets/AndroidManifest.xml` and to `Aliucord/AndroidManifest.xml` on your Android device
-6. Build Aliucord using `./gradlew make` and copy it to `Aliucord/Aliucord.zip` on your Android device
-7. Open Aliucord > Settings > Updater > Top right settings > Use Aliucord.zip from storage
-8. Restart Aliucord
-9. Ensure you've got a `logcat` catcher ready to go
-10. Open Aliucord and fix any errors that show in `logcat`
+6. Repeat the same steps and this time add `android:debuggable=true` in the main category where there's also app name and icon, name this manifest AndroidManifest-debuggable.xml
+7. Change `discord_version` to the correct one in gradle.properties and resync gradle
+8. Fix any errors you encounter and deploy Aliucord to your device with `./gradlew Aliucord:deployWithAdb`
+9. Open Aliucord > Settings > Updater > Top right settings > Use Aliucord.zip from storage and restart Aliucord
+10. Enjoy debugging if all hell breaks loose
 
 ## Credits
 
