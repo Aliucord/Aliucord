@@ -123,9 +123,9 @@ public class Http {
         }
 
         /**
-         * Append query parameter. Will automatically be encoded for you
-         * @param fieldName The parameter key
-         * @param uploadFile The parameter value
+         * Append file. Will automatically be encoded for you
+         * @param fieldName The parameter field name
+         * @param uploadFile The parameter file
          * @return self
          */
         public MultiBuilder appendFile(String fieldName, File uploadFile) throws IOException {
@@ -157,12 +157,16 @@ public class Http {
             return this;
         }
 
+        /**
+         * Append field. Will automatically be encoded for you
+         * @param fieldName The parameter field name
+         * @param value The parameter value
+         * @return self
+         */
         public MultiBuilder appendField(String fieldName, String value) {
             writer.append(PREFIX).append(boundary).append(LINE_FEED);
             writer.append("Content-Disposition: form-data; name=\"" + fieldName + "\"")
                 .append(LINE_FEED);
-            writer.append("Content-Type: text/plain; charset=UTF-8").append(
-                LINE_FEED);
             writer.append(LINE_FEED);
             writer.append(value).append(LINE_FEED);
             writer.flush();
@@ -171,7 +175,7 @@ public class Http {
         }
 
         /**
-         * Build the finished Url
+         * Build the finished byte array
          * @return
          */
         @NonNull
@@ -272,6 +276,11 @@ public class Http {
             return executeWithBody(bytes);
         }
 
+        /**
+         * Execute the request with the specified raw bytes. May not be used in GET requests.
+         * @param bytes The request body in raw bytes
+         * @return Response
+         */
         public Response executeWithBody(byte[] bytes) throws IOException {
             if (conn.getRequestMethod().equals("GET")) throw new IOException("Body may not be specified in GET requests");
 
@@ -310,23 +319,26 @@ public class Http {
         }
 
         /**
-         * Execute the request with the specified object as
-         * <a href="https://url.spec.whatwg.org/#application/x-www-form-urlencoded">url encoded form data</a>.
-         * May not be used in GET requests.
+         * Execute the request with the specified object as multipart form-data. May not be used in GET requests.
          * @param params the form data
+         * @param files the file data
          * @return Response
          * @throws IOException if an I/O exception occurred
          */
-        public Response executeWithMultipartFile(Map<String, File> files, Map<String, Object> params) throws IOException {
-            String boundary = "--" + UUID.randomUUID().toString() + "--";
+        public Response executeWithMultipartFile(Map<String, Object> params, Map<String, File> files) throws IOException {
+            final String boundary = "--" + UUID.randomUUID().toString() + "--";
 
             MultiBuilder mb = new MultiBuilder(boundary);
 
-            for (Map.Entry<String, Object> entry : params.entrySet())
-                mb.appendField(entry.getKey(), entry.getValue() != null ? entry.getValue().toString() : "");
+            if (params != null) {
+                for (Map.Entry<String, Object> entry : params.entrySet())
+                    mb.appendField(entry.getKey(), Objects.toString(entry.getValue()));
+            }
 
-            for (Map.Entry<String, File> entry : files.entrySet())
-                mb.appendFile(entry.getKey(), entry.getValue());
+            if (files != null) {
+                for (Map.Entry<String, File> entry : files.entrySet())
+                    mb.appendFile(entry.getKey(), entry.getValue());
+            }
 
             return setHeader("Content-Type", "multipart/form-data; boundary=" + boundary).executeWithBody(mb.getBytes());
         }
