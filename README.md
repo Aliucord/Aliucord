@@ -34,7 +34,7 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
 
 ### Supported Discord version(s)
 
-- 101.3 / Alpha 101203 (You don't need the apk, the installer will download it for you)
+- 101.7 / Beta 101107 (You don't need the apk, the installer will download it for you)
 
 ## 🎨 Features
 
@@ -63,12 +63,12 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
 4. Wait for it to finish patching the Discord APK
 5. Click "Install" once prompted by Android and wait for Aliucord to finish installing.
    If the installer just stops or the apk fails to install just try again and it should work
-6. If Google Play warns you about this application being unverified, ignore it. This happens because Aliucord is built & signed locally on your device 
+6. If Google Play warns you about this application being unverified, ignore it. This happens because Aliucord is built & signed locally on your device
    so Play Protect doesn't recognise the signature¹
 7. Open Aliucord, grant access to files (it needs this for finding plugins), log in to your account, and voila! Aliucord is at your fingertips!
 
 > ¹ If you'd like, you can disable this warning by turning off Play Protect in Google Play's settings, play protect is useless.
-> 
+>
 > Play Protect can be turned off by tapping on your user icon in the top right of Google Play, tapping on "Play Protect," tapping on the cog icon in the top right, and finally toggling "Scan apps with Play Protect" to off. This may result in Google Play "nagging" you to re-enable it sometimes when sideloading apps.*
 
 
@@ -82,7 +82,7 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
 ⚠️ IF YOU CAME HERE FROM A YOUTUBE TUTORIAL:
 > - PluginDownloader now comes preinstalled with Aliucord so you don't need to install it
 > - If you were promised free nitro, you were clickbaited. The most that is possible is free emotes (sends emote image links instead)
- 
+
 ## 🐛 Troubleshooting
 
 - Try closing and then reopening Aliucord
