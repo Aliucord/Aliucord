@@ -108,6 +108,70 @@ public class Http {
         }
     }
 
+    public static class MultiBuilder {
+        private static final String LINE_FEED = "\r\n";
+        private static final String PREFIX = "--";
+
+        private final StringBuilder sb;
+        private final String boundary;
+
+        public MultiBuilder(String boundary) {
+            this.boundary = boundary;
+            sb = new StringBuilder();
+        }
+
+        /**
+         * Append query parameter. Will automatically be encoded for you
+         * @param fieldName The parameter key
+         * @param uploadFile The parameter value
+         * @return self
+         */
+        public MultiBuilder appendFile(String fieldName, File uploadFile) throws IOException {
+            sb.append(PREFIX).append(boundary).append(LINE_FEED);
+            sb.append(
+                "Content-Disposition: form-data; name=\"" + fieldName
+                    + "\"; filename=\"" + uploadFile.getName() + "\"")
+                .append(LINE_FEED);
+            sb.append(
+                "Content-Type: "
+                    + URLConnection.guessContentTypeFromName(uploadFile.getName()))
+                .append(LINE_FEED);
+            sb.append("Content-Transfer-Encoding: binary").append(LINE_FEED);
+            sb.append(LINE_FEED);
+
+            FileInputStream inputStream = new FileInputStream(uploadFile);
+            byte[] buffer = new byte[4096];
+            int bytesRead = -1;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                sb.append(new String(buffer, 0, bytesRead)); // what the fuck am i doing
+            }
+
+            return this;
+        }
+
+        public MultiBuilder appendField(String fieldName, String value) {
+            sb.append(PREFIX).append(boundary).append(LINE_FEED);
+            sb.append("Content-Disposition: form-data; name=\"" + fieldName + "\"")
+                .append(LINE_FEED);
+            sb.append("Content-Type: text/plain; charset=UTF-8").append(
+                LINE_FEED);
+            sb.append(LINE_FEED);
+            sb.append(value).append(LINE_FEED);
+
+            return this;
+        }
+
+        /**
+         * Build the finished Url
+         */
+        @NonNull
+        public String toString() {
+            sb.append(LINE_FEED);
+            sb.append(PREFIX).append(boundary).append(PREFIX).append(LINE_FEED);
+            return sb.toString();
+        }
+    }
+
     /** Request Builder */
     public static class Request implements Closeable {
         /** The connection of this Request */
@@ -223,6 +287,28 @@ public class Http {
                 qb.append(entry.getKey(), Objects.toString(entry.getValue()));
 
             return setHeader("Content-Type", "application/x-www-form-urlencoded").executeWithBody(qb.toString().substring(1));
+        }
+
+        /**
+         * Execute the request with the specified object as
+         * <a href="https://url.spec.whatwg.org/#application/x-www-form-urlencoded">url encoded form data</a>.
+         * May not be used in GET requests.
+         * @param params the form data
+         * @return Response
+         * @throws IOException if an I/O exception occurred
+         */
+        public Response executeWithMultipartFile(Map<String, File> files, Map<String, Object> params) throws IOException {
+            String boundary = "--" + UUID.randomUUID().toString() + "--";
+
+            MultiBuilder mb = new MultiBuilder(boundary);
+
+            for (Map.Entry<String, Object> entry : params.entrySet())
+                mb.appendField(entry.getKey(), entry.getValue() != null ? entry.getValue().toString() : "");
+
+            for (Map.Entry<String, File> entry : files.entrySet())
+                mb.appendFile(entry.getKey(), entry.getValue());
+
+            return setHeader("Content-Type", "multipart/form-data; boundary=" + boundary).executeWithBody(mb.toString());
         }
 
         /** Closes this request */
