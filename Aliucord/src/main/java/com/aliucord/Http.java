@@ -317,6 +317,25 @@ public class Http {
 
             return setHeader("Content-Type", "application/x-www-form-urlencoded").executeWithBody(qb.toString().substring(1));
         }
+        /**
+         * Execute the request with the specified object as multipart form-data. May not be used in GET requests.
+         * @param files the file data
+         * @return Response
+         * @throws IOException if an I/O exception occurred
+         */
+        public Response executeWithMultipartFile(@NotNull Map<String, File> files) throws IOException {
+            return executeWithMultipartFile(null, files);
+        }
+        
+        /**
+         * Execute the request with the specified object as multipart form-data. May not be used in GET requests.
+         * @param params the form data
+         * @return Response
+         * @throws IOException if an I/O exception occurred
+         */
+        public Response executeWithMultipartFile(@NotNull Map<String, Object> params) throws IOException {
+            return executeWithMultipartFile(params, null);
+        }
 
         /**
          * Execute the request with the specified object as multipart form-data. May not be used in GET requests.
@@ -325,7 +344,7 @@ public class Http {
          * @return Response
          * @throws IOException if an I/O exception occurred
          */
-        public Response executeWithMultipartFile(Map<String, Object> params, Map<String, File> files) throws IOException {
+        public Response executeWithMultipartFile(@Nullable Map<String, Object> params, @Nullable Map<String, File> files) throws IOException {
             final String boundary = "--" + UUID.randomUUID().toString() + "--";
 
             MultiBuilder mb = new MultiBuilder(boundary);
