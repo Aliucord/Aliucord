@@ -15,6 +15,8 @@ import com.discord.stores.StoreStream;
 import com.discord.utilities.analytics.AnalyticSuperProperties;
 import com.discord.utilities.rest.RestAPI;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.*;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
@@ -290,6 +292,7 @@ public class Http {
                 out.write(bytes, 0, bytes.length);
                 out.flush();
             }
+
             return execute();
         }
 
@@ -317,47 +320,28 @@ public class Http {
 
             return setHeader("Content-Type", "application/x-www-form-urlencoded").executeWithBody(qb.toString().substring(1));
         }
-        
-        /**
-         * Execute the request with the specified object as multipart form-data. May not be used in GET requests.
-         * @param files the file data
-         * @return Response
-         * @throws IOException if an I/O exception occurred
-         */
-        public Response executeWithMultipartForm(@NonNull Map<String, File> files) throws IOException {
-            return executeWithMultipartForm(null, files);
-        }
-        
-        /**
-         * Execute the request with the specified object as multipart form-data. May not be used in GET requests.
-         * @param params the form data
-         * @return Response
-         * @throws IOException if an I/O exception occurred
-         */
-        public Response executeWithMultipartForm(@NonNull Map<String, String> params) throws IOException {
-            return executeWithMultipartForm(params, null);
-        }
 
         /**
          * Execute the request with the specified object as multipart form-data. May not be used in GET requests.
-         * @param params the form data
-         * @param files the file data
+         * @param params Map of params. These will be converted in the following way:
+         * <ul>
+         *     <li>File: Append filename and content-type, then append the bytes of the file</li>
+         *     <li>InputStream: Read the stream fully and append the bytes</li>
+         *     <li>Other: Objects.toString() and append</li>
+         * </ul>
          * @return Response
          * @throws IOException if an I/O exception occurred
          */
-        public Response executeWithMultipartForm(@Nullable Map<String, String> params, @Nullable Map<String, File> files) throws IOException {
+        public Response executeWithMultipartForm(@NotNull Map<String, Object> params) throws IOException {
             final String boundary = "--" + UUID.randomUUID().toString() + "--";
 
             MultiBuilder mb = new MultiBuilder(boundary);
 
-            if (params != null) {
-                for (Map.Entry<String, String> entry : params.entrySet())
-                    mb.appendField(entry.getKey(), entry.getValue());
-            }
-
-            if (files != null) {
-                for (Map.Entry<String, File> entry : files.entrySet())
-                    mb.appendFile(entry.getKey(), entry.getValue());
+            for (Map.Entry<String, Object> entry : params.entrySet()) {
+                if (entry.getValue() instanceof File)
+                    mb.appendFile(entry.getKey(), (File) entry.getValue());
+                else
+                    mb.appendField(entry.getKey(), Objects.toString(entry.getValue()));
             }
 
             return setHeader("Content-Type", "multipart/form-data; boundary=" + boundary).executeWithBody(mb.getBytes());
