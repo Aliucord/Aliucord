@@ -334,7 +334,7 @@ public class Http {
          * @return Response
          * @throws IOException if an I/O exception occurred
          */
-        public Response executeWithMultipartForm(@NonNull Map<String, Object> params) throws IOException {
+        public Response executeWithMultipartForm(@NonNull Map<String, String> params) throws IOException {
             return executeWithMultipartForm(params, null);
         }
 
@@ -345,14 +345,14 @@ public class Http {
          * @return Response
          * @throws IOException if an I/O exception occurred
          */
-        public Response executeWithMultipartForm(@Nullable Map<String, Object> params, @Nullable Map<String, File> files) throws IOException {
+        public Response executeWithMultipartForm(@Nullable Map<String, String> params, @Nullable Map<String, File> files) throws IOException {
             final String boundary = "--" + UUID.randomUUID().toString() + "--";
 
             MultiBuilder mb = new MultiBuilder(boundary);
 
             if (params != null) {
-                for (Map.Entry<String, Object> entry : params.entrySet())
-                    mb.appendField(entry.getKey(), Objects.toString(entry.getValue()));
+                for (Map.Entry<String, String> entry : params.entrySet())
+                    mb.appendField(entry.getKey(), entry.getValue());
             }
 
             if (files != null) {
