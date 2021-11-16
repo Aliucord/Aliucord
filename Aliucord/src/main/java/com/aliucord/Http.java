@@ -252,10 +252,11 @@ public class Http {
         /**
          * Performs a request to a Discord route
          * @param route A Discord route, such as `/users/@me`
+	 * @param method <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods">HTTP method</a>
          * @throws IOException If an I/O exception occurs
          */
         public static Request newDiscordRequest(String route, String method) throws IOException {
-            Request req = new Request(!route.startsWith("http") ? "https://discord.com/api/v9" + route : route, method);
+            Request req = new Request(!route.startsWith("http") ? "https://discord.com/api/v9" + route : route, method.toUpperCase());
             req.setHeader("User-Agent", RestAPI.AppHeadersProvider.INSTANCE.getUserAgent())
                 .setHeader("X-Super-Properties", AnalyticSuperProperties.INSTANCE.getSuperPropertiesStringBase64())
                 .setHeader("Accept", "*/*");
