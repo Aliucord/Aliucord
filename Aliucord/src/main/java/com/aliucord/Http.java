@@ -326,7 +326,6 @@ public class Http {
          * @param params Map of params. These will be converted in the following way:
          * <ul>
          *     <li>File: Append filename and content-type, then append the bytes of the file</li>
-         *     <li>InputStream: Read the stream fully and append the bytes</li>
          *     <li>Other: Objects.toString() and append</li>
          * </ul>
          * @return Response
