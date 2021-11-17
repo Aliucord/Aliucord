@@ -188,7 +188,7 @@ class SettingsUtilsJSON(private val plugin: String) {
     fun setString(key: String, value: String?) = putObject(key, value)
 
     /**
-     * Get an [JSONObject] item
+     * Get a [JSONObject] item
      * @param key Key of the item
      * @param defValue Default value
      * @return Value if found, else the defValue
@@ -197,7 +197,7 @@ class SettingsUtilsJSON(private val plugin: String) {
         if (settings.has(key)) settings.getJSONObject(key) else defValue
 
     /**
-     * Set an [JSONObject] item
+     * Set a [JSONObject] item
      * @param key Key of the item
      * @param value Value
      */
