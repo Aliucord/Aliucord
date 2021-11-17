@@ -252,6 +252,7 @@ public class Http {
         /**
          * Performs a request to a Discord route
          * @param route A Discord route, such as `/users/@me`
+         * @param method <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods">HTTP method</a>
          * @throws IOException If an I/O exception occurs
          */
         public static Request newDiscordRequest(String route, String method) throws IOException {
