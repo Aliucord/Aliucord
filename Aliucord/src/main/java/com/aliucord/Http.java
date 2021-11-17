@@ -118,7 +118,7 @@ public class Http {
         private final PrintWriter writer;
         private final String boundary;
 
-        public MultiPartBuilder(String boundary) {
+        public MultiPartBuilder(@NonNull String boundary) {
             this.boundary = boundary;
             outputStream = new ByteArrayOutputStream();
             writer = new PrintWriter(outputStream, true);
@@ -130,6 +130,7 @@ public class Http {
          * @param uploadFile The parameter file
          * @return self
          */
+        @NonNull
         public MultiPartBuilder appendFile(@NonNull String fieldName, @NonNull File uploadFile) throws IOException {
             writer.append(PREFIX).append(boundary).append(LINE_FEED);
             writer.append(
@@ -144,13 +145,8 @@ public class Http {
             writer.append(LINE_FEED);
             writer.flush();
 
-            try (FileInputStream inputStream = new FileInputStream(uploadFile)) {
-                byte[] buffer = new byte[4096];
-                int bytesRead = -1;
-                while ((bytesRead = inputStream.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, bytesRead);
-                }
-                outputStream.flush();
+            try (FileInputStream inputStream = new 
+                IOUtils.pipe(inputStream, outputStream);
             }
 
             writer.append(LINE_FEED);
@@ -166,6 +162,7 @@ public class Http {
          * @param stream The parameter stream
          * @return self
          */
+        @NonNull
         public MultiPartBuilder appendStream(@NonNull String fieldName, @NonNull InputStream stream) throws IOException {
             writer.append(PREFIX).append(boundary).append(LINE_FEED);
             writer.append("Content-Disposition: form-data; name=\"" + fieldName + "\"")
@@ -173,13 +170,8 @@ public class Http {
             writer.append("Content-Transfer-Encoding: binary").append(LINE_FEED);
             writer.append(LINE_FEED);
             writer.flush();
-
-            byte[] buffer = new byte[4096];
-            int bytesRead = -1;
-            while ((bytesRead = stream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-            outputStream.flush();
+            
+            IOUtils.pipe(inputStream, outputStream);
 
             writer.append(LINE_FEED);
             writer.flush();
@@ -193,6 +185,7 @@ public class Http {
          * @param value The parameter value
          * @return self
          */
+        @NonNull
         public MultiPartBuilder appendField(@NonNull String fieldName, @NonNull String value) {
             writer.append(PREFIX).append(boundary).append(LINE_FEED);
             writer.append("Content-Disposition: form-data; name=\"" + fieldName + "\"")
