@@ -143,7 +143,7 @@ public class Http {
             writer.append(LINE_FEED);
             writer.flush();
 
-            try (FileInputStream inputStream = new FileInputStream(uploadFile) {
+            try (FileInputStream inputStream = new FileInputStream(uploadFile)) {
                 IOUtils.pipe(inputStream, outputStream);
             }
 
