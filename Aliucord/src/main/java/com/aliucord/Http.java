@@ -161,7 +161,7 @@ public class Http {
          * @return self
          */
         @NonNull
-        public MultiPartBuilder appendStream(@NonNull String fieldName, @NonNull InputStream stream) throws IOException {
+        public MultiPartBuilder appendStream(@NonNull String fieldName, @NonNull InputStream is) throws IOException {
             writer.append(PREFIX).append(boundary).append(LINE_FEED);
             writer.append("Content-Disposition: form-data; name=\"" + fieldName + "\"")
                 .append(LINE_FEED);
@@ -169,7 +169,7 @@ public class Http {
             writer.append(LINE_FEED);
             writer.flush();
             
-            IOUtils.pipe(inputStream, outputStream);
+            IOUtils.pipe(is, outputStream);
 
             writer.append(LINE_FEED);
             writer.flush();
