@@ -256,7 +256,7 @@ public class Http {
          * @throws IOException If an I/O exception occurs
          */
         public static Request newDiscordRequest(String route, String method) throws IOException {
-            Request req = new Request(!route.startsWith("http") ? "https://discord.com/api/v9" + route : route, method.toUpperCase());
+            Request req = new Request(!route.startsWith("http") ? "https://discord.com/api/v9" + route : route, method);
             req.setHeader("User-Agent", RestAPI.AppHeadersProvider.INSTANCE.getUserAgent())
                 .setHeader("X-Super-Properties", AnalyticSuperProperties.INSTANCE.getSuperPropertiesStringBase64())
                 .setHeader("Accept", "*/*");
