@@ -117,10 +117,7 @@ class SettingsUtilsJSON(private val plugin: String) {
      * @param key Key of the item
      * @param value Value
      */
-    fun setBool(key: String, value: Boolean) {
-        settings.put(key, value)
-        writeData()
-    }
+    fun setBool(key: String, value: Boolean) = putObject(key, value)
 
     /**
      * Get an int from the preferences
@@ -128,17 +125,20 @@ class SettingsUtilsJSON(private val plugin: String) {
      * @param defValue Default value
      * @return Value if found, else the defValue
      */
-    fun getInt(key: String, defValue: Int) = if (settings.has(key)) settings.getInt(key) else defValue
+    fun getInt(key: String, defValue: Int) =
+        if (settings.has(key)) settings.getInt(key) else defValue
+
+    private fun putObject(key: String, value: Any?) {
+        settings.put(key, value)
+        writeData()
+    }
 
     /**
      * Set an int item
      * @param key Key of the item
      * @param value Value
      */
-    fun setInt(key: String, value: Int) {
-        settings.put(key, value)
-        writeData()
-    }
+    fun setInt(key: String, value: Int) = putObject(key, value)
 
     /**
      * Get a float from the preferences
@@ -154,10 +154,7 @@ class SettingsUtilsJSON(private val plugin: String) {
      * @param key Key of the item
      * @param value Value
      */
-    fun setFloat(key: String, value: Float) {
-        settings.put(key, value)
-        writeData()
-    }
+    fun setFloat(key: String, value: Float) = putObject(key, value)
 
     /**
      * Get a long from the preferences
@@ -172,10 +169,7 @@ class SettingsUtilsJSON(private val plugin: String) {
      * @param key Key of the item
      * @param value Value
      */
-    fun setLong(key: String, value: Long) {
-        settings.put(key, value)
-        writeData()
-    }
+    fun setLong(key: String, value: Long) = putObject(key, value)
 
     /**
      * Get a [String] from the preferences
@@ -183,17 +177,31 @@ class SettingsUtilsJSON(private val plugin: String) {
      * @param defValue Default value
      * @return Value if found, else the defValue
      */
-    fun getString(key: String, defValue: String?) = if (settings.has(key)) settings.getString(key) else defValue
+    fun getString(key: String, defValue: String?) =
+        if (settings.has(key)) settings.getString(key) else defValue
 
     /**
      * Set a [String] item
      * @param key Key of the item
      * @param value Value
      */
-    fun setString(key: String, value: String?) {
-        settings.put(key, value)
-        writeData()
-    }
+    fun setString(key: String, value: String?) = putObject(key, value)
+
+    /**
+     * Get a [JSONObject] item
+     * @param key Key of the item
+     * @param defValue Default value
+     * @return Value if found, else the defValue
+     */
+    fun getJSONObject(key: String, defValue: JSONObject?) =
+        if (settings.has(key)) settings.getJSONObject(key) else defValue
+
+    /**
+     * Set a [JSONObject] item
+     * @param key Key of the item
+     * @param value Value
+     */
+    fun setJSONObject(key: String, value: JSONObject) = putObject(key, value)
 
     /**
      * Get an [Object] from the preferences
@@ -216,8 +224,8 @@ class SettingsUtilsJSON(private val plugin: String) {
         if (cached != null) try {
             return cached as T
         } catch (ignored: Throwable) {}
-        val json = getString(key, null) ?: return defValue
-        val t: T = GsonUtils.fromJson(json, type)
+        val json = getJSONObject(key, null) ?: return defValue
+        val t: T = GsonUtils.fromJson(json.toString(), type)
         return t ?: defValue
     }
 
@@ -228,6 +236,6 @@ class SettingsUtilsJSON(private val plugin: String) {
      */
     fun setObject(key: String, value: Any) {
         cache[key] = value
-        setString(key, GsonUtils.toJson(value))
+        setJSONObject(key, JSONObject(GsonUtils.toJson(value)))
     }
 }
