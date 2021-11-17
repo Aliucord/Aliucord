@@ -10,6 +10,7 @@ import android.content.res.Resources;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.aliucord.annotations.AliucordPlugin;
 import com.aliucord.api.CommandsAPI;
@@ -145,13 +146,19 @@ public abstract class Plugin {
 
     /**
      * Returns whether the user will be prompted to restart after enabling/disabling.
-     * @throws NullPointerException If missing an {@link AliucordPlugin} annotation
      * @return {@link AliucordPlugin#requiresRestart()}
      */
     public boolean requiresRestart() {
-        AliucordPlugin annotation = this.getClass().getAnnotation(AliucordPlugin.class);
-        Objects.requireNonNull(annotation);
-        return annotation.requiresRestart();
+        var annotation = getAnnotation();
+        return annotation != null && annotation.requiresRestart();
+    }
+
+    /**
+     * Returns the @AliucordPlugin annotation if exists
+     */
+    @Nullable
+    public AliucordPlugin getAnnotation() {
+        return this.getClass().getAnnotation(AliucordPlugin.class);
     }
 
     /**
