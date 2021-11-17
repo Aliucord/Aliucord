@@ -108,6 +108,113 @@ public class Http {
         }
     }
 
+    public static class MultiPartBuilder implements Closeable {
+        private static final String LINE_FEED = "\r\n";
+        private static final String PREFIX = "--";
+
+        private final ByteArrayOutputStream outputStream;
+        private final PrintWriter writer;
+        private final String boundary;
+
+        public MultiPartBuilder(@NonNull String boundary) {
+            this.boundary = boundary;
+            outputStream = new ByteArrayOutputStream();
+            writer = new PrintWriter(outputStream, true);
+        }
+
+        /**
+         * Append file. Will automatically be encoded for you
+         * @param fieldName The parameter field name
+         * @param uploadFile The parameter file
+         * @return self
+         */
+        @NonNull
+        public MultiPartBuilder appendFile(@NonNull String fieldName, @NonNull File uploadFile) throws IOException {
+            writer.append(PREFIX).append(boundary).append(LINE_FEED);
+            writer.append(
+                "Content-Disposition: form-data; name=\"" + fieldName
+                    + "\"; filename=\"" + uploadFile.getName() + "\"")
+                .append(LINE_FEED);
+            writer.append(
+                "Content-Type: "
+                    + URLConnection.guessContentTypeFromName(uploadFile.getName()))
+                .append(LINE_FEED);
+            writer.append("Content-Transfer-Encoding: binary").append(LINE_FEED);
+            writer.append(LINE_FEED);
+            writer.flush();
+
+            try (FileInputStream inputStream = new FileInputStream(uploadFile)) {
+                IOUtils.pipe(inputStream, outputStream);
+            }
+
+            writer.append(LINE_FEED);
+            writer.flush();
+
+            return this;
+        }
+
+
+        /**
+         * Append InputStream. Will automatically be encoded for you
+         * @param fieldName The parameter field name
+         * @param stream The parameter stream
+         * @return self
+         */
+        @NonNull
+        public MultiPartBuilder appendStream(@NonNull String fieldName, @NonNull InputStream is) throws IOException {
+            writer.append(PREFIX).append(boundary).append(LINE_FEED);
+            writer.append("Content-Disposition: form-data; name=\"" + fieldName + "\"")
+                .append(LINE_FEED);
+            writer.append("Content-Transfer-Encoding: binary").append(LINE_FEED);
+            writer.append(LINE_FEED);
+            writer.flush();
+            
+            IOUtils.pipe(is, outputStream);
+
+            writer.append(LINE_FEED);
+            writer.flush();
+
+            return this;
+        }
+
+        /**
+         * Append field. Will automatically be encoded for you
+         * @param fieldName The parameter field name
+         * @param value The parameter value
+         * @return self
+         */
+        @NonNull
+        public MultiPartBuilder appendField(@NonNull String fieldName, @NonNull String value) {
+            writer.append(PREFIX).append(boundary).append(LINE_FEED);
+            writer.append("Content-Disposition: form-data; name=\"" + fieldName + "\"")
+                .append(LINE_FEED);
+            writer.append(LINE_FEED);
+            writer.append(value).append(LINE_FEED);
+            writer.flush();
+
+            return this;
+        }
+
+        /**
+         * Build the finished byte array
+         * @return
+         */
+        @NonNull
+        public byte[] getBytes() {
+            writer.append(LINE_FEED);
+            writer.append(PREFIX).append(boundary).append(PREFIX).append(LINE_FEED);
+            writer.flush();
+
+            return outputStream.toByteArray();
+        }
+
+        @Override
+        public void close() throws IOException {
+            writer.close();
+            outputStream.close();
+        }
+    }
+
     /** Request Builder */
     public static class Request implements Closeable {
         /** The connection of this Request */
@@ -188,15 +295,30 @@ public class Http {
          * @param body The request body
          * @return Response
          */
-        public Response executeWithBody(String body) throws IOException {
+        @NonNull
+        public Response executeWithBody(@NonNull String body) throws IOException {
             if (conn.getRequestMethod().equals("GET")) throw new IOException("Body may not be specified in GET requests");
+
             byte[] bytes = body.getBytes();
+            return executeWithBody(bytes);
+        }
+
+        /**
+         * Execute the request with the specified raw bytes. May not be used in GET requests.
+         * @param bytes The request body in raw bytes
+         * @return Response
+         */
+        @NonNull
+        public Response executeWithBody(byte[] bytes) throws IOException {
+            if (conn.getRequestMethod().equals("GET")) throw new IOException("Body may not be specified in GET requests");
+
             setHeader("Content-Length", Integer.toString(bytes.length));
             conn.setDoOutput(true);
             try (OutputStream out = conn.getOutputStream()) {
                 out.write(bytes, 0, bytes.length);
                 out.flush();
             }
+
             return execute();
         }
 
@@ -223,6 +345,36 @@ public class Http {
                 qb.append(entry.getKey(), Objects.toString(entry.getValue()));
 
             return setHeader("Content-Type", "application/x-www-form-urlencoded").executeWithBody(qb.toString().substring(1));
+        }
+
+        /**
+         * Execute the request with the specified object as multipart form-data. May not be used in GET requests.
+         * @param params Map of params. These will be converted in the following way:
+         * <ul>
+         *     <li>File: Append filename and content-type, then append the bytes of the file</li>
+         *     <li>InputStream: Read the stream fully and append the bytes</li>
+         *     <li>Other: Objects.toString() and append</li>
+         * </ul>
+         * @return Response
+         * @throws IOException if an I/O exception occurred
+         */
+        @NonNull
+        public Response executeWithMultipartForm(@NonNull Map<String, Object> params) throws IOException {
+            final String boundary = "--" + UUID.randomUUID().toString() + "--";
+
+            try (MultiPartBuilder mb = new MultiPartBuilder(boundary)) {
+
+                for (Map.Entry<String, Object> entry : params.entrySet()) {
+                    if (entry.getValue() instanceof File)
+                        mb.appendFile(entry.getKey(), (File) entry.getValue());
+                    else if (entry.getValue() instanceof InputStream)
+                        mb.appendStream(entry.getKey(), (InputStream) entry.getValue());
+                    else
+                        mb.appendField(entry.getKey(), Objects.toString(entry.getValue()));
+                }
+
+                return setHeader("Content-Type", "multipart/form-data; boundary=" + boundary).executeWithBody(mb.getBytes());
+            }
         }
 
         /** Closes this request */
