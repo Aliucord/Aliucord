@@ -15,8 +15,6 @@ import com.discord.stores.StoreStream;
 import com.discord.utilities.analytics.AnalyticSuperProperties;
 import com.discord.utilities.rest.RestAPI;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.io.*;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
