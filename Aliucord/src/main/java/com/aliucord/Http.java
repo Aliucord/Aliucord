@@ -110,7 +110,7 @@ public class Http {
         }
     }
 
-    public static class MultiBuilder {
+    public static class MultiPartBuilder implements Closeable {
         private static final String LINE_FEED = "\r\n";
         private static final String PREFIX = "--";
 
@@ -118,7 +118,7 @@ public class Http {
         private final PrintWriter writer;
         private final String boundary;
 
-        public MultiBuilder(String boundary) {
+        public MultiPartBuilder(String boundary) {
             this.boundary = boundary;
             outputStream = new ByteArrayOutputStream();
             writer = new PrintWriter(outputStream, true);
@@ -130,7 +130,7 @@ public class Http {
          * @param uploadFile The parameter file
          * @return self
          */
-        public MultiBuilder appendFile(String fieldName, File uploadFile) throws IOException {
+        public MultiPartBuilder appendFile(@NonNull String fieldName, @NonNull File uploadFile) throws IOException {
             writer.append(PREFIX).append(boundary).append(LINE_FEED);
             writer.append(
                 "Content-Disposition: form-data; name=\"" + fieldName
@@ -144,14 +144,42 @@ public class Http {
             writer.append(LINE_FEED);
             writer.flush();
 
-            FileInputStream inputStream = new FileInputStream(uploadFile);
+            try (FileInputStream inputStream = new FileInputStream(uploadFile)) {
+                byte[] buffer = new byte[4096];
+                int bytesRead = -1;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+                outputStream.flush();
+            }
+
+            writer.append(LINE_FEED);
+            writer.flush();
+
+            return this;
+        }
+
+
+        /**
+         * Append InputStream. Will automatically be encoded for you
+         * @param fieldName The parameter field name
+         * @param stream The parameter stream
+         * @return self
+         */
+        public MultiPartBuilder appendStream(@NonNull String fieldName, @NonNull InputStream stream) throws IOException {
+            writer.append(PREFIX).append(boundary).append(LINE_FEED);
+            writer.append("Content-Disposition: form-data; name=\"" + fieldName + "\"")
+                .append(LINE_FEED);
+            writer.append("Content-Transfer-Encoding: binary").append(LINE_FEED);
+            writer.append(LINE_FEED);
+            writer.flush();
+
             byte[] buffer = new byte[4096];
             int bytesRead = -1;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead); // what the fuck am i doing
+            while ((bytesRead = stream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
             }
             outputStream.flush();
-            inputStream.close();
 
             writer.append(LINE_FEED);
             writer.flush();
@@ -165,7 +193,7 @@ public class Http {
          * @param value The parameter value
          * @return self
          */
-        public MultiBuilder appendField(String fieldName, String value) {
+        public MultiPartBuilder appendField(@NonNull String fieldName, @NonNull String value) {
             writer.append(PREFIX).append(boundary).append(LINE_FEED);
             writer.append("Content-Disposition: form-data; name=\"" + fieldName + "\"")
                 .append(LINE_FEED);
@@ -185,9 +213,14 @@ public class Http {
             writer.append(LINE_FEED);
             writer.append(PREFIX).append(boundary).append(PREFIX).append(LINE_FEED);
             writer.flush();
-            writer.close();
 
             return outputStream.toByteArray();
+        }
+
+        @Override
+        public void close() throws IOException {
+            writer.close();
+            outputStream.close();
         }
     }
 
@@ -271,7 +304,8 @@ public class Http {
          * @param body The request body
          * @return Response
          */
-        public Response executeWithBody(String body) throws IOException {
+        @NonNull
+        public Response executeWithBody(@NonNull String body) throws IOException {
             if (conn.getRequestMethod().equals("GET")) throw new IOException("Body may not be specified in GET requests");
 
             byte[] bytes = body.getBytes();
@@ -283,6 +317,7 @@ public class Http {
          * @param bytes The request body in raw bytes
          * @return Response
          */
+        @NonNull
         public Response executeWithBody(byte[] bytes) throws IOException {
             if (conn.getRequestMethod().equals("GET")) throw new IOException("Body may not be specified in GET requests");
 
@@ -332,19 +367,23 @@ public class Http {
          * @return Response
          * @throws IOException if an I/O exception occurred
          */
-        public Response executeWithMultipartForm(@NotNull Map<String, Object> params) throws IOException {
+        @NonNull
+        public Response executeWithMultipartForm(@NonNull Map<String, Object> params) throws IOException {
             final String boundary = "--" + UUID.randomUUID().toString() + "--";
 
-            MultiBuilder mb = new MultiBuilder(boundary);
+            try (MultiPartBuilder mb = new MultiPartBuilder(boundary)) {
 
-            for (Map.Entry<String, Object> entry : params.entrySet()) {
-                if (entry.getValue() instanceof File)
-                    mb.appendFile(entry.getKey(), (File) entry.getValue());
-                else
-                    mb.appendField(entry.getKey(), Objects.toString(entry.getValue()));
+                for (Map.Entry<String, Object> entry : params.entrySet()) {
+                    if (entry.getValue() instanceof File)
+                        mb.appendFile(entry.getKey(), (File) entry.getValue());
+                    else if (entry.getValue() instanceof InputStream)
+                        mb.appendStream(entry.getKey(), (InputStream) entry.getValue());
+                    else
+                        mb.appendField(entry.getKey(), Objects.toString(entry.getValue()));
+                }
+
+                return setHeader("Content-Type", "multipart/form-data; boundary=" + boundary).executeWithBody(mb.getBytes());
             }
-
-            return setHeader("Content-Type", "multipart/form-data; boundary=" + boundary).executeWithBody(mb.getBytes());
         }
 
         /** Closes this request */
