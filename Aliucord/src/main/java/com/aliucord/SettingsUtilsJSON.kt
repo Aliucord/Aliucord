@@ -32,7 +32,7 @@ class SettingsUtilsJSON(private val plugin: String) {
                 getPreferenceSettings()?.forEach {
                     val keyName = it.key.replace(keyPrefix, "").trim()
                     if (keyName == "migratedToJson") return@forEach
-                    it.value?.let { it1 -> settings.put(keyName, it1) }
+                    it.value?.let { value -> { settings.put(keyName, value) } }
                     SettingsUtils.remove(it.key)
                 }
                 SettingsUtils.setBool(keyPrefix + "migratedToJson", true)
@@ -225,7 +225,7 @@ class SettingsUtilsJSON(private val plugin: String) {
         if (cached != null) try {
             return cached as T
         } catch (ignored: Throwable) {}
-        val t: T = GsonUtils.fromJson(settings.getString(key), type)
+        val t: T? = if (settings.has(key)) GsonUtils.fromJson(settings.getString(key), type) else null
         return t ?: defValue
     }
 
