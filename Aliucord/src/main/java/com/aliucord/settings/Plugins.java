@@ -231,10 +231,9 @@ public class Plugins extends SettingsPage {
         }
 
         public void onToggleClick(ViewHolder holder, boolean state, int position) {
-            String name = data.get(position).getName();
-            PluginManager.togglePlugin(name);
+            Plugin p = data.get(position);
+            PluginManager.togglePlugin(p.getName());
             holder.card.settingsButton.setEnabled(state);
-            var p = Objects.requireNonNull(PluginManager.plugins.get(name));
             if (p.requiresRestart()) Utils.promptRestart();
         }
 
