@@ -32,6 +32,10 @@ internal class PluginFile(val plugin: String): File("${Constants.PLUGINS_PATH}/$
                     PluginManager.loadPlugin(Utils.appContext, this)
                     PluginManager.startPlugin(plugin)
                     Utils.showToast("Plugin $plugin successfully ${if (isReinstall) "re" else ""}installed!")
+
+                    if (PluginManager.plugins[plugin]?.requiresRestart() == true)
+                        PluginManager.promptRestart()
+
                     callback?.let { Utils.mainThread.post(it) }
                 }
             } catch (ex: IOException) {
@@ -46,8 +50,13 @@ internal class PluginFile(val plugin: String): File("${Constants.PLUGINS_PATH}/$
         val success = this.delete()
         Utils.showToast("${if (success) "Successfully uninstalled" else "Failed to uninstall"} $plugin")
         if (success) {
+            val p = PluginManager.plugins[plugin]
             PluginManager.stopPlugin(plugin)
             PluginManager.unloadPlugin(plugin)
+
+            if (p?.requiresRestart() == true)
+                PluginManager.promptRestart()
+
             callback?.let { Utils.mainThread.post(it) }
         }
     }
