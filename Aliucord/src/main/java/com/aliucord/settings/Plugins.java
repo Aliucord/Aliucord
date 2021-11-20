@@ -212,7 +212,7 @@ public class Plugins extends SettingsPage {
                 String url = getGithubUrl(p);
                 ChangelogUtils.show(ctx, p.getName() + " v" + manifest.version, manifest.changelogMedia, manifest.changelog, new ChangelogUtils.FooterAction(R.e.ic_account_github_white_24dp, url));
             }
-        }   
+        }
 
         public void onSettingsClick(int position) throws Throwable {
             Plugin p = data.get(position);
@@ -231,9 +231,10 @@ public class Plugins extends SettingsPage {
         }
 
         public void onToggleClick(ViewHolder holder, boolean state, int position) {
-            String name = data.get(position).getName();
-            PluginManager.togglePlugin(name);
+            Plugin p = data.get(position);
+            PluginManager.togglePlugin(p.getName());
             holder.card.settingsButton.setEnabled(state);
+            if (p.requiresRestart()) Utils.promptRestart();
         }
 
         public void onUninstallClick(int position) {
@@ -257,6 +258,8 @@ public class Plugins extends SettingsPage {
                 data.remove(position);
                 if (originalData != data) originalData.remove(p);
                 notifyItemRemoved(position);
+
+                if (p.requiresRestart()) Utils.promptRestart();
             });
 
             dialog.show(fragment.getParentFragmentManager(), "Confirm Plugin Uninstall");
