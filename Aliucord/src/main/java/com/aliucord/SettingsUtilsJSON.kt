@@ -32,7 +32,7 @@ class SettingsUtilsJSON(private val plugin: String) {
                 getPreferenceSettings()?.forEach {
                     val keyName = it.key.replace(keyPrefix, "").trim()
                     if (keyName == "migratedToJson") return@forEach
-                    it.value?.let { value -> { settings.put(keyName, value) } }
+                    settings.put(keyName, it.value)
                     SettingsUtils.remove(it.key)
                 }
                 SettingsUtils.setBool(keyPrefix + "migratedToJson", true)
