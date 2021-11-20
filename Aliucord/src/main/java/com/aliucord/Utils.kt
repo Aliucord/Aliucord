@@ -460,9 +460,10 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
      * Prompts the user to restart Aliucord
      */
     @JvmStatic
-    fun promptRestart() {
+    @JvmOverloads
+    fun promptRestart(msg: String = "Restart required. Restart now?") {
         val view = appActivity.findViewById<View>(android.R.id.content)
-        Snackbar.make(view, "Restart required. Restart now?", Snackbar.LENGTH_INDEFINITE)
+        Snackbar.make(view, msg, Snackbar.LENGTH_INDEFINITE)
             .setAction("Restart") { v: View ->
                 val ctx = v.context
                 val intent = ctx.packageManager.getLaunchIntentForPackage(ctx.packageName)
