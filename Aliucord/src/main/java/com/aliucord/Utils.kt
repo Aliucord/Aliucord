@@ -40,6 +40,7 @@ import com.discord.utilities.SnowflakeUtils
 import com.discord.utilities.fcm.NotificationClient
 import com.discord.views.CheckedSetting
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemAttachment
+import com.google.android.material.snackbar.Snackbar
 import com.lytefast.flexinput.R
 import java.io.File
 import java.lang.reflect.Field
@@ -453,5 +454,19 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
         }
 
         WidgetChatListAdapterItemAttachment.Companion.`access$navigateToAttachment`(WidgetChatListAdapterItemAttachment.Companion, appActivity, attachment)
+    }
+
+    /**
+     * Prompts the user to restart Aliucord
+     */
+    @JvmStatic
+    fun promptRestart() {
+        val view = appActivity.findViewById<View>(android.R.id.content)
+        Snackbar.make(view, "Restart required. Restart now?", Snackbar.LENGTH_INDEFINITE)
+            .setAction("Restart") { v: View ->
+                val ctx = v.context
+                val intent = ctx.packageManager.getLaunchIntentForPackage(ctx.packageName)
+                appActivity.startActivity(Intent.makeRestartActivityTask(intent!!.component))
+            }.show()
     }
 }

@@ -7,13 +7,11 @@
 package com.aliucord;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 
 import com.aliucord.entities.Plugin;
 import com.aliucord.utils.*;
-import com.google.android.material.snackbar.Snackbar;
 
 import java.io.*;
 import java.lang.reflect.Method;
@@ -203,18 +201,5 @@ public class PluginManager {
     @SuppressWarnings("unused")
     public static boolean isPluginEnabled(Plugin plugin) {
         return isPluginEnabled(MapUtils.getMapKey(plugins, plugin));
-    }
-
-    /**
-     * Prompts the user to restart Aliucord because of a plugin that requires a restart
-     */
-    public static void promptRestart() {
-        var view = Utils.appActivity.findViewById(android.R.id.content);
-        Snackbar.make(view, "A restart is required. Restart?", Snackbar.LENGTH_INDEFINITE)
-            .setAction("Restart", v -> {
-                Context ctx = v.getContext();
-                Intent intent = ctx.getPackageManager().getLaunchIntentForPackage(ctx.getPackageName());
-                Utils.appActivity.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
-            }).show();
     }
 }

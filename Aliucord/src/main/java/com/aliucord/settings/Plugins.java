@@ -235,7 +235,7 @@ public class Plugins extends SettingsPage {
             PluginManager.togglePlugin(name);
             holder.card.settingsButton.setEnabled(state);
             var p = Objects.requireNonNull(PluginManager.plugins.get(name));
-            if (p.requiresRestart()) PluginManager.promptRestart();
+            if (p.requiresRestart()) Utils.promptRestart();
         }
 
         public void onUninstallClick(int position) {
@@ -260,7 +260,7 @@ public class Plugins extends SettingsPage {
                 if (originalData != data) originalData.remove(p);
                 notifyItemRemoved(position);
 
-                if (p.requiresRestart()) PluginManager.promptRestart();
+                if (p.requiresRestart()) Utils.promptRestart();
             });
 
             dialog.show(fragment.getParentFragmentManager(), "Confirm Plugin Uninstall");

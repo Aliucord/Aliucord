@@ -34,7 +34,7 @@ internal class PluginFile(val plugin: String): File("${Constants.PLUGINS_PATH}/$
                     Utils.showToast("Plugin $plugin successfully ${if (isReinstall) "re" else ""}installed!")
 
                     if (PluginManager.plugins[plugin]?.requiresRestart() == true)
-                        PluginManager.promptRestart()
+                        Utils.promptRestart()
 
                     callback?.let { Utils.mainThread.post(it) }
                 }
@@ -55,7 +55,7 @@ internal class PluginFile(val plugin: String): File("${Constants.PLUGINS_PATH}/$
             PluginManager.unloadPlugin(plugin)
 
             if (p?.requiresRestart() == true)
-                PluginManager.promptRestart()
+                Utils.promptRestart()
 
             callback?.let { Utils.mainThread.post(it) }
         }

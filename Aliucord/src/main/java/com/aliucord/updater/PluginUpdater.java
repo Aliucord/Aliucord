@@ -174,7 +174,7 @@ public class PluginUpdater {
             Utils.mainThread.post(() -> {
                 PluginManager.remountPlugin(plugin);
                 var newPlugin = Objects.requireNonNull(PluginManager.plugins.get(plugin));
-                if (newPlugin.requiresRestart()) PluginManager.promptRestart();
+                if (newPlugin.requiresRestart()) Utils.promptRestart();
             });
         }
         updated.put(plugin, updateInfo.version);
