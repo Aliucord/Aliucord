@@ -2,6 +2,7 @@ package com.aliucord
 
 import com.aliucord.PluginManager.logger
 import com.aliucord.utils.GsonUtils
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.lang.reflect.Type
@@ -31,7 +32,7 @@ class SettingsUtilsJSON(private val plugin: String) {
                 getPreferenceSettings()?.forEach {
                     val keyName = it.key.replace(keyPrefix, "").trim()
                     if (keyName == "migratedToJson") return@forEach
-                    it.value?.let { it1 -> settings.put(keyName, it1) }
+                    settings.put(keyName, it.value)
                     SettingsUtils.remove(it.key)
                 }
                 SettingsUtils.setBool(keyPrefix + "migratedToJson", true)
@@ -224,8 +225,7 @@ class SettingsUtilsJSON(private val plugin: String) {
         if (cached != null) try {
             return cached as T
         } catch (ignored: Throwable) {}
-        val json = getJSONObject(key, null) ?: return defValue
-        val t: T = GsonUtils.fromJson(json.toString(), type)
+        val t: T? = if (settings.has(key)) GsonUtils.fromJson(settings.getString(key), type) else null
         return t ?: defValue
     }
 
@@ -236,6 +236,7 @@ class SettingsUtilsJSON(private val plugin: String) {
      */
     fun setObject(key: String, value: Any) {
         cache[key] = value
-        setJSONObject(key, JSONObject(GsonUtils.toJson(value)))
+        val stringJson = GsonUtils.toJson(value)
+        putObject(key, if (stringJson.startsWith("{")) JSONObject(stringJson) else JSONArray(stringJson))
     }
 }
