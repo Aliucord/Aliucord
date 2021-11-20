@@ -39,6 +39,7 @@ import com.discord.stores.StoreStream
 import com.discord.utilities.SnowflakeUtils
 import com.discord.utilities.fcm.NotificationClient
 import com.discord.views.CheckedSetting
+import com.discord.widgets.chat.list.WidgetChatList
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemAttachment
 import com.google.android.material.snackbar.Snackbar
 import com.lytefast.flexinput.R
@@ -71,6 +72,11 @@ object Utils {
         get() = mAppContext ?: NotificationClient.`access$getContext$p`(NotificationClient.INSTANCE)
             .also { mAppContext = it }
 
+    /**
+     * Instance of WidgetChatList. Use this instead of patching it's constructor and storing it.
+     */
+    @JvmField
+    var widgetChatList: WidgetChatList? = null
 
     /**
      * Launches an URL in the user's preferred Browser
