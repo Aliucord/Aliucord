@@ -73,9 +73,11 @@ public final class Main {
         preInitialized = true;
 
         Utils.appActivity = activity;
-        CorePlugins.loadAll(activity);
 
-        if (checkPermissions(activity)) loadAllPlugins(activity);
+        if (checkPermissions(activity)) {
+            CorePlugins.loadAll(activity);
+            loadAllPlugins(activity);
+        }
 
         Patcher.addPatch(AppActivity.class, "onCreate", new Class<?>[] { Bundle.class }, new Hook(param ->
             Utils.appActivity = (AppActivity) param.thisObject));
@@ -363,7 +365,7 @@ public final class Main {
             if (granted == Boolean.TRUE) {
                 loadAllPlugins(activity);
                 startAllPlugins();
-            } else Toast.makeText(activity, "You have to grant storage permission to load plugins", Toast.LENGTH_LONG).show();
+            } else Toast.makeText(activity, "You have to grant storage permission to use Aliucord", Toast.LENGTH_LONG).show();
         }).launch(perm);
         return false;
     }
