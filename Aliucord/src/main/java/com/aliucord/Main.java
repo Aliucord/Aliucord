@@ -301,9 +301,10 @@ public final class Main {
             System.exit(2);
         });
 
-        CorePlugins.startAll(activity);
-
-        if (loadedPlugins) startAllPlugins();
+        if (loadedPlugins) {
+            CorePlugins.startAll(activity);
+            startAllPlugins();
+        }
     }
 
     private static void loadAllPlugins(Context context) {
@@ -363,6 +364,8 @@ public final class Main {
         if (activity.checkSelfPermission(perm) == PackageManager.PERMISSION_GRANTED) return true;
         activity.registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
             if (granted == Boolean.TRUE) {
+                CorePlugins.loadAll(activity);
+                CorePlugins.startAll(activity);
                 loadAllPlugins(activity);
                 startAllPlugins();
             } else Toast.makeText(activity, "You have to grant storage permission to use Aliucord", Toast.LENGTH_LONG).show();
