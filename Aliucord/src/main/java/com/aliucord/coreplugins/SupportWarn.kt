@@ -1,8 +1,10 @@
 package com.aliucord.coreplugins
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.view.View
 import android.widget.*
+import com.aliucord.Constants.PLUGIN_REQUESTS_CHANNEL_ID
 import com.aliucord.Utils
 import com.aliucord.entities.Plugin
 import com.aliucord.fragments.ConfirmDialog
@@ -13,10 +15,11 @@ import com.discord.widgets.chat.input.ChatInputViewModel
 import com.discord.widgets.chat.input.WidgetChatInput
 import com.lytefast.flexinput.R
 
+@SuppressLint("SetTextI18n")
 internal class SupportWarn : Plugin() {
     private val bindingMethod = WidgetChatInput::class.java.getDeclaredMethod("getBinding").apply { isAccessible = true }
 
-    private val channelList = listOf(811261478875299840L, 868419532992172073L, 865188789542060063L, 811262084968742932L)
+    private val channelList = listOf(811261478875299840L, 868419532992172073L, 865188789542060063L, 811262084968742932L, PLUGIN_REQUESTS_CHANNEL_ID)
 
     private val chatWrapId = Utils.getResId("chat_input_wrap", "id")
     private val gateButtonTextId = Utils.getResId("chat_input_member_verification_guard_text", "id")
@@ -48,11 +51,20 @@ internal class SupportWarn : Plugin() {
                 chatWrap.visibility = View.GONE
 
                 gateButtonImage.setImageResource(R.e.ic_warning_circle_24dp)
-                gateButtonText.setText("PLEASE READ: This channel is not a support channel, do not ask for help.")
+
+                val text = if (loaded.channelId == PLUGIN_REQUESTS_CHANNEL_ID)
+                    "PLEASE READ: This channel is NOT for requesting plugins, do not send requests here."
+                else "PLEASE READ: This channel is not a support channel, do not ask for help."
+
+                val desc = if (loaded.channelId == PLUGIN_REQUESTS_CHANNEL_ID)
+                    "#plugin-request-discussion is not for requesting plugins. For information on how to request a plugin, check the pins in this channel."
+                else "The development channels are not a support channel. Please do not ask for help about using or installing a plugin or theme here or you will be muted."
+
+                gateButtonText.text = text
                 gateButtonArrow.setOnClickListener { _ ->
                     val dialog = ConfirmDialog()
                         .setTitle("Warning")
-                        .setDescription("The development channels are not a support channel. Please do not ask for help about using or installing a plugin or theme here or you will be muted.")
+                        .setDescription(desc)
 
                     dialog.setOnOkListener {
                         settings.setBool("devNotSupport", true)
