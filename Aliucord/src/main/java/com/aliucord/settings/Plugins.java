@@ -240,9 +240,10 @@ public class Plugins extends SettingsPage {
         }
 
         public void onToggleClick(ViewHolder holder, boolean state, int position) {
-            String name = data.get(position).getName();
-            PluginManager.togglePlugin(name);
+            Plugin p = data.get(position);
+            PluginManager.togglePlugin(p.getName());
             holder.card.settingsButton.setEnabled(state);
+            if (p.requiresRestart()) Utils.promptRestart();
         }
 
         public void onUninstallClick(int position) {
@@ -266,6 +267,8 @@ public class Plugins extends SettingsPage {
                 data.remove(position);
                 if (originalData != data) originalData.remove(p);
                 notifyItemRemoved(position);
+
+                if (p.requiresRestart()) Utils.promptRestart();
             });
 
             dialog.show(fragment.getParentFragmentManager(), "Confirm Plugin Uninstall");

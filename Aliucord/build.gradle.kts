@@ -28,6 +28,7 @@ android {
         targetSdk = 30
 
         buildConfigField("String", "GIT_REVISION", "\"${getGitHash()}\"")
+        buildConfigField("int", "DISCORD_VERSION", findProperty("discord_version") as String)
     }
 
     buildTypes {
