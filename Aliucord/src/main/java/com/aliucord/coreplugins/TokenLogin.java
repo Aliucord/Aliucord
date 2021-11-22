@@ -40,8 +40,8 @@ final class TokenLogin extends Plugin {
         initialize(manifest);
     }
 
-    public static class SettingsPage extends AppFragment {
-        public SettingsPage() {
+    public static class Page extends AppFragment {
+        public Page() {
             super(Utils.getResId("widget_auth_login", "layout"));
         }
 
@@ -94,12 +94,12 @@ final class TokenLogin extends Plugin {
             if (StoreStream.getUserSettingsSystem().getTheme().equals("light"))
                 btn.setBackgroundColor(context.getResources().getColor(R.c.uikit_btn_bg_color_selector_secondary_light, null));
             else btn.setBackgroundColor(context.getResources().getColor(R.c.uikit_btn_bg_color_selector_secondary_dark, null));
-            btn.setOnClickListener(e -> Utils.openPage(e.getContext(), SettingsPage.class));
+            btn.setOnClickListener(e -> Utils.openPage(e.getContext(), Page.class));
             v.addView(btn);
         }));
 
         Patcher.addPatch(AppActivity.class, "g", new Class<?>[]{ List.class }, new Hook(param -> {
-            if (!((boolean) param.getResult()) && ((AppActivity) param.thisObject).d().equals(SettingsPage.class)) param.setResult(true);
+            if (!((boolean) param.getResult()) && ((AppActivity) param.thisObject).d().equals(Page.class)) param.setResult(true);
         }));
     }
 

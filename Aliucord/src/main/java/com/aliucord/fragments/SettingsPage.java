@@ -23,14 +23,14 @@ import com.google.android.material.appbar.AppBarLayout;
 
 /** Settings Page Fragment */
 @SuppressWarnings("unused")
-public class Page extends AppFragment {
+public class SettingsPage extends AppFragment {
     private static final int resId = Utils.getResId("widget_settings_behavior", "layout");
     private CoordinatorLayout view;
     private LinearLayout layout;
     private Toolbar toolbar;
 
     @SuppressLint("ResourceType")
-    public Page() {
+    public SettingsPage() {
         super(resId);
     }
 
