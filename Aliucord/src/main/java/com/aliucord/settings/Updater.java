@@ -26,7 +26,7 @@ import androidx.core.content.ContextCompat;
 import com.aliucord.SettingsUtils;
 import com.aliucord.Utils;
 import com.aliucord.fragments.ConfirmDialog;
-import com.aliucord.fragments.Page;
+import com.aliucord.fragments.SettingsPage;
 import com.aliucord.updater.PluginUpdater;
 import com.aliucord.utils.DimenUtils;
 import com.aliucord.views.ToolbarButton;
@@ -39,7 +39,7 @@ import com.lytefast.flexinput.R;
 
 import java.lang.Runtime;
 
-public class Updater extends Page {
+public class Updater extends SettingsPage {
     public static class UpdaterSettings extends BottomSheet {
         public static final String AUTO_UPDATE_PLUGINS_KEY = "AC_plugins_auto_update_enabled";
         public static final String AUTO_UPDATE_ALIUCORD_KEY = "AC_aliucord_auto_update_enabled";

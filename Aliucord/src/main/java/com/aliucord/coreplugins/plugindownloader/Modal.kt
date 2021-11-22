@@ -8,7 +8,7 @@ package com.aliucord.coreplugins.plugindownloader
 
 import android.annotation.SuppressLint
 import android.view.View
-import com.aliucord.fragments.Page
+import com.aliucord.fragments.SettingsPage
 import android.widget.TextView
 import com.aliucord.Constants
 import com.aliucord.Utils
@@ -21,7 +21,7 @@ import com.aliucord.views.Button
 import com.aliucord.views.DangerButton
 import com.google.gson.reflect.TypeToken
 
-internal class Modal(private val author: String, private val repo: String) : Page() {
+internal class Modal(private val author: String, private val repo: String) : SettingsPage() {
     private val resType = TypeToken.getParameterized(MutableMap::class.java, String::class.java, PluginInfo::class.java).getType()
 
     private var throwable = null as Throwable?

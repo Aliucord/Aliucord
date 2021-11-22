@@ -46,55 +46,55 @@ public class Page extends AppFragment {
         setPadding(DimenUtils.getDefaultPadding());
     }
 
-    /** Returns the LinearLayout associated with this Page */
+    /** Returns the LinearLayout associated with this SettingsPage */
     public final LinearLayout getLinearLayout() {
         if (layout == null) {
-            if (view == null) throw new IllegalStateException("This Page has not been initialised yet. Did you forget to call super.onViewBound?");
+            if (view == null) throw new IllegalStateException("This SettingsPage has not been initialised yet. Did you forget to call super.onViewBound?");
             layout = (LinearLayout) ((NestedScrollView) view.getChildAt(1)).getChildAt(0);
         }
         return layout;
     }
 
-    /** Returns the Toolbar associated with this Page */
+    /** Returns the Toolbar associated with this SettingsPage */
     public final Toolbar getHeaderBar() {
         if (toolbar == null) {
-            if (view == null) throw new IllegalStateException("This Page has not been initialised yet. Did you forget to call super.onViewBound?");
+            if (view == null) throw new IllegalStateException("This SettingsPage has not been initialised yet. Did you forget to call super.onViewBound?");
             toolbar = (Toolbar) ((AppBarLayout) view.getChildAt(0)).getChildAt(0);
         }
         return toolbar;
     }
 
-    /** Sets the padding of the LinearLayout associated with this Page */
+    /** Sets the padding of the LinearLayout associated with this SettingsPage */
     public final void setPadding(int p) {
         getLinearLayout().setPadding(p, p, p, p);
     }
 
-    /** Adds a button from the Toolbar associated with this Page */
+    /** Adds a button from the Toolbar associated with this SettingsPage */
     public final void addHeaderButton(ToolbarButton button) {
         getHeaderBar().addView(button);
     }
 
-    /** Removes a button to the Toolbar associated with this Page */
+    /** Removes a button to the Toolbar associated with this SettingsPage */
     public final void removeHeaderButton(ToolbarButton button) {
         getHeaderBar().removeView(button);
     }
 
-    /** Adds a view to the LinearLayout associated with this Page */
+    /** Adds a view to the LinearLayout associated with this SettingsPage */
     public final void addView(View view) {
         getLinearLayout().addView(view);
     }
 
-    /** Removes a view from the LinearLayout associated with this Page */
+    /** Removes a view from the LinearLayout associated with this SettingsPage */
     public final void removeView(View view) {
         getLinearLayout().removeView(view);
     }
 
-    /** Removes all views from the LinearLayout associated with this Page */
+    /** Removes all views from the LinearLayout associated with this SettingsPage */
     public final void clear() {
         getLinearLayout().removeAllViews();
     }
 
-    /** Removes all views from the LinearLayout associated with this Page and calls onViewBound */
+    /** Removes all views from the LinearLayout associated with this SettingsPage and calls onViewBound */
     public final void reRender() {
         clear();
         onViewBound(view);

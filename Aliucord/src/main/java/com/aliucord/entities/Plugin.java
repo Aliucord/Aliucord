@@ -87,7 +87,7 @@ public abstract class Plugin {
 
         /** The {@link Type} of this SettingsTab */
         public Type type;
-        /** The Page fragment */
+        /** The SettingsPage fragment */
         public Class<? extends AppFragment> page;
         /** The BottomSheet component */
         public Class<AppBottomSheet> bottomSheet;
