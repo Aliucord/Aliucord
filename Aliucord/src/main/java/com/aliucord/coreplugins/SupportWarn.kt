@@ -38,45 +38,51 @@ internal class SupportWarn : Plugin() {
         Patcher.addPatch(WidgetChatInput::class.java.getDeclaredMethod("configureChatGuard", ChatInputViewModel.ViewState.Loaded::class.java), Hook {
             val loaded = it.args[0] as ChatInputViewModel.ViewState.Loaded
 
-            if (loaded.channelId in channelList && !loaded.shouldShowVerificationGate && !settings.getBool("devNotSupport", false)) {
-                val binding = bindingMethod(it.thisObject) as WidgetChatInputBinding
+            if (loaded.channelId !in channelList || loaded.shouldShowVerificationGate) return@Hook
+            if (settings.getBool("devNotSupport", false) && settings.getBool("prdNotRequests", false)) return@Hook
 
-                val gateButtonText = binding.root.findViewById<TextView>(gateButtonTextId)
-                val chatWrap = binding.root.findViewById<LinearLayout>(chatWrapId)
-                val gateButtonImage = binding.root.findViewById<ImageView>(gateButtonImageId)
-                val gateButtonArrow = binding.root.findViewById<ImageView>(gateButtonArrowId)
-                val gateButtonLayout = binding.root.findViewById<RelativeLayout>(gateButtonLayoutId)
+            val (text, desc, key) = when (loaded.channelId) {
+                PLUGIN_REQUESTS_CHANNEL_ID -> Triple(
+                    "PLEASE READ: This channel is NOT for requesting plugins!",
+                    "#plugin-request-discussion is not for requesting plugins. For information on how to request a plugin, check the pins in this channel.",
+                    "prdNotRequests"
+                )
+                else -> Triple(
+                    "PLEASE READ: This channel is not a support channel, do not ask for help.",
+                    "The development channels are not a support channel. Please do not ask for help about using or installing a plugin or theme here or you will be muted.",
+                    "devNotSupport"
+                )
+            }
 
-                gateButtonLayout.visibility = View.VISIBLE
-                chatWrap.visibility = View.GONE
+            val binding = bindingMethod(it.thisObject) as WidgetChatInputBinding
 
-                gateButtonImage.setImageResource(R.e.ic_warning_circle_24dp)
+            val gateButtonText = binding.root.findViewById<TextView>(gateButtonTextId)
+            val chatWrap = binding.root.findViewById<LinearLayout>(chatWrapId)
+            val gateButtonImage = binding.root.findViewById<ImageView>(gateButtonImageId)
+            val gateButtonArrow = binding.root.findViewById<ImageView>(gateButtonArrowId)
+            val gateButtonLayout = binding.root.findViewById<RelativeLayout>(gateButtonLayoutId)
 
-                val text = if (loaded.channelId == PLUGIN_REQUESTS_CHANNEL_ID)
-                    "PLEASE READ: This channel is NOT for requesting plugins, do not send requests here."
-                else "PLEASE READ: This channel is not a support channel, do not ask for help."
+            gateButtonLayout.visibility = View.VISIBLE
+            chatWrap.visibility = View.GONE
 
-                val desc = if (loaded.channelId == PLUGIN_REQUESTS_CHANNEL_ID)
-                    "#plugin-request-discussion is not for requesting plugins. For information on how to request a plugin, check the pins in this channel."
-                else "The development channels are not a support channel. Please do not ask for help about using or installing a plugin or theme here or you will be muted."
+            gateButtonImage.setImageResource(R.e.ic_warning_circle_24dp)
 
-                gateButtonText.text = text
-                gateButtonArrow.setOnClickListener { _ ->
-                    val dialog = ConfirmDialog()
-                        .setTitle("Warning")
-                        .setDescription(desc)
+            gateButtonText.text = text
+            gateButtonArrow.setOnClickListener { _ ->
+                val dialog = ConfirmDialog()
+                    .setTitle("Warning")
+                    .setDescription(desc)
 
-                    dialog.setOnOkListener {
-                        settings.setBool("devNotSupport", true)
+                dialog.setOnOkListener {
+                    settings.setBool(key, true)
 
-                        gateButtonLayout.visibility = View.GONE
-                        chatWrap.visibility = View.VISIBLE
+                    gateButtonLayout.visibility = View.GONE
+                    chatWrap.visibility = View.VISIBLE
 
-                        dialog.dismiss()
-                    }
-
-                    dialog.show((it.thisObject as WidgetChatInput).parentFragmentManager, "Warning")
+                    dialog.dismiss()
                 }
+
+                dialog.show((it.thisObject as WidgetChatInput).parentFragmentManager, "Warning")
             }
         })
     }
