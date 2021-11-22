@@ -182,128 +182,128 @@ class GuildWrapper(private val guild: Guild) {
 
     @JvmStatic
     val Guild.emojis: List<GuildEmoji>
-      get() = j()
-
-    @JvmStatic
-    val Guild.explicitContentFilter: GuildExplicitContentFilter?
       get() = k()
 
     @JvmStatic
-    val Guild.features: List<GuildFeature>
+    val Guild.explicitContentFilter: GuildExplicitContentFilter?
       get() = l()
 
     @JvmStatic
-    val Guild.hashes: GuildHashes
+    val Guild.features: List<GuildFeature>
       get() = m()
 
     @JvmStatic
-    val Guild.scheduledEvents: List<GuildScheduledEvent>
+    val Guild.hashes: GuildHashes
       get() = n()
 
     @JvmStatic
-    val Guild.icon: String?
+    val Guild.scheduledEvents: List<GuildScheduledEvent>
       get() = o()
 
     @JvmStatic
-    val Guild.id
+    val Guild.icon: String?
       get() = p()
 
     @JvmStatic
-    val Guild.joinedAt: String?
+    val Guild.id
       get() = q()
 
     @JvmStatic
-    val Guild.maxVideoChannelUsers: GuildMaxVideoChannelUsers?
+    val Guild.joinedAt: String?
       get() = r()
 
     @JvmStatic
-    val Guild.approxMemberCount
+    val Guild.maxVideoChannelUsers: GuildMaxVideoChannelUsers?
       get() = s()
 
     @JvmStatic
-    val Guild.cachedMembers: List<GuildMember>
+    val Guild.approxMemberCount
       get() = t()
 
     @JvmStatic
-    val Guild.mfaLevel
+    val Guild.cachedMembers: List<GuildMember>
       get() = u()
 
     @JvmStatic
-    val Guild.name: String
+    val Guild.mfaLevel
       get() = v()
+
+    @JvmStatic
+    val Guild.name: String
+      get() = w()
 
     @JvmStatic
     @get:JvmName("isNsfw")
     val Guild.nsfw
-      get() = w()
-
-    @JvmStatic
-    val Guild.ownerId
       get() = x()
 
     @JvmStatic
-    val Guild.preferredLocale: String?
+    val Guild.ownerId
       get() = y()
 
     @JvmStatic
-    val Guild.premiumSubscriptionCount
+    val Guild.preferredLocale: String?
       get() = z()
 
     @JvmStatic
-    val Guild.premiumTier
+    val Guild.premiumSubscriptionCount
       get() = A()
 
     @JvmStatic
-    val Guild.presences: List<Presence>
+    val Guild.premiumTier
       get() = B()
 
     @JvmStatic
-    val Guild.publicUpdatesChannelId: Long?
+    val Guild.presences: List<Presence>
       get() = C()
 
     @JvmStatic
-    val Guild.region: String?
+    val Guild.publicUpdatesChannelId: Long?
       get() = D()
 
     @JvmStatic
-    val Guild.roles: List<GuildRole>
+    val Guild.region: String?
       get() = E()
 
     @JvmStatic
-    val Guild.rulesChannelId: Long?
+    val Guild.roles: List<GuildRole>
       get() = F()
 
     @JvmStatic
-    val Guild.splash: String?
+    val Guild.rulesChannelId: Long?
       get() = G()
 
     @JvmStatic
-    val Guild.stickers: List<Sticker>
-      get() = I()
+    val Guild.splash: String?
+      get() = H()
 
     @JvmStatic
-    val Guild.systemChannelFlags
+    val Guild.stickers: List<Sticker>
       get() = J()
 
     @JvmStatic
-    val Guild.systemChannelId: Long?
+    val Guild.systemChannelFlags
       get() = K()
 
     @JvmStatic
-    val Guild.threads: List<Channel>
+    val Guild.systemChannelId: Long?
       get() = L()
+
+    @JvmStatic
+    val Guild.threads: List<Channel>
+      get() = M()
 
     @JvmStatic
     @get:JvmName("isUnavailable")
     val Guild.unavailable
-      get() = M()
-
-    @JvmStatic
-    val Guild.vanityUrlCode: String?
       get() = N()
 
     @JvmStatic
-    val Guild.verificationLevel: GuildVerificationLevel
+    val Guild.vanityUrlCode: String?
       get() = O()
+
+    @JvmStatic
+    val Guild.verificationLevel: GuildVerificationLevel
+      get() = P()
   }
 }

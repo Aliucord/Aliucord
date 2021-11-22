@@ -157,7 +157,7 @@ public class Http {
         /**
          * Append InputStream. Will automatically be encoded for you
          * @param fieldName The parameter field name
-         * @param stream The parameter stream
+         * @param is The parameter stream
          * @return self
          */
         @NonNull
@@ -168,7 +168,7 @@ public class Http {
             writer.append("Content-Transfer-Encoding: binary").append(LINE_FEED);
             writer.append(LINE_FEED);
             writer.flush();
-            
+
             IOUtils.pipe(is, outputStream);
 
             writer.append(LINE_FEED);

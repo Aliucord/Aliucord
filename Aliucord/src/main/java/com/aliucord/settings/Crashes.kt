@@ -17,7 +17,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import com.aliucord.*
-import com.aliucord.fragments.SettingsPage
+import com.aliucord.fragments.Page
 import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.MDUtils
 import com.aliucord.views.DangerButton
@@ -53,7 +53,7 @@ class CrashSettings : BottomSheet() {
     }
 }
 
-class Crashes : SettingsPage() {
+class Crashes : Page() {
     private fun createToolbarButton(ctx: Context, @DrawableRes drawableId: Int, marginEnd: Int, onClickListener: View.OnClickListener) =
         ToolbarButton(ctx).apply {
             layoutParams = Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT).apply {

@@ -359,7 +359,7 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
             -1,
             name ?: "Clyde",
             NullSerializable.b(avatarUrl ?: Constants.Icons.CLYDE),
-            NullSerializable.a(),
+            null,
             "0000",
             0,
             null,
@@ -367,7 +367,6 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
             false,
             null,
             null,
-            false,
             null,
             null,
             null,
@@ -376,8 +375,10 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
             null,
             null,
             null,
-            NullSerializable.a(),
-            null
+            null,
+            null,
+            null,
+            0
         )
 
     /**
@@ -459,7 +460,11 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
             error(th)
         }
 
-        WidgetChatListAdapterItemAttachment.Companion.`access$navigateToAttachment`(WidgetChatListAdapterItemAttachment.Companion, appActivity, attachment)
+        WidgetChatListAdapterItemAttachment.Companion.`access$navigateToAttachment`(
+            WidgetChatListAdapterItemAttachment.Companion,
+            appActivity,
+            attachment
+        )
     }
 
     /**

@@ -25,7 +25,7 @@ import androidx.recyclerview.widget.*;
 import com.aliucord.*;
 import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.ConfirmDialog;
-import com.aliucord.fragments.SettingsPage;
+import com.aliucord.fragments.Page;
 import com.aliucord.utils.*;
 import com.aliucord.views.TextInput;
 import com.aliucord.views.ToolbarButton;
@@ -38,7 +38,7 @@ import com.lytefast.flexinput.R;
 import java.io.File;
 import java.util.*;
 
-public class Plugins extends SettingsPage {
+public class Plugins extends Page {
     private static final int uniqueId = View.generateViewId();
 
     public static class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> implements Filterable {
