@@ -168,28 +168,85 @@ public abstract class Plugin {
 
     /**
      * Called when your Plugin is loaded
+     * @deprecated In favor of {@link Plugin#onLoad()}
      * @param context Context
      */
+    @Deprecated
     public void load(Context context) throws Throwable {}
 
     /**
+     * Called when your plugin is loaded
+     */
+    public void onLoad() {}
+
+    /**
      * Called when your Plugin is unloaded
+     * @deprecated In favor of {@link Plugin#onUnload()}
      * @param context Context
      */
     @SuppressWarnings("RedundantThrows")
-    public void unload(Context context) throws Throwable {} // not used now
+    @Deprecated
+    public void unload(Context context) throws Throwable {}
+
+    /**
+     * Called when your plugin is unloaded
+     */
+    public void onUnload() {}
 
     /**
      * Called when your Plugin is started
+     * @deprecated In favor of {@link Plugin#onStart()}
      * @param context Context
      */
-    public abstract void start(Context context) throws Throwable;
+    @Deprecated
+    public void start(Context context) throws Throwable {}
+
+    /**
+     * Called when your plugin is started
+     */
+    public void onStart() {}
 
     /**
      * Called when your Plugin is stopped
+     * @deprecated In favor of {@link Plugin#onStop()}
      * @param context Context
      */
-    public abstract void stop(Context context) throws Throwable;
+    @Deprecated
+    public void stop(Context context) throws Throwable {}
+
+    /**
+     * Called when your plugin is stopped
+     */
+    public void onStop() {}
+
+    /**
+     * Called after your plugin is installed OR reinstalled.
+     * Called after {@link Plugin#onStart()}
+     */
+    public void onInstall() {}
+
+    /**
+     * Called when your plugin is installed for the first time
+     * Called after {@link Plugin#onInstall()}
+     */
+    public void onFirstInstall() {}
+
+    /**
+     * Called before your plugin is updated
+     * @param nextVersion The version of the plugin that will be installed
+     */
+    public void onBeforeUpdate(String nextVersion) {}
+
+    /**
+     * Called after your plugin is updated
+     * @param prevVersion The version of the plugin that was previously installed
+     */
+    public void onAfterUpdate(String prevVersion) {}
+
+    /**
+     * Called before your plugin is uninstalled
+     */
+    public void onUninstall() {}
 
     /** Name of this plugin. Defaults to the class name */
     @Deprecated

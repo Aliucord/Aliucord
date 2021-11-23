@@ -161,6 +161,10 @@ public class PluginUpdater {
         var updateInfo = getUpdateInfo(p);
         if (updateInfo == null) return false;
 
+        try {
+            p.onBeforeUpdate(updateInfo.version);
+        } catch (Throwable e) { logger.error("Exception while updating plugin: " + p.getName(), e); }
+
         var url = updateInfo.build.replace("%s", plugin);
 
         try (var res = new Http.Request(url).execute()) {
@@ -169,6 +173,10 @@ public class PluginUpdater {
                     updateInfo.sha1sum
             );
         }
+
+        try {
+            p.onAfterUpdate(p.getManifest().version);
+        } catch (Throwable e) { logger.error("Exception while updating plugin: " + p.getName(), e); }
 
         if (PluginManager.isPluginEnabled(plugin)) {
             Utils.mainThread.post(() -> {

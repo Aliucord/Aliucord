@@ -239,20 +239,26 @@ public class Plugins extends SettingsPage {
 
         public void onUninstallClick(int position) {
             Plugin p = data.get(position);
+            String name = p.getName();
             ConfirmDialog dialog = new ConfirmDialog()
                     .setIsDangerous(true)
-                    .setTitle("Delete " + p.getName())
+                    .setTitle("Delete " + name)
                     .setDescription("Are you sure you want to delete this plugin? This action cannot be undone.");
             dialog.setOnOkListener(e -> {
                 File pluginFile = new File(Constants.BASE_PATH + "/plugins/" + p.__filename + ".zip");
                 if (pluginFile.exists() && !pluginFile.delete()) {
-                    PluginManager.logger.error(ctx, "Failed to delete plugin " + p.getName(), null);
+                    PluginManager.logger.error(ctx, "Failed to delete plugin " + name, null);
                     return;
                 }
 
-                PluginManager.stopPlugin(p.getName());
-                PluginManager.plugins.remove(p.getName());
-                PluginManager.logger.info(ctx, "Successfully deleted " + p.getName());
+                try {
+                    p.onUninstall();
+                } catch (Throwable err) { PluginManager.logger.error("Exception while uninstalling plugin: " + name, err); }
+
+                PluginManager.stopPlugin(name);
+                PluginManager.plugins.remove(name);
+                SettingsUtils.delete(PluginManager.getPluginPrefKey(name));
+                PluginManager.logger.info(ctx, "Successfully deleted " + name);
 
                 dialog.dismiss();
                 data.remove(position);

@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 
+import com.aliucord.api.SettingsAPI;
 import com.aliucord.entities.Plugin;
 import com.aliucord.utils.*;
 
@@ -91,6 +92,7 @@ public class PluginManager {
             }
             plugins.put(name, pluginInstance);
             classLoaders.put(loader, pluginInstance);
+            pluginInstance.onLoad();
             pluginInstance.load(context);
         } catch (Throwable e) { logger.error(context, "Failed to load plugin: " + fileName, e); }
     }
@@ -147,9 +149,16 @@ public class PluginManager {
      */
     public static void startPlugin(String name) {
         logger.info("Starting plugin: " + name);
-         try {
-            Objects.requireNonNull(plugins.get(name)).start(Utils.getAppContext());
-         } catch (Throwable e) { logger.error("Exception while starting plugin: " + name, e); }
+        try {
+            Plugin p = Objects.requireNonNull(plugins.get(name));
+            p.onStart();
+            p.start(Utils.getAppContext());
+            if (!SettingsUtils.exists(getPluginPrefKey(name))) {
+                SettingsUtils.setBool(getPluginPrefKey(name), true);
+                p.onInstall();
+                p.onFirstInstall();
+            }
+        } catch (Throwable e) { logger.error("Exception while starting plugin: " + name, e); }
     }
 
     /**
@@ -159,7 +168,9 @@ public class PluginManager {
     public static void stopPlugin(String name) {
         logger.info("Stopping plugin: " + name);
         try {
-            Objects.requireNonNull(plugins.get(name)).stop(Utils.getAppContext());
+            Plugin p = Objects.requireNonNull(plugins.get(name));
+            p.onStop();
+            p.stop(Utils.getAppContext());
         } catch (Throwable e) { logger.error("Exception while stopping plugin " + name, e); }
     }
 
