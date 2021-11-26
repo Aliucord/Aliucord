@@ -6,10 +6,7 @@ package com.aliucord.coreplugins
 
 import android.content.Context
 import android.os.Build
-import com.aliucord.BuildConfig
-import com.aliucord.Constants
-import com.aliucord.PluginManager
-import com.aliucord.Utils
+import com.aliucord.*
 import com.aliucord.api.CommandsAPI
 import com.aliucord.api.CommandsAPI.CommandResult
 import com.aliucord.entities.Plugin
@@ -51,13 +48,16 @@ internal class CoreCommands : Plugin() {
             )
         ) {
             val plugins = PluginManager.plugins.keys
+            val enabled = plugins.filter(PluginManager::isPluginEnabled)
+            val disabled = plugins.filterNot(PluginManager::isPluginEnabled)
             if (plugins.isEmpty())
                 CommandResult("No plugins installed", null, false)
             else
                 CommandResult(
-                    "**Installed Plugins (${plugins.size}):**\n>>> ${
-                        plugins.sorted().joinToString()
-                    }",
+                    "**Enabled Plugins (${enabled.size}):**\n" +
+                        if (enabled.isEmpty()) "None" else "> ${enabled.joinToString()}\n" +
+                            "**Disabled Plugins (${disabled.size}):**\n" +
+                            if (disabled.isEmpty()) "None" else "> ${disabled.joinToString()}",
                     null,
                     it.getBoolOrDefault("send", false)
                 )
