@@ -19,7 +19,14 @@ import com.lytefast.flexinput.R
 internal class SupportWarn : Plugin() {
     private val bindingMethod = WidgetChatInput::class.java.getDeclaredMethod("getBinding").apply { isAccessible = true }
 
-    private val channelList = listOf(811261478875299840L, 868419532992172073L, 865188789542060063L, 811262084968742932L, PLUGIN_REQUESTS_CHANNEL_ID, 811255667469582420L)
+    private val channelList = listOf(
+        811255667469582420L, // #offtopic
+        811261478875299840L, // #plugin-development
+        868419532992172073L, // #theme-development
+        865188789542060063L, // #related-development
+        811262084968742932L, // #core-development
+        PLUGIN_REQUESTS_CHANNEL_ID,
+    )
 
     private val chatWrapId = Utils.getResId("chat_input_wrap", "id")
     private val gateButtonTextId = Utils.getResId("chat_input_member_verification_guard_text", "id")
