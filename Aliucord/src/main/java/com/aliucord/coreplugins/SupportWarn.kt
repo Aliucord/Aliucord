@@ -39,19 +39,19 @@ internal class SupportWarn : Plugin() {
             val loaded = it.args[0] as ChatInputViewModel.ViewState.Loaded
 
             if (loaded.channelId !in channelList || loaded.shouldShowVerificationGate) return@Hook
-            if (settings.getBool("acceptedPrdNotRequests", false) && loaded.channelId == PLUGIN_REQUESTS_CHANNEL_ID) return@Hook
+            if (loaded.channelId == PLUGIN_REQUESTS_CHANNEL_ID && settings.getBool("acceptedPrdNotRequests", false)) return@Hook
             if (settings.getBool("acceptedDevNotSupport", false)) return@Hook
 
             val (text, desc, key) = when (loaded.channelId) {
                 PLUGIN_REQUESTS_CHANNEL_ID -> Triple(
                     "PLEASE READ: This channel is NOT for requesting plugins!",
-                    "#plugin-request-discussion is not for requesting plugins. For information on how to request a plugin, check the pins in this channel.",
-                    "prdNotRequests"
+                    "This channel is not for requesting plugins. For information on how to request a plugin, check the pins in this channel.",
+                    "acceptedPrdNotRequests"
                 )
                 else -> Triple(
                     "PLEASE READ: This channel is not a support channel, do not ask for help.",
-                    "The development channels are not a support channel. Please do not ask for help about using or installing a plugin or theme here or you will be muted.",
-                    "devNotSupport"
+                    "This is not a support channel. Do NOT ask for help about using or installing a plugin or theme here or you will be muted.",
+                    "acceptedDevNotSupport"
                 )
             }
 
