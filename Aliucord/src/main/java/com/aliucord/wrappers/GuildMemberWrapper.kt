@@ -70,39 +70,43 @@ class GuildMemberWrapper(private val guildMember: GuildMember) {
       get() = d()
 
     @JvmStatic
-    val GuildMember.guildId
+    val GuildMember.communicationDisabledUntil: UtcDateTime?
       get() = e()
 
     @JvmStatic
-    val GuildMember.joinedAt: UtcDateTime?
+    val GuildMember.guildId
       get() = f()
 
     @JvmStatic
-    val GuildMember.nick: String?
+    val GuildMember.joinedAt: UtcDateTime?
       get() = g()
 
     @JvmStatic
-    val GuildMember.isPending
+    val GuildMember.nick: String?
       get() = h()
 
     @JvmStatic
-    val GuildMember.premiumSince: String?
+    val GuildMember.isPending
       get() = i()
 
     @JvmStatic
-    val GuildMember.presence: Presence?
+    val GuildMember.premiumSince: String?
       get() = j()
 
     @JvmStatic
-    val GuildMember.roles: List<Long>
+    val GuildMember.presence: Presence?
       get() = k()
 
     @JvmStatic
-    val GuildMember.user: User?
+    val GuildMember.roles: List<Long>
       get() = l()
 
     @JvmStatic
-    val GuildMember.userId: Long?
+    val GuildMember.user: User?
       get() = m()
+
+    @JvmStatic
+    val GuildMember.userId: Long?
+      get() = n()
   }
 }
