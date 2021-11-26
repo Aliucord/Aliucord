@@ -1,7 +1,6 @@
 name: Build Injector
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main

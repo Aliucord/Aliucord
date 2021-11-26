@@ -359,7 +359,7 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
             -1,
             name ?: "Clyde",
             NullSerializable.b(avatarUrl ?: Constants.Icons.CLYDE),
-            null,
+            NullSerializable.a(),
             "0000",
             0,
             null,
@@ -376,9 +376,8 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
             null,
             null,
             null,
-            null,
-            null,
-            0,
+            NullSerializable.a(),
+            null
         )
 
     /**

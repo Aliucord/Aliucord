@@ -312,7 +312,7 @@ public final class Main {
         if (!dir.exists()) {
             boolean res = dir.mkdirs();
             if (!res) {
-                logger.error("Failed to create plugins directory!", null);
+                logger.error("Failed to create directories!", null);
                 return;
             }
         }

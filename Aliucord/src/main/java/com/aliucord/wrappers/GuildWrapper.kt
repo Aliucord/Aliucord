@@ -7,7 +7,6 @@
 package com.aliucord.wrappers
 
 import com.discord.api.channel.Channel
-import com.discord.api.embeddedactivities.EmbeddedActivityInGuild
 import com.discord.api.emoji.GuildEmoji
 import com.discord.api.guild.*
 import com.discord.api.guildhash.GuildHashes
@@ -15,7 +14,6 @@ import com.discord.api.guildmember.GuildMember
 import com.discord.api.guildscheduledevent.GuildScheduledEvent
 import com.discord.api.presence.Presence
 import com.discord.api.role.GuildRole
-import com.discord.api.stageinstance.StageInstance
 import com.discord.api.sticker.Sticker
 
 /**
@@ -183,137 +181,129 @@ class GuildWrapper(private val guild: Guild) {
       get() = i()
 
     @JvmStatic
-    val Guild.embeddedActivities: List<EmbeddedActivityInGuild>
+    val Guild.emojis: List<GuildEmoji>
       get() = j()
 
     @JvmStatic
-    val Guild.emojis: List<GuildEmoji>
+    val Guild.explicitContentFilter: GuildExplicitContentFilter?
       get() = k()
 
     @JvmStatic
-    val Guild.explicitContentFilter: GuildExplicitContentFilter?
+    val Guild.features: List<GuildFeature>
       get() = l()
 
     @JvmStatic
-    val Guild.features: List<GuildFeature>
+    val Guild.hashes: GuildHashes
       get() = m()
 
     @JvmStatic
-    val Guild.hashes: GuildHashes
+    val Guild.scheduledEvents: List<GuildScheduledEvent>
       get() = n()
 
     @JvmStatic
-    val Guild.scheduledEvents: List<GuildScheduledEvent>
+    val Guild.icon: String?
       get() = o()
 
     @JvmStatic
-    val Guild.icon: String?
+    val Guild.id
       get() = p()
 
     @JvmStatic
-    val Guild.id
+    val Guild.joinedAt: String?
       get() = q()
 
     @JvmStatic
-    val Guild.joinedAt: String?
+    val Guild.maxVideoChannelUsers: GuildMaxVideoChannelUsers?
       get() = r()
 
     @JvmStatic
-    val Guild.maxVideoChannelUsers: GuildMaxVideoChannelUsers?
+    val Guild.approxMemberCount
       get() = s()
 
     @JvmStatic
-    val Guild.approxMemberCount
+    val Guild.cachedMembers: List<GuildMember>
       get() = t()
 
     @JvmStatic
-    val Guild.cachedMembers: List<GuildMember>
+    val Guild.mfaLevel
       get() = u()
 
     @JvmStatic
-    val Guild.mfaLevel
-      get() = v()
-
-    @JvmStatic
     val Guild.name: String
-      get() = w()
+      get() = v()
 
     @JvmStatic
     @get:JvmName("isNsfw")
     val Guild.nsfw
-      get() = x()
+      get() = w()
 
     @JvmStatic
     val Guild.ownerId
-      get() = y()
+      get() = x()
 
     @JvmStatic
     val Guild.preferredLocale: String?
-      get() = z()
+      get() = y()
 
     @JvmStatic
     val Guild.premiumSubscriptionCount
-      get() = A()
+      get() = z()
 
     @JvmStatic
     val Guild.premiumTier
-      get() = B()
+      get() = A()
 
     @JvmStatic
     val Guild.presences: List<Presence>
-      get() = C()
+      get() = B()
 
     @JvmStatic
     val Guild.publicUpdatesChannelId: Long?
-      get() = D()
+      get() = C()
 
     @JvmStatic
     val Guild.region: String?
-      get() = E()
+      get() = D()
 
     @JvmStatic
     val Guild.roles: List<GuildRole>
-      get() = F()
+      get() = E()
 
     @JvmStatic
     val Guild.rulesChannelId: Long?
-      get() = G()
+      get() = F()
 
     @JvmStatic
     val Guild.splash: String?
-      get() = H()
-
-    @JvmStatic
-    val Guild.stageInstance: List<StageInstance>
-      get() = I()
+      get() = G()
 
     @JvmStatic
     val Guild.stickers: List<Sticker>
-      get() = J()
+      get() = I()
 
     @JvmStatic
     val Guild.systemChannelFlags
-      get() = K()
+      get() = J()
 
     @JvmStatic
     val Guild.systemChannelId: Long?
-      get() = L()
+      get() = K()
 
     @JvmStatic
     val Guild.threads: List<Channel>
-      get() = M()
+      get() = L()
 
     @JvmStatic
     @get:JvmName("isUnavailable")
     val Guild.unavailable
-      get() = N()
+      get() = M()
 
     @JvmStatic
     val Guild.vanityUrlCode: String?
-      get() = O()
+      get() = N()
 
     @JvmStatic
     val Guild.verificationLevel: GuildVerificationLevel
-      get() = P()
+      get() = O()
   }
 }
