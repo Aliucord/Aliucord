@@ -38,26 +38,43 @@ internal class CoreCommands : Plugin() {
             CommandResult(it.getRequiredString("message"))
         }
 
+        fun formatPlugins(plugins: List<Plugin>, showVersions: Boolean): String =
+            plugins.joinToString(transform = { p -> p.getName() + if (showVersions) " (${p.manifest.version})" else "" })
+
         commands.registerCommand(
             "plugins",
             "Lists installed plugins",
-            Utils.createCommandOption(
-                type = ApplicationCommandType.BOOLEAN,
-                name = "send",
-                description = "Whether the result should be visible for everyone",
+            listOf(
+                Utils.createCommandOption(
+                    type = ApplicationCommandType.BOOLEAN,
+                    name = "send",
+                    description = "Whether the result should be visible for everyone",
+                ),
+                Utils.createCommandOption(
+                    type = ApplicationCommandType.BOOLEAN,
+                    name = "versions",
+                    description = "Whether to show the plugin versions",
+                    default = true
+                )
             )
         ) {
-            val plugins = PluginManager.plugins.keys
-            val enabled = plugins.filter(PluginManager::isPluginEnabled)
-            val disabled = plugins.filterNot(PluginManager::isPluginEnabled)
+            val showVersions = it.getBoolOrDefault("versions", false)
+
+            val plugins = PluginManager.plugins
+            val (enabled, disabled) = plugins.values.partition(PluginManager::isPluginEnabled)
+            val enabledStr = formatPlugins(enabled, showVersions)
+            val disabledStr = formatPlugins(disabled, showVersions)
+
             if (plugins.isEmpty())
                 CommandResult("No plugins installed", null, false)
             else
                 CommandResult(
-                    "**Enabled Plugins (${enabled.size}):**\n" +
-                        if (enabled.isEmpty()) "None" else "> ${enabled.joinToString()}\n" +
-                            "**Disabled Plugins (${disabled.size}):**\n" +
-                            if (disabled.isEmpty()) "None" else "> ${disabled.joinToString()}",
+                    """
+**Enabled Plugins:**
+${if (enabled.isEmpty()) "None" else "> $enabledStr"}
+**Disabled Plugins:**
+${if (disabled.isEmpty()) "None" else "> $disabledStr"}
+                """,
                     null,
                     it.getBoolOrDefault("send", false)
                 )
