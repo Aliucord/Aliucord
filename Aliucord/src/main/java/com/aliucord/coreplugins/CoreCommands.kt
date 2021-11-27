@@ -54,7 +54,6 @@ internal class CoreCommands : Plugin() {
                     type = ApplicationCommandType.BOOLEAN,
                     name = "versions",
                     description = "Whether to show the plugin versions",
-                    default = true
                 )
             )
         ) {
