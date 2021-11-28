@@ -3,21 +3,21 @@ package com.aliucord.settings
 
 import com.aliucord.api.SettingsAPI
 import kotlin.properties.ReadWriteProperty
-import kotlin.reflect.KProperty
+import kotlin.reflect.*
 
 class SettingsDelegate<T>(
-    private val defaultValue: T
-) : ReadWriteProperty<SettingsAPI, T> {
-
-    override fun getValue(`this`: SettingsAPI, property: KProperty<*>): T {
-        return `this`.getObject(property.name, defaultValue)
+    private val defaultValue: T,
+    private val settings: SettingsAPI
+) : ReadWriteProperty<Any, T> {
+    override fun getValue(thisRef: Any, property: KProperty<*>): T {
+        return settings.getObject(property.name, defaultValue, defaultValue!!::class.java)
     }
 
-    override fun setValue(`this`: SettingsAPI, property: KProperty<*>, value: T) {
-        return `this`.setObject(property.name, value)
+    override fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
+        return settings.setObject(property.name, value)
     }
 }
 
 fun <T> SettingsAPI.delegate(
     defaultValue: T
-) = SettingsDelegate(defaultValue)
+) = SettingsDelegate(defaultValue, this)
