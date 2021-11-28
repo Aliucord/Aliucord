@@ -31,7 +31,7 @@ import top.canyie.pine.callback.MethodHook;
 
 @SuppressWarnings({"ResultOfMethodCallIgnored", "JavaReflectionMemberAccess"})
 public final class Injector {
-    public static final String LOG_TAG = "Aliucord Injector";
+    public static final String LOG_TAG = "Injector";
     private static final String DATA_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/data.json";
     private static final String DEX_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/Aliucord.zip";
     private static final File BASE_DIRECTORY = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), "Aliucord");
