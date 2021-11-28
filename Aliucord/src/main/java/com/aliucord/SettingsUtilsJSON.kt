@@ -8,8 +8,6 @@ import java.io.File
 import java.lang.reflect.Type
 import java.math.BigDecimal
 import java.util.*
-import kotlin.reflect.KClass
-import kotlin.reflect.typeOf
 
 /** Utility class to store and retrieve preferences  */
 class SettingsUtilsJSON(private val plugin: String) {
