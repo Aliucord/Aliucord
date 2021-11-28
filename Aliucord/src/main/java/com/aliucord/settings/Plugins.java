@@ -71,7 +71,7 @@ public class Plugins extends SettingsPage {
                 try {
                     adapter.onSettingsClick(getAdapterPosition());
                 } catch (Throwable th) {
-                    PluginManager.logger.error(view.getContext(), "Failed to launch plugin settings", th);
+                    PluginManager.logger.errorToast("Failed to launch plugin settings", th);
                 }
             }
 
@@ -246,13 +246,13 @@ public class Plugins extends SettingsPage {
             dialog.setOnOkListener(e -> {
                 File pluginFile = new File(Constants.BASE_PATH + "/plugins/" + p.__filename + ".zip");
                 if (pluginFile.exists() && !pluginFile.delete()) {
-                    PluginManager.logger.error(ctx, "Failed to delete plugin " + p.getName(), null);
+                    PluginManager.logger.errorToast("Failed to delete plugin " + p.getName(), null);
                     return;
                 }
 
                 PluginManager.stopPlugin(p.getName());
                 PluginManager.plugins.remove(p.getName());
-                PluginManager.logger.info(ctx, "Successfully deleted " + p.getName());
+                PluginManager.logger.infoToast("Successfully deleted " + p.getName());
 
                 dialog.dismiss();
                 data.remove(position);

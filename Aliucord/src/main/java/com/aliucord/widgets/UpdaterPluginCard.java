@@ -103,9 +103,9 @@ public class UpdaterPluginCard extends MaterialCardView {
                 try {
                     PluginUpdater.update(plugin);
                     PluginUpdater.updates.remove(plugin);
-                    PluginManager.logger.info(context, "Successfully updated " + p.getName());
+                    PluginManager.logger.infoToast("Successfully updated " + p.getName());
                 } catch (Throwable t) {
-                    PluginManager.logger.error(context, "Sorry, something went wrong while updating " + p.getName(), t);
+                    PluginManager.logger.errorToast("Sorry, something went wrong while updating " + p.getName(), t);
                 } finally {
                     Utils.mainThread.post(forceUpdate);
                 }
@@ -116,7 +116,7 @@ public class UpdaterPluginCard extends MaterialCardView {
         updateParams.setGravity(Gravity.CENTER_VERTICAL);
         buttonLayout.addView(update, updateParams);
         layout.addView(buttonLayout);
-        
+
         set = new ConstraintSet();
         set.clone(layout);
         set.connect(btnLayoutId, ConstraintSet.RIGHT, ConstraintSet.PARENT_ID, ConstraintSet.RIGHT);
