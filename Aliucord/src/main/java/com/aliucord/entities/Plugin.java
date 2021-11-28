@@ -253,10 +253,10 @@ public abstract class Plugin {
 
     /**
      * Called after your plugin is updated
-     * @param prevVersion The version of the plugin that was previously installed
+     * @param previousVersion The version of the plugin that was previously installed
      */
     @SuppressWarnings("RedundantThrows")
-    public void onAfterUpdate(String prevVersion) throws Throwable {}
+    public void onAfterUpdate(String previousVersion) throws Throwable {}
 
     /**
      * Called before your plugin is uninstalled
