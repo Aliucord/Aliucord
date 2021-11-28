@@ -179,6 +179,7 @@ public abstract class Plugin {
     /**
      * Called when your plugin is loaded
      */
+    @SuppressWarnings("deprecation")
     public void onLoad() throws Throwable {
         this.load(Utils.getAppContext());
     }
@@ -195,6 +196,7 @@ public abstract class Plugin {
     /**
      * Called when your plugin is unloaded
      */
+    @SuppressWarnings("deprecation")
     public void onUnload() throws Throwable {
         this.unload(Utils.getAppContext());
     }
@@ -210,6 +212,7 @@ public abstract class Plugin {
     /**
      * Called when your plugin is started
      */
+    @SuppressWarnings("deprecation")
     public void onStart() throws Throwable {
         this.start(Utils.getAppContext());
     }
@@ -226,6 +229,7 @@ public abstract class Plugin {
     /**
      * Called when your plugin is stopped
      */
+    @SuppressWarnings("deprecation")
     public void onStop() throws Throwable {
         this.stop(Utils.getAppContext());
     }
