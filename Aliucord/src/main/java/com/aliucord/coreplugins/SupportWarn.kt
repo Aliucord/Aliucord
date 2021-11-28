@@ -51,13 +51,13 @@ internal class SupportWarn : Plugin() {
 
             val (text, desc, key) = when (loaded.channelId) {
                 PLUGIN_REQUESTS_CHANNEL_ID -> Triple(
-                    "PLEASE READ: This channel is NOT for requesting plugins!",
-                    "This channel is not for requesting plugins. For information on how to request a plugin, check the pins in this channel.",
+                    "PLEASE READ: This is not a request channel, do not request plugins!",
+                    "This is NOT A REQUESTING CHANNEL. For information on how to request a plugin, check the pins in this channel.",
                     "acceptedPrdNotRequests"
                 )
                 else -> Triple(
-                    "PLEASE READ: This channel is not a support channel, do not ask for help.",
-                    "This is not a support channel. Do NOT ask for help about using or installing a plugin or theme here or you will be muted.",
+                    "PLEASE READ: This is not a support channel, do not ask for help!",
+                    "This is NOT A SUPPORT CHANNEL. Do NOT ask for help about using or installing a plugin or theme here or you will be muted.",
                     "acceptedDevNotSupport"
                 )
             }
