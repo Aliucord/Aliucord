@@ -25,6 +25,10 @@ import java.io.PrintWriter
 import java.util.*
 
 open class FragmentProxy : Fragment(), AppComponent {
+    companion object {
+        val fragments: MutableMap<String, Fragment> = HashMap()
+    }
+
     private var mFragment: Fragment? = null
 
     //    @Override
@@ -417,9 +421,5 @@ open class FragmentProxy : Fragment(), AppComponent {
             }
         }
         return mFragment
-    }
-
-    companion object {
-        val fragments: MutableMap<String?, Fragment> = HashMap()
     }
 }

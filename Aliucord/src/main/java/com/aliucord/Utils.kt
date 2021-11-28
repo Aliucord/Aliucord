@@ -24,8 +24,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import c.a.d.j
-import com.aliucord.fragments.AppFragmentProxy
-import com.aliucord.fragments.ConfirmDialog
+import com.aliucord.fragments.*
 import com.aliucord.utils.ReflectUtils
 import com.discord.api.commands.ApplicationCommandType
 import com.discord.api.commands.CommandChoice
@@ -245,7 +244,7 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
     @JvmStatic
     fun openPageWithProxy(context: Context, fragment: Fragment) {
         SnowflakeUtils.fromTimestamp(System.currentTimeMillis() * 100).toString().let {
-            AppFragmentProxy.fragments[it] = fragment
+            FragmentProxy.fragments[it] = fragment
             openPage(context, AppFragmentProxy::class.java, Intent().putExtra("AC_FRAGMENT_ID", it))
         }
     }
@@ -459,7 +458,11 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
             error(th)
         }
 
-        WidgetChatListAdapterItemAttachment.Companion.`access$navigateToAttachment`(WidgetChatListAdapterItemAttachment.Companion, appActivity, attachment)
+        WidgetChatListAdapterItemAttachment.Companion.`access$navigateToAttachment`(
+            WidgetChatListAdapterItemAttachment.Companion,
+            appActivity,
+            attachment
+        )
     }
 
     /**
