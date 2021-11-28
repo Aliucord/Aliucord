@@ -10,11 +10,11 @@ class SettingsDelegate<T>(
     private val settings: SettingsAPI
 ) : ReadWriteProperty<Any, T> {
     override fun getValue(thisRef: Any, property: KProperty<*>): T {
-        return settings.getObject(property.name, defaultValue, defaultValue!!::class.java)
+        return settings.getUnknown(property.name, defaultValue) as T
     }
 
     override fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
-        return settings.setObject(property.name, value)
+        settings.setUnknown(property.name, value)
     }
 }
 
