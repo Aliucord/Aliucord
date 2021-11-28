@@ -46,8 +46,9 @@ internal class SupportWarn : Plugin() {
             val loaded = it.args[0] as ChatInputViewModel.ViewState.Loaded
 
             if (loaded.channelId !in channelList || loaded.shouldShowVerificationGate) return@Hook
-            if (loaded.channelId == PLUGIN_REQUESTS_CHANNEL_ID && settings.getBool("acceptedPrdNotRequests", false)) return@Hook
-            if (settings.getBool("acceptedDevNotSupport", false)) return@Hook
+            if (loaded.channelId == PLUGIN_REQUESTS_CHANNEL_ID) {
+                if (settings.getBool("acceptedPrdNotRequests", false)) return@Hook
+            } else if (settings.getBool("acceptedDevNotSupport", false)) return@Hook
 
             val (text, desc, key) = when (loaded.channelId) {
                 PLUGIN_REQUESTS_CHANNEL_ID -> Triple(
