@@ -35,27 +35,6 @@ class MessageEmbedBuilder @JvmOverloads constructor(type: EmbedType = EmbedType.
         private lateinit var urlField: Field
         private lateinit var videoField: Field
 
-        /**
-         * @param name Field name.
-         * @param value Field content.
-         * @param inline Whether to inline the field or not.
-         * @return [MessageEmbedBuilder] for chaining.
-         * @see MessageEmbedBuilder.addField
-         */
-        fun createField(name: String?, value: String?, inline: Boolean?): EmbedField? {
-            val c = EmbedField::class.java
-            val field = ReflectUtils.allocateInstance(c)
-            try {
-                ReflectUtils.setField(c, field, "name", name)
-                ReflectUtils.setField(c, field, "value", value)
-                ReflectUtils.setField(c, field, "inline", inline)
-                return field
-            } catch (e: Throwable) {
-                Main.logger.error(e)
-            }
-            return null
-        }
-
         init {
             try {
                 val c = MessageEmbed::class.java
@@ -77,6 +56,28 @@ class MessageEmbedBuilder @JvmOverloads constructor(type: EmbedType = EmbedType.
             }
         }
     }
+    
+    /**
+     * @param name Field name.
+     * @param value Field content.
+     * @param inline Whether to inline the field or not.
+     * @return [MessageEmbedBuilder] for chaining.
+     * @see MessageEmbedBuilder.addField
+     */
+    fun createField(name: String?, value: String?, inline: Boolean?): EmbedField? {
+        val c = EmbedField::class.java
+        val field = ReflectUtils.allocateInstance(c)
+        try {
+            ReflectUtils.setField(c, field, "name", name)
+            ReflectUtils.setField(c, field, "value", value)
+            ReflectUtils.setField(c, field, "inline", inline)
+            return field
+        } catch (e: Throwable) {
+            Main.logger.error(e)
+        }
+        return null
+    }
+
 
     private val embed = ReflectUtils.allocateInstance(MessageEmbed::class.java)
 
