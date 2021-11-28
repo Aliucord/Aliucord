@@ -31,7 +31,6 @@ public final class CorePlugins {
             PluginManager.logger.info("Loading core plugin: " + entry.getKey());
             try {
                 p.onLoad();
-                p.load(context);
             } catch (Throwable e) {
                 PluginManager.logger.error(context,"Failed to load core plugin " + p.getName(), e);
             }
@@ -44,7 +43,7 @@ public final class CorePlugins {
             Plugin p = entry.getValue();
             PluginManager.logger.info("Starting core plugin: " + entry.getKey());
             try {
-                p.start(context);
+                p.onStart();
             } catch (Throwable e) {
                 PluginManager.logger.error(context, "Failed to start core plugin " + p.getName(), e);
             }

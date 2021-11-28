@@ -36,7 +36,7 @@ internal class CommandHandler : Plugin() {
     }
   }
 
-  override fun load(context: Context) {
+  override fun onLoad() {
     Patcher.addPatch(BuiltInCommands::class.java, "getBuiltInCommands", emptyArray(), Hook {
       val list = it.result.run { if (this == null) return@Hook else this as MutableList<ApplicationCommand?> }
       val addList = CommandsAPI.commands.values
@@ -149,7 +149,4 @@ internal class CommandHandler : Plugin() {
       } else map[name] = value
     }
   }
-
-  override fun start(context: Context) {}
-  override fun stop(context: Context) {}
 }

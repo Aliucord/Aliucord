@@ -12,6 +12,7 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.aliucord.Utils;
 import com.aliucord.annotations.AliucordPlugin;
 import com.aliucord.Logger;
 import com.aliucord.api.CommandsAPI;
@@ -172,26 +173,31 @@ public abstract class Plugin {
      * @param context Context
      */
     @Deprecated
+    @SuppressWarnings("RedundantThrows")
     public void load(Context context) throws Throwable {}
 
     /**
      * Called when your plugin is loaded
      */
-    public void onLoad() {}
+    public void onLoad() throws Throwable {
+        this.load(Utils.getAppContext());
+    }
 
     /**
      * Called when your Plugin is unloaded
      * @deprecated In favor of {@link Plugin#onUnload()}
      * @param context Context
      */
-    @SuppressWarnings("RedundantThrows")
     @Deprecated
+    @SuppressWarnings("RedundantThrows")
     public void unload(Context context) throws Throwable {}
 
     /**
      * Called when your plugin is unloaded
      */
-    public void onUnload() {}
+    public void onUnload() throws Throwable {
+        this.unload(Utils.getAppContext());
+    }
 
     /**
      * Called when your Plugin is started
@@ -204,7 +210,9 @@ public abstract class Plugin {
     /**
      * Called when your plugin is started
      */
-    public void onStart() {}
+    public void onStart() throws Throwable {
+        this.start(Utils.getAppContext());
+    }
 
     /**
      * Called when your Plugin is stopped
@@ -212,41 +220,49 @@ public abstract class Plugin {
      * @param context Context
      */
     @Deprecated
+    @SuppressWarnings("RedundantThrows")
     public void stop(Context context) throws Throwable {}
 
     /**
      * Called when your plugin is stopped
      */
-    public void onStop() {}
+    public void onStop() throws Throwable {
+        this.stop(Utils.getAppContext());
+    }
 
     /**
      * Called after your plugin is installed OR reinstalled.
      * Called after {@link Plugin#onStart()}
      */
-    public void onInstall() {}
+    @SuppressWarnings("RedundantThrows")
+    public void onInstall() throws Throwable {}
 
     /**
      * Called when your plugin is installed for the first time
      * Called after {@link Plugin#onInstall()}
      */
-    public void onFirstInstall() {}
+    @SuppressWarnings("RedundantThrows")
+    public void onFirstInstall() throws Throwable {}
 
     /**
      * Called before your plugin is updated
      * @param nextVersion The version of the plugin that will be installed
      */
-    public void onBeforeUpdate(String nextVersion) {}
+    @SuppressWarnings("RedundantThrows")
+    public void onBeforeUpdate(String nextVersion) throws Throwable {}
 
     /**
      * Called after your plugin is updated
      * @param prevVersion The version of the plugin that was previously installed
      */
-    public void onAfterUpdate(String prevVersion) {}
+    @SuppressWarnings("RedundantThrows")
+    public void onAfterUpdate(String prevVersion) throws Throwable {}
 
     /**
      * Called before your plugin is uninstalled
      */
-    public void onUninstall() {}
+    @SuppressWarnings("RedundantThrows")
+    public void onUninstall() throws Throwable {}
 
     /** Name of this plugin. Defaults to the class name */
     @Deprecated

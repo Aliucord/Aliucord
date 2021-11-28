@@ -24,7 +24,7 @@ internal class CoreCommands : Plugin() {
         }
     }
 
-    override fun start(context: Context) {
+    override fun onStart() {
         commands.registerCommand(
             "echo",
             "Creates Clyde message",
@@ -94,6 +94,4 @@ internal class CoreCommands : Plugin() {
         return System.getProperty("os.arch") ?: System.getProperty("ro.product.cpu.abi")
         ?: "Unknown Architecture"
     }
-
-    override fun stop(context: Context) {}
 }

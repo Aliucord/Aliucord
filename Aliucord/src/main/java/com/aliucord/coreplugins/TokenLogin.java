@@ -80,7 +80,7 @@ final class TokenLogin extends Plugin {
 
     @Override
     @SuppressLint("SetTextI18n")
-    public void start(Context appContext) throws Throwable {
+    public void onStart() throws Throwable {
         Patcher.addPatch(WidgetAuthLanding.class.getDeclaredMethod("onViewBound", View.class), new Hook(param -> {
             Context context = ((WidgetAuthLanding) param.thisObject).requireContext();
             RelativeLayout view = (RelativeLayout) param.args[0];
@@ -102,7 +102,4 @@ final class TokenLogin extends Plugin {
             if (!((boolean) param.getResult()) && ((AppActivity) param.thisObject).d().equals(Page.class)) param.setResult(true);
         }));
     }
-
-    @Override
-    public void stop(Context context) {}
 }

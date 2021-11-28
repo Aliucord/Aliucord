@@ -7,7 +7,6 @@
 package com.aliucord.coreplugins.plugindownloader
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -45,7 +44,7 @@ internal class PluginDownloader : Plugin() {
     }
 
     @SuppressLint("SetTextI18n")
-    override fun start(context: Context) {
+    override fun onStart() {
         patcher.patch(
             WidgetChatListActions::class.java.getDeclaredMethod("configureUI", WidgetChatListActions.Model::class.java),
             Hook { param ->
@@ -87,8 +86,6 @@ internal class PluginDownloader : Plugin() {
             }
         )
     }
-
-    override fun stop(context: Context) {}
 
     private fun addEntry(layout: ViewGroup, text: String, onClick: View.OnClickListener) {
         val replyView =

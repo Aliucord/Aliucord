@@ -93,7 +93,6 @@ public class PluginManager {
             plugins.put(name, pluginInstance);
             classLoaders.put(loader, pluginInstance);
             pluginInstance.onLoad();
-            pluginInstance.load(context);
         } catch (Throwable e) { logger.error(context, "Failed to load plugin: " + fileName, e); }
     }
 
@@ -105,7 +104,7 @@ public class PluginManager {
         logger.info("Unloading plugin: " + name);
         var plugin = plugins.get(name);
         if (plugin != null) try {
-            plugin.unload(Utils.getAppContext());
+            plugin.onUnload();
             plugins.remove(name);
         } catch (Throwable e) { logger.error("Exception while unloading plugin: " + name, e); }
     }
@@ -152,7 +151,6 @@ public class PluginManager {
         try {
             Plugin p = Objects.requireNonNull(plugins.get(name));
             p.onStart();
-            p.start(Utils.getAppContext());
             if (!SettingsUtils.exists(getPluginPrefKey(name))) {
                 SettingsUtils.setBool(getPluginPrefKey(name), true);
                 p.onInstall();
@@ -170,7 +168,6 @@ public class PluginManager {
         try {
             Plugin p = Objects.requireNonNull(plugins.get(name));
             p.onStop();
-            p.stop(Utils.getAppContext());
         } catch (Throwable e) { logger.error("Exception while stopping plugin " + name, e); }
     }
 

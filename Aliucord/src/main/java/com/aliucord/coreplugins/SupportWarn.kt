@@ -1,6 +1,5 @@
 package com.aliucord.coreplugins
 
-import android.content.Context
 import android.view.View
 import android.widget.*
 import com.aliucord.Utils
@@ -31,7 +30,7 @@ internal class SupportWarn : Plugin() {
         }
     }
 
-    override fun load(context: Context) {
+    override fun onLoad() {
         Patcher.addPatch(WidgetChatInput::class.java.getDeclaredMethod("configureChatGuard", ChatInputViewModel.ViewState.Loaded::class.java), Hook {
             val loaded = it.args[0] as ChatInputViewModel.ViewState.Loaded
 
@@ -68,7 +67,4 @@ internal class SupportWarn : Plugin() {
             }
         })
     }
-
-    override fun start(context: Context) {}
-    override fun stop(context: Context) {}
 }

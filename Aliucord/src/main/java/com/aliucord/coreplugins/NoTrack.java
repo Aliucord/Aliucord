@@ -7,8 +7,6 @@
 
 package com.aliucord.coreplugins;
 
-import android.content.Context;
-
 import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.InsteadHook;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
@@ -25,7 +23,7 @@ final class NoTrack extends Plugin {
     }
 
     @Override
-    public void load(Context context) throws Throwable {
+    public void onLoad() throws Throwable {
         FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false);
 
         Map<String, String[]> map = new HashMap<>();
@@ -54,10 +52,4 @@ final class NoTrack extends Plugin {
             }
         }
     }
-
-    @Override
-    public void start(Context context) {}
-
-    @Override
-    public void stop(Context context) {}
 }
