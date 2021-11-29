@@ -25,9 +25,6 @@ import java.util.Objects;
 /** Base Plugin class all plugins must extend */
 @SuppressWarnings("unused")
 public abstract class Plugin {
-    /** The {@link Logger} of your plugin. Use this to log information */
-    public Logger logger;
-
     /** Plugin Manifest */
     public static class Manifest {
         /** Plugin Author */
@@ -145,7 +142,6 @@ public abstract class Plugin {
             throw new IllegalStateException("This plugin was already initialized");
         }
 
-        this.logger = new Logger(manifest.name);
         this.manifest = manifest;
     }
 
@@ -212,6 +208,8 @@ public abstract class Plugin {
 
     /** The {@link CommandsAPI} of your plugin. You can register/unregister commands here */
     protected CommandsAPI commands = new CommandsAPI(name);
+    /** The {@link Logger} of your plugin. Use this to log information */
+    protected final Logger logger = new Logger(name);
     /** The {@link PatcherAPI} of your plugin. You can add/remove patches here */
     protected PatcherAPI patcher = new PatcherAPI(logger);
     /** The {@link SettingsAPI} of your plugin. Use this to store persistent data */
