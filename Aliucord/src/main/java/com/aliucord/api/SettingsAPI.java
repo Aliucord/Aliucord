@@ -209,14 +209,12 @@ public class SettingsAPI {
      * @param key Key of the item
      */
     public Object getUnknown(String key, Object defValue) {
-        Object value = null;
-        if (defValue instanceof String) value = getString(key, (String) defValue);
-        else if (defValue instanceof Boolean) value = getBool(key, (Boolean) defValue);
-        else if (defValue instanceof Long) value = getLong(key, (Long) defValue);
-        else if (defValue instanceof Float) value = getFloat(key, (Float) defValue);
-        else if (defValue instanceof Integer) value = getInt(key, (Integer) defValue);
-        else value = getObject(key, defValue);
-        return value;
+        if (defValue instanceof String) return getString(key, (String) defValue);
+        if (defValue instanceof Boolean) return getBool(key, (Boolean) defValue);
+        if (defValue instanceof Long) return getLong(key, (Long) defValue);
+        if (defValue instanceof Float) return getFloat(key, (Float) defValue);
+        if (defValue instanceof Integer) return getInt(key, (Integer) defValue);
+        return getObject(key, defValue);
     }
 
     /**
