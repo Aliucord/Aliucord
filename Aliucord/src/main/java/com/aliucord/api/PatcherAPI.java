@@ -7,6 +7,7 @@ package com.aliucord.api;
 
 import androidx.annotation.NonNull;
 
+import com.aliucord.Logger;
 import com.aliucord.patcher.*;
 
 import java.lang.reflect.Member;
@@ -14,11 +15,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.robv.android.xposed.XC_MethodHook;
+import rx.functions.Action1;
 import top.canyie.pine.callback.MethodHook;
 
 @SuppressWarnings({"unused", "deprecation"})
 public class PatcherAPI {
+    public final Logger logger;
     public List<Runnable> unpatches = new ArrayList<>();
+
+    public PatcherAPI(Logger logger) {
+        this.logger = logger;
+    }
 
     private Runnable createUnpatch(Runnable _unpatch) {
         Runnable unpatch = new Runnable() {
@@ -130,6 +137,17 @@ public class PatcherAPI {
      */
     public Runnable patch(@NonNull Member m, @NonNull XC_MethodHook hook) {
         return createUnpatch(Patcher.addPatch(m, hook));
+    }
+
+    /**
+     * Patches a method or constructor.
+     *
+     * @param m    Method or constructor to patch. see {@link Member}.
+     * @param callback Callback for the patch.
+     * @return Method that will remove the patch when invoked
+     */
+    public Runnable patch(@NonNull Member m, @NonNull Action1<XC_MethodHook.MethodHookParam> callback) {
+        return createUnpatch(Patcher.addPatch(m, new Hook(callback)));
     }
 
     /**

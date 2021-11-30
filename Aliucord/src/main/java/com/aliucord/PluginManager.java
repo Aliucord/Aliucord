@@ -165,7 +165,7 @@ public class PluginManager {
 
     /**
      * Remounts the plugin (stop -> unload -> load -> start)
-     * @param name
+     * @param name Name of the plugin to remount
      */
     public static void remountPlugin(String name) {
         if (!plugins.containsKey(name)) throw new IllegalArgumentException("No such plugin: " + name);

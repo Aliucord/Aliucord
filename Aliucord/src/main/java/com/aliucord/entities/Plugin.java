@@ -10,16 +10,24 @@ import android.content.res.Resources;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
+import com.aliucord.annotations.AliucordPlugin;
+import com.aliucord.Logger;
 import com.aliucord.api.CommandsAPI;
 import com.aliucord.api.PatcherAPI;
 import com.aliucord.api.SettingsAPI;
 import com.discord.app.AppBottomSheet;
 import com.discord.app.AppFragment;
 
+import java.util.Objects;
+
 /** Base Plugin class all plugins must extend */
 @SuppressWarnings("unused")
 public abstract class Plugin {
+    /** The {@link Logger} of your plugin. Use this to log information */
+    public Logger logger;
+
     /** Plugin Manifest */
     public static class Manifest {
         /** Plugin Author */
@@ -137,7 +145,25 @@ public abstract class Plugin {
             throw new IllegalStateException("This plugin was already initialized");
         }
 
+        this.logger = new Logger(manifest.name);
         this.manifest = manifest;
+    }
+
+    /**
+     * Returns whether the user will be prompted to restart after enabling/disabling.
+     * @return {@link AliucordPlugin#requiresRestart()}
+     */
+    public boolean requiresRestart() {
+        var annotation = getAnnotation();
+        return annotation != null && annotation.requiresRestart();
+    }
+
+    /**
+     * Returns the @AliucordPlugin annotation if exists
+     */
+    @Nullable
+    public AliucordPlugin getAnnotation() {
+        return this.getClass().getAnnotation(AliucordPlugin.class);
     }
 
     /**
@@ -187,7 +213,7 @@ public abstract class Plugin {
     /** The {@link CommandsAPI} of your plugin. You can register/unregister commands here */
     protected CommandsAPI commands = new CommandsAPI(name);
     /** The {@link PatcherAPI} of your plugin. You can add/remove patches here */
-    protected PatcherAPI patcher = new PatcherAPI();
+    protected PatcherAPI patcher = new PatcherAPI(logger);
     /** The {@link SettingsAPI} of your plugin. Use this to store persistent data */
     public SettingsAPI settings = new SettingsAPI(name);
 }

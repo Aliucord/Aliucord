@@ -44,6 +44,7 @@ import com.discord.models.domain.emoji.ModelEmojiUnicode;
 import com.discord.stores.StoreInviteSettings;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.widgets.changelog.WidgetChangeLog;
+import com.discord.widgets.chat.list.WidgetChatList;
 import com.discord.widgets.debugging.WidgetDebugging;
 import com.discord.widgets.guilds.invite.WidgetGuildInvite;
 import com.discord.widgets.settings.WidgetSettings;
@@ -67,17 +68,22 @@ public final class Main {
     private static boolean loadedPlugins;
 
     /** Aliucord's preInit hook. Plugins are loaded here */
-    public static void preInit(AppActivity activity) {
+    public static void preInit(AppActivity activity) throws NoSuchMethodException {
         if (preInitialized) return;
         preInitialized = true;
 
         Utils.appActivity = activity;
-        CorePlugins.loadAll(activity);
 
-        if (checkPermissions(activity)) loadAllPlugins(activity);
+        if (checkPermissions(activity)) {
+            CorePlugins.loadAll(activity);
+            loadAllPlugins(activity);
+        }
 
-        Patcher.addPatch(AppActivity.class, "onCreate", new Class<?>[] { Bundle.class}, new Hook(param ->
+        Patcher.addPatch(AppActivity.class, "onCreate", new Class<?>[] { Bundle.class }, new Hook(param ->
             Utils.appActivity = (AppActivity) param.thisObject));
+
+        Patcher.addPatch(WidgetChatList.class.getDeclaredConstructor(), new Hook(param ->
+            Utils.widgetChatList = (WidgetChatList) param.thisObject));
     }
 
     /** Aliucord's init hook. Plugins are started here */
@@ -295,9 +301,10 @@ public final class Main {
             System.exit(2);
         });
 
-        CorePlugins.startAll(activity);
-
-        if (loadedPlugins) startAllPlugins();
+        if (loadedPlugins) {
+            CorePlugins.startAll(activity);
+            startAllPlugins();
+        }
     }
 
     private static void loadAllPlugins(Context context) {
@@ -357,9 +364,11 @@ public final class Main {
         if (activity.checkSelfPermission(perm) == PackageManager.PERMISSION_GRANTED) return true;
         activity.registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
             if (granted == Boolean.TRUE) {
+                CorePlugins.loadAll(activity);
+                CorePlugins.startAll(activity);
                 loadAllPlugins(activity);
                 startAllPlugins();
-            } else Toast.makeText(activity, "You have to grant storage permission to load plugins", Toast.LENGTH_LONG).show();
+            } else Toast.makeText(activity, "You have to grant storage permission to use Aliucord", Toast.LENGTH_LONG).show();
         }).launch(perm);
         return false;
     }

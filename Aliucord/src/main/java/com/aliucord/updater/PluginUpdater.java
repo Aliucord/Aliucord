@@ -117,7 +117,7 @@ public class PluginUpdater {
     public static UpdateInfo getUpdateInfo(Plugin plugin) throws Exception {
         Plugin.Manifest manifest = plugin.getManifest();
         if (manifest.updateUrl == null || manifest.updateUrl.equals("")) return null;
-        String name = plugin.getClass().getSimpleName();
+        String name = plugin.getName();
 
         CachedData cached = cache.get(manifest.updateUrl);
         if (cached != null && cached.time > System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(30)) {
@@ -171,7 +171,11 @@ public class PluginUpdater {
         }
 
         if (PluginManager.isPluginEnabled(plugin)) {
-            Utils.mainThread.post(() -> PluginManager.remountPlugin(plugin));
+            Utils.mainThread.post(() -> {
+                PluginManager.remountPlugin(plugin);
+                var newPlugin = Objects.requireNonNull(PluginManager.plugins.get(plugin));
+                if (newPlugin.requiresRestart()) Utils.promptRestart();
+            });
         }
         updated.put(plugin, updateInfo.version);
         return true;

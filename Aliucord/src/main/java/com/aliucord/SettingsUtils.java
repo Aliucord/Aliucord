@@ -6,6 +6,7 @@
 
 package com.aliucord;
 
+
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -14,6 +15,7 @@ import com.aliucord.utils.GsonUtils;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /** Utility class to store and retrieve preferences */
 @SuppressWarnings("unused")
@@ -153,5 +155,25 @@ public class SettingsUtils {
     public static void setObject(String key, Object val) {
         cache.put(key, val);
         setString(key, GsonUtils.toJson(val));
+    }
+
+    /**
+     * Removes Item from settings
+     * @param key Key of the value
+     */
+    public static void remove(String key) {
+        prefs.edit().remove(key).apply();
+    }
+
+    /**
+     * Gets All Settings
+     * @return All settings
+     */
+    public static Map<String, ?> getAllSettings(String prefix) {
+        return prefs.getAll()
+                .entrySet()
+                .stream()
+                .filter(stringEntry -> (stringEntry.getKey()).startsWith(prefix) && stringEntry.getValue() != null)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }

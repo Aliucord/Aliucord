@@ -39,7 +39,9 @@ import com.discord.stores.StoreStream
 import com.discord.utilities.SnowflakeUtils
 import com.discord.utilities.fcm.NotificationClient
 import com.discord.views.CheckedSetting
+import com.discord.widgets.chat.list.WidgetChatList
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemAttachment
+import com.google.android.material.snackbar.Snackbar
 import com.lytefast.flexinput.R
 import java.io.File
 import java.lang.reflect.Field
@@ -70,6 +72,11 @@ object Utils {
         get() = mAppContext ?: NotificationClient.`access$getContext$p`(NotificationClient.INSTANCE)
             .also { mAppContext = it }
 
+    /**
+     * Instance of WidgetChatList. Use this instead of patching it's constructor and storing it.
+     */
+    @JvmField
+    var widgetChatList: WidgetChatList? = null
 
     /**
      * Launches an URL in the user's preferred Browser
@@ -453,5 +460,20 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
         }
 
         WidgetChatListAdapterItemAttachment.Companion.`access$navigateToAttachment`(WidgetChatListAdapterItemAttachment.Companion, appActivity, attachment)
+    }
+
+    /**
+     * Prompts the user to restart Aliucord
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun promptRestart(msg: String = "Restart required. Restart now?") {
+        val view = appActivity.findViewById<View>(android.R.id.content)
+        Snackbar.make(view, msg, Snackbar.LENGTH_INDEFINITE)
+            .setAction("Restart") { v: View ->
+                val ctx = v.context
+                val intent = ctx.packageManager.getLaunchIntentForPackage(ctx.packageName)
+                appActivity.startActivity(Intent.makeRestartActivityTask(intent!!.component))
+            }.show()
     }
 }
