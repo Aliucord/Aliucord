@@ -473,13 +473,8 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
     @JvmStatic
     @JvmOverloads
     fun promptRestart(msg: String = "Restart required. Restart now?") {
-        val resources = this.appContext.resources
-        val id = resources.getIdentifier("navigation_bar_height", "dimen", "android")
-        val navbarHeight = if (id > 0) resources.getDimensionPixelSize(id) else 0
-
-        val view = appActivity.findViewById<View>(android.R.id.content)
+        val view = appActivity.findViewById<FrameLayout>(android.R.id.content).getChildAt(0)
         val bar = Snackbar.make(view, msg, Snackbar.LENGTH_INDEFINITE)
-        (bar.view.layoutParams as FrameLayout.LayoutParams).apply { topMargin = navbarHeight }
         bar.setAction("Restart") {
             val ctx = it.context
             val intent = ctx.packageManager.getLaunchIntentForPackage(ctx.packageName)
