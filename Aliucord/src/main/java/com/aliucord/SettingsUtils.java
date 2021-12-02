@@ -17,10 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Utility class to store and retrieve preferences
- * This is only used for Aliucord internally
- */
+/** Utility class to store and retrieve preferences */
 @SuppressWarnings("unused")
 public class SettingsUtils {
     private static final SharedPreferences prefs = Utils.getAppContext().getSharedPreferences("aliucord", Context.MODE_PRIVATE);
@@ -42,18 +39,6 @@ public class SettingsUtils {
      */
     public static void setBool(String key, boolean val) {
         prefs.edit().putBoolean(key, val).apply();
-    }
-
-    /**
-     * Toggle a boolean item in the preferences
-     * @param key Key of the item
-     * @param defValue Value to set if not found. This is not flipped
-     * @return Flipped value if found, else the defValue
-     */
-    public static boolean toggleBool(String key, boolean defValue) {
-        boolean value = !prefs.getBoolean(key, !defValue);
-        prefs.edit().putBoolean(key, value).apply();
-        return value;
     }
 
     /**
@@ -181,41 +166,14 @@ public class SettingsUtils {
     }
 
     /**
-     * Gets all settings
+     * Gets All Settings
      * @return All settings
      */
-    public static Map<String, ?> getAll() {
-        return prefs.getAll();
-    }
-
-    /**
-     * Gets all settings with a prefix
-     * @return All settings
-     */
-    public static Map<String, ?> getAll(String prefix) {
+    public static Map<String, ?> getAllSettings(String prefix) {
         return prefs.getAll()
                 .entrySet()
                 .stream()
                 .filter(stringEntry -> (stringEntry.getKey()).startsWith(prefix) && stringEntry.getValue() != null)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
-
-    /**
-     * Checks if a setting exists
-     * @param key Key of the item
-     */
-    public static boolean exists(String key) {
-        return prefs.contains(key);
-    }
-
-    /**
-     * Deletes a setting
-     * @param key Key of the item
-     * @return Whether the item existed
-     */
-    public static boolean delete(String key) {
-        boolean exists = prefs.contains(key);
-        prefs.edit().remove(key).apply();
-        return exists;
     }
 }
