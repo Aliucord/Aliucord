@@ -44,7 +44,7 @@ class SettingsUtilsJSON(private val plugin: String) {
         }
     }
 
-    private fun getPreferenceSettings() = SettingsUtils.getAll(keyPrefix)
+    private fun getPreferenceSettings() = SettingsUtils.getAllSettings(keyPrefix)
 
     private fun writeData() {
         if (settings.length() > 0) {
