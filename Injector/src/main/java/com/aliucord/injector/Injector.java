@@ -41,7 +41,7 @@ public final class Injector {
     public static void init() {
         PineConfig.debug = new File(BASE_DIRECTORY, ".pine_debug").exists();
         PineConfig.debuggable = new File(BASE_DIRECTORY, ".debuggable").exists();
-        Log.d(LOG_TAG, "Debuggable: " + PineConfig.debuggable);
+        Log.d(LOG_TAG, "Aliucord Debuggable: " + PineConfig.debuggable);
         PineConfig.disableHiddenApiPolicy = false;
         PineConfig.disableHiddenApiPolicyForPlatformDomain = false;
         Pine.disableJitInline();
