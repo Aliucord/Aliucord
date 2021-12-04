@@ -257,6 +257,7 @@ public class Plugins extends SettingsPage {
 
                 PluginManager.stopPlugin(name);
                 PluginManager.plugins.remove(name);
+                SettingsUtils.delete(PluginManager.getPluginPrefKey(name));
                 PluginManager.logger.info(ctx, "Successfully deleted " + name);
 
                 dialog.dismiss();
