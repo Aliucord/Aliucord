@@ -74,7 +74,7 @@ final class TokenLogin extends Plugin {
         }
 
         public void login(CharSequence token) {
-            StoreAuthentication.access$dispatchLogin(StoreStream.getAuthentication(), new ModelLoginResult(false, null, token.toString(), null));
+            StoreAuthentication.access$dispatchLogin(StoreStream.getAuthentication(), new ModelLoginResult(token.toString().startsWith("mfa."), null, token.toString(), null));
         }
     }
 
