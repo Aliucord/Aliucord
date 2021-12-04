@@ -1,5 +1,6 @@
 package com.aliucord.coreplugins
 
+import android.annotation.SuppressLint
 import android.view.View
 import android.widget.*
 import com.aliucord.Constants.PLUGIN_REQUESTS_CHANNEL_ID
