@@ -174,17 +174,24 @@ public class PluginUpdater {
             );
         }
 
-        try {
-            p.onAfterUpdate(p.getManifest().version);
-        } catch (Throwable e) { logger.error("Exception while updating plugin: " + p.getName(), e); }
+        Utils.mainThread.post(() -> {
+            if (PluginManager.isPluginEnabled(plugin))
+                PluginManager.disablePlugin(plugin);
+            PluginManager.unloadPlugin(plugin);
+            PluginManager.loadPlugin(Utils.getAppContext(), new File(Constants.PLUGINS_PATH, plugin + ".zip"));
 
-        if (PluginManager.isPluginEnabled(plugin)) {
-            Utils.mainThread.post(() -> {
-                PluginManager.remountPlugin(plugin);
-                var newPlugin = Objects.requireNonNull(PluginManager.plugins.get(plugin));
-                if (newPlugin.requiresRestart()) Utils.promptRestart();
-            });
-        }
+            var newPlugin = Objects.requireNonNull(PluginManager.plugins.get(plugin));
+
+            try {
+                newPlugin.onAfterUpdate(p.getManifest().version);
+            } catch (Throwable e) { logger.error("Exception while updating plugin: " + p.getName(), e); }
+
+            if (PluginManager.isPluginEnabled(plugin)) {
+                if (newPlugin.requiresRestart())
+                    Utils.promptRestart();
+                PluginManager.startPlugin(plugin);
+            }
+        });
         updated.put(plugin, updateInfo.version);
         return true;
     }

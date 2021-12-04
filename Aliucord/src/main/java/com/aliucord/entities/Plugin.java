@@ -256,7 +256,7 @@ public abstract class Plugin {
     public void onBeforeUpdate(String nextVersion) throws Throwable {}
 
     /**
-     * Called after your plugin is updated
+     * Called after your plugin is updated on the reloaded plugin
      * @param previousVersion The version of the plugin that was previously installed
      */
     @SuppressWarnings("RedundantThrows")
