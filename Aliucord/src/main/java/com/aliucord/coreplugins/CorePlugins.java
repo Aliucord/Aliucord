@@ -6,10 +6,7 @@ import com.aliucord.coreplugins.plugindownloader.PluginDownloader;
 import com.aliucord.PluginManager;
 import com.aliucord.entities.Plugin;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -32,7 +29,7 @@ public final class CorePlugins {
             try {
                 p.onLoad();
             } catch (Throwable e) {
-                PluginManager.logger.error(context,"Failed to load core plugin " + p.getName(), e);
+                PluginManager.logger.errorToast("Failed to load core plugin " + p.getName(), e);
             }
         }
     }
@@ -45,7 +42,7 @@ public final class CorePlugins {
             try {
                 p.onStart();
             } catch (Throwable e) {
-                PluginManager.logger.error(context, "Failed to start core plugin " + p.getName(), e);
+                PluginManager.logger.errorToast("Failed to start core plugin " + p.getName(), e);
             }
         }
     }
