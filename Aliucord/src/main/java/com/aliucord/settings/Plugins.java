@@ -71,7 +71,7 @@ public class Plugins extends SettingsPage {
                 try {
                     adapter.onSettingsClick(getAdapterPosition());
                 } catch (Throwable th) {
-                    PluginManager.logger.error(view.getContext(), "Failed to launch plugin settings", th);
+                    PluginManager.logger.errorToast("Failed to launch plugin settings", th);
                 }
             }
 

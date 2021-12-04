@@ -137,7 +137,7 @@ public class Updater extends SettingsPage {
                                     rb.setActionTextColor(Color.BLACK);
                                     rb.show();
                                 } catch (Throwable th) {
-                                    PluginUpdater.logger.error(ctx, "Failed to update Aliucord. Check the debug log for more info", th);
+                                    PluginUpdater.logger.errorToast("Failed to update Aliucord. Check the debug log for more info", th);
                                 }
                             }));
                 } else return;

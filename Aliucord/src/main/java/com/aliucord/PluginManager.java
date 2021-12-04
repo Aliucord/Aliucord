@@ -25,7 +25,7 @@ public class PluginManager {
     /** Map containing all loaded plugins */
     public static final Map<String, Plugin> plugins = new LinkedHashMap<>();
     public static final Map<PathClassLoader, Plugin> classLoaders = new HashMap<>();
-    public static final Logger logger = new Logger("PM");
+    public static final Logger logger = new Logger("PluginManager");
 
     /**
      * Loads a plugin
@@ -66,14 +66,14 @@ public class PluginManager {
 
                 //noinspection ConstantConditions
                 if (manifest == null) {
-                    logger.error(context, "Invalid manifest for plugin: " + name, null);
+                    logger.errorToast("Invalid manifest for plugin: " + name, null);
                     return;
                 }
 
                 manifest.name = pluginInstance.name;
                 pluginInstance.initialize(manifest);
             } else {
-                logger.error(context, "No manifest found for plugin: " + fileName, null);
+                logger.errorToast("No manifest found for plugin: " + fileName, null);
                 return;
             }
 
@@ -93,7 +93,7 @@ public class PluginManager {
             plugins.put(name, pluginInstance);
             classLoaders.put(loader, pluginInstance);
             pluginInstance.onLoad();
-        } catch (Throwable e) { logger.error(context, "Failed to load plugin: " + fileName, e); }
+        } catch (Throwable e) { logger.errorToast(context, "Failed to load plugin: " + fileName, e); }
     }
 
     /**
