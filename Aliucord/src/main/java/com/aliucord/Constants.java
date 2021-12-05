@@ -50,6 +50,8 @@ public final class Constants {
     public static final String PLUGINS_PATH = BASE_PATH + "/plugins";
     /** Path of Crashlog folder */
     public static final String CRASHLOGS_PATH = BASE_PATH + "/crashlogs";
+    /** Path of Settings folder */
+    public static final String SETTINGS_PATH = BASE_PATH + "/settings";
 
     public static final String NAMESPACE_ANDROID = "http://schemas.android.com/apk/res/android";
     public static final String NAMESPACE_APP = "http://schemas.android.com/apk/res-auto";
