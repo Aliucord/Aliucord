@@ -21,7 +21,6 @@ public final class CorePlugins {
         corePlugins.put("NoTrack", new NoTrack());
         corePlugins.put("PluginDownloader", new PluginDownloader());
         corePlugins.put("SupportWarn", new SupportWarn());
-        corePlugins.put("TokenLogin", new TokenLogin());
 
         for (Entry<String, Plugin> entry : corePlugins.entrySet()) {
             Plugin p = entry.getValue();
