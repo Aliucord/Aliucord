@@ -50,78 +50,10 @@ import kotlin.jvm.functions.Function1;
 
 @SuppressWarnings("unused")
 public class CommandsAPI {
-    private static final Logger logger = new Logger("CommandsAPI");
-    /** Command result */
-    public static class CommandResult {
-        /** The message content */
-        public String content;
-        /** The embeds */
-        public List<MessageEmbed> embeds;
-        /** Whether the result should be sent visible for everyone */
-        public boolean send;
-        /** The username of the pseudo clyde associated with this CommandResult */
-        public String username;
-        /** The avatar url of the pseudo clyde associated with this CommandResult */
-        public String avatarUrl;
-
-        /**
-         * calls {@link CommandResult#CommandResult(String, List, boolean)} with default arguments.
-         * @see CommandResult#CommandResult(String, List, boolean)
-         */
-        public CommandResult() { this(null); }
-
-        /**
-         * calls {@link CommandResult#CommandResult(String, List, boolean)} with default arguments.
-         * @param content Output message content
-         * @see CommandResult#CommandResult(String, List, boolean)
-         */
-        public CommandResult(@Nullable String content) {
-            this(content, null, true);
-        }
-
-        /**
-         * @param content Output message content
-         * @param embeds Embeds to include in the command output. Requires <code>send</code> to be false.
-         * @param send Whether to send the message or not. If false, messages will appear locally, otherwise they'll be sent to the current channel.
-         */
-        public CommandResult(@Nullable String content, @Nullable List<MessageEmbed> embeds, boolean send) {
-            this.content = content;
-            this.embeds = embeds;
-            this.send = send;
-        }
-
-        /**
-         * @param content Output message content
-         * @param embeds Embeds to include in the command output. Requires <code>send</code> to be false.
-         * @param send Whether to send the message or not. If false, messages will appear locally, otherwise they'll be sent to the current channel.
-         * @param username Username for Clyde's customization. Requires <code>send</code> to be false.
-         */
-        public CommandResult(@Nullable String content, @Nullable List<MessageEmbed> embeds, boolean send, String username) {
-            this.content = content;
-            this.embeds = embeds;
-            this.username = username;
-            this.send = send;
-        }
-
-        /**
-         * @param content Output message content
-         * @param embeds Embeds to include in the command output. Requires <code>send</code> to be false.
-         * @param send Whether to send the message or not. If false, messages will appear locally, otherwise they'll be sent to the current channel.
-         * @param username Username for Clyde. Requires <code>send</code> to be false.
-         * @param avatarUrl Avatar URL for Clyde, must be a direct link, not a redirect. Requires <code>send</code> to be false.
-         */
-        public CommandResult(@Nullable String content, @Nullable List<MessageEmbed> embeds, boolean send, @Nullable String username, @Nullable String avatarUrl) {
-            this.content = content;
-            this.embeds = embeds;
-            this.username = username;
-            this.avatarUrl = avatarUrl;
-            this.send = send;
-        }
-    }
-
     /** ID of the Aliucord Application */
     public static final long ALIUCORD_APP_ID = generateId();
     public static final String DONT_SEND_RESULT = "{ALIUCORD_COMMAND}";
+    private static final Logger logger = new Logger("CommandsAPI");
     private static final Application aliucordApplication = new Application(ALIUCORD_APP_ID, "Aliucord", null, R.e.ic_slash_command_24dp, 0, null, true);
     /** List of all registered commands */
     public static Map<String, RemoteApplicationCommand> commands = new HashMap<>();
@@ -131,18 +63,27 @@ public class CommandsAPI {
     public static Map<Long, WidgetApplicationCommandBottomSheetViewModel.StoreState> interactionsStore = new HashMap<>();
     /** Optional CommandOption of type String */
     public static ApplicationCommandOption messageOption =
-            Utils.createCommandOption(ApplicationCommandType.STRING, "message", null, R.h.command_shrug_message_description);
+        Utils.createCommandOption(ApplicationCommandType.STRING, "message", null, R.h.command_shrug_message_description);
     /** Required CommandOption of type String */
     public static ApplicationCommandOption requiredMessageOption =
-            Utils.createCommandOption(ApplicationCommandType.STRING, "message", null, R.h.command_shrug_message_description, true);
+        Utils.createCommandOption(ApplicationCommandType.STRING, "message", null, R.h.command_shrug_message_description, true);
+    /** Name of the plugin associated with this CommandsAPI */
+    public final String pluginName;
+    /** Command List of the plugin associated with this CommandsAPI */
+    public final List<String> pluginCommands = new ArrayList<>();
+
+    /** Create a CommandsAPI for the specified plugin */
+    public CommandsAPI(String plugin) {
+        pluginName = plugin;
+    }
 
     @SuppressWarnings("unchecked")
     private static void _registerCommand(
-            String pluginName,
-            String name,
-            String description,
-            List<ApplicationCommandOption> options,
-            Function1<CommandContext, CommandResult> execute
+        String pluginName,
+        String name,
+        String description,
+        List<ApplicationCommandOption> options,
+        Function1<CommandContext, CommandResult> execute
     ) {
         RemoteApplicationCommand command = new RemoteApplicationCommand(generateIdString(), ALIUCORD_APP_ID, name, description, options, null, null, null, null, args -> {
             Clock clock = ClockFactory.get();
@@ -150,7 +91,7 @@ public class CommandsAPI {
             long channelId = StoreStream.getChannelsSelected().getId();
             User me = StoreStream.getUsers().getMe();
             Message thinkingMsg = LocalMessageCreatorsKt.createLocalApplicationCommandMessage(
-                    id, name, channelId, UserUtils.INSTANCE.synthesizeApiUser(me), Utils.buildClyde(null, null), false, true, id, clock);
+                id, name, channelId, UserUtils.INSTANCE.synthesizeApiUser(me), Utils.buildClyde(null, null), false, true, id, clock);
             Class<Message> c = Message.class;
             try {
                 ReflectUtils.setField(c, thinkingMsg, "flags", MessageFlags.EPHEMERAL | MessageFlags.LOADING);
@@ -189,22 +130,23 @@ public class CommandsAPI {
 
                         try {
                             Message commandMessage = LocalMessageCreatorsKt.createLocalMessage(
-                                    res.content == null ? "" : res.content,
-                                    channelId,
-                                    Utils.buildClyde(res.username, res.avatarUrl),
-                                    null,
-                                    false,
-                                    false, // TODO: Make local uploads work and set this to true
-                                    null,
-                                    null,
-                                    clock,
-                                    CollectionUtils.map(ctx.getAttachments(), AttachmentUtilsKt::toLocalAttachment),
-                                    null,
-                                    null,
-                                    null,
-                                    null,
-                                    ctx.getMessageReference(),
-                                    null
+                                res.content == null ? "" : res.content,
+                                channelId,
+                                Utils.buildClyde(res.username, res.avatarUrl),
+                                null,
+                                false,
+                                false,
+                                null,
+                                null,
+                                clock,
+                                CollectionUtils.map(ctx.getAttachments(), AttachmentUtilsKt::toLocalAttachment),
+                                null,
+                                null,
+                                null,
+                                null,
+                                ctx.getMessageReference(),
+                                null,
+                                null
                             );
 
                             ReflectUtils.setField(c, commandMessage, "embeds", res.embeds);
@@ -234,15 +176,15 @@ public class CommandsAPI {
                         }
 
                         Utils.mainThread.post(() -> ChatInputViewModel.sendMessage$default(
-                                WidgetChatInput.access$getViewModel$p(_this.this$0),
-                                _this.$context,
-                                _this.$messageManager,
-                                new MessageContent(res.content, content.getMentionedUsers()),
-                                attachments,
-                                false,
-                                (Function1<? super Boolean, Unit>) _args[2],
-                                16,
-                                null
+                            WidgetChatInput.access$getViewModel$p(_this.this$0),
+                            _this.$context,
+                            _this.$messageManager,
+                            new MessageContent(res.content, content.getMentionedUsers()),
+                            attachments,
+                            false,
+                            (Function1<? super Boolean, Unit>) _args[2],
+                            16,
+                            null
                         ));
                     }
                     storeMessages.deleteMessage(thinkingMsg);
@@ -284,7 +226,7 @@ public class CommandsAPI {
                         );
                     }
 
-                    Message commandMessage = LocalMessageCreatorsKt.createLocalMessage(detailedError, channelId, Utils.buildClyde(null, null), null, false, false, null, null, clock, null, null, null, null, null, null, null);
+                    Message commandMessage = LocalMessageCreatorsKt.createLocalMessage(detailedError, channelId, Utils.buildClyde(null, null), null, false, false, null, null, clock, null, null, null, null, null, null, null, null);
 
                     try {
                         ReflectUtils.setField(c, commandMessage, "flags", MessageFlags.EPHEMERAL);
@@ -330,28 +272,19 @@ public class CommandsAPI {
         return String.valueOf(generateId());
     }
 
-    /** Name of the plugin associated with this CommandsAPI */
-    public final String pluginName;
-    /** Command List of the plugin associated with this CommandsAPI */
-    public final List<String> pluginCommands = new ArrayList<>();
-
-    /** Create a CommandsAPI for the specified plugin */
-    public CommandsAPI(String plugin) {
-        pluginName = plugin;
-    }
-
     /**
      * Registers a slash command.
-     * @param name Name of the command.
+     *
+     * @param name        Name of the command.
      * @param description Description of the command.
-     * @param options Arguments for the command. see {@link ApplicationCommandOption}
-     * @param execute Callback for the command.
+     * @param options     Arguments for the command. see {@link ApplicationCommandOption}
+     * @param execute     Callback for the command.
      */
     public void registerCommand(
-            @NonNull String name,
-            @NonNull String description,
-            @NonNull List<ApplicationCommandOption> options,
-            @NonNull Function1<CommandContext, CommandResult> execute
+        @NonNull String name,
+        @NonNull String description,
+        @NonNull List<ApplicationCommandOption> options,
+        @NonNull Function1<CommandContext, CommandResult> execute
     ) {
         _registerCommand(pluginName, name, description, options, execute);
         commandsAndPlugins.put(name, pluginName);
@@ -360,36 +293,39 @@ public class CommandsAPI {
 
     /**
      * Registers a slash command.
-     * @param name Name of the command.
+     *
+     * @param name        Name of the command.
      * @param description Description of the command.
-     * @param option Argument for the command. see {@link ApplicationCommandOption}
-     * @param execute Callback for the command.
+     * @param option      Argument for the command. see {@link ApplicationCommandOption}
+     * @param execute     Callback for the command.
      */
     public void registerCommand(
-            @NonNull String name,
-            @NonNull String description,
-            @NonNull ApplicationCommandOption option,
-            @NonNull Function1<CommandContext, CommandResult> execute
+        @NonNull String name,
+        @NonNull String description,
+        @NonNull ApplicationCommandOption option,
+        @NonNull Function1<CommandContext, CommandResult> execute
     ) {
         registerCommand(name, description, Collections.singletonList(option), execute);
     }
 
     /**
      * Registers a slash command.
-     * @param name Name of the command.
+     *
+     * @param name        Name of the command.
      * @param description Description of the command.
-     * @param execute Callback for the command.
+     * @param execute     Callback for the command.
      */
     public void registerCommand(
-            @NonNull String name,
-            @NonNull String description,
-            @NonNull Function1<CommandContext, CommandResult> execute
+        @NonNull String name,
+        @NonNull String description,
+        @NonNull Function1<CommandContext, CommandResult> execute
     ) {
         registerCommand(name, description, Collections.emptyList(), execute);
     }
 
     /**
      * Unregisters a command.
+     *
      * @param name Command to unregister.
      */
     public void unregisterCommand(String name) {
@@ -407,5 +343,75 @@ public class CommandsAPI {
             commandsAndPlugins.remove(name);
         }
         pluginCommands.clear();
+    }
+
+    /** Command result */
+    public static class CommandResult {
+        /** The message content */
+        public String content;
+        /** The embeds */
+        public List<MessageEmbed> embeds;
+        /** Whether the result should be sent visible for everyone */
+        public boolean send;
+        /** The username of the pseudo clyde associated with this CommandResult */
+        public String username;
+        /** The avatar url of the pseudo clyde associated with this CommandResult */
+        public String avatarUrl;
+
+        /**
+         * calls {@link CommandResult#CommandResult(String, List, boolean)} with default arguments.
+         *
+         * @see CommandResult#CommandResult(String, List, boolean)
+         */
+        public CommandResult() { this(null); }
+
+        /**
+         * calls {@link CommandResult#CommandResult(String, List, boolean)} with default arguments.
+         *
+         * @param content Output message content
+         * @see CommandResult#CommandResult(String, List, boolean)
+         */
+        public CommandResult(@Nullable String content) {
+            this(content, null, true);
+        }
+
+        /**
+         * @param content Output message content
+         * @param embeds  Embeds to include in the command output. Requires <code>send</code> to be false.
+         * @param send    Whether to send the message or not. If false, messages will appear locally, otherwise they'll be sent to the current channel.
+         */
+        public CommandResult(@Nullable String content, @Nullable List<MessageEmbed> embeds, boolean send) {
+            this.content = content;
+            this.embeds = embeds;
+            this.send = send;
+        }
+
+        /**
+         * @param content  Output message content
+         * @param embeds   Embeds to include in the command output. Requires <code>send</code> to be false.
+         * @param send     Whether to send the message or not. If false, messages will appear locally, otherwise they'll be sent to the current channel.
+         * @param username Username for Clyde's customization. Requires <code>send</code> to be false.
+         */
+        public CommandResult(@Nullable String content, @Nullable List<MessageEmbed> embeds, boolean send, String username) {
+            this.content = content;
+            this.embeds = embeds;
+            this.username = username;
+            this.send = send;
+        }
+
+        /**
+         * @param content   Output message content
+         * @param embeds    Embeds to include in the command output. Requires <code>send</code> to be false.
+         * @param send      Whether to send the message or not. If false, messages will appear locally, otherwise they'll be sent to the current channel.
+         * @param username  Username for Clyde. Requires <code>send</code> to be false.
+         * @param avatarUrl Avatar URL for Clyde, must be a direct link, not a redirect. Requires <code>send</code> to be false.
+         */
+        public CommandResult(@Nullable String content, @Nullable List<MessageEmbed> embeds, boolean send, @Nullable String username, @Nullable String avatarUrl) {
+            this.content = content;
+            this.embeds = embeds;
+            this.username = username;
+            this.avatarUrl = avatarUrl;
+            this.send = send;
+        }
     }
 }

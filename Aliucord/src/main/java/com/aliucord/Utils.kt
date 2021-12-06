@@ -402,14 +402,14 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
             f(type)
         }
 
-        k.a().run {
+        l.a().run {
             textSize = 16.0f
             typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
             this.text = text
         }
 
         setSubtext(subtext)
-        k.b().run {
+        l.b().run {
             setPadding(0, paddingTop, paddingRight, paddingBottom)
         }
     }
