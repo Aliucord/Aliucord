@@ -175,7 +175,9 @@ public class PluginUpdater {
         }
 
         Utils.mainThread.post(() -> {
-            if (PluginManager.isPluginEnabled(plugin))
+            var enabled = PluginManager.isPluginEnabled(plugin);
+
+            if (enabled)
                 PluginManager.disablePlugin(plugin);
             PluginManager.unloadPlugin(plugin);
             PluginManager.loadPlugin(Utils.getAppContext(), new File(Constants.PLUGINS_PATH, plugin + ".zip"));
@@ -186,7 +188,7 @@ public class PluginUpdater {
                 newPlugin.onAfterUpdate(p.getManifest().version);
             } catch (Throwable e) { logger.error("Exception while updating plugin: " + p.getName(), e); }
 
-            if (PluginManager.isPluginEnabled(plugin)) {
+            if (enabled) {
                 if (newPlugin.requiresRestart())
                     Utils.promptRestart();
                 PluginManager.startPlugin(plugin);
