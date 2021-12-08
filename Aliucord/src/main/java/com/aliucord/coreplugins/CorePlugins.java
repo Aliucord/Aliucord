@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.aliucord.coreplugins.plugindownloader.PluginDownloader;
 import com.aliucord.PluginManager;
+import com.aliucord.coreplugins.welcomepage.WelcomeScreen;
 import com.aliucord.entities.Plugin;
 
 import java.util.LinkedHashMap;
@@ -22,6 +23,7 @@ public final class CorePlugins {
         corePlugins.put("PluginDownloader", new PluginDownloader());
         corePlugins.put("SupportWarn", new SupportWarn());
         corePlugins.put("TokenLogin", new TokenLogin());
+        corePlugins.put("WelcomePage", new WelcomeScreen());
 
         for (Entry<String, Plugin> entry : corePlugins.entrySet()) {
             Plugin p = entry.getValue();
