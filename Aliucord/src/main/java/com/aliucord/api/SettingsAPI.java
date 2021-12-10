@@ -203,4 +203,31 @@ public class SettingsAPI {
     public void setObject(String key, Object val) {
         settings.setObject(key, val);
     }
+
+    /**
+     * Get a value of an unknown type
+     * @param key Key of the item
+     */
+    public Object getUnknown(String key, Object defValue) {
+        if (defValue instanceof String) return getString(key, (String) defValue);
+        if (defValue instanceof Boolean) return getBool(key, (Boolean) defValue);
+        if (defValue instanceof Long) return getLong(key, (Long) defValue);
+        if (defValue instanceof Float) return getFloat(key, (Float) defValue);
+        if (defValue instanceof Integer) return getInt(key, (Integer) defValue);
+        return getObject(key, defValue);
+    }
+
+    /**
+     * Set a value of an unknown type
+     * @param key Key of the item
+     * @param value Value of the item
+     */
+    public void setUnknown(String key, Object value) {
+        if (value instanceof String) setString(key, (String) value);
+        else if (value instanceof Boolean) setBool(key, (Boolean) value);
+        else if (value instanceof Long) setLong(key, (Long) value);
+        else if (value instanceof Float) setFloat(key, (Float) value);
+        else if (value instanceof Integer) setInt(key, (Integer) value);
+        else setObject(key, value);
+    }
 }
