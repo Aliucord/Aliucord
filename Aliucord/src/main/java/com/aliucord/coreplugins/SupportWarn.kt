@@ -8,6 +8,7 @@ import com.aliucord.Constants.PLUGIN_REQUESTS_CHANNEL_ID
 import com.aliucord.Utils
 import com.aliucord.entities.Plugin
 import com.aliucord.fragments.ConfirmDialog
+import com.aliucord.fragments.InputDialog
 import com.aliucord.patcher.Hook
 import com.aliucord.patcher.Patcher
 import com.discord.databinding.WidgetChatInputBinding
@@ -53,12 +54,12 @@ internal class SupportWarn : Plugin() {
             val (text, desc, key) = when (loaded.channelId) {
                 PLUGIN_REQUESTS_CHANNEL_ID -> Triple(
                     "PLEASE READ: This is not a request channel, do not request plugins!",
-                    "This is NOT A REQUESTING CHANNEL. For information on how to request a plugin, check the pins in this channel.",
+                    "This is NOT A REQUESTING CHANNEL. For information on how to request a plugin, check the pins in this channel. If you have read this, type \"I understand\" into the box.",
                     "acceptedPrdNotRequests"
                 )
                 else -> Triple(
                     "PLEASE READ: This is not a support channel, do not ask for help!",
-                    "This is NOT A SUPPORT CHANNEL. Do NOT ask for help about using or installing a plugin or theme here or you will be muted.",
+                    "This is NOT A SUPPORT CHANNEL. Do NOT ask for help about using or installing a plugin or theme here or you will be muted. If you have read this, type \"I understand\" into the box.",
                     "acceptedDevNotSupport"
                 )
             }
@@ -78,11 +79,12 @@ internal class SupportWarn : Plugin() {
 
             gateButtonText.text = text
             gateButtonArrow.setOnClickListener { _ ->
-                val dialog = ConfirmDialog()
+                val dialog = InputDialog()
                     .setTitle("Warning")
                     .setDescription(desc)
 
                 dialog.setOnOkListener {
+                    if (dialog.input != "I understand") return@setOnOkListener
                     settings.setBool(key, true)
 
                     gateButtonLayout.visibility = View.GONE
