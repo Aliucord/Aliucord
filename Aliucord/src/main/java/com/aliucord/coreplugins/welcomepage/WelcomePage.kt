@@ -92,11 +92,7 @@ class WelcomePage : SettingsPage() {
                 textSize = 16f
                 setOnClickListener {
                     TransitionManager.beginDelayedTransition(fromYT)
-                    if (fromYT.visibility != View.VISIBLE) {
-                        fromYT.visibility = View.VISIBLE
-                    } else {
-                        fromYT.visibility = View.GONE
-                    }
+                    fromYT.visibility = if (fromYT.visibility == View.VISIBLE) View.GONE else View.VISIBLE
                 }
                 addView(this)
             }
