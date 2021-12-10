@@ -49,7 +49,12 @@ android {
     }
 
     buildFeatures {
+        compose = true
         viewBinding = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.0.5"
     }
 }
 
@@ -58,6 +63,11 @@ dependencies {
     api("androidx.appcompat:appcompat:1.3.1")
     api("com.google.android.material:material:1.4.0")
     api("androidx.constraintlayout:constraintlayout:2.1.1")
+
+    api("androidx.compose.ui:ui:1.0.5")
+    api("androidx.compose.ui:ui-tooling:1.0.5")
+    api("androidx.compose.foundation:foundation:1.0.5")
+    api("androidx.compose.material:material:1.0.5")
 
     discord("com.discord:discord:${findProperty("discord_version")}")
     api(files("../.assets/pine.jar"))

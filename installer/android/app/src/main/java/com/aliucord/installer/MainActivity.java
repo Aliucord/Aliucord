@@ -150,6 +150,7 @@ public final class MainActivity extends FlutterActivity {
                                 zip.deleteEntry("classes.dex");
                                 zip.deleteEntry("classes5.dex");
                                 zip.deleteEntry("classes6.dex");
+                                zip.deleteEntry("classes7.dex");
                             }
                             zip.deleteEntry("AndroidManifest.xml");
                             zip.deleteEntry("lib/arm64-v8a/libpine.so");
@@ -179,6 +180,7 @@ public final class MainActivity extends FlutterActivity {
                             Utils.writeEntry(zip, "lib/armeabi-v7a/libpine.so", Utils.readBytes(assets.open("pine/armeabi-v7a/libpine.so")));
 
                             Utils.writeEntry(zip, "classes6.dex", Utils.readBytes(assets.open("kotlin/classes.dex")));
+                            Utils.writeEntry(zip, "classes7.dex", Utils.readBytes(assets.open("compose/classes.dex")));
                             zip.close();
 
                             if (methodCall.argument("replaceBg") != Boolean.FALSE) {
