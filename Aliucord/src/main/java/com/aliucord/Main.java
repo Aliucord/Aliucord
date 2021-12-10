@@ -29,11 +29,13 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.core.widget.NestedScrollView;
 
 import com.aliucord.coreplugins.CorePlugins;
+import com.aliucord.coreplugins.welcomepage.WelcomePage;
 import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.*;
 import com.aliucord.settings.*;
 import com.aliucord.updater.PluginUpdater;
 import com.aliucord.utils.ChangelogUtils;
+import com.aliucord.utils.ReflectUtils;
 import com.aliucord.views.Divider;
 import com.aliucord.views.ToolbarButton;
 import com.discord.app.AppActivity;
@@ -42,6 +44,7 @@ import com.discord.databinding.WidgetChangeLogBinding;
 import com.discord.databinding.WidgetDebuggingAdapterItemBinding;
 import com.discord.models.domain.emoji.ModelEmojiUnicode;
 import com.discord.stores.StoreInviteSettings;
+import com.discord.stores.StoreStream;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.widgets.changelog.WidgetChangeLog;
 import com.discord.widgets.chat.list.WidgetChatList;
@@ -154,6 +157,18 @@ public final class Main {
             }
             debug.setOnClickListener(e -> Utils.openPage(e.getContext(), WidgetDebugging.class));
             v.addView(debug, baseIndex + 5);
+
+            var welcome = new TextView(context, null, 0, R.i.UiKit_Settings_Item_Icon);
+            welcome.setText("Show Welcome Screen");
+            welcome.setTypeface(font);
+            icon = ContextCompat.getDrawable(context, R.e.ic_raised_hand_action_24dp);
+            if (icon != null) {
+                Drawable copy = icon.mutate();
+                copy.setTint(iconColor);
+                welcome.setCompoundDrawablesRelativeWithIntrinsicBounds(copy, null, null, null);
+            }
+            welcome.setOnClickListener(e -> Utils.openPageWithProxy(e.getContext(), new WelcomePage()));
+            v.addView(welcome, baseIndex + 6);
 
             TextView version = v.findViewById(Utils.getResId("app_info_header", "id"));
             boolean isDebuggable = (context.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
