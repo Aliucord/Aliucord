@@ -51,12 +51,12 @@ public class PluginCard extends MaterialCardView {
         switchHeader.removeAllViews();
         switchHeader.f(CheckedSetting.ViewType.SWITCH);
 
-        View headerRoot = switchHeader.k.b();
+        View headerRoot = switchHeader.l.b();
         headerRoot.setPadding(0, headerRoot.getPaddingTop(), headerRoot.getPaddingRight(), headerRoot.getPaddingBottom());
         headerRoot.setBackgroundColor(ColorCompat.getThemedColor(ctx, R.b.colorBackgroundSecondaryAlt));
 
         switchHeader.setSubtext(null);
-        titleView = switchHeader.k.a();
+        titleView = switchHeader.l.a();
         titleView.setTextSize(16.0f);
         titleView.setTypeface(ResourcesCompat.getFont(ctx, Constants.Fonts.whitney_semibold));
         titleView.setMovementMethod(LinkMovementMethod.getInstance());
