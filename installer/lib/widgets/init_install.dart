@@ -20,6 +20,7 @@ class _InitInstallDialog extends StatefulWidget {
 
   const _InitInstallDialog({ Key? key, required this.commit, required this.supportedVersion }) : super(key: key);
 
+  @override
   State<_InitInstallDialog> createState() => _InitInstallDialogState();
 }
 
@@ -36,7 +37,7 @@ class _InitInstallDialogState extends State<_InitInstallDialog> {
     final discordApps = await getInstalledDiscordApps();
     _fetchingInstalled = false;
     showDialog(context: context, builder: (context) => AlertDialog(
-      title: Text('Select apk from installed app'),
+      title: const Text('Select apk from installed app'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: discordApps.map((app) => TextButton(
@@ -60,10 +61,11 @@ class _InitInstallDialogState extends State<_InitInstallDialog> {
           style: TextButton.styleFrom(padding: EdgeInsets.zero),
         )).toList(),
       ),
-      contentPadding: EdgeInsets.symmetric(vertical: 10),
+      contentPadding: const EdgeInsets.symmetric(vertical: 10),
     ));
   }
 
+  @override
   Widget build(BuildContext context) {
     final children = [
         RadioListTile(
@@ -97,12 +99,14 @@ class _InitInstallDialogState extends State<_InitInstallDialog> {
             groupValue: _option,
             onChanged: (_InstallOption? value) async {
               final apk = await pickFile(context, 'Select Discord apk', '.apk');
-              if (apk != null) setState(() {
+              if (apk != null) {
+                setState(() {
                 _option = value;
                 _download = false;
                 _apk = apk;
                 _package = null;
               });
+              }
             },
           )
       );
@@ -115,7 +119,7 @@ class _InitInstallDialogState extends State<_InitInstallDialog> {
         TextButton(
           child: Row(
             mainAxisSize: MainAxisSize.min,
-            children: [ Icon(Icons.archive_outlined), Text(' Install') ],
+            children: const [ Icon(Icons.archive_outlined), Text(' Install') ],
           ),
           onPressed: () => Navigator.pushAndRemoveUntil(
             context, MaterialPageRoute(builder: (context) => InstallPage(apk: _apk, commit: widget.commit, download: _download, supportedVersion: widget.supportedVersion)), (r) => false),

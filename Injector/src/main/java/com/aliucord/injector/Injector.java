@@ -45,11 +45,7 @@ public final class Injector {
         PineConfig.disableHiddenApiPolicy = false;
         PineConfig.disableHiddenApiPolicyForPlatformDomain = false;
         Pine.disableJitInline();
-
-        if (isMiUi()) // (Causes crashes on MiUi 12)
-            Log.w(LOG_TAG, "Detected MIUI, not disabling profile saver.");
-        else if (!new File(BASE_DIRECTORY, ".no_disable_profile").exists())
-            Pine.disableProfileSaver();
+        Pine.disableProfileSaver();
 
         try {
             Log.d(LOG_TAG, "Hooking AppActivity.onCreate...");
@@ -141,19 +137,6 @@ public final class Injector {
             try {
                 new File(appActivity.getCodeCacheDir(), "Aliucord.zip").delete();
             } catch (Throwable ignored) {}
-        }
-    }
-
-    @SuppressLint("PrivateApi") // Why is there no better way to get props???? System.getProperty doesn't work
-    private static boolean isMiUi() {
-        if (!Build.MANUFACTURER.equalsIgnoreCase("xiaomi")) return false;
-        try {
-            var c = Class.forName("android.os.SystemProperties");
-            var getProp = c.getMethod("get", String.class);
-            var miuiCrap = (String) getProp.invoke(c, "ro.miui.ui.version.code");
-            return miuiCrap != null && !miuiCrap.isEmpty();
-        } catch (Throwable ignored) {
-            return false;
         }
     }
 

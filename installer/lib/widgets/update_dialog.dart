@@ -20,6 +20,7 @@ class UpdateDialog extends StatefulWidget {
     required this.message
   }) : super(key: key);
 
+  @override
   State<UpdateDialog> createState() => _UpdateDialogState();
 }
 
@@ -42,6 +43,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
     _dismiss();
   }
 
+  @override
   Widget build(BuildContext context) => _updating ? AlertDialog(
     title: Text('Updating.. ' + (_progress == null ? '' : (_progress! * 100).round().toString() + '%')),
     content: LinearProgressIndicator(value: _progress),
@@ -50,16 +52,16 @@ class _UpdateDialogState extends State<UpdateDialog> {
     content: Text('A new version is available: ${widget.commit} ${widget.message}\ncurrent version: ${widget.currentCommit}'),
     actions: [
       TextButton(
-        child: Row(children: [
-          const Icon(Icons.cancel_outlined),
-          const Text(' Cancel'),
+        child: Row(children: const [
+          Icon(Icons.cancel_outlined),
+          Text(' Cancel'),
         ], mainAxisSize: MainAxisSize.min),
         onPressed: _dismiss,
       ),
       TextButton(
-        child: Row(children: [
-          const Icon(Icons.file_download),
-          const Text(' Update'),
+        child: Row(children: const [
+          Icon(Icons.file_download),
+          Text(' Update'),
         ], mainAxisSize: MainAxisSize.min),
         onPressed: _update,
       ),
