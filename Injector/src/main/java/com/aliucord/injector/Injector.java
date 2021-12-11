@@ -92,9 +92,11 @@ public final class Injector {
                         storeClientVersionField.setAccessible(true);
                         var clientVersionField = StoreClientVersion.class.getDeclaredField("clientVersion");
                         clientVersionField.setAccessible(true);
+                        //noinspection AccessStaticViaInstance
                         var collector = StoreStream.Companion.access$getCollector$p(StoreStream.Companion);
                         var storeClientVersion = storeClientVersionField.get(collector);
-                        var version = (int) clientVersionField.get(storeClientVersion);
+                        var version = (Integer) clientVersionField.get(storeClientVersion);
+                        assert version != null;
                         Logger.d("Retrieved local Discord version: " + version);
 
                         Logger.d("Fetching latest Discord version...");
@@ -164,6 +166,7 @@ public final class Injector {
         var pathList = pathListField.get(classLoader);
         // Android 7: https://android.googlesource.com/platform/libcore/+/refs/heads/nougat-release/dalvik/src/main/java/dalvik/system/DexPathList.java#184
         // Current latest Master: https://android.googlesource.com/platform/libcore/+/58b4e5dbb06579bec9a8fc892012093b6f4fbe20/dalvik/src/main/java/dalvik/system/DexPathList.java#214
+        assert pathList != null;
         var addDexPath = pathList.getClass().getDeclaredMethod("addDexPath", String.class, File.class);
         addDexPath.setAccessible(true);
         addDexPath.invoke(pathList, dex.getAbsolutePath(), (File) null);
