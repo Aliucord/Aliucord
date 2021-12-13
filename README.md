@@ -23,30 +23,30 @@ Unlike other Android Discord app modifications, you don't need to rebuild the AP
 
 ### Supported Architectures
 
-- `arm`
-- `arm64`
+-   `arm`
+-   `arm64`
 
 Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does not either.
 
 ### Supported Android version(s)
 
-- 7 (SDK 24) - 12L (SDK 32)
+-   7 (SDK 24) - 12L (SDK 32)
 
 ### Supported Discord version(s)
 
-- 105.12 / Beta 105112 (You don't need the apk, the installer will download it for you)
+-   105.12 / Beta 105112 (You don't need the apk, the installer will download it for you)
 
 ## 🎨 Features
 
-- Rootless! Aliucord itself does not require a rooted device in order to use it
-- Robust plugin system using Pine!
-    - Allows swapping in and out your plugins without needing to rebuild Aliucord
-    - Toggle on and off, configure or uninstall your plugins via the plugins page
-    - Minimum Discord versions for plugins so no breaking changes are sent out to outdated Discord versions
-- In-app updater to keep Aliucord and your plugins up-to-date
-- Crash logging!
-    - In-app crash log page to give a more native feel
-    - Logs are also saved to `Aliucord/crashlogs` for easy access outside of the app
+-   Rootless! Aliucord itself does not require a rooted device in order to use it
+-   Robust plugin system using Pine!
+    -   Allows swapping in and out your plugins without needing to rebuild Aliucord
+    -   Toggle on and off, configure or uninstall your plugins via the plugins page
+    -   Minimum Discord versions for plugins so no breaking changes are sent out to outdated Discord versions
+-   In-app updater to keep Aliucord and your plugins up-to-date
+-   Crash logging!
+    -   In-app crash log page to give a more native feel
+    -   Logs are also saved to `Aliucord/crashlogs` for easy access outside of the app
 
 ## 📲 Installation
 
@@ -63,14 +63,13 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
 4. Wait for it to finish patching the Discord APK
 5. Click "Install" once prompted by Android and wait for Aliucord to finish installing.
    If the installer just stops or the apk fails to install just try again and it should work
-6. If Google Play warns you about this application being unverified, ignore it. This happens because Aliucord is built & signed locally on your device 
+6. If Google Play warns you about this application being unverified, ignore it. This happens because Aliucord is built & signed locally on your device
    so Play Protect doesn't recognise the signature¹
 7. Open Aliucord, grant access to files (it needs this for finding plugins), log in to your account, and voila! Aliucord is at your fingertips!
 
 > ¹ If you'd like, you can disable this warning by turning off Play Protect in Google Play's settings, play protect is useless.
-> 
-> Play Protect can be turned off by tapping on your user icon in the top right of Google Play, tapping on "Play Protect," tapping on the cog icon in the top right, and finally toggling "Scan apps with Play Protect" to off. This may result in Google Play "nagging" you to re-enable it sometimes when sideloading apps.*
-
+>
+> Play Protect can be turned off by tapping on your user icon in the top right of Google Play, tapping on "Play Protect," tapping on the cog icon in the top right, and finally toggling "Scan apps with Play Protect" to off. This may result in Google Play "nagging" you to re-enable it sometimes when sideloading apps.\*
 
 ## 🔌 Plugin Installation
 
@@ -78,21 +77,21 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
 2. Hold down the message (NOT the link, the entire message) with the desired plugin and click "Open PluginDownloader"
 3. Find the desired plugin in the list and click install. It should immediately start working, however some plugins may require you to restart to make them fully work
 
-
 ⚠️ IF YOU CAME HERE FROM A YOUTUBE TUTORIAL:
-> - PluginDownloader now comes preinstalled with Aliucord so you don't need to install it
-> - If you were promised free nitro, you were clickbaited. The most that is possible is free emotes (sends emote image links instead)
- 
+
+> -   PluginDownloader now comes preinstalled with Aliucord so you don't need to install it
+> -   If you were promised free nitro, you were clickbaited. The most that is possible is free emotes (sends emote image links instead)
+
 ## 🐛 Troubleshooting
 
-- Try closing and then reopening Aliucord
-- Double check that Aliucord has permission to access files
-- Reinstall Aliucord using the installer
+-   Try closing and then reopening Aliucord
+-   Double check that Aliucord has permission to access files
+-   Reinstall Aliucord using the installer
 
 ...and if none of these work, please visit our [support server](https://discord.gg/EsNDvBaHVU) and go to `#support` for help!
 
-
 ## 🧱 Building from source
+
 See `.github/workflows/build.yml` for all build steps.
 
 ## ⏭️ Porting Aliucord to the latest Discord version
@@ -101,18 +100,19 @@ See `.github/workflows/build.yml` for all build steps.
 2. Decompile it using [Apktool](https://github.com/iBotPeaches/Apktool)
     - `apktool d discord.apk` (Replace discord.apk with whatever the file name is)
 3. Apply `manifest.patch` to the `AndroidManifest.xml` file (Using git bash or any shell on Linux or Macos run in the apktool decompile folder: `patch < manifest.patch`)
-4. Rebuild the Discord APK using Apktool
+4. IMPORTANT: set targetSDK to 29 in both apktool.yml and AndroidManifest.xml or Aliucord will fail to install
+5. Rebuild the Discord APK using Apktool
     - `apktool b discord` (Replace discord with the folder name)
-5. Copy `build/apk/AndroidManifest.xml` to `.assets/AndroidManifest.xml` and to `Aliucord/AndroidManifest.xml` on your Android device
-6. Repeat the same steps and this time add `android:debuggable=true` in the main category where there's also app name and icon, name this manifest AndroidManifest-debuggable.xml
-7. Change `discord_version` to the correct one in gradle.properties and resync gradle
-8. Fix any errors you encounter and deploy Aliucord to your device with `./gradlew Aliucord:deployWithAdb`
-9. Open Aliucord > Settings > Updater > Top right settings > Use Aliucord.zip from storage and restart Aliucord
-10. Enjoy debugging if all hell breaks loose
+6. Copy `build/apk/AndroidManifest.xml` to `.assets/AndroidManifest.xml` and to `Aliucord/AndroidManifest.xml` on your Android device
+7. Repeat the same steps and this time add `android:debuggable=true` in the main category where there's also app name and icon, name this manifest AndroidManifest-debuggable.xml
+8. Change `discord_version` to the correct one in gradle.properties and resync gradle
+9. Fix any errors you encounter and deploy Aliucord to your device with `./gradlew Aliucord:deployWithAdb`
+10. Open Aliucord > Settings > Updater > Top right settings > Use Aliucord.zip from storage and restart Aliucord
+11. Enjoy debugging if all hell breaks loose
 
 ## Credits
 
-- [Pine](https://github.com/canyie/pine) - Dynamic java method hook framework on ART
-- [apktool](https://ibotpeaches.github.io/Apktool/) - A tool for reverse engineering Android apk files
-- [jadx](https://github.com/skylot/jadx) - Dex to Java decompiler
-- [dex2jar](https://github.com/pxb1988/dex2jar) - Tools to work with android .dex and java .class files
+-   [Pine](https://github.com/canyie/pine) - Dynamic java method hook framework on ART
+-   [apktool](https://ibotpeaches.github.io/Apktool/) - A tool for reverse engineering Android apk files
+-   [jadx](https://github.com/skylot/jadx) - Dex to Java decompiler
+-   [dex2jar](https://github.com/pxb1988/dex2jar) - Tools to work with android .dex and java .class files
