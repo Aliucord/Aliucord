@@ -19,6 +19,7 @@ import android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
 import android.text.style.ClickableSpan
 import android.text.style.StyleSpan
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
@@ -459,7 +460,11 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
             error(th)
         }
 
-        WidgetChatListAdapterItemAttachment.Companion.`access$navigateToAttachment`(WidgetChatListAdapterItemAttachment.Companion, appActivity, attachment)
+        WidgetChatListAdapterItemAttachment.Companion.`access$navigateToAttachment`(
+            WidgetChatListAdapterItemAttachment.Companion,
+            appActivity,
+            attachment
+        )
     }
 
     /**
@@ -468,12 +473,13 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
     @JvmStatic
     @JvmOverloads
     fun promptRestart(msg: String = "Restart required. Restart now?") {
-        val view = appActivity.findViewById<View>(android.R.id.content)
-        Snackbar.make(view, msg, Snackbar.LENGTH_INDEFINITE)
-            .setAction("Restart") { v: View ->
-                val ctx = v.context
-                val intent = ctx.packageManager.getLaunchIntentForPackage(ctx.packageName)
-                appActivity.startActivity(Intent.makeRestartActivityTask(intent!!.component))
-            }.show()
+        val view = appActivity.findViewById<FrameLayout>(android.R.id.content).getChildAt(0)
+        val bar = Snackbar.make(view, msg, Snackbar.LENGTH_INDEFINITE)
+        bar.setAction("Restart") {
+            val ctx = it.context
+            val intent = ctx.packageManager.getLaunchIntentForPackage(ctx.packageName)
+            appActivity.startActivity(Intent.makeRestartActivityTask(intent!!.component))
+        }
+        bar.show()
     }
 }
