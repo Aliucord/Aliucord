@@ -14,7 +14,7 @@ import com.lytefast.flexinput.R
 /**
  * Creates a dialog similar to the language picker, allows you to supply a list of options for a user to select from.
  */
-class SelectDialog() : AppDialog(Utils.getResId("widget_settings_language_select", "layout")!!) {
+class SelectDialog() : AppDialog(Utils.getResId("widget_settings_language_select", "layout")) {
     private inner class Adapter(private val items: Array<String>) : RecyclerView.Adapter<Adapter.ViewHolder?>() {
         @NonNull
         override fun onCreateViewHolder(@NonNull parent: ViewGroup, viewType: Int): ViewHolder {
@@ -31,9 +31,9 @@ class SelectDialog() : AppDialog(Utils.getResId("widget_settings_language_select
             return items.size
         }
 
-        inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        inner class ViewHolder(private val textView: TextView) : RecyclerView.ViewHolder(textView) {
             fun bind(position: Int) {
-                (itemView as TextView).run {
+                textView.run {
                     text = items[position]
                     setOnClickListener { _ ->
                         onItemPicked(position)
