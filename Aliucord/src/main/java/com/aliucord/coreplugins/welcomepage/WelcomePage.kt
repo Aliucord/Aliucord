@@ -271,15 +271,18 @@ class WelcomePage : SettingsPage() {
             }
             addView(requestPlugin)
             addView(Divider(ctx).apply { scaleY = 5f })
+            val padding = DimenUtils.defaultPadding
 
             addView(Button(ctx).apply {
                 text = "Aliucord Support Server"
                 isAllCaps = false
+                setPadding(padding)
                 setOnClickListener { (WidgetGuildInvite.Companion).launch(ctx, StoreInviteSettings.InviteCode(Constants.ALIUCORD_SUPPORT, "", null)) }
             })
 
             addView(Button(ctx).apply {
                 text = "I understand, close this!"
+                setPadding(padding)
                 setOnClickListener {
                     close()
                     PluginManager.plugins["WelcomePage"]?.settings?.setBool("hasShownWelcome", true)
