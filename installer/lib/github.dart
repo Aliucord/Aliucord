@@ -43,7 +43,7 @@ class GithubAPI with ChangeNotifier {
 
   void checkForUpdates() async {
     final commits = await getCommits(params: { 'sha': 'builds', 'path': 'Installer-release.apk' });
-    if (commits.length == 0) return;
+    if (commits.isEmpty) return;
     final msg = commits.toList()[0].commit.message;
     if (msg.length < 23) return;
     final commit = msg.substring(16, 23);
@@ -59,7 +59,7 @@ class GithubAPI with ChangeNotifier {
     ));
   }
 
-  Map<Uri, Iterable<Commit>> _commitsCache = {};
+  final Map<Uri, Iterable<Commit>> _commitsCache = {};
   Future<Iterable<Commit>> getCommits({ Map<String, dynamic>? params }) async {
     final commitsUri = Uri.https(_apiHost, _commitsEndpoint, params);
     if (_commitsCache.containsKey(commitsUri)) return _commitsCache[commitsUri]!;
@@ -70,7 +70,9 @@ class GithubAPI with ChangeNotifier {
         _commitsCache[commitsUri] = commits;
         return commits;
       }
-    } on DioError {}
+    } on DioError {
+      // nop
+    }
     return [];
   }
 

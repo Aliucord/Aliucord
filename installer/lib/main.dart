@@ -11,12 +11,14 @@ import 'pages/home.dart';
 import 'utils/main.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
-  State<MyApp> createState() => _AppState(); 
+  State<MyApp> createState() => _AppState();
 }
 
 class _AppState extends State<MyApp> {
@@ -24,13 +26,13 @@ class _AppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_initialized) return SizedBox.shrink();
+    if (!_initialized) return const SizedBox.shrink();
     return MaterialApp(
       title: 'Aliucord Installer',
       theme: Themes.lightTheme,
       darkTheme: Themes.darkTheme,
       themeMode: themeManager.currentTheme(),
-      home: HomePage(),
+      home: const HomePage(),
       navigatorKey: navigatorKey,
     );
   }

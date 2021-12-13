@@ -8,7 +8,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 
-const channel = const MethodChannel('main');
+const channel = MethodChannel('main');
 
 class AppInfo {
   String apkPath;
