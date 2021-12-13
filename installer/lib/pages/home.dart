@@ -16,6 +16,8 @@ import '../widgets/commits.dart';
 import 'settings.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
+
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -51,8 +53,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_permissionsGranted) return Scaffold(
-      appBar: AppBar(title: Text('Aliucord Installer')),
+    if (!_permissionsGranted) {
+      return Scaffold(
+      appBar: AppBar(title: const Text('Aliucord Installer')),
       body: Center(child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -61,50 +64,51 @@ class _HomePageState extends State<HomePage> {
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headline6
           ),
-          Padding(padding: EdgeInsets.only(top: 10), child: ElevatedButton(
-            child: Text('Grant permission'),
+          Padding(padding: const EdgeInsets.only(top: 10), child: ElevatedButton(
+            child: const Text('Grant permission'),
             onPressed: _checkPermissions,
           )),
       ])),
     );
+    }
 
     if (_freeSpace == null) getFreeSpace().then((value) => setState(() => _freeSpace = value));
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Aliucord Installer'),
+        title: const Text('Aliucord Installer'),
         actions: [
           Tooltip(message: 'Support server', child: IconButton(
-            icon: Icon(CustomIcons.discord),
+            icon: const Icon(CustomIcons.discord),
             onPressed: () => openUrl('https://discord.gg/$supportServer'),
           )),
           PopupMenuButton<int>(
             onSelected: (action) => Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsPage())),
             itemBuilder: (context) => [
-              PopupMenuItem(child: Text('Settings'), value: 0),
+              const PopupMenuItem(child: Text('Settings'), value: 0),
             ],
           ),
         ],
       ),
-      body: Padding(padding: EdgeInsets.all(4), child: Column(children: [
-        _freeSpace != null && _freeSpace! < 500 ? Card(child: ListTile(
+      body: Padding(padding: const EdgeInsets.all(4), child: Column(children: [
+        _freeSpace != null && _freeSpace! < 500 ? const Card(child: ListTile(
           title: Text('You\'re running on low space'),
           subtitle: Text('Installation may fail due to not enough free space'),
           leading: Icon(Icons.data_usage, color: Colors.red, size: 40),
-        )) : SizedBox.shrink(),
+        )) : const SizedBox.shrink(),
         Card(child: ListTile(
-          title: Text('Aliucord'),
+          title: const Text('Aliucord'),
           subtitle: RichText(text: TextSpan(
             style: Theme.of(context).textTheme.bodyText2,
             text: 'Supported version: ',
             children: _supportedVersionName == null ? null : [
-              TextSpan(text: _supportedVersionName, style: TextStyle(fontWeight: FontWeight.bold))
+              TextSpan(text: _supportedVersionName, style: const TextStyle(fontWeight: FontWeight.bold))
             ],
           )),
           trailing: TextButton(
             child: Row(
               mainAxisSize: MainAxisSize.min,
-              children: [ Icon(Icons.archive_outlined), Text(' Install') ],
+              children: const [ Icon(Icons.archive_outlined), Text(' Install') ],
             ),
             onPressed: _commit == null ? null : () => initInstall(context, _commit!, _supportedVersion!),
           ),
@@ -112,7 +116,7 @@ class _HomePageState extends State<HomePage> {
         Flexible(child: CommitsWidget(selectCommit: _selectCommit)),
       ])),
       bottomNavigationBar: BottomNavigationBar(
-        items: [
+        items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.extension), label: 'Plugins'),
         ],
@@ -123,8 +127,9 @@ class _HomePageState extends State<HomePage> {
 
   void _checkPermissions() {
     checkPermissions().then((res) {
-      if (_permissionsGranted != res)
+      if (_permissionsGranted != res) {
         setState(() => _permissionsGranted = res);
+      }
     });
   }
 }

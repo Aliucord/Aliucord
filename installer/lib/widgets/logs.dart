@@ -11,11 +11,12 @@ class LogsWidget extends StatelessWidget {
 
   LogsWidget({ Key? key, required this.logs }) : super(key: key);
 
+  @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance?.addPostFrameCallback((_) => _controller.jumpTo(_controller.position.maxScrollExtent));
     return SingleChildScrollView(
       controller: _controller,
-      child: SelectableText(logs, style: TextStyle(fontFamily: 'monospace')),
+      child: SelectableText(logs, style: const TextStyle(fontFamily: 'monospace')),
     );
   }
 }
