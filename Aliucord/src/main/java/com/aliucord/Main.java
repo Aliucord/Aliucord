@@ -240,7 +240,7 @@ public final class Main {
 
             Patcher.addPatch(c, "onConfigure", new Class<?>[]{ int.class, AppLog.LoggedItem.class }, new Hook(param -> {
                 AppLog.LoggedItem loggedItem = (AppLog.LoggedItem) param.args[1];
-                Throwable th = loggedItem.l;
+                Throwable th = loggedItem.m;
                 if (th != null) try {
                     TextView logMessage = ((WidgetDebuggingAdapterItemBinding) debugItemBinding.get(param.thisObject)).b;
                     SpannableStringBuilder sb = new SpannableStringBuilder("\n  at ");

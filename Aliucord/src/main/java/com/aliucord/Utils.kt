@@ -360,7 +360,7 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
             -1,
             name ?: "Clyde",
             NullSerializable.b(avatarUrl ?: Constants.Icons.CLYDE),
-            NullSerializable.a(),
+            null,
             "0000",
             0,
             null,
@@ -377,8 +377,9 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
             null,
             null,
             null,
-            NullSerializable.a(),
-            null
+            null,
+            null,
+            0
         )
 
     /**
@@ -401,14 +402,14 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
             f(type)
         }
 
-        k.a().run {
+        l.a().run {
             textSize = 16.0f
             typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
             this.text = text
         }
 
         setSubtext(subtext)
-        k.b().run {
+        l.b().run {
             setPadding(0, paddingTop, paddingRight, paddingBottom)
         }
     }

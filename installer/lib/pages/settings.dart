@@ -19,6 +19,8 @@ class CheckBoxData {
 }
 
 class SettingsPage extends StatefulWidget {
+  const SettingsPage({Key? key}) : super(key: key);
+
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 }
@@ -38,7 +40,9 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
     if (!_loaded) {
       _theme = prefs.getInt('theme') ?? _theme;
       _dexLocation = prefs.getString('dex_location') ?? _dexLocation;
-      _checkBoxes.forEach((data) => data.value = prefs.getBool(data.key) ?? data.defaultValue);
+      for (var data in _checkBoxes) {
+        data.value = prefs.getBool(data.key) ?? data.defaultValue;
+      }
       _loaded = true;
     }
 
@@ -50,10 +54,10 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
             title: const Text('Theme'),
             trailing: DropdownButton(
               value: _theme,
-              items: [
-                DropdownMenuItem(child: Padding(padding: EdgeInsets.only(right: 70), child: const Text('System')), value: 0),
-                DropdownMenuItem(child: const Text('Light'), value: 1),
-                DropdownMenuItem(child: const Text('Dark'), value: 2),
+              items: const [
+                DropdownMenuItem(child: Padding(padding: EdgeInsets.only(right: 70), child: Text('System')), value: 0),
+                DropdownMenuItem(child: Text('Light'), value: 1),
+                DropdownMenuItem(child: Text('Dark'), value: 2),
               ],
               onChanged: (newValue) {
                 themeManager.switchTheme(newValue as int);
@@ -75,16 +79,18 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
             },
           ),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             child: ElevatedButton(
               child: const Text('Clear files cache (Injector.dex and patched manifest)', textAlign: TextAlign.center),
               onPressed: () async {
                 final files = (await getApplicationSupportDirectory()).listSync();
-                for (final file in files) file.delete(recursive: true);
+                for (final file in files) {
+                  file.delete(recursive: true);
+                }
                 prefs.remove('dex_commit');
               },
               style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.all(7),
+                padding: const EdgeInsets.all(7),
               ),
             ),
           ),
