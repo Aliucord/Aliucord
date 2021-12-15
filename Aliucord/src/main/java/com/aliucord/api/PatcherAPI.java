@@ -8,6 +8,8 @@ package com.aliucord.api;
 import androidx.annotation.NonNull;
 
 import com.aliucord.Logger;
+import com.aliucord.PluginManager;
+import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.*;
 
 import java.lang.reflect.Member;
@@ -20,11 +22,11 @@ import top.canyie.pine.callback.MethodHook;
 
 @SuppressWarnings({"unused", "deprecation"})
 public class PatcherAPI {
-    public final Logger logger;
+    public final Plugin plugin;
     public List<Runnable> unpatches = new ArrayList<>();
 
-    public PatcherAPI(Logger logger) {
-        this.logger = logger;
+    public PatcherAPI(String name) {
+        this.plugin = PluginManager.plugins.get(name);
     }
 
     private Runnable createUnpatch(Runnable _unpatch) {

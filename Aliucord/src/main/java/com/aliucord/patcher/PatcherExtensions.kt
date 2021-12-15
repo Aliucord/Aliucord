@@ -19,7 +19,7 @@ inline fun <reified T> PatcherAPI.instead(vararg paramTypes: Class<*>, crossinli
             try {
                 param.result = callback(param.thisObject as T, param)
             } catch (th: Throwable) {
-                logger.error("Exception while replacing constructor of ${param.method.declaringClass}", th)
+                plugin.logger?.error("Exception while replacing constructor of ${param.method.declaringClass}", th)
             }
         }
     })
@@ -36,9 +36,9 @@ inline fun <reified T> PatcherAPI.instead(methodName: String, vararg paramTypes:
     patch(T::class.java.getDeclaredMethod(methodName, *paramTypes), object : XC_MethodHook() {
         override fun beforeHookedMethod(param: MethodHookParam) {
             try {
-                param.result = callback(param.thisObject as T, param)
+                param.result = callback.invoke(param.thisObject as T, param)
             } catch (th: Throwable) {
-                logger.error("Exception while replacing ${param.method.declaringClass.name}.${param.method.name}", th)
+                plugin.logger?.error("Exception while replacing ${param.method.declaringClass.name}.${param.method.name}", th)
             }
         }
     })
@@ -56,7 +56,7 @@ inline fun <reified T> PatcherAPI.before(vararg paramTypes: Class<*>, crossinlin
             try {
                 callback(param.thisObject as T, param)
             } catch (th: Throwable) {
-                logger.error("Exception while pre-hooking constructor of ${param.method.declaringClass}", th)
+                plugin.logger?.error("Exception while pre-hooking constructor of ${param.method.declaringClass}", th)
             }
         }
     })
@@ -75,7 +75,7 @@ inline fun <reified T> PatcherAPI.before(methodName: String, vararg paramTypes: 
             try {
                 callback(param.thisObject as T, param)
             } catch (th: Throwable) {
-                logger.error("Exception while pre-hooking ${param.method.declaringClass.name}.${param.method.name}", th)
+                plugin.logger?.error("Exception while pre-hooking ${param.method.declaringClass.name}.${param.method.name}", th)
             }
         }
     })
@@ -93,7 +93,7 @@ inline fun <reified T> PatcherAPI.after(vararg paramTypes: Class<*>, crossinline
             try {
                 callback(param.thisObject as T, param)
             } catch (th: Throwable) {
-                logger.error("Exception while hooking constructor of ${param.method.declaringClass}", th)
+                plugin.logger?.error("Exception while hooking constructor of ${param.method.declaringClass}", th)
             }
         }
     })
@@ -112,7 +112,7 @@ inline fun <reified T> PatcherAPI.after(methodName: String, vararg paramTypes: C
             try {
                 callback(param.thisObject as T, param)
             } catch (th: Throwable) {
-                logger.error("Exception while hooking ${param.method.declaringClass.name}.${param.method.name}", th)
+                plugin.logger?.error("Exception while hooking ${param.method.declaringClass.name}.${param.method.name}", th)
             }
         }
     })

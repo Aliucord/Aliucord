@@ -149,7 +149,4 @@ internal class CommandHandler : Plugin() {
       } else map[name] = value
     }
   }
-
-  override fun start(context: Context) {}
-  override fun stop(context: Context) {}
 }

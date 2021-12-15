@@ -2,220 +2,228 @@
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
+package com.aliucord.entities
 
-package com.aliucord.entities;
+import android.content.Context
+import android.content.res.Resources
+import android.view.View
+import androidx.fragment.app.Fragment
+import com.aliucord.Logger
+import com.aliucord.annotations.AliucordPlugin
+import com.aliucord.api.*
+import com.discord.app.AppBottomSheet
+import com.discord.app.AppFragment
 
-import android.content.Context;
-import android.content.res.Resources;
-import android.view.View;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import com.aliucord.annotations.AliucordPlugin;
-import com.aliucord.Logger;
-import com.aliucord.api.CommandsAPI;
-import com.aliucord.api.PatcherAPI;
-import com.aliucord.api.SettingsAPI;
-import com.discord.app.AppBottomSheet;
-import com.discord.app.AppFragment;
-
-import java.util.Objects;
-
-/** Base Plugin class all plugins must extend */
-@SuppressWarnings("unused")
-public abstract class Plugin {
-    /** The {@link CommandsAPI} of your plugin. You can register/unregister commands here */
-    protected CommandsAPI commands;
-    /** The {@link Logger} of your plugin. Use this to log information */
-    protected Logger logger;
-    /** The {@link PatcherAPI} of your plugin. You can add/remove patches here */
-    protected PatcherAPI patcher;
-    /** The {@link SettingsAPI} of your plugin. Use this to store persistent data */
-    public SettingsAPI settings;
-
-    /** Plugin Manifest */
-    public static class Manifest {
-        /** Plugin Author */
-        public static class Author {
-            /** The name of the plugin author */
-            public String name;
-            /** The id of the plugin author */
-            public long id;
-
-            /**
-             * Constructs an Author with the specified name and an ID of 0
-             * @param name The name of the author
-             */
-            public Author(String name) {
-                this(name, 0);
-            }
-            /**
-             * Constructs an Author with the specified name and ID
-             * @param name The name of the author
-             * @param id The id of the author
-             */
-            public Author(String name, long id) {
-                this.name = name;
-                this.id = id;
-            }
-
-            @NonNull
-            @Override
-            public String toString() { return name; }
-        }
-
-        public String name;
-        public String pluginClassName;
-        /** The authors of this plugin */
-        public Author[] authors = new Author[]{};
-        /** A short description of this plugin */
-        public String description = "";
-        /** The current version of this plugin */
-        public String version = "1.0.0";
-        // TODO: public String discord;
-        /** The updater JSON url */
-        public String updateUrl;
-        /** Changelog featuring recent updates, written in markdown */
-        public String changelog;
-        /** Image or video link that will be displayed at the top of the changelog */
-        public String changelogMedia;
+/** Base Plugin class all plugins must extend  */
+@Suppress("unused")
+abstract class Plugin {
+    companion object {
+        /** Name of this plugin. Defaults to the class name  */
+        @Deprecated("Use the getName() method instead")
+        @JvmField
+        var name: String = this::class.java.simpleName
     }
 
-    /** Plugin SettingsTab */
-    public static class SettingsTab {
-        /** The type of this SettingsTab. PAGE is a dedicated page, BOTTOM_SHEET is a popup at the bottom of the screen. */
-        public enum Type { PAGE, BOTTOM_SHEET }
+    /** The [SettingsAPI] of your plugin. Use this to store persistent data  */
+    @JvmField
+    val settings = SettingsAPI(name)
 
-        public interface SettingsPage {
-            void onViewBound(View view);
-        }
+    /** SettingsTab associated with this plugin. Set this to register a settings page  */
+    @JvmField
+    var settingsTab: SettingsTab? = null
 
-        /** The {@link Type} of this SettingsTab */
-        public Type type;
-        /** The Page fragment */
-        public Class<? extends AppFragment> page;
-        /** The BottomSheet component */
-        public Class<AppBottomSheet> bottomSheet;
-        /** The arguments that will be passed to the constructor of the component */
-        public Object[] args;
+    /** The resources of your plugin. You need to set [.needsResources] to true to use this  */
+    @JvmField
+    var resources: Resources? = null
 
-        // TODO: public boolean addTab = false;
+    /** Whether your plugin has resources that need to be loaded  */
+    @JvmField
+    var needsResources = false
 
-        /**
-         * Creates a SettingsTab with a dedicated page
-         * @param settings The settings page fragment
-         */
-        public SettingsTab(Class<? extends AppFragment> settings) {
-            type = Type.PAGE;
-            page = settings;
-        }
+    /** The filename of your plugin  */
+    @JvmField
+    var __filename: String? = null
 
-        /**
-         * Creates a SettingsTab of the specified type
-         * @param settings The component to use for this SettingsTab
-         * @param type The {@link Type} of this SettingsTab
-         */
-        @SuppressWarnings("unchecked")
-        public SettingsTab(Class<?> settings, Type type) {
-            this.type = type;
-            if (type == Type.PAGE) page = (Class<? extends AppFragment>) settings;
-            else bottomSheet = (Class<AppBottomSheet>) settings;
-        }
+    /** The [CommandsAPI] of your plugin. You can register/unregister commands here  */
+    @JvmField
+    protected var commands = CommandsAPI(name)
 
-        /**
-         * Sets the constructor args that will be passed to this SettingsTab
-         * @param args The arguments that should be passed
-         */
-        public SettingsTab withArgs(Object... args) {
-            this.args = args;
-            return this;
-        }
-    }
+    /** The [Logger] of your plugin. Use this to log information  */
+    @JvmField
+    var logger: Logger? = null
 
-    private Manifest manifest;
+    /** The [PatcherAPI] of your plugin. You can add/remove patches here  */
+    @JvmField
+    protected var patcher = PatcherAPI(name)
+    private var manifest: Manifest? = null
 
-    /** Method returning the {@link Manifest} of your Plugin */
-    @NonNull
-    public Manifest getManifest() {
-        return manifest;
-    }
+    /** Method returning the [Manifest] of your Plugin  */
+    open fun getManifest() = manifest
 
     /**
      * Initializes the plugin with a manifest, you shouldn't be calling this manually
-     *
      * @throws IllegalStateException If the method was called more than once
      */
-    public void initialize(Manifest manifest) {
-        if (this.manifest != null) {
-            throw new IllegalStateException("This plugin was already initialized");
-        }
-
-        this.manifest = manifest;
-        this.commands = new CommandsAPI(manifest.name);
-        this.settings = new SettingsAPI(manifest.name);
-        this.logger = new Logger(manifest.name);
-        this.patcher = new PatcherAPI(logger);
+    fun initialize(manifest: Manifest) {
+        check(this.manifest == null) { "This plugin was already initialized" }
+        this.manifest = manifest
+        logger = Logger(manifest.name)
     }
 
     /**
      * Returns whether the user will be prompted to restart after enabling/disabling.
-     * @return {@link AliucordPlugin#requiresRestart()}
+     * @return [AliucordPlugin.requiresRestart]
      */
-    public boolean requiresRestart() {
-        var annotation = getAnnotation();
-        return annotation != null && annotation.requiresRestart();
+    fun requiresRestart(): Boolean {
+        val annotation = annotation
+        return annotation != null && annotation.requiresRestart
     }
 
-    /**
-     * Returns the @AliucordPlugin annotation if exists
-     */
-    @Nullable
-    public AliucordPlugin getAnnotation() {
-        return this.getClass().getAnnotation(AliucordPlugin.class);
-    }
+    /** Returns the [AliucordPlugin] annotation if exists */
+    val annotation: AliucordPlugin?
+        get() = javaClass.getAnnotation(AliucordPlugin::class.java)
 
     /**
      * Called when your Plugin is loaded
      * @param context Context
      */
-    public void load(Context context) throws Throwable {}
+    @Throws(Throwable::class)
+    open fun load(context: Context) { }
 
     /**
      * Called when your Plugin is unloaded
      * @param context Context
      */
-    @SuppressWarnings("RedundantThrows")
-    public void unload(Context context) throws Throwable {} // not used now
+    @Throws(Throwable::class)
+    open fun unload(context: Context) { } // not used now
 
     /**
      * Called when your Plugin is started
      * @param context Context
      */
-    public abstract void start(Context context) throws Throwable;
+    @Throws(Throwable::class)
+    open fun start(context: Context) { }
 
     /**
      * Called when your Plugin is stopped
      * @param context Context
      */
-    public abstract void stop(Context context) throws Throwable;
+    @Throws(Throwable::class)
+    open fun stop(context: Context) { }
 
-    /** Name of this plugin. Defaults to the class name */
-    @Deprecated
-    public String name = this.getClass().getSimpleName();
+    fun getName() = manifest!!.name!!
 
-    public String getName() {
-        return manifest.name;
+    /** Plugin Manifest  */
+    class Manifest {
+        @JvmField
+        var name: String? = null
+
+        @JvmField
+        var pluginClassName: String? = null
+
+        /** The authors of this plugin  */
+        @JvmField
+        var authors = arrayOf<Author>()
+
+        /** A short description of this plugin  */
+        @JvmField
+        var description = ""
+
+        /** The current version of this plugin  */
+        @JvmField
+        var version = "1.0.0"
+
+        /** The updater JSON url  */
+        @JvmField
+        var updateUrl: String? = null
+        // TODO: public String discord;
+        /** Changelog featuring recent updates, written in markdown  */
+        @JvmField
+        var changelog: String? = null
+
+        /** Image or video link that will be displayed at the top of the changelog  */
+        @JvmField
+        var changelogMedia: String? = null
+
+        /** Plugin Author
+         * @property[name] The name of the author
+         * @property[id]   The id of the author
+         * @constructor Constructs an Author with the specified name and ID
+         */
+        class Author(
+            @JvmField
+            val name: String,
+            @JvmField
+            val id: Long
+        ) {
+
+            /**
+             * Constructs an Author with the specified name and an ID of 0
+             * @param name The name of the author
+             */
+            constructor(name: String) : this(name, 0)
+
+            override fun toString() = name
+        }
     }
 
-    /** SettingsTab associated with this plugin. Set this to register a settings page */
-    public SettingsTab settingsTab;
+    /** Plugin SettingsTab  */
+    class SettingsTab {
+        /** The [Type] of this SettingsTab  */
+        @JvmField
+        var type: Type
 
-    /** The resources of your plugin. You need to set {@link #needsResources} to true to use this */
-    public Resources resources;
-    /** Whether your plugin has resources that need to be loaded */
-    public boolean needsResources = false;
+        /** The Page fragment  */
+        @JvmField
+        var page: Class<AppFragment>? = null
 
-    /** The filename of your plugin */
-    public String __filename;
+        /** The BottomSheet component  */
+        @JvmField
+        var bottomSheet: Class<AppBottomSheet>? = null
+
+        /** The arguments that will be passed to the constructor of the component  */
+        @JvmField
+        var args: Array<out Any>? = null
+
+        /**
+         * Creates a SettingsTab with a dedicated page
+         * @param settings The settings page fragment
+         */
+        constructor(settings: Class<AppFragment>) {
+            type = Type.PAGE
+            page = settings
+        }
+
+        /**
+         * Creates a SettingsTab of the specified type
+         *
+         * @param settings The component to use for this SettingsTab
+         * @param type     The [Type] of this SettingsTab
+         */
+        @Suppress("UNCHECKED_CAST")
+        constructor(settings: Class<Fragment>, type: Type) {
+            this.type = type
+            if (type == Type.PAGE) page = settings as Class<AppFragment>
+            else bottomSheet = settings as Class<AppBottomSheet>
+        }
+        // TODO: public boolean addTab = false;
+        /**
+         * Sets the constructor args that will be passed to this SettingsTab
+         *
+         * @param args The arguments that should be passed
+         */
+        fun withArgs(vararg args: Any): SettingsTab {
+            this.args = args
+            return this
+        }
+
+        /** The type of this SettingsTab. PAGE is a dedicated page, BOTTOM_SHEET is a popup at the bottom of the screen.  */
+        enum class Type {
+            PAGE, BOTTOM_SHEET
+        }
+
+        interface SettingsPage {
+            fun onViewBound(view: View?)
+        }
+    }
 }
