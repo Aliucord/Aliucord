@@ -67,7 +67,7 @@ abstract class Plugin {
     fun initialize(manifest: Manifest) {
         check(this.manifest == null) { "This plugin was already initialized" }
         this.manifest = manifest
-        logger = Logger(manifest.name)
+        logger = Logger(manifest.name!!)
     }
 
     /**
