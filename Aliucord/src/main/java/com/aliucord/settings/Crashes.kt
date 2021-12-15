@@ -29,7 +29,7 @@ import java.io.File
 import java.util.*
 
 const val autoDisableKey = "autoDisableCrashingPlugins"
-private data class CrashLog(val timestamp: String, val stacktrace: String, var times: Int)
+public data class CrashLog(val timestamp: String, val stacktrace: String, var times: Int)
 
 private val uniqueId = View.generateViewId()
 
@@ -155,25 +155,28 @@ class Crashes : SettingsPage() {
         }
     }
 
-    private fun getCrashes(): Map<Int, CrashLog>? {
-        val folder = File(Constants.BASE_PATH, "crashlogs")
-        val files = folder.listFiles()?.apply {
-            sortByDescending { it.lastModified() }
-        } ?: return null
+    companion object{
+        fun getCrashes(): Map<Int, CrashLog>? {
+            val folder = File(Constants.BASE_PATH, "crashlogs")
+            val files = folder.listFiles()?.apply {
+                sortByDescending { it.lastModified() }
+            } ?: return null
 
-        val res = LinkedHashMap<Int, CrashLog>()
-        for (file in files) {
-            if (!file.isFile) continue
-            val content = file.readText()
-            val hashCode = content.hashCode()
-            res.computeIfAbsent(hashCode) {
-                CrashLog(
-                    timestamp = file.name.replace(".txt", "").replace("_".toRegex(), ":"),
-                    stacktrace = content,
-                    times = 0
-                )
-            }.times++
+            val res = LinkedHashMap<Int, CrashLog>()
+            for (file in files) {
+                if (!file.isFile) continue
+                val content = file.readText()
+                val hashCode = content.hashCode()
+                res.computeIfAbsent(hashCode) {
+                    CrashLog(
+                        timestamp = file.name.replace(".txt", "").replace("_".toRegex(), ":"),
+                        stacktrace = content,
+                        times = 0
+                    )
+                }.times++
+            }
+            return res
         }
-        return res
     }
+
 }

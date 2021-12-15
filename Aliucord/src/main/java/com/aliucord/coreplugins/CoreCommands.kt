@@ -10,8 +10,12 @@ import com.aliucord.*
 import com.aliucord.api.CommandsAPI
 import com.aliucord.api.CommandsAPI.CommandResult
 import com.aliucord.entities.Plugin
+import com.aliucord.settings.Crashes
 import com.discord.api.commands.ApplicationCommandType
+import org.json.JSONObject
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
 
 internal class CoreCommands : Plugin() {
     init {
@@ -90,6 +94,56 @@ ${if (disabled.isEmpty()) "None" else "> $disabledStr"}
             """
 
             CommandResult(str)
+        }
+
+        commands.registerCommand("doctor", "Posts crash logs;Aliucord ,Android info,debug log") {
+            val plugins = PluginManager.plugins
+            val (enabled, disabled) = plugins.values.partition(PluginManager::isPluginEnabled)
+            val enabledStr = formatPlugins(enabled, true)
+            val disabledStr = formatPlugins(disabled, true)
+            val crashes = Crashes.getCrashes()?.filter {
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSS")
+                val parsedDate: Date = dateFormat.parse(it.value.timestamp)
+                parsedDate.after(Date(Calendar.getInstance().timeInMillis - 3600 * 1000))
+            }
+            val res = StringBuilder()
+            crashes?.forEach { res.append(it.value.timestamp + "\n" + it.value.stacktrace) }
+            if (res.isEmpty()) res.append("No Crashes")
+
+            val info =
+                """ **Doctor**
+> Discord: ${Constants.DISCORD_VERSION}
+> Aliucord: ${BuildConfig.GIT_REVISION} (${PluginManager.plugins.size} plugins)
+> System: Android ${Build.VERSION.RELEASE} (SDK v${Build.VERSION.SDK_INT}) - ${getArchitecture()}
+> Rooted: ${getIsRooted() ?: "Unknown"}
+> Device: ${Build.DEVICE}
+> Model: ${Build.MODEL}
+> Product: ${Build.PRODUCT}
+> Manufacturer:${Build.MANUFACTURER}
+> Bootloader: ${Build.BOOTLOADER}
+> Display: ${Build.DISPLAY}
+> Hardware: ${Build.HARDWARE}
+> Board: ${Build.BOARD}
+> ID: ${Build.ID}
+> FingerPrint: ${Build.FINGERPRINT}
+
+**Enabled Plugins**
+
+${if (enabled.isEmpty()) "None" else "/ " + enabledStr.replace(",", "\n/")}
+
+**Disabled Plugins**
+
+${if (disabled.isEmpty()) "None" else "/ " + disabledStr.replace(",", "\n/")}
+
+**Crash Reports From Last 1 hour**
+
+$res
+            """
+
+            val key = JSONObject(Http.simplePost("https://www.hb.vendicated.dev/documents", info)).get("key")
+
+
+            CommandResult("https://www.hb.vendicated.dev/$key")
         }
     }
 
