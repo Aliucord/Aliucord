@@ -14,7 +14,6 @@ import com.aliucord.settings.Crashes
 import com.discord.api.commands.ApplicationCommandType
 import org.json.JSONObject
 import java.io.File
-import java.text.SimpleDateFormat
 import java.util.*
 
 internal class CoreCommands : Plugin() {
@@ -102,9 +101,7 @@ ${if (disabled.isEmpty()) "None" else "> $disabledStr"}
             val enabledStr = formatPlugins(enabled, true)
             val disabledStr = formatPlugins(disabled, true)
             val crashes = Crashes.getCrashes()?.filter {
-                val dateFormat = SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSS")
-                val parsedDate: Date = dateFormat.parse(it.value.timestamp)
-                parsedDate.after(Date(Calendar.getInstance().timeInMillis - 3600 * 1000))
+                it.value.timestampmilis > Calendar.getInstance().timeInMillis - 3600 * 1000
             }
             val res = StringBuilder()
             crashes?.forEach { res.append(it.value.timestamp + "\n" + it.value.stacktrace) }
@@ -118,31 +115,21 @@ ${if (disabled.isEmpty()) "None" else "> $disabledStr"}
 > Rooted: ${getIsRooted() ?: "Unknown"}
 > Device: ${Build.DEVICE}
 > Model: ${Build.MODEL}
-> Product: ${Build.PRODUCT}
-> Manufacturer:${Build.MANUFACTURER}
-> Bootloader: ${Build.BOOTLOADER}
-> Display: ${Build.DISPLAY}
-> Hardware: ${Build.HARDWARE}
-> Board: ${Build.BOARD}
-> ID: ${Build.ID}
-> FingerPrint: ${Build.FINGERPRINT}
+> Manufacturer: ${Build.MANUFACTURER}
 
 **Enabled Plugins**
-
 ${if (enabled.isEmpty()) "None" else "/ " + enabledStr.replace(",", "\n/")}
 
 **Disabled Plugins**
-
 ${if (disabled.isEmpty()) "None" else "/ " + disabledStr.replace(",", "\n/")}
 
 **Crash Reports From Last 1 hour**
 
-$res
-            """
-
+$res """
+            //val file = File(Constants.BASE_PATH,"doctor_temp.txt")
+            //file.writeText(info)
+            //it.addAttachment(Uri.fromFile(file).toString(),"doctor.txt")
             val key = JSONObject(Http.simplePost("https://www.hb.vendicated.dev/documents", info)).get("key")
-
-
             CommandResult("https://www.hb.vendicated.dev/$key")
         }
     }

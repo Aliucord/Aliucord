@@ -29,7 +29,7 @@ import java.io.File
 import java.util.*
 
 const val autoDisableKey = "autoDisableCrashingPlugins"
-public data class CrashLog(val timestamp: String, val stacktrace: String, var times: Int)
+data class CrashLog(val timestamp: String, val stacktrace: String, var times: Int, val timestampmilis: Long)
 
 private val uniqueId = View.generateViewId()
 
@@ -171,7 +171,8 @@ class Crashes : SettingsPage() {
                     CrashLog(
                         timestamp = file.name.replace(".txt", "").replace("_".toRegex(), ":"),
                         stacktrace = content,
-                        times = 0
+                        times = 0,
+                        timestampmilis = file.lastModified()
                     )
                 }.times++
             }
