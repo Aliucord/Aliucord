@@ -26,25 +26,24 @@ public abstract class Plugin {
     /** Name of this plugin. Defaults to the class name */
     @Deprecated
     public String name = getClass().getSimpleName();
-
-    /** SettingsTab associated with this plugin. Set this to register a settings page */
-    public SettingsTab settingsTab;
-
-    /** The resources of your plugin. You need to set {@link #needsResources} to true to use this */
-    public Resources resources;
-    /** Whether your plugin has resources that need to be loaded */
-    public boolean needsResources = false;
-
-    /** The filename of your plugin */
-    public String __filename;
-    /** The {@link Logger} of your plugin. Use this to log information */
-    public Logger logger;
     /** The {@link SettingsAPI} of your plugin. Use this to store persistent data */
     public SettingsAPI settings = new SettingsAPI(name);
     /** The {@link CommandsAPI} of your plugin. You can register/unregister commands here */
     protected CommandsAPI commands = new CommandsAPI(name);
     /** The {@link PatcherAPI} of your plugin. You can add/remove patches here */
     protected PatcherAPI patcher = new PatcherAPI(this);
+    /** Whether your plugin has resources that need to be loaded */
+    public boolean needsResources = false;
+
+    /** SettingsTab associated with this plugin. Set this to register a settings page */
+    public SettingsTab settingsTab;
+    /** The resources of your plugin. You need to set {@link #needsResources} to true to use this */
+    public Resources resources;
+    /** The filename of your plugin */
+    public String __filename;
+    /** The {@link Logger} of your plugin. Use this to log information */
+    public Logger logger;
+
     private Manifest manifest;
 
     /** Method returning the {@link Manifest} of your Plugin */
