@@ -29,13 +29,8 @@ private val repoPattern = Pattern.compile("https?://github\\.com/([A-Za-z0-9\\-_
 private val zipPattern =
     Pattern.compile("https?://(?:github|raw\\.githubusercontent)\\.com/([A-Za-z0-9\\-_.]+)/([A-Za-z0-9\\-_.]+)/(?:raw|blob)?/?\\w+/(\\w+).zip")
 
-internal class PluginDownloader : Plugin() {
+internal class PluginDownloader : Plugin(Manifest("PluginDownloader")) {
     init {
-        Manifest().run {
-            name = "PluginDownloader"
-            initialize(this)
-        }
-
         PluginFile("PluginDownloader").takeIf { it.exists() }?.let {
             if (it.delete())
                 Utils.showToast("PluginDownloader has been merged into Aliucord, so I deleted the plugin for you.", true)

@@ -13,14 +13,7 @@ import com.aliucord.entities.Plugin
 import com.discord.api.commands.ApplicationCommandType
 import java.io.File
 
-internal class CoreCommands : Plugin() {
-    init {
-        Manifest().run {
-            name = "CoreCommands"
-            initialize(this)
-        }
-    }
-
+internal class CoreCommands : Plugin(Manifest("CoreCommands")) {
     override fun start(context: Context) {
         commands.registerCommand(
             "echo",

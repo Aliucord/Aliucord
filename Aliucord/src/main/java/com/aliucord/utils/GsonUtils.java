@@ -9,6 +9,7 @@ package com.aliucord.utils;
 import com.aliucord.Main;
 import com.google.gson.Gson;
 
+import java.io.Reader;
 import java.lang.reflect.Type;
 
 public final class GsonUtils {
@@ -26,6 +27,17 @@ public final class GsonUtils {
     public static <T> T fromJson(String json, Class<T> clazz) {
         return gson.g(json, clazz);
     }
+
+    /**
+     * Deserializes a JSON string into the specified class
+     * @param reader The reader from which JSON will be deserialized
+     * @param clazz The class to deserialize the JSON into
+     * @return Deserialized JSON
+     */
+    public static <T> T fromJson(Reader reader, Class<T> clazz) {
+        return gson.e(reader, clazz);
+    }
+
     /**
      * Deserializes a JSON string into the specified object
      * @param json The JSON string to deserialize

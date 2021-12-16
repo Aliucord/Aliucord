@@ -28,14 +28,7 @@ import com.discord.widgets.chat.list.entries.MessageEntry
 import com.discord.widgets.chat.list.sheet.WidgetApplicationCommandBottomSheetViewModel
 
 @Suppress("UNCHECKED_CAST")
-internal class CommandHandler : Plugin() {
-  init {
-    Manifest().run {
-      name = "CommandHandler"
-      initialize(this)
-    }
-  }
-
+internal class CommandHandler : Plugin(Manifest().apply { name = "CommandHandler" }) {
   override fun load(context: Context) {
     Patcher.addPatch(BuiltInCommands::class.java, "getBuiltInCommands", emptyArray(), Hook {
       val list = it.result.run { if (this == null) return@Hook else this as MutableList<ApplicationCommand?> }

@@ -19,9 +19,7 @@ import de.robv.android.xposed.XposedBridge;
 
 final class NoTrack extends Plugin {
     NoTrack() {
-        var manifest = new Manifest();
-        manifest.name = "NoTrack";
-        initialize(manifest);
+        super(new Manifest("NoTrack"));
     }
 
     @Override
