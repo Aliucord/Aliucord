@@ -71,7 +71,7 @@ public class UpdaterPluginCard extends MaterialCardView {
         tv = new TextView(context, null, 0, R.i.UiKit_TextView_Subtext);
         try {
             PluginUpdater.UpdateInfo info = PluginUpdater.getUpdateInfo(p);
-            tv.setText(String.format("%s -> v%s", p.getManifest().version, info != null ? info.version : "?"));
+            tv.setText(String.format("v%s -> v%s", p.getManifest().version, info != null ? info.version : "?"));
             if (info != null && info.changelog != null) {
                 ToolbarButton changeLogButton = new ToolbarButton(context);
                 changeLogButton.setImageDrawable(ContextCompat.getDrawable(context, R.e.ic_history_white_24dp));

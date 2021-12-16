@@ -3,6 +3,8 @@
  * Licensed under the Open Software License version 3.0
  */
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -10,7 +12,15 @@ import 'github.dart';
 import 'pages/home.dart';
 import 'utils/main.dart';
 
+class _HttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) =>
+    super.createHttpClient(context)
+      ..badCertificateCallback = (cert, host, port) => true;
+}
+
 void main() {
+  HttpOverrides.global = _HttpOverrides();
   runApp(const MyApp());
 }
 

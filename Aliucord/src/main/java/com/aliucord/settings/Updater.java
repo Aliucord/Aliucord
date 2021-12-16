@@ -176,6 +176,7 @@ public class Updater extends SettingsPage {
             settingsButton.setImageDrawable(ContextCompat.getDrawable(context, R.e.ic_guild_settings_24dp));
 
             updateAllButton.setOnClickListener(e -> {
+                updateAllButton.setEnabled(false);
                 setActionBarSubtitle("Updating...");
                 Utils.threadPool.execute(() -> {
                     int updateCount = PluginUpdater.updateAll();
@@ -186,11 +187,13 @@ public class Updater extends SettingsPage {
                     } else {
                         stateText = String.format("Successfully updated %s!", Utils.pluralise(updateCount, "plugin"));
                     }
+                    updateAllButton.setEnabled(true);
                     Utils.mainThread.post(this::reRender);
                 });
             });
 
             refreshButton.setOnClickListener(e -> {
+                refreshButton.setEnabled(false);
                 setActionBarSubtitle("Checking for updates...");
                 Utils.threadPool.execute(() -> {
                     PluginUpdater.cache.clear();
@@ -200,6 +203,7 @@ public class Updater extends SettingsPage {
                         stateText = "No updates found";
                     else
                         stateText = String.format("Found %s", Utils.pluralise(updateCount, "update"));
+                    refreshButton.setEnabled(true);
                     Utils.mainThread.post(this::reRender);
                 });
             });
