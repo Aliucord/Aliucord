@@ -27,11 +27,11 @@ public abstract class Plugin {
     @Deprecated
     public String name = getClass().getSimpleName();
     /** The {@link SettingsAPI} of your plugin. Use this to store persistent data */
-    public SettingsAPI settings = new SettingsAPI(name);
+    final public SettingsAPI settings = new SettingsAPI(name);
     /** The {@link CommandsAPI} of your plugin. You can register/unregister commands here */
-    protected CommandsAPI commands = new CommandsAPI(name);
+    final public CommandsAPI commands = new CommandsAPI(name);
     /** The {@link PatcherAPI} of your plugin. You can add/remove patches here */
-    protected PatcherAPI patcher = new PatcherAPI(this);
+    final public PatcherAPI patcher = new PatcherAPI(this);
     /** Whether your plugin has resources that need to be loaded */
     public boolean needsResources = false;
 
