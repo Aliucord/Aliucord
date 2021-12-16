@@ -11,9 +11,13 @@ import android.content.res.AssetManager;
 import android.content.res.Resources;
 
 import com.aliucord.entities.Plugin;
+import com.aliucord.patcher.Patcher;
+import com.aliucord.patcher.PreHook;
 import com.aliucord.utils.*;
 
-import java.io.*;
+import java.io.File;
+import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -26,6 +30,17 @@ public class PluginManager {
     public static final Map<PathClassLoader, Plugin> classLoaders = new HashMap<>();
     public static final Logger logger = new Logger("PluginManager");
 
+    private static final Field manifestField;
+
+    static {
+        try {
+            manifestField = Plugin.class.getDeclaredField("manifest");
+            manifestField.setAccessible(true);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Loads a plugin
      * @param context Context
@@ -36,46 +51,36 @@ public class PluginManager {
         String fileName = file.getName().replace(".zip", "");
         logger.info("Loading plugin: " + fileName);
         try {
-            PathClassLoader loader = new PathClassLoader(file.getAbsolutePath(), context.getClassLoader());
-
-            InputStream stream;
+            var loader = new PathClassLoader(file.getAbsolutePath(), context.getClassLoader());
 
             Plugin.Manifest manifest;
-            String name;
 
-            Class<? extends Plugin> pluginClass;
-            Plugin pluginInstance;
-
-            if ((stream = loader.getResourceAsStream("manifest.json")) != null) {
-                manifest = GsonUtils.gson.e(new InputStreamReader(stream), Plugin.Manifest.class);
-                name = manifest.name;
-
-                pluginClass = (Class<? extends Plugin>) loader.loadClass(manifest.pluginClassName);
-                pluginInstance = pluginClass.newInstance();
-
-                pluginInstance.initialize(manifest);
-                pluginInstance.name = manifest.name;
-            } else if ((stream = loader.getResourceAsStream("ac-plugin")) != null) {
-                name = new String(IOUtils.readBytes(stream));
-
-                pluginClass = (Class<? extends Plugin>) loader.loadClass("com.aliucord.plugins." + name);
-                pluginInstance = pluginClass.newInstance();
-
-                manifest = pluginInstance.getManifest();
-
-                //noinspection ConstantConditions
-                if (manifest == null) {
-                    logger.errorToast("Invalid manifest for plugin: " + name, null);
+            try (var stream = loader.getResourceAsStream("manifest.json")) {
+                if (stream == null) {
+                    logger.errorToast("No manifest found for plugin: " + fileName, null);
                     return;
                 }
 
-                manifest.name = pluginInstance.name;
-                pluginInstance.initialize(manifest);
-            } else {
-                logger.errorToast("No manifest found for plugin: " + fileName, null);
-                return;
+                try (var reader = new InputStreamReader(stream)) {
+                    manifest = GsonUtils.fromJson(reader, Plugin.Manifest.class);
+                }
             }
 
+            var name = manifest.name;
+
+            var pluginClass = (Class<? extends Plugin>) loader.loadClass(manifest.pluginClassName);
+
+            Patcher.addPatch(pluginClass.getDeclaredConstructor(), new PreHook(param -> {
+                var plugin = (Plugin) param.thisObject;
+                try {
+                    manifestField.set(plugin, manifest);
+                } catch (IllegalAccessException e) {
+                    logger.errorToast("Failed to set manifest for " + manifest.name);
+                    logger.error(e);
+                }
+            }));
+
+            var pluginInstance = pluginClass.newInstance();
             if (plugins.containsKey(name)) {
                 logger.error("Plugin with name " + name + " already exists", null);
                 return;

@@ -16,7 +16,7 @@ import com.discord.widgets.chat.input.WidgetChatInput
 import com.lytefast.flexinput.R
 
 @SuppressLint("SetTextI18n")
-internal class SupportWarn : Plugin() {
+internal class SupportWarn : Plugin(Manifest("SupportWarn")) {
     private val bindingMethod = WidgetChatInput::class.java.getDeclaredMethod("getBinding").apply { isAccessible = true }
 
     private val channelList = listOf(
@@ -33,13 +33,6 @@ internal class SupportWarn : Plugin() {
     private val gateButtonImageId = Utils.getResId("chat_input_member_verification_guard_icon", "id")
     private val gateButtonArrowId = Utils.getResId("chat_input_member_verification_guard_action", "id")
     private val gateButtonLayoutId = Utils.getResId("guard_member_verification", "id")
-
-    init {
-        Manifest().run {
-            name = "SupportWarn"
-            initialize(this)
-        }
-    }
 
     override fun load(context: Context) {
         Patcher.addPatch(WidgetChatInput::class.java.getDeclaredMethod("configureChatGuard", ChatInputViewModel.ViewState.Loaded::class.java), Hook {
