@@ -145,6 +145,8 @@ public abstract class Plugin {
             }
 
             manifest = this.manifest;
+        } else if (manifest != null) {
+            this.manifest = manifest;
         }
 
         if (manifest == null) {
