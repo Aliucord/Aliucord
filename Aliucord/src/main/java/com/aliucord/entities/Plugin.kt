@@ -10,19 +10,18 @@ import android.view.View
 import androidx.fragment.app.Fragment
 import com.aliucord.Logger
 import com.aliucord.annotations.AliucordPlugin
-import com.aliucord.api.*
+import com.aliucord.api.CommandsAPI
+import com.aliucord.api.PatcherAPI
+import com.aliucord.api.SettingsAPI
 import com.discord.app.AppBottomSheet
 import com.discord.app.AppFragment
 
 /** Base Plugin class all plugins must extend  */
 @Suppress("unused")
 abstract class Plugin {
-    companion object {
-        /** Name of this plugin. Defaults to the class name  */
-        @Deprecated("Use the getName() method instead")
-        @JvmField
-        var name: String = this::class.java.simpleName
-    }
+    @Deprecated("Use the getName() method instead")
+    @JvmField
+    var name: String = this::class.java.simpleName
 
     /** The [SettingsAPI] of your plugin. Use this to store persistent data  */
     @JvmField
@@ -49,13 +48,14 @@ abstract class Plugin {
     protected var commands = CommandsAPI(name)
 
     /** The [Logger] of your plugin. Use this to log information  */
-    @JvmField
-    var logger: Logger? = null
+    lateinit var logger: Logger
 
     /** The [PatcherAPI] of your plugin. You can add/remove patches here  */
     @JvmField
-    protected var patcher = PatcherAPI(name)
-    private var manifest: Manifest? = null
+    protected var patcher = PatcherAPI(this)
+
+    @JvmField
+    var manifest: Manifest? = null
 
     /** Method returning the [Manifest] of your Plugin  */
     open fun getManifest() = manifest
@@ -88,30 +88,34 @@ abstract class Plugin {
      * @param context Context
      */
     @Throws(Throwable::class)
-    open fun load(context: Context) { }
+    open fun load(context: Context) {
+    }
 
     /**
      * Called when your Plugin is unloaded
      * @param context Context
      */
     @Throws(Throwable::class)
-    open fun unload(context: Context) { } // not used now
+    open fun unload(context: Context) {
+    } // not used now
 
     /**
      * Called when your Plugin is started
      * @param context Context
      */
     @Throws(Throwable::class)
-    open fun start(context: Context) { }
+    open fun start(context: Context) {
+    }
 
     /**
      * Called when your Plugin is stopped
      * @param context Context
      */
     @Throws(Throwable::class)
-    open fun stop(context: Context) { }
+    open fun stop(context: Context) {
+    }
 
-    fun getName() = manifest!!.name!!
+    open fun getName() = manifest!!.name!!
 
     /** Plugin Manifest  */
     class Manifest {
@@ -175,7 +179,7 @@ abstract class Plugin {
 
         /** The Page fragment  */
         @JvmField
-        var page: Class<AppFragment>? = null
+        var page: Class<out AppFragment>? = null
 
         /** The BottomSheet component  */
         @JvmField
@@ -189,7 +193,7 @@ abstract class Plugin {
          * Creates a SettingsTab with a dedicated page
          * @param settings The settings page fragment
          */
-        constructor(settings: Class<AppFragment>) {
+        constructor(settings: Class<out AppFragment>) {
             type = Type.PAGE
             page = settings
         }
@@ -201,7 +205,7 @@ abstract class Plugin {
          * @param type     The [Type] of this SettingsTab
          */
         @Suppress("UNCHECKED_CAST")
-        constructor(settings: Class<Fragment>, type: Type) {
+        constructor(settings: Class<out Fragment>, type: Type) {
             this.type = type
             if (type == Type.PAGE) page = settings as Class<AppFragment>
             else bottomSheet = settings as Class<AppBottomSheet>

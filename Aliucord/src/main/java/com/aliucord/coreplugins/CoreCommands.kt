@@ -38,8 +38,7 @@ internal class CoreCommands : Plugin() {
             CommandResult(it.getRequiredString("message"))
         }
 
-        fun formatPlugins(plugins: List<Plugin>, showVersions: Boolean): String =
-            plugins.joinToString(transform = { p -> p.getName() + if (showVersions) " (${p.manifest.version})" else "" })
+        fun formatPlugins(plugins: List<Plugin>, showVersions: Boolean) = plugins.joinToString { p -> p.getName() + if (showVersions) " (${p.manifest!!.version})" else "" }
 
         commands.registerCommand(
             "plugins",

@@ -22,11 +22,11 @@ import top.canyie.pine.callback.MethodHook;
 
 @SuppressWarnings({"unused", "deprecation"})
 public class PatcherAPI {
-    public final Plugin plugin;
+    public Plugin plugin;
     public List<Runnable> unpatches = new ArrayList<>();
 
-    public PatcherAPI(String name) {
-        this.plugin = PluginManager.plugins.get(name);
+    public PatcherAPI(Plugin plugin) {
+        this.plugin = plugin;
     }
 
     private Runnable createUnpatch(Runnable _unpatch) {
