@@ -103,7 +103,7 @@ ${if (disabled.isEmpty()) "None" else "> $disabledStr"}
             CommandResult(str)
         }
 
-        commands.registerCommand("doctor", "Posts crash logs;Aliucord ,Android info,debug log") {
+        commands.registerCommand("doctor", "Posts crash logs with device info") {
             val plugins = PluginManager.plugins
             val (enabled, disabled) = plugins.values.partition(PluginManager::isPluginEnabled)
             val enabledStr = formatPlugins(enabled, true)
@@ -135,9 +135,6 @@ ${if (disabled.isEmpty()) "None" else "/ " + disabledStr.replace(",", "\n/")}
 
 $res
 """
-            //val file = File(Constants.BASE_PATH,"doctor_temp.txt")
-            //file.writeText(info)
-            //it.addAttachment(Uri.fromFile(file).toString(),"doctor.txt")
             val key = JSONObject(Http.simplePost("https://www.hb.vendicated.dev/documents", info)).get("key")
             CommandResult("https://www.hb.vendicated.dev/$key")
         }
