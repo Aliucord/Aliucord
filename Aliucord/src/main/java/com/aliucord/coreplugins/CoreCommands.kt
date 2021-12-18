@@ -11,6 +11,8 @@ import com.aliucord.api.CommandsAPI
 import com.aliucord.api.CommandsAPI.CommandResult
 import com.aliucord.entities.Plugin
 import com.aliucord.settings.Crashes
+import com.aliucord.updater.PluginUpdater
+import com.aliucord.updater.Updater
 import com.discord.api.commands.ApplicationCommandType
 import org.json.JSONObject
 import java.io.File
@@ -41,8 +43,13 @@ internal class CoreCommands : Plugin() {
             CommandResult(it.getRequiredString("message"))
         }
 
-        fun formatPlugins(plugins: List<Plugin>, showVersions: Boolean): String =
-            plugins.joinToString(transform = { p -> p.getName() + if (showVersions) " (${p.manifest.version})" else "" })
+        fun formatPlugins(plugins: List<Plugin>, showVersions: Boolean, joiner: String = ", ", showOutdated: Boolean = false): String =
+            plugins.joinToString(transform = { p ->
+                p.getName() + (if (showVersions) " (${p.manifest.version})" else "") + (if (showOutdated && PluginUpdater.checkPluginUpdate(
+                        p
+                    )
+                ) " (Outdated)" else "")
+            }, separator = joiner)
 
         commands.registerCommand(
             "plugins",
@@ -98,8 +105,8 @@ ${if (disabled.isEmpty()) "None" else "> $disabledStr"}
         commands.registerCommand("doctor", "Posts crash logs with device info") {
             val plugins = PluginManager.plugins
             val (enabled, disabled) = plugins.values.partition(PluginManager::isPluginEnabled)
-            val enabledStr = formatPlugins(enabled, true)
-            val disabledStr = formatPlugins(disabled, true)
+            val enabledStr = formatPlugins(enabled, true, "\n  • ", showOutdated = true)
+            val disabledStr = formatPlugins(disabled, true, "\n  • ", showOutdated = true)
             val crashes = Crashes.getCrashes()?.filter {
                 it.value.timestampmilis > Calendar.getInstance().timeInMillis - 3600 * 1000
             }
@@ -108,22 +115,22 @@ ${if (disabled.isEmpty()) "None" else "> $disabledStr"}
             if (res.isEmpty()) res.append("No Crashes")
 
             val info =
-                """ **Doctor**
-> Discord: ${Constants.DISCORD_VERSION}
-> Aliucord: ${BuildConfig.GIT_REVISION} (${PluginManager.plugins.size} plugins)
-> System: Android ${Build.VERSION.RELEASE} (SDK v${Build.VERSION.SDK_INT}) - ${getArchitecture()}
-> Rooted: ${getIsRooted() ?: "Unknown"}
-> Device: ${Build.DEVICE}
-> Model: ${Build.MODEL}
-> Manufacturer: ${Build.MANUFACTURER}
+                """
+❯ Discord: ${Constants.DISCORD_VERSION} ${if (Updater.isDiscordOutdated()) " (Outdated)" else ""}
+❯ Aliucord: ${BuildConfig.GIT_REVISION} (${PluginManager.plugins.size} plugins) ${if (Updater.isAliucordOutdated()) " (Outdated)" else ""}
+❯ System: Android ${Build.VERSION.RELEASE} (SDK v${Build.VERSION.SDK_INT}) - ${getArchitecture()}
+❯ Rooted: ${getIsRooted() ?: "Unknown"}
+❯ Device: ${Build.DEVICE}
+❯ Model: ${Build.MODEL}
+❯ Manufacturer: ${Build.MANUFACTURER}
 
-**Enabled Plugins**
-${if (enabled.isEmpty()) "None" else "/ " + enabledStr.replace(",", "\n/")}
+❯ Enabled Plugins (${enabled.size})
+${if (enabled.isEmpty()) "None" else "  • $enabledStr"}
 
-**Disabled Plugins**
-${if (disabled.isEmpty()) "None" else "/ " + disabledStr.replace(",", "\n/")}
+❯ Disabled Plugins (${disabled.size})
+${if (disabled.isEmpty()) "None" else "  • $disabledStr"}
 
-**Crash Reports From Last 1 hour**
+❯ Recent Crashlogs
 
 $res
 """
