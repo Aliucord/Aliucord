@@ -6,20 +6,12 @@ package com.aliucord.coreplugins
 
 import android.content.Context
 import android.os.Build
-import androidx.recyclerview.widget.RecyclerView
-import c.d.b.a.a
 import com.aliucord.*
 import com.aliucord.api.CommandsAPI
 import com.aliucord.api.CommandsAPI.CommandResult
 import com.aliucord.entities.Plugin
 import com.aliucord.settings.Crashes
-import com.aliucord.utils.ReflectUtils
-import com.aliucord.utils.RxUtils.subscribe
 import com.discord.api.commands.ApplicationCommandType
-import com.discord.app.*
-import com.discord.utilities.rest.RestAPI
-import com.discord.widgets.debugging.WidgetDebugging
-import com.discord.widgets.debugging.`WidgetDebugging$onViewBoundOrOnResume$3`
 import org.json.JSONObject
 import java.io.File
 import java.util.*
