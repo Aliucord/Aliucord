@@ -69,9 +69,9 @@ internal class CoreCommands : Plugin() {
             else
                 CommandResult(
                     """
-**Enabled Plugins:**
+**Enabled Plugins (${enabled.size}):**
 ${if (enabled.isEmpty()) "None" else "> $enabledStr"}
-**Disabled Plugins:**
+**Disabled Plugins (${disabled.size}):**
 ${if (disabled.isEmpty()) "None" else "> $disabledStr"}
                 """,
                     null,
