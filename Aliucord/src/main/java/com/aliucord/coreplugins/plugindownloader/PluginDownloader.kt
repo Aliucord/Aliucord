@@ -17,6 +17,8 @@ import com.aliucord.Logger
 import com.aliucord.Utils
 import com.aliucord.entities.Plugin
 import com.aliucord.patcher.Hook
+import com.aliucord.wrappers.messages.AttachmentWrapper.Companion.filename
+import com.aliucord.wrappers.messages.AttachmentWrapper.Companion.url
 import com.discord.utilities.color.ColorCompat
 import com.discord.widgets.chat.list.actions.WidgetChatListActions
 import com.lytefast.flexinput.R
@@ -58,7 +60,7 @@ internal class PluginDownloader : Plugin() {
                 val content = msg?.content ?: return@Hook
 
                 when (msg.channelId) {
-                    PLUGIN_LINKS_UPDATES_CHANNEL_ID, PLUGIN_SUPPORT_CHANNEL_ID -> {
+                    PLUGIN_LINKS_UPDATES_CHANNEL_ID, PLUGIN_SUPPORT_CHANNEL_ID, PLUGIN_DEVELOPMENT_CHANNEL_ID -> {
                         zipPattern.matcher(content).run {
                             while (find()) {
                                 val author = group(1)!!
@@ -67,6 +69,18 @@ internal class PluginDownloader : Plugin() {
                                 val plugin = PluginFile(name)
                                 addEntry(layout, "${if (plugin.isInstalled) "Reinstall" else "Install"} $name") {
                                     plugin.install(author, repo)
+                                    actions.dismiss()
+                                }
+                            }
+                        }
+
+                        val attachment = msg.attachments.firstOrNull()
+                        if (attachment != null) {
+                            val parts = attachment.filename.split('.')
+                            if (parts.size == 2 && parts[1] == "zip") {
+                                val plugin = PluginFile(parts[0])
+                                addEntry(layout, "${if (plugin.isInstalled) "Reinstall" else "Install"} ${plugin.name}") {
+                                    plugin.install(attachment.url)
                                     actions.dismiss()
                                 }
                             }

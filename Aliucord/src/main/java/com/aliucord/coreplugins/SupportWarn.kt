@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.view.View
 import android.widget.*
+import com.aliucord.Constants.PLUGIN_DEVELOPMENT_CHANNEL_ID
 import com.aliucord.Constants.PLUGIN_REQUESTS_CHANNEL_ID
 import com.aliucord.Utils
 import com.aliucord.entities.Plugin
@@ -21,7 +22,7 @@ internal class SupportWarn : Plugin() {
 
     private val channelList = listOf(
         811255667469582420L, // #offtopic
-        811261478875299840L, // #plugin-development
+        PLUGIN_DEVELOPMENT_CHANNEL_ID, // #plugin-development
         868419532992172073L, // #theme-development
         865188789542060063L, // #related-development
         811262084968742932L, // #core-development
