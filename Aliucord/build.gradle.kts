@@ -101,7 +101,7 @@ afterEvaluate {
                         this.username = username
                         this.password = password
                     }
-                    setUrl("https://maven.aliucord.com/")
+                    setUrl("https://maven.aliucord.com/snapshots")
                 }
             } else {
                 mavenLocal()
