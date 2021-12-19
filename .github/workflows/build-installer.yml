@@ -41,6 +41,7 @@ jobs:
         rm ../../keystore.jks
         rm android/key.properties
 
+    # should be keept for first run so old installer users can update
     - name: Push builds
       run: |
         cd $GITHUB_WORKSPACE/builds
@@ -50,3 +51,11 @@ jobs:
         git add .
         git commit -m "Build Installer $GITHUB_SHA"
         git push
+
+    - name: Release
+      run: |
+        cd $GITHUB_WORKSPACE/src
+        GIT_HASH="$(git rev-parse --short HEAD)"
+        git tag $GIT_HASH
+        git push origin $GIT_HASH
+        gh release create $GIT_HASH -t "Installer $GIT_HASH" -n "Build Installer $GITHUB_SHA" ../builds/Installer-release.apk

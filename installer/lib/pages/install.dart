@@ -113,15 +113,13 @@ class _InstallPageState extends State<InstallPage> {
 
   Future<bool> _downloadManifest(String cache) async {
     final manifest = '$cache/AndroidManifest.xml';
-    if ((prefs.getString('dex_commit') ?? '') == widget.commit && await File(manifest).exists()) return true;
     setState(() => _logs += 'Downloading patched AndroidManifest.xml..\n');
     try {
       await dio.download(
-        githubAPI!.getDownloadUrl(widget.commit, 'AndroidManifest.xml'),
+        githubAPI!.getDownloadUrl('builds', 'AndroidManifest.xml'),
         manifest,
         onReceiveProgress: (count, total) => setState(() => _progress = count / total),
       );
-      prefs.setString('dex_commit', widget.commit);
       setState(() {
         _progress = null;
         _logs += 'Done\n';

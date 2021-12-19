@@ -12,12 +12,14 @@ class UpdateDialog extends StatefulWidget {
   final String commit;
   final String currentCommit;
   final String message;
+  final String downloadUrl;
 
   const UpdateDialog({
     Key? key,
     required this.commit,
     required this.currentCommit,
-    required this.message
+    required this.message,
+    required this.downloadUrl,
   }) : super(key: key);
 
   @override
@@ -34,8 +36,11 @@ class _UpdateDialogState extends State<UpdateDialog> {
     setState(() => _updating = true);
     final outPath = storageRoot.path + '/Aliucord/Installer.apk';
     try {
-      final url = githubAPI!.getDownloadUrl('builds', 'Installer-release.apk');
-      await dio.download(url, outPath, onReceiveProgress: (count, total) => setState(() => _progress = count / total));
+      await dio.download(
+        widget.downloadUrl,
+        outPath,
+        onReceiveProgress: (count, total) => setState(() => _progress = count / total),
+      );
       installApk(outPath);
     } on DioError catch (e) {
       toast('Update failed: ${e.error}');
