@@ -88,6 +88,7 @@ afterEvaluate {
         publications {
             register(project.name, MavenPublication::class) {
                 from(components["debug"])
+                artifact(tasks["debugSourcesJar"])
             }
         }
 
@@ -121,7 +122,12 @@ task("pushDebuggable") {
         }
 
         exec {
-            commandLine(android.adbExecutable, "push", rootProject.file(".assets/AndroidManifest-debuggable.xml"), aliucordPath + "AndroidManifest.xml")
+            commandLine(
+                android.adbExecutable,
+                "push",
+                rootProject.file(".assets/AndroidManifest-debuggable.xml"),
+                aliucordPath + "AndroidManifest.xml"
+            )
         }
     }
 }
