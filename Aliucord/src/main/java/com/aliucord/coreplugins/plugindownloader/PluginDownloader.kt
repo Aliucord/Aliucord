@@ -74,8 +74,8 @@ internal class PluginDownloader : Plugin() {
                             }
                         }
 
-                        val attachment = msg.attachments.firstOrNull()
-                        if (attachment != null) {
+                        if (msg.hasAttachments()) {
+                            val attachment = msg.attachments[0]
                             val parts = attachment.filename.split('.')
                             if (parts.size == 2 && parts[1] == "zip") {
                                 val plugin = PluginFile(parts[0])
