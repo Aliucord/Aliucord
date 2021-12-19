@@ -16,6 +16,8 @@ fun getGitHash(): String {
     return stdout.toString().trim()
 }
 
+group = "com.aliucord"
+
 aliucord {
     projectType.set(com.aliucord.gradle.ProjectType.CORE)
 }
@@ -85,9 +87,24 @@ afterEvaluate {
     publishing {
         publications {
             register(project.name, MavenPublication::class) {
-                group = "com.github.Aliucord"
-
                 from(components["debug"])
+            }
+        }
+
+        repositories {
+            val username = System.getenv("MAVEN_USERNAME")
+            val password = System.getenv("MAVEN_PASSWORD")
+
+            if (username != null && password != null) {
+                maven {
+                    credentials {
+                        this.username = username
+                        this.password = password
+                    }
+                    setUrl("https://maven.aliucord.com/")
+                }
+            } else {
+                mavenLocal()
             }
         }
     }
