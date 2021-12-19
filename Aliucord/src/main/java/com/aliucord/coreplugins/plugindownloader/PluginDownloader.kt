@@ -59,6 +59,18 @@ internal class PluginDownloader : Plugin() {
                 val msg = (param.args[0] as WidgetChatListActions.Model).message
                 val content = msg?.content ?: return@Hook
 
+                if (msg.channelId == PLUGIN_DEVELOPMENT_CHANNEL_ID && msg.hasAttachments()) {
+                    val attachment = msg.attachments[0]
+                    val parts = attachment.filename.split('.')
+                    if (parts.size == 2 && parts[1] == "zip") {
+                        val plugin = PluginFile(parts[0])
+                        addEntry(layout, "${if (plugin.isInstalled) "Reinstall" else "Install"} ${plugin.name}") {
+                            plugin.install(attachment.url)
+                            actions.dismiss()
+                        }
+                    }
+                }
+
                 when (msg.channelId) {
                     PLUGIN_LINKS_UPDATES_CHANNEL_ID, PLUGIN_SUPPORT_CHANNEL_ID, PLUGIN_DEVELOPMENT_CHANNEL_ID -> {
                         zipPattern.matcher(content).run {
@@ -69,18 +81,6 @@ internal class PluginDownloader : Plugin() {
                                 val plugin = PluginFile(name)
                                 addEntry(layout, "${if (plugin.isInstalled) "Reinstall" else "Install"} $name") {
                                     plugin.install(author, repo)
-                                    actions.dismiss()
-                                }
-                            }
-                        }
-
-                        if (msg.hasAttachments()) {
-                            val attachment = msg.attachments[0]
-                            val parts = attachment.filename.split('.')
-                            if (parts.size == 2 && parts[1] == "zip") {
-                                val plugin = PluginFile(parts[0])
-                                addEntry(layout, "${if (plugin.isInstalled) "Reinstall" else "Install"} ${plugin.name}") {
-                                    plugin.install(attachment.url)
                                     actions.dismiss()
                                 }
                             }
