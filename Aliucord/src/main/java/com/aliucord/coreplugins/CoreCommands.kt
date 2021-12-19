@@ -5,6 +5,7 @@
 package com.aliucord.coreplugins
 
 import android.content.Context
+import android.net.Uri
 import android.os.Build
 import com.aliucord.*
 import com.aliucord.api.CommandsAPI
@@ -13,10 +14,15 @@ import com.aliucord.entities.Plugin
 import com.aliucord.settings.Crashes
 import com.aliucord.updater.PluginUpdater
 import com.aliucord.updater.Updater
+import com.aliucord.utils.RxUtils.subscribe
 import com.discord.api.commands.ApplicationCommandType
+import com.discord.app.AppLog
+import com.discord.app.AppLog.LoggedItem
+import external.org.apache.commons.lang3.StringUtils
 import org.json.JSONObject
-import java.io.File
+import java.io.*
 import java.util.*
+import kotlin.collections.ArrayList
 
 internal class CoreCommands : Plugin() {
     init {
@@ -102,6 +108,13 @@ ${if (disabled.isEmpty()) "None" else "> $disabledStr"}
             CommandResult(str)
         }
 
+        val logs = ArrayList<LoggedItem>()
+        AppLog.d.subscribe {
+            if (this.k != 2) logs.add(this) //this is for preventing http request logs from getting saved
+            if (logs.size > 400) {
+                logs.removeFirst()
+            }
+        }
         commands.registerCommand("doctor", "Posts crash logs with device info") {
             val plugins = PluginManager.plugins
             val (enabled, disabled) = plugins.values.partition(PluginManager::isPluginEnabled)
@@ -110,10 +123,21 @@ ${if (disabled.isEmpty()) "None" else "> $disabledStr"}
             val crashes = Crashes.getCrashes()?.filter {
                 it.value.timestampmilis > Calendar.getInstance().timeInMillis - 3600 * 1000
             }
+            val debugLog = StringBuilder()
+            (logs.clone() as ArrayList<LoggedItem>).forEach {
+                val indentLevel = "\n" + StringUtils.repeat("\t", it.k - 3)
+                debugLog.append(indentLevel + it.l)
+                if (it.k == 6 && it.m != null) { //level 6 is error and it.m is throwable
+                    val sw = StringWriter()
+                    it.m.printStackTrace(PrintWriter(sw))
+                    val exceptionAsString: String = sw.toString()
+                    debugLog.append(exceptionAsString.trim().replace("\n", indentLevel))
+                }
+            }
             val res = StringBuilder()
             crashes?.forEach { res.append(it.value.timestamp + "\n" + it.value.stacktrace) }
-            if (res.isEmpty()) res.append("No Crashes")
 
+            if (res.isEmpty()) res.append("No Crashes")
             val info =
                 """
 ❯ Discord: ${Constants.DISCORD_VERSION} ${if (Updater.isDiscordOutdated()) " (Outdated)" else ""}
@@ -133,9 +157,19 @@ ${if (disabled.isEmpty()) "None" else "  • $disabledStr"}
 ❯ Recent Crashlogs
 
 $res
+
+❯ Debug Log
+${debugLog.trim()}
 """
-            val key = JSONObject(Http.simplePost("https://www.hb.vendicated.dev/documents", info)).get("key")
-            CommandResult("https://www.hb.vendicated.dev/$key")
+            if (info.length > 400000) {
+                val file = File(Constants.BASE_PATH, "doctor_temp.txt")
+                file.writeText(info)
+                it.addAttachment(Uri.fromFile(file).toString(), "doctor.txt")
+                CommandResult("")
+            } else {
+                val key = JSONObject(Http.simplePost("https://haste.powercord.dev/documents", info)).get("key")
+                CommandResult("https://haste.powercord.dev/$key")
+            }
         }
     }
 
