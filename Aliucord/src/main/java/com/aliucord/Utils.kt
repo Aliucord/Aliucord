@@ -32,8 +32,7 @@ import com.discord.api.commands.ApplicationCommandType
 import com.discord.api.commands.CommandChoice
 import com.discord.api.message.attachment.MessageAttachment
 import com.discord.api.user.User
-import com.discord.app.AppActivity
-import com.discord.app.AppComponent
+import com.discord.app.*
 import com.discord.models.commands.ApplicationCommandOption
 import com.discord.nullserializable.NullSerializable
 import com.discord.stores.StoreStream
@@ -232,6 +231,9 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
             "com.discord"
         )
     }
+
+    @JvmStatic
+    val debugLogs = ArrayList<AppLog.LoggedItem>()
 
     @JvmStatic
     fun openPage(context: Context, clazz: Class<out AppComponent>, intent: Intent?) {

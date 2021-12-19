@@ -22,7 +22,6 @@ import external.org.apache.commons.lang3.StringUtils
 import org.json.JSONObject
 import java.io.*
 import java.util.*
-import kotlin.collections.ArrayList
 
 internal class CoreCommands : Plugin() {
     init {
@@ -50,12 +49,16 @@ internal class CoreCommands : Plugin() {
         }
 
         fun formatPlugins(plugins: List<Plugin>, showVersions: Boolean, joiner: String = ", ", showOutdated: Boolean = false): String =
-            plugins.joinToString(transform = { p ->
-                p.getName() + (if (showVersions) " (${p.manifest.version})" else "") + (if (showOutdated && PluginUpdater.checkPluginUpdate(
-                        p
-                    )
-                ) " (Outdated)" else "")
-            }, separator = joiner)
+            StringBuilder().run {
+                plugins.forEach {
+                    append(it.getName())
+                    if (showVersions) append(" (").append(it.manifest.version).append(')')
+                    if (showOutdated && PluginUpdater.checkPluginUpdate(it)) append(" (Outdated)")
+                    append(joiner)
+                }
+                setLength(length - joiner.length) // Remove last joiner
+                toString()
+            }
 
         commands.registerCommand(
             "plugins",
@@ -108,11 +111,10 @@ ${if (disabled.isEmpty()) "None" else "> $disabledStr"}
             CommandResult(str)
         }
 
-        val logs = ArrayList<LoggedItem>()
         AppLog.d.subscribe {
-            if (this.k != 2) logs.add(this) //this is for preventing http request logs from getting saved
-            if (logs.size > 400) {
-                logs.removeFirst()
+            if (this.k != 2) Utils.debugLogs.add(this) //this is for preventing http request logs from getting saved
+            if (Utils.debugLogs.size > 400) {
+                Utils.debugLogs.removeFirst()
             }
         }
         commands.registerCommand("doctor", "Posts crash logs with device info") {
@@ -124,7 +126,7 @@ ${if (disabled.isEmpty()) "None" else "> $disabledStr"}
                 it.value.timestampmilis > Calendar.getInstance().timeInMillis - 3600 * 1000
             }
             val debugLog = StringBuilder()
-            (logs.clone() as ArrayList<LoggedItem>).forEach {
+            (Utils.debugLogs.clone() as ArrayList<LoggedItem>).forEach {
                 val indentLevel = "\n" + StringUtils.repeat("\t", it.k - 3)
                 debugLog.append(indentLevel + it.l)
                 if (it.k == 6 && it.m != null) { //level 6 is error and it.m is throwable
@@ -162,8 +164,9 @@ $res
 ${debugLog.trim()}
 """
             if (info.length > 400000) {
-                val file = File(Constants.BASE_PATH, "doctor_temp.txt")
+                val file = File.createTempFile("doctor_temp", null)
                 file.writeText(info)
+                file.deleteOnExit()
                 it.addAttachment(Uri.fromFile(file).toString(), "doctor.txt")
                 CommandResult("")
             } else {
