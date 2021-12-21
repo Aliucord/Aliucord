@@ -18,6 +18,7 @@ import android.text.SpannableStringBuilder
 import android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
 import android.text.style.ClickableSpan
 import android.text.style.StyleSpan
+import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.Toast
@@ -27,6 +28,7 @@ import androidx.fragment.app.Fragment
 import c.a.d.j
 import com.aliucord.fragments.AppFragmentProxy
 import com.aliucord.fragments.ConfirmDialog
+import com.aliucord.utils.DimenUtils.dp
 import com.aliucord.utils.ReflectUtils
 import com.discord.api.commands.ApplicationCommandType
 import com.discord.api.commands.CommandChoice
@@ -471,11 +473,27 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
     /**
      * Prompts the user to restart Aliucord
      */
+    @SuppressLint("ShowToast")
     @JvmStatic
     @JvmOverloads
     fun promptRestart(msg: String = "Restart required. Restart now?") {
-        val view = appActivity.findViewById<FrameLayout>(android.R.id.content).getChildAt(0)
-        val bar = Snackbar.make(view, msg, Snackbar.LENGTH_INDEFINITE)
+        val resources = appContext.resources
+        val id = resources.getIdentifier("status_bar_height", "dimen", "android")
+        val statusBarHeight = if (id > 0) resources.getDimensionPixelSize(id) else 0
+
+        val view = appActivity.findViewById<View>(android.R.id.content)
+        val bar = try {
+            Snackbar.make(view, msg, Snackbar.LENGTH_INDEFINITE)
+        } catch (e: Throwable) {
+            Main.logger.errorToast("Failed to show SnackBar", e)
+            return
+        }
+
+        bar.view.layoutParams = (bar.view.layoutParams as FrameLayout.LayoutParams).apply {
+            topMargin = statusBarHeight + 4.dp
+            gravity = Gravity.TOP
+        }
+
         bar.setAction("Restart") {
             val ctx = it.context
             val intent = ctx.packageManager.getLaunchIntentForPackage(ctx.packageName)
