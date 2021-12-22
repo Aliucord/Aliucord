@@ -43,6 +43,7 @@ public final class Constants {
     public static final long PLUGIN_LINKS_UPDATES_CHANNEL_ID = 845784407846813696L;
     public static final long PLUGIN_REQUESTS_CHANNEL_ID = 811275334342541353L;
     public static final long THEMES_CHANNEL_ID = 824357609778708580L;
+    public static final long PLUGIN_DEVELOPMENT_CHANNEL_ID = 811261478875299840L;
 
     /** Path of Aliucord folder */
     public static final String BASE_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Aliucord";

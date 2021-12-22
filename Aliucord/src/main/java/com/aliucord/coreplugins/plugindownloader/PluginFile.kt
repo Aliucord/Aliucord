@@ -6,22 +6,21 @@
 
 package com.aliucord.coreplugins.plugindownloader
 
-import com.aliucord.Constants
-import com.aliucord.Http
-import com.aliucord.PluginManager
-import com.aliucord.Utils
+import com.aliucord.*
 import java.io.File
 import java.io.IOException
 
-internal class PluginFile(val plugin: String): File("${Constants.PLUGINS_PATH}/$plugin.zip") {
+internal class PluginFile(val plugin: String) : File("${Constants.PLUGINS_PATH}/$plugin.zip") {
     val isInstalled
         get() = this.exists()
 
-    fun install(author: String, repo: String, callback: Runnable? = null) {
+    fun install(author: String, repo: String, callback: Runnable? = null) =
+        install("https://github.com/$author/$repo/raw/builds/$plugin.zip", callback)
+
+    fun install(url: String, callback: Runnable? = null) {
         Utils.threadPool.execute {
             val isReinstall = isInstalled
 
-            val url = "https://github.com/$author/$repo/raw/builds/$plugin.zip"
             try {
                 Http.Request(url).execute().let { res ->
                     res.saveToFile(this)

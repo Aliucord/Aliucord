@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.view.View
 import android.widget.*
+import com.aliucord.Constants.PLUGIN_DEVELOPMENT_CHANNEL_ID
 import com.aliucord.Constants.PLUGIN_REQUESTS_CHANNEL_ID
 import com.aliucord.Utils
 import com.aliucord.api.SettingsAPI
