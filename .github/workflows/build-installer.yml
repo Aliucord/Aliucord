@@ -65,9 +65,7 @@ jobs:
     - name: Release
       run: |
         cd $GITHUB_WORKSPACE/src
-        // Should make release be by proper user? Remove me once ^ is removed
-        git config --local user.email "${{ github.event.pusher.email }}"
-        git config --local user.name "${{ github.event.pusher.name }}"
+
         tag="${{ github.event.inputs.version }}"
         git tag "$tag"
         git push origin "$tag"
