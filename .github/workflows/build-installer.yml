@@ -1,12 +1,18 @@
 name: Build Installer
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - .github/workflows/build-installer.yml
-      - installer/**
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
+        description: The version of this release. Should be lower than the last and in the format 1.0.0
+        default: "1.0.0"
+      title:
+        required: true
+        description: Title of this release
+      description:
+        required: false
+        description: Description of this release
 
 jobs:
   build:
@@ -36,11 +42,16 @@ jobs:
         echo "keyPassword: ${{ secrets.keyPassword }}" >> android/key.properties
         echo "keyAlias: Installer" >> android/key.properties
         echo "storeFile: ../../../../keystore.jks" >> android/key.properties
-        flutter build apk
+        
+        versionName="${{ github.event.inputs.version }}"
+        versionCode="${versionName//./}"
+        flutter build apk --build-number "$versionCode" --build-name "$versionName"
+        
         mv build/app/outputs/flutter-apk/app-release.apk ../../builds/Installer-release.apk
         rm ../../keystore.jks
         rm android/key.properties
 
+    # should be keept for first run so old installer users can update
     - name: Push builds
       run: |
         cd $GITHUB_WORKSPACE/builds
@@ -50,3 +61,17 @@ jobs:
         git add .
         git commit -m "Build Installer $GITHUB_SHA"
         git push
+
+    - name: Release
+      run: |
+        cd $GITHUB_WORKSPACE/src
+        // Should make release be by proper user? Remove me once ^ is removed
+        git config --local user.email "${{ github.event.pusher.email }}"
+        git config --local user.name "${{ github.event.pusher.name }}"
+        tag="${{ github.event.inputs.version }}"
+        git tag "$tag"
+        git push origin "$tag"
+        gh release create "$tag" \
+          --title "${{ github.event.inputs.title }}" \
+          --notes "${{ github.event.inputs.description }}" \
+          ../builds/Installer-release.apk
