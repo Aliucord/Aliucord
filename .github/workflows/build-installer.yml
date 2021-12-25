@@ -57,3 +57,5 @@ jobs:
           --title "${{ github.event.inputs.title }}" \
           --notes "${{ github.event.inputs.description }}" \
           ../Installer-release.apk
+      env:
+        GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
