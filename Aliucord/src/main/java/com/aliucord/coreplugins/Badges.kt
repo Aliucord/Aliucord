@@ -25,7 +25,6 @@ import com.discord.widgets.user.profile.UserProfileHeaderView
 import com.discord.widgets.user.profile.UserProfileHeaderViewModel
 import com.lytefast.flexinput.R
 
-@Suppress("UNCHECKED_CAST")
 internal class Badges : Plugin(Manifest("Badges")) {
     class CustomBadge(val id: String?, val url: String?, val text: String) {
         fun getDrawableId() = if (id == null) 0 else try {
@@ -49,7 +48,6 @@ internal class Badges : Plugin(Manifest("Badges")) {
     private val dataField = SimpleRecyclerAdapter::class.java.getDeclaredField("data").apply { isAccessible = true }
 
     private val guildBadgeViewId = View.generateViewId()
-    private var guildBadgeView: ImageView? = null
 
     override fun load(context: Context) {
         Patcher.addPatch(
@@ -86,7 +84,6 @@ internal class Badges : Plugin(Manifest("Badges")) {
             if (toolbar.getChildAt(0).id != guildBadgeViewId) toolbar.addView(ImageView(toolbar.context).apply {
                 id = guildBadgeViewId
                 setPadding(0, 0, 4.dp, 0)
-                guildBadgeView = this
             }, 0)
         }
 
@@ -118,6 +115,7 @@ internal class Badges : Plugin(Manifest("Badges")) {
         return list
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun addUserBadges(id: Long, userProfileHeaderView: Any) {
         val badges = userBadges[id] ?: return
         val adapter = badgesAdapter[userProfileHeaderView] as SimpleRecyclerAdapter<*, *>
