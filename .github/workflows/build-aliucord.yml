@@ -35,7 +35,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/src
           chmod +x gradlew
-          ./gradlew :Aliucord:make :Aliucord:publish -Pversion=${GITHUB_REF##*/}-SNAPSHOT
+          ./gradlew :Aliucord:make
           cp Aliucord/build/Aliucord.zip $GITHUB_WORKSPACE/builds
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
