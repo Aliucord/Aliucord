@@ -27,17 +27,21 @@ class Commit {
 class CommitCommit {
   final String message;
 
-  CommitCommit(this.message);
+  const CommitCommit(this.message);
 }
 
 class Release {
   final String tag;
+  final String name;
+  final String body;
   final Iterable<Asset> assets;
 
-  const Release(this.tag, this.assets);
+  const Release(this.tag, this.name, this.body, this.assets);
 
   Release.fromJson(Map<String, dynamic> json)
     : tag = json['tag_name'],
+      name = json['name'],
+      body = json['body'],
       assets = (json['assets'] as Iterable<dynamic>)
         .map((e) => Asset(e['name'], e['browser_download_url']));
 }
@@ -64,13 +68,13 @@ class GithubAPI with ChangeNotifier {
   void checkForUpdates() async {
     final release = await getLatestRelease();
     if (release == null) return;
-    final currentCommit = await getGitRev();
-    if (release.tag == currentCommit) return;
-    final commit = await getCommit(release.tag);
+    final currentVersion = await getVersionCode();
+    if (int.parse(release.tag.replaceAll('.', '')) <= currentVersion) return;
+    final currentVersionName = await getVersionName();
     showDialog(context: navigatorKey.currentContext!, barrierDismissible: false, builder: (context) => UpdateDialog(
-      commit: release.tag,
-      currentCommit: currentCommit,
-      message: commit?.commit.message ?? 'Couldn\'t fetch commit message',
+      newVersion: release.tag,
+      currentVersion: currentVersionName,
+      message: release.body != '' ? release.body : release.name,
       downloadUrl: release.assets.firstWhere((e) => e.name == 'Installer-release.apk').downloadUrl,
     ));
   }

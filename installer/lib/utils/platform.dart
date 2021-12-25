@@ -31,7 +31,8 @@ class AppInfo {
 
 Future<bool> checkPermissions() async => await channel.invokeMethod('checkPermissions');
 Future<double> getFreeSpace() async => await channel.invokeMethod('getFreeSpace');
-Future<String> getGitRev() async => await channel.invokeMethod('getGitRev');
+Future<int> getVersionCode() async => await channel.invokeMethod('getVersionCode');
+Future<String> getVersionName() async => await channel.invokeMethod('getVersionName');
 Future<void> toast(String message) => channel.invokeMethod('toast', message);
 
 Future<Iterable<AppInfo>> getInstalledDiscordApps() async {

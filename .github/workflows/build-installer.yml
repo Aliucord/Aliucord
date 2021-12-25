@@ -32,7 +32,7 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@4389e6cbc6cb8a4b18c628ff96ff90be0e926aa8 # v1.5.3
       with:
-        flutter-version: '2.8.0'
+        flutter-version: '2.8.1'
 
     - name: Build Installer
       run: |
@@ -47,29 +47,19 @@ jobs:
         versionCode="${versionName//./}"
         flutter build apk --build-number "$versionCode" --build-name "$versionName"
         
-        mv build/app/outputs/flutter-apk/app-release.apk ../../builds/Installer-release.apk
+        mv build/app/outputs/flutter-apk/app-release.apk ../../Installer-release.apk
         rm ../../keystore.jks
         rm android/key.properties
-
-    # should be keept for first run so old installer users can update
-    - name: Push builds
-      run: |
-        cd $GITHUB_WORKSPACE/builds
-        git config --local user.email "actions@github.com"
-        git config --local user.name "GitHub Actions"
-        git pull
-        git add .
-        git commit -m "Build Installer $GITHUB_SHA"
-        git push
 
     - name: Release
       run: |
         cd $GITHUB_WORKSPACE/src
-
+        git config --local user.email "actions@github.com"
+        git config --local user.name "GitHub Actions"
         tag="${{ github.event.inputs.version }}"
         git tag "$tag"
         git push origin "$tag"
         gh release create "$tag" \
           --title "${{ github.event.inputs.title }}" \
           --notes "${{ github.event.inputs.description }}" \
-          ../builds/Installer-release.apk
+          ../Installer-release.apk

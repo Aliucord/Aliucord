@@ -57,7 +57,7 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
   <img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/Aliucord/Aliucord/Build?label=App%20Build&logo=githubactions&logoColor=white&style=flat-square">
 </a>
 
-1. Download and install [Installer-release.apk](https://github.com/Aliucord/Aliucord/raw/builds/Installer-release.apk) from the `builds` branch
+1. Download and install [Installer-release.apk](https://github.com/Aliucord/Aliucord/releases/latest/download/Installer-release.apk) from latest release
 2. Open the newly installed "Aliucord Installer" app from your app drawer
 3. Click "Install", then choose the "Download" option
 4. Wait for it to finish patching the Discord APK

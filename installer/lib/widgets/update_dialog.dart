@@ -9,15 +9,15 @@ import 'package:flutter/material.dart';
 import '../utils/main.dart';
 
 class UpdateDialog extends StatefulWidget {
-  final String commit;
-  final String currentCommit;
+  final String newVersion;
+  final String currentVersion;
   final String message;
   final String downloadUrl;
 
   const UpdateDialog({
     Key? key,
-    required this.commit,
-    required this.currentCommit,
+    required this.newVersion,
+    required this.currentVersion,
     required this.message,
     required this.downloadUrl,
   }) : super(key: key);
@@ -54,7 +54,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
     content: LinearProgressIndicator(value: _progress),
   ) : AlertDialog(
     title: const Text('Update available'),
-    content: Text('A new version is available: ${widget.commit} ${widget.message}\ncurrent version: ${widget.currentCommit}'),
+    content: Text('A new version is available: ${widget.newVersion} ${widget.message}\ncurrent version: ${widget.currentVersion}'),
     actions: [
       TextButton(
         child: Row(children: const [
