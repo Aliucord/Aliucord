@@ -85,7 +85,7 @@ internal class SupportWarn : Plugin(Manifest("SupportWarn")) {
                     dialog.dismiss()
                 }
 
-                dialog.show((thisObject).parentFragmentManager, "Warning")
+                dialog.show(thisObject.parentFragmentManager, "Warning")
             }
         })
     }
