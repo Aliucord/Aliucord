@@ -16,14 +16,14 @@ import com.discord.widgets.chat.list.actions.WidgetChatListActions
 object PatcherUtils {
     private val patcher = PatcherAPI(Logger("PatcherUtils"))
 
-    private val messageActions = arrayListOf<MessageAction>()
-    private var messageActionsPatched = false
-    private var messageActionsUnpatch: Runnable? = null
+    private val channelActions = arrayListOf<ChannelAction>()
+    private var channelActionsPatched = false
+    private var channelActionsUnpatch: Runnable? = null
 
     private val getBindingMethod = WidgetChatListActions::class.java.getDeclaredMethod("getBinding")
         .apply { isAccessible = true }
 
-    data class MessageAction @JvmOverloads constructor(
+    data class ChannelAction @JvmOverloads constructor(
         val text: String,
         val icon: Drawable,
         val onClick: (view: View, model: WidgetChatListActions.Model) -> Any,
@@ -32,12 +32,12 @@ object PatcherUtils {
     )
 
     @JvmStatic
-    fun addMessageAction(data: MessageAction): () -> Unit {
+    fun addChannelAction(data: ChannelAction): () -> Unit {
         // Add to list
-        messageActions.add(data)
+        channelActions.add(data)
         // Patch if not already patched
-        if (!messageActionsPatched) {
-            messageActionsUnpatch = patcher.after<WidgetChatListActions>("configureUI", WidgetChatListActions.Model::class.java) {
+        if (!channelActionsPatched) {
+            channelActionsUnpatch = patcher.after<WidgetChatListActions>("configureUI", WidgetChatListActions.Model::class.java) {
                 val nestedScrollView = this.requireView() as NestedScrollView
                 val layout = nestedScrollView.getChildAt(0) as LinearLayout
                 val binding = getBindingMethod.invoke(this) as WidgetChatListActionsBinding
@@ -45,7 +45,7 @@ object PatcherUtils {
                 val param = view.layoutParams
                 val params = LinearLayout.LayoutParams(param.width, param.height)
                 params.leftMargin = DimenUtils.dpToPx(20)
-                messageActions.forEach { action ->
+                channelActions.forEach { action ->
                     if (
                         action.condition != null && action.condition.invoke(it.args[0] as WidgetChatListActions.Model)
                     ) return@after
@@ -60,19 +60,19 @@ object PatcherUtils {
                     layout.addView(tw)
                 }
             }
-            messageActionsPatched = true
+            channelActionsPatched = true
         }
         return {
-            this.removeMessageAction(data)
+            this.removeChannelAction(data)
         }
     }
 
     @JvmStatic
-    fun removeMessageAction(data: MessageAction) {
+    fun removeChannelAction(data: ChannelAction) {
         // Remove from list
-        messageActions.remove(data)
+        channelActions.remove(data)
         // If no more actions, unpatch because it is not needed
-        val unpatch = messageActionsUnpatch // Null safety moment
-        if (messageActions.size < 1 && unpatch != null) unpatch.run()
+        val unpatch = channelActionsUnpatch // Null safety moment
+        if (channelActions.size < 1 && unpatch != null) unpatch.run()
     }
 }
