@@ -1,4 +1,0 @@
-jdk:
-  - openjdk11
-install:
-  - ./gradlew -Pversion=$VERSION :Aliucord:publishToMavenLocal --stacktrace
