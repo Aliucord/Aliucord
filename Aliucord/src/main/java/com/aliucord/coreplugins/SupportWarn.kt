@@ -64,7 +64,7 @@ internal class SupportWarn : Plugin(Manifest("SupportWarn")) {
             val thisObject = it.thisObject as WidgetChatInput
             val root = WidgetChatInput.`access$getBinding$p`(thisObject).root
             val chatWrap = root.findViewById<LinearLayout>(chatWrapId)
-            val gateButtonLayout = root.findViewById<RelativeLayout>(gateButtonLayoutId)
+            val gateButtonLayout = root.findViewById<ViewGroup>(gateButtonLayoutId)
 
             gateButtonLayout.visibility = View.VISIBLE
             chatWrap.visibility = View.GONE
