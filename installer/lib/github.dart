@@ -27,35 +27,55 @@ class Commit {
 class CommitCommit {
   final String message;
 
-  CommitCommit(this.message);
+  const CommitCommit(this.message);
+}
+
+class Release {
+  final String tag;
+  final String name;
+  final String body;
+  final Iterable<Asset> assets;
+
+  const Release(this.tag, this.name, this.body, this.assets);
+
+  Release.fromJson(Map<String, dynamic> json)
+    : tag = json['tag_name'],
+      name = json['name'],
+      body = json['body'],
+      assets = (json['assets'] as Iterable<dynamic>)
+        .map((e) => Asset(e['name'], e['browser_download_url']));
+}
+
+class Asset {
+  final String name;
+  final String downloadUrl;
+
+  const Asset(this.name, this.downloadUrl);
 }
 
 class GithubAPI with ChangeNotifier {
-  static const String _org = 'Aliucord';
-  static const String _repo = 'Aliucord';
+  static const _org = 'Aliucord';
+  static const _repo = 'Aliucord';
 
-  static const String _apiHost = 'api.github.com';
-  static const String _commitsEndpoint = '/repos/$_org/$_repo/commits';
+  static const _apiHost = 'api.github.com';
+  static const _commitsEndpoint = '/repos/$_org/$_repo/commits';
+  static const _latestReleaseEndpoint = '/repos/$_org/$_repo/releases/latest';
 
   GithubAPI() {
     checkForUpdates();
   }
 
   void checkForUpdates() async {
-    final commits = await getCommits(params: { 'sha': 'builds', 'path': 'Installer-release.apk' });
-    if (commits.isEmpty) return;
-    final msg = commits.toList()[0].commit.message;
-    if (msg.length < 23) return;
-    final commit = msg.substring(16, 23);
-    final currentCommit = await getGitRev();
-    if (commit == currentCommit) return;
-    final res = await dio.getUri(Uri.https(_apiHost, '$_commitsEndpoint/$commit'));
-    final String? message = res.data?['commit']?['message'];
-    if (message == null) return;
+    final release = await getLatestRelease();
+    if (release == null) return;
+    final currentVersion = await getVersionCode();
+    if (int.parse(release.tag.replaceAll('.', '')) <= currentVersion) return;
+    final currentVersionName = await getVersionName();
     showDialog(context: navigatorKey.currentContext!, barrierDismissible: false, builder: (context) => UpdateDialog(
-      commit: commit,
-      currentCommit: currentCommit,
-      message: message,
+      newVersion: release.tag,
+      currentVersion: currentVersionName,
+      message: release.body != '' ? release.body : release.name,
+      downloadUrl: release.assets.firstWhere((e) => e.name == 'Installer-release.apk').downloadUrl,
     ));
   }
 
@@ -76,7 +96,25 @@ class GithubAPI with ChangeNotifier {
     return [];
   }
 
-  String getDownloadUrl(String ref, String file) {
-    return 'https://raw.githubusercontent.com/$_org/$_repo/$ref/$file';
+  Future<Commit?> getCommit(String commit) async {
+    try {
+      final res = await dio.getUri(Uri.https(_apiHost, '$_commitsEndpoint/$commit'));
+      if (res.data is Map<String, dynamic>) return Commit.fromJson(res.data);
+    } on DioError {
+      // nop
+    }
+    return null;
   }
+
+  Future<Release?> getLatestRelease() async {
+    try {
+      final res = await dio.getUri(Uri.https(_apiHost, _latestReleaseEndpoint));
+      if (res.data is Map<String, dynamic>) return Release.fromJson(res.data);
+    } on DioError {
+      // nop
+    }
+    return null;
+  }
+
+  String getDownloadUrl(String ref, String file) => 'https://raw.githubusercontent.com/$_org/$_repo/$ref/$file';
 }

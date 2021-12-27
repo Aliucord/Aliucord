@@ -1,9 +1,0 @@
-name: Start Jitpack
-
-on: [ "push" ]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: js6pak/start-jitpack@8a4c5d9dccf07aad1194095ea24735086e3c6335

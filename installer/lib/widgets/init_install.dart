@@ -12,7 +12,7 @@ void initInstall(BuildContext context, String commit, String supportedVersion) {
   showDialog(context: context, builder: (context) => _InitInstallDialog(commit: commit, supportedVersion: supportedVersion));
 }
 
-enum _InstallOption { storage, installed_app, download }
+enum _InstallOption { storage, installedApp, download }
 
 class _InitInstallDialog extends StatefulWidget {
   final String commit;
@@ -85,7 +85,7 @@ class _InitInstallDialogState extends State<_InitInstallDialog> {
       children.add(
           RadioListTile(
             title: Text('From installed app ' + (_package == null ? '' : '($_package)')),
-            value: _InstallOption.installed_app,
+            value: _InstallOption.installedApp,
             groupValue: _option,
             onChanged: _selectFromInstalledApp,
           )

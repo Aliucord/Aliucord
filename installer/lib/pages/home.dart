@@ -32,7 +32,7 @@ class _HomePageState extends State<HomePage> {
   void _selectCommit(String? commit) async {
     if (commit == null) return;
     try {
-      final dataUrl = githubAPI!.getDownloadUrl(commit, 'data.json');
+      final dataUrl = githubAPI!.getDownloadUrl('builds', 'data.json');
       final res = await dio.get(dataUrl);
       final json = jsonDecode(res.data);
       setState(() {
@@ -83,7 +83,7 @@ class _HomePageState extends State<HomePage> {
             onPressed: () => openUrl('https://discord.gg/$supportServer'),
           )),
           PopupMenuButton<int>(
-            onSelected: (action) => Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsPage())),
+            onSelected: (action) => Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsPage())),
             itemBuilder: (context) => [
               const PopupMenuItem(child: Text('Settings'), value: 0),
             ],

@@ -9,15 +9,17 @@ import 'package:flutter/material.dart';
 import '../utils/main.dart';
 
 class UpdateDialog extends StatefulWidget {
-  final String commit;
-  final String currentCommit;
+  final String newVersion;
+  final String currentVersion;
   final String message;
+  final String downloadUrl;
 
   const UpdateDialog({
     Key? key,
-    required this.commit,
-    required this.currentCommit,
-    required this.message
+    required this.newVersion,
+    required this.currentVersion,
+    required this.message,
+    required this.downloadUrl,
   }) : super(key: key);
 
   @override
@@ -34,8 +36,11 @@ class _UpdateDialogState extends State<UpdateDialog> {
     setState(() => _updating = true);
     final outPath = storageRoot.path + '/Aliucord/Installer.apk';
     try {
-      final url = githubAPI!.getDownloadUrl('builds', 'Installer-release.apk');
-      await dio.download(url, outPath, onReceiveProgress: (count, total) => setState(() => _progress = count / total));
+      await dio.download(
+        widget.downloadUrl,
+        outPath,
+        onReceiveProgress: (count, total) => setState(() => _progress = count / total),
+      );
       installApk(outPath);
     } on DioError catch (e) {
       toast('Update failed: ${e.error}');
@@ -49,7 +54,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
     content: LinearProgressIndicator(value: _progress),
   ) : AlertDialog(
     title: const Text('Update available'),
-    content: Text('A new version is available: ${widget.commit} ${widget.message}\ncurrent version: ${widget.currentCommit}'),
+    content: Text('A new version is available: ${widget.newVersion} ${widget.message}\ncurrent version: ${widget.currentVersion}'),
     actions: [
       TextButton(
         child: Row(children: const [

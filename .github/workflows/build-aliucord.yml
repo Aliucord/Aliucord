@@ -37,6 +37,9 @@ jobs:
           chmod +x gradlew
           ./gradlew :Aliucord:make
           cp Aliucord/build/Aliucord.zip $GITHUB_WORKSPACE/builds
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
 
       - name: Push builds
         run: |

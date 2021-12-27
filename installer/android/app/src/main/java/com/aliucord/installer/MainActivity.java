@@ -66,8 +66,11 @@ public final class MainActivity extends FlutterActivity {
                     long bytesAvailable = statFs.getBlockSizeLong() * statFs.getBlockCountLong();
                     result.success(bytesAvailable / (1024f * 1024f));
                     break;
-                case "getGitRev":
-                    result.success(BuildConfig.GIT_REVISION);
+                case "getVersionCode":
+                    result.success(BuildConfig.VERSION_CODE);
+                    break;
+                case "getVersionName":
+                    result.success(BuildConfig.VERSION_NAME);
                     break;
                 case "toast":
                     Toast.makeText(this, methodCall.arguments(), Toast.LENGTH_SHORT).show();

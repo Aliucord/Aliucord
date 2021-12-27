@@ -35,9 +35,7 @@ import kotlin.Unit;
 
 final class TokenLogin extends Plugin {
     TokenLogin() {
-        var manifest = new Manifest();
-        manifest.name = "TokenLogin";
-        initialize(manifest);
+        super(new Manifest("TokenLogin"));
     }
 
     public static class Page extends AppFragment {

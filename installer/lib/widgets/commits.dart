@@ -35,7 +35,6 @@ class _CommitsWidgetState extends State<CommitsWidget> {
     _commits = commits.map((c) => _CommitData(c, buildCommits.firstWhereOrNull((bc) => bc.commit.message.substring(6) == c.sha)?.sha)).toList();
     setState(() => _initialized = true);
 
-    // TODO: add option to select older commits
     widget.selectCommit(_commits.isNotEmpty ? _commits.firstWhereOrNull((data) => data.buildSha != null)?.buildSha : null);
   }
 
