@@ -3,6 +3,7 @@ package com.aliucord.coreplugins
 import android.annotation.SuppressLint
 import android.content.Context
 import android.view.View
+import android.view.ViewGroup
 import android.widget.*
 import com.aliucord.Constants.PLUGIN_DEVELOPMENT_CHANNEL_ID
 import com.aliucord.Constants.PLUGIN_REQUESTS_CHANNEL_ID
@@ -63,8 +64,8 @@ internal class SupportWarn : Plugin(Manifest("SupportWarn")) {
 
             val thisObject = it.thisObject as WidgetChatInput
             val root = WidgetChatInput.`access$getBinding$p`(thisObject).root
-            val chatWrap = root.findViewById<LinearLayout>(chatWrapId)
             val gateButtonLayout = root.findViewById<ViewGroup>(gateButtonLayoutId)
+            val chatWrap = root.findViewById<LinearLayout>(chatWrapId)
 
             gateButtonLayout.visibility = View.VISIBLE
             chatWrap.visibility = View.GONE
