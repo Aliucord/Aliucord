@@ -21,6 +21,7 @@ class CommitsWidget extends StatefulWidget {
 
   const CommitsWidget({ Key? key, required this.selectCommit }) : super(key: key);
 
+  @override
   State<CommitsWidget> createState() => _CommitsWidgetState();
 }
 
@@ -34,8 +35,7 @@ class _CommitsWidgetState extends State<CommitsWidget> {
     _commits = commits.map((c) => _CommitData(c, buildCommits.firstWhereOrNull((bc) => bc.commit.message.substring(6) == c.sha)?.sha)).toList();
     setState(() => _initialized = true);
 
-    // TODO: add option to select older commits
-    widget.selectCommit(_commits.length > 0 ? _commits.firstWhereOrNull((data) => data.buildSha != null)?.buildSha : null);
+    widget.selectCommit(_commits.isNotEmpty ? _commits.firstWhereOrNull((data) => data.buildSha != null)?.buildSha : null);
   }
 
   @override
@@ -51,16 +51,17 @@ class _CommitsWidgetState extends State<CommitsWidget> {
     super.dispose();
   }
 
+  @override
   Widget build(BuildContext context) => Card(
-    child: !_initialized || _commits.length == 0 ? Padding(padding: EdgeInsets.symmetric(vertical: 30), child: Center(
+    child: !_initialized || _commits.isEmpty ? const Padding(padding: EdgeInsets.symmetric(vertical: 30), child: Center(
       child: CircularProgressIndicator(),
     )) : Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(padding: EdgeInsets.all(15), child: Text('Commits', style: Theme.of(context).textTheme.subtitle1)),
+        Padding(padding: const EdgeInsets.all(15), child: Text('Commits', style: Theme.of(context).textTheme.subtitle1)),
         Flexible(child: Scrollbar(child: ListView.separated(
           itemBuilder: _buildCommit,
-          separatorBuilder: (context, i) => Divider(),
+          separatorBuilder: (context, i) => const Divider(),
           itemCount: _commits.length,
         ))),
       ],
@@ -70,16 +71,16 @@ class _CommitsWidgetState extends State<CommitsWidget> {
   Widget _buildCommit(BuildContext context, int i) {
     final commit = _commits[i].commit;
     final hasBuild = _commits[i].buildSha != null;
-    final linkStyle = TextStyle(color: Theme.of(context).accentColor);
-    return Padding(padding: i != 0 ? EdgeInsets.all(12) : EdgeInsets.only(left: 12, right: 12, bottom: 12), child: Row(children: [
+    final linkStyle = TextStyle(color: Theme.of(context).colorScheme.secondary);
+    return Padding(padding: i != 0 ? const EdgeInsets.all(12) : const EdgeInsets.only(left: 12, right: 12, bottom: 12), child: Row(children: [
       Expanded(flex: 1, child: Row(children: [
         InkWell(
-          child: Text(commit.sha.substring(0, 7), style: hasBuild ? linkStyle : TextStyle(color: Colors.grey)),
+          child: Text(commit.sha.substring(0, 7), style: hasBuild ? linkStyle : const TextStyle(color: Colors.grey)),
           onTap: () => openUrl(commit.htmlUrl),
         ),
-        SizedBox.shrink(),
+        const SizedBox.shrink(),
       ])),
-      Expanded(flex: 4, child: Text('${commit.commit.message.split('\n')[0]} - ${commit.author}', style: TextStyle(fontSize: 16))),
+      Expanded(flex: 4, child: Text('${commit.commit.message.split('\n')[0]} - ${commit.author}', style: const TextStyle(fontSize: 16))),
     ]));
   }
 }

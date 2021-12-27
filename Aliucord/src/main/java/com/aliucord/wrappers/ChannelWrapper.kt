@@ -176,7 +176,7 @@ class ChannelWrapper(private val channel: Channel) {
       get() = v()
 
     @JvmStatic
-    val Channel.recipients: List<User>
+    val Channel.recipients: List<User>?
       get() = w()
 
     @JvmStatic

@@ -15,19 +15,16 @@ import androidx.annotation.Nullable;
 import com.aliucord.Utils;
 import com.aliucord.annotations.AliucordPlugin;
 import com.aliucord.Logger;
-import com.aliucord.api.CommandsAPI;
-import com.aliucord.api.PatcherAPI;
-import com.aliucord.api.SettingsAPI;
+import com.aliucord.annotations.AliucordPlugin;
+import com.aliucord.api.*;
 import com.discord.app.AppBottomSheet;
 import com.discord.app.AppFragment;
-
-import java.util.Objects;
 
 /** Base Plugin class all plugins must extend */
 @SuppressWarnings("unused")
 public abstract class Plugin {
     /** The {@link Logger} of your plugin. Use this to log information */
-    public Logger logger;
+    public final Logger logger;
 
     /** Plugin Manifest */
     public static class Manifest {
@@ -75,6 +72,13 @@ public abstract class Plugin {
         public String changelog;
         /** Image or video link that will be displayed at the top of the changelog */
         public String changelogMedia;
+
+        public Manifest(String name) {
+            this.name = name;
+        }
+
+        public Manifest() {
+        }
     }
 
     /** Plugin SettingsTab */
@@ -136,18 +140,29 @@ public abstract class Plugin {
         return manifest;
     }
 
-    /**
-     * Initializes the plugin with a manifest, you shouldn't be calling this manually
-     *
-     * @throws IllegalStateException If the method was called more than once
-     */
-    public void initialize(Manifest manifest) {
+    public Plugin(Manifest manifest) {
         if (this.manifest != null) {
-            throw new IllegalStateException("This plugin was already initialized");
+            if (manifest != null) {
+                throw new IllegalStateException("You cannot override manifest of a plugin loaded by PluginManager");
+            }
+
+            manifest = this.manifest;
+        } else if (manifest != null) {
+            this.manifest = manifest;
+        }
+
+        if (manifest == null) {
+            throw new IllegalStateException("Manifest was null, this should never happen");
         }
 
         this.logger = new Logger(manifest.name);
-        this.manifest = manifest;
+        this.commands = new CommandsAPI(manifest.name);
+        this.patcher = new PatcherAPI(logger);
+        this.settings = new SettingsAPI(manifest.name);
+    }
+
+    public Plugin() {
+        this(null);
     }
 
     /**
@@ -268,10 +283,6 @@ public abstract class Plugin {
     @SuppressWarnings("RedundantThrows")
     public void onUninstall() throws Throwable {}
 
-    /** Name of this plugin. Defaults to the class name */
-    @Deprecated
-    public String name = this.getClass().getSimpleName();
-
     public String getName() {
         return manifest.name;
     }
@@ -288,9 +299,9 @@ public abstract class Plugin {
     public String __filename;
 
     /** The {@link CommandsAPI} of your plugin. You can register/unregister commands here */
-    protected CommandsAPI commands = new CommandsAPI(name);
+    protected final CommandsAPI commands;
     /** The {@link PatcherAPI} of your plugin. You can add/remove patches here */
-    protected PatcherAPI patcher = new PatcherAPI(logger);
+    protected final PatcherAPI patcher;
     /** The {@link SettingsAPI} of your plugin. Use this to store persistent data */
-    public SettingsAPI settings = new SettingsAPI(name);
+    public final SettingsAPI settings;
 }

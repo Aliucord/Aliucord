@@ -29,6 +29,7 @@ class InstallPage extends StatefulWidget {
     required this.supportedVersion
   }) : super(key: key);
 
+  @override
   State<InstallPage> createState() => _InstallPageState();
 }
 
@@ -71,17 +72,21 @@ class _InstallPageState extends State<InstallPage> {
           downloadManifest = false;
         }
         if (prefs.containsKey('dex_commit')) prefs.remove('dex_commit'); // invalidate cache
-      } else if (!await _downloadAliucord(aliucordDex)) return _onFailed();
-    } else if (!await _downloadAliucord(aliucordDex)) return _onFailed();
+      } else if (!await _downloadAliucord(aliucordDex)) {
+        return _onFailed();
+      }
+    } else if (!await _downloadAliucord(aliucordDex)) {
+      return _onFailed();
+    }
     if (downloadManifest && !await _downloadManifest(cache)) return _onFailed();
 
-    final updater = MethodChannel('updater');
+    const updater = MethodChannel('updater');
     updater.setMethodCallHandler((call) async => setState(() => _logs += call.arguments + '\n'));
     try {
       await patchApk(apk, prefs.getBool('replace_bg') ?? true);
       await signApk();
       installApk(storageRoot.path + '/Aliucord/Aliucord.apk');
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage()));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage()));
     } on PlatformException catch (e) {
       _onFailed();
       setState(() => _logs += '${e.message}${e.details}\n');
@@ -108,15 +113,13 @@ class _InstallPageState extends State<InstallPage> {
 
   Future<bool> _downloadManifest(String cache) async {
     final manifest = '$cache/AndroidManifest.xml';
-    if ((prefs.getString('dex_commit') ?? '') == widget.commit && await File(manifest).exists()) return true;
     setState(() => _logs += 'Downloading patched AndroidManifest.xml..\n');
     try {
       await dio.download(
-        githubAPI!.getDownloadUrl(widget.commit, 'AndroidManifest.xml'),
+        githubAPI!.getDownloadUrl('builds', 'AndroidManifest.xml'),
         manifest,
         onReceiveProgress: (count, total) => setState(() => _progress = count / total),
       );
-      prefs.setString('dex_commit', widget.commit);
       setState(() {
         _progress = null;
         _logs += 'Done\n';
@@ -143,26 +146,32 @@ class _InstallPageState extends State<InstallPage> {
         final cachedApk = cache.path + '/discord.apk';
         if (!await File(cachedApk).exists()) return _downloadDiscord(cachedApk);
         final info = await getApkInfo(cachedApk);
-        if (info == null || !isVersionSupported(info.versionCode, widget.supportedVersion)) _downloadDiscord(cachedApk);
-        else _install(cachedApk);
+        if (info == null || !isVersionSupported(info.versionCode, widget.supportedVersion)) {
+          _downloadDiscord(cachedApk);
+        } else {
+          _install(cachedApk);
+        }
       });
-    } else _install(widget.apk!);
+    } else {
+      _install(widget.apk!);
+    }
   }
 
+  @override
   Widget build(BuildContext context) => WillPopScope(
     child: Scaffold(
       appBar: AppBar(
-        title: Text('Installing'),
+        title: const Text('Installing'),
         bottom: _progressBar ? PreferredSize(
           preferredSize: Size.zero,
           child: LinearProgressIndicator(value: _progress, minHeight: 6),
         ) : null,
-        leading: _allowBack ? BackButton(onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage()))) : null,
+        leading: _allowBack ? BackButton(onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage()))) : null,
       ),
       body: LogsWidget(logs: _logs),
     ),
     onWillPop: () async {
-      if (_allowBack) Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage()));
+      if (_allowBack) Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage()));
       return false;
     },
   );

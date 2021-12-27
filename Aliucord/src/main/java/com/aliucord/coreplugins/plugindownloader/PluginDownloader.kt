@@ -16,6 +16,8 @@ import com.aliucord.Logger
 import com.aliucord.Utils
 import com.aliucord.entities.Plugin
 import com.aliucord.patcher.Hook
+import com.aliucord.wrappers.messages.AttachmentWrapper.Companion.filename
+import com.aliucord.wrappers.messages.AttachmentWrapper.Companion.url
 import com.discord.utilities.color.ColorCompat
 import com.discord.widgets.chat.list.actions.WidgetChatListActions
 import com.lytefast.flexinput.R
@@ -28,13 +30,8 @@ private val repoPattern = Pattern.compile("https?://github\\.com/([A-Za-z0-9\\-_
 private val zipPattern =
     Pattern.compile("https?://(?:github|raw\\.githubusercontent)\\.com/([A-Za-z0-9\\-_.]+)/([A-Za-z0-9\\-_.]+)/(?:raw|blob)?/?\\w+/(\\w+).zip")
 
-internal class PluginDownloader : Plugin() {
+internal class PluginDownloader : Plugin(Manifest("PluginDownloader")) {
     init {
-        Manifest().run {
-            name = "PluginDownloader"
-            initialize(this)
-        }
-
         PluginFile("PluginDownloader").takeIf { it.exists() }?.let {
             if (it.delete())
                 Utils.showToast("PluginDownloader has been merged into Aliucord, so I deleted the plugin for you.", true)
@@ -56,8 +53,20 @@ internal class PluginDownloader : Plugin() {
                 val msg = (param.args[0] as WidgetChatListActions.Model).message
                 val content = msg?.content ?: return@Hook
 
+                if (msg.channelId == PLUGIN_DEVELOPMENT_CHANNEL_ID && msg.hasAttachments()) {
+                    val attachment = msg.attachments[0]
+                    val parts = attachment.filename.split('.')
+                    if (parts.size == 2 && parts[1] == "zip") {
+                        val plugin = PluginFile(parts[0])
+                        addEntry(layout, "${if (plugin.isInstalled) "Reinstall" else "Install"} ${plugin.name}") {
+                            plugin.install(attachment.url)
+                            actions.dismiss()
+                        }
+                    }
+                }
+
                 when (msg.channelId) {
-                    PLUGIN_LINKS_UPDATES_CHANNEL_ID, PLUGIN_SUPPORT_CHANNEL_ID -> {
+                    PLUGIN_LINKS_UPDATES_CHANNEL_ID, PLUGIN_SUPPORT_CHANNEL_ID, PLUGIN_DEVELOPMENT_CHANNEL_ID -> {
                         zipPattern.matcher(content).run {
                             while (find()) {
                                 val author = group(1)!!

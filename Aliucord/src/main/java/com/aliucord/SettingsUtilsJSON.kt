@@ -81,6 +81,7 @@ class SettingsUtilsJSON(private val plugin: String) {
      * @param key Key of the value
      * @return True if removed, else false
      */
+    @Synchronized
     fun remove(key: String): Boolean {
         val bool = settings.remove(key) != null
         writeData()
@@ -129,6 +130,7 @@ class SettingsUtilsJSON(private val plugin: String) {
     fun getInt(key: String, defValue: Int) =
         if (settings.has(key)) settings.getInt(key) else defValue
 
+    @Synchronized
     private fun putObject(key: String, value: Any?) {
         settings.put(key, value)
         writeData()

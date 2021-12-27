@@ -45,11 +45,7 @@ public final class Injector {
         PineConfig.disableHiddenApiPolicy = false;
         PineConfig.disableHiddenApiPolicyForPlatformDomain = false;
         Pine.disableJitInline();
-
-        if (isMiUi()) // (Causes crashes on MiUi 12)
-            Log.w(LOG_TAG, "Detected MIUI, not disabling profile saver.");
-        else if (!new File(BASE_DIRECTORY, ".no_disable_profile").exists())
-            Pine.disableProfileSaver();
+        Pine.disableProfileSaver();
 
         try {
             Log.d(LOG_TAG, "Hooking AppActivity.onCreate...");
@@ -96,9 +92,11 @@ public final class Injector {
                         storeClientVersionField.setAccessible(true);
                         var clientVersionField = StoreClientVersion.class.getDeclaredField("clientVersion");
                         clientVersionField.setAccessible(true);
+                        //noinspection AccessStaticViaInstance
                         var collector = StoreStream.Companion.access$getCollector$p(StoreStream.Companion);
                         var storeClientVersion = storeClientVersionField.get(collector);
-                        var version = (int) clientVersionField.get(storeClientVersion);
+                        var version = (Integer) clientVersionField.get(storeClientVersion);
+                        assert version != null;
                         Logger.d("Retrieved local Discord version: " + version);
 
                         Logger.d("Fetching latest Discord version...");
@@ -144,19 +142,6 @@ public final class Injector {
         }
     }
 
-    @SuppressLint("PrivateApi") // Why is there no better way to get props???? System.getProperty doesn't work
-    private static boolean isMiUi() {
-        if (!Build.MANUFACTURER.equalsIgnoreCase("xiaomi")) return false;
-        try {
-            var c = Class.forName("android.os.SystemProperties");
-            var getProp = c.getMethod("get", String.class);
-            var miuiCrap = (String) getProp.invoke(c, "ro.miui.ui.version.code");
-            return miuiCrap != null && !miuiCrap.isEmpty();
-        } catch (Throwable ignored) {
-            return false;
-        }
-    }
-
     /**
      * Public so it can be manually triggered from Aliucord to update itself
      * outputFile should be new File(context.getCodeCacheDir(), "Aliucord.zip");
@@ -181,6 +166,7 @@ public final class Injector {
         var pathList = pathListField.get(classLoader);
         // Android 7: https://android.googlesource.com/platform/libcore/+/refs/heads/nougat-release/dalvik/src/main/java/dalvik/system/DexPathList.java#184
         // Current latest Master: https://android.googlesource.com/platform/libcore/+/58b4e5dbb06579bec9a8fc892012093b6f4fbe20/dalvik/src/main/java/dalvik/system/DexPathList.java#214
+        assert pathList != null;
         var addDexPath = pathList.getClass().getDeclaredMethod("addDexPath", String.class, File.class);
         addDexPath.setAccessible(true);
         addDexPath.invoke(pathList, dex.getAbsolutePath(), (File) null);

@@ -16,10 +16,13 @@ dependencies:
 
   android_intent: ^2.0.2
   collection: ^1.15.0
-  dio: ^4.0.0
-  filesystem_picker: ^2.0.0-nullsafety.0
-  path_provider: ^2.0.2
-  shared_preferences: ^2.0.6
+  dio: ^4.0.4
+  filesystem_picker: ^2.0.0
+  path_provider: ^2.0.8
+  shared_preferences: ^2.0.11
+
+dev_dependencies:
+    flutter_lints: ^1.0.4
 
 # The following section is specific to Flutter.
 flutter:
