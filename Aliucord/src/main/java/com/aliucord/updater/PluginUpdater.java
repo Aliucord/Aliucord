@@ -177,8 +177,11 @@ public class PluginUpdater {
         Utils.mainThread.post(() -> {
             var enabled = PluginManager.isPluginEnabled(plugin);
 
-            if (enabled)
-                PluginManager.disablePlugin(plugin);
+            if (enabled) {
+                try {
+                    p.onStop();
+                } catch (Throwable e) { logger.error("Exception while stopping plugin: " + plugin, e); }
+            }
             PluginManager.unloadPlugin(plugin);
             PluginManager.loadPlugin(Utils.getAppContext(), new File(Constants.PLUGINS_PATH, plugin + ".zip"));
 
@@ -191,7 +194,9 @@ public class PluginUpdater {
             if (enabled) {
                 if (newPlugin.requiresRestart())
                     Utils.promptRestart();
-                PluginManager.startPlugin(plugin);
+                try {
+                    newPlugin.onStart();
+                } catch (Throwable e) { logger.error("Exception while starting plugin: " + plugin, e); }
             }
         });
         updated.put(plugin, updateInfo.version);

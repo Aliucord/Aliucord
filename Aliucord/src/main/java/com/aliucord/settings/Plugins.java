@@ -247,7 +247,7 @@ public class Plugins extends SettingsPage {
             dialog.setOnOkListener(e -> {
                 File pluginFile = new File(Constants.BASE_PATH + "/plugins/" + p.__filename + ".zip");
                 if (pluginFile.exists() && !pluginFile.delete()) {
-                    PluginManager.logger.errorToast("Failed to delete plugin " + name, null);
+                    PluginManager.logger.errorToast("Failed to uninstall " + name, null);
                     return;
                 }
 
@@ -258,7 +258,7 @@ public class Plugins extends SettingsPage {
                 PluginManager.stopPlugin(name);
                 PluginManager.plugins.remove(name);
                 SettingsUtils.delete(PluginManager.getPluginPrefKey(name));
-                PluginManager.logger.info(ctx, "Successfully deleted " + name);
+                PluginManager.logger.info("Successfully uninstalled " + name);
 
                 dialog.dismiss();
                 data.remove(position);
