@@ -56,9 +56,9 @@ internal class PluginDownloader : Plugin(Manifest("PluginDownloader")) {
 
                 if (msg.channelId == PLUGIN_DEVELOPMENT_CHANNEL_ID && msg.hasAttachments()) {
                     msg.attachments.forEach { attachment ->
-                        val filenameParts = attachment.filename.split('.')
-                        if (filenameParts.size == 2 && filenameParts[1] == "zip") {
-                            val plugin = PluginFile(filenameParts[0])
+                        val parts = attachment.filename.split('.')
+                        if (parts.size == 2 && parts[1] == "zip" && parts[0] != "Aliucord") {
+                            val plugin = PluginFile(parts[0])
                             addEntry(layout, "${if (plugin.isInstalled) "Reinstall" else "Install"} ${plugin.name}") {
                                 plugin.install(attachment.url)
                                 actions.dismiss()
