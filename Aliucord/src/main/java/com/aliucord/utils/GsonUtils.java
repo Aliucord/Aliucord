@@ -14,9 +14,9 @@ import java.lang.reflect.Type;
 
 public final class GsonUtils {
     /** <a href="https://github.com/google/gson">Gson</a> instance */
-    public final static Gson gson = new Gson();
+    public static final Gson gson = new Gson();
     /** Pretty <a href="https://github.com/google/gson">Gson</a> instance */
-    public final static Gson gsonPretty = new Gson();
+    public static final Gson gsonPretty = new Gson();
 
     /**
      * Deserializes a JSON string into the specified class

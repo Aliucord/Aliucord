@@ -13,7 +13,7 @@ import com.discord.app.AppLog
  * Logger that will log to both logcat and Discord's debug log
  * @param module Name of the module
  */
-@Suppress("unused", "MemberVisibilityCanBePrivate")
+@Suppress("unused", "MemberVisibilityCanBePrivate", "UNUSED_PARAMETER")
 class Logger(var module: String = "Aliucord") {
     private fun format(msg: String) = "[$module] $msg"
 

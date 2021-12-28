@@ -81,25 +81,10 @@ object RxUtils {
             override fun onNext(value: T) = resRef.set(value)
         })
 
-        if (latch.count != 0L) try {
+        if (latch.count != 0L)
             latch.await()
-        } catch (ignored: InterruptedException) {}
 
         return resRef.get() to throwableRef.get()
-    }
-
-    /**
-     * Blocks the current thread and waits for the [Observable] to complete, then returns a [Pair] containing the result, and the error (if any)
-     * This must not be called from the Main thread (and will throw an [IllegalStateException] if done so) as that would freeze the UI
-     * @return A [Pair] whose first value is the result and whose second value is the error that occurred, if any
-     * @deprecated Use [await]
-     */
-    @JvmStatic
-    @Deprecated("Use RxUtils.await()", ReplaceWith("await()"))
-    @Throws(IllegalStateException::class)
-    fun <T> Observable<T>.getResultBlocking(): android.util.Pair<T?, Throwable?> {
-        val (res, th) = await()
-        return android.util.Pair(res, th)
     }
 
     /**

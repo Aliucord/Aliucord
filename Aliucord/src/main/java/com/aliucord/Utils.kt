@@ -443,6 +443,9 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
      * @param msg Message to log.
      */
     @JvmStatic
+    @Deprecated(
+        "Please stop abusing this method to log random junk then forget about it. It does not tell which plugin is logging stuff, so it is very hard to debug. Make your own Logger instance"
+    )
     fun log(msg: String) = Main.logger.debug(msg)
 
     private val fileNameField: Field = MessageAttachment::class.java.getDeclaredField("filename").apply { isAccessible = true }

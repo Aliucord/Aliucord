@@ -32,9 +32,14 @@ public class MessageEmbedBuilder {
     private static Field urlField;
     private static Field videoField;
 
-    static {
+    private final com.discord.api.message.embed.MessageEmbed embed;
+
+    private static volatile boolean fieldsInitialized = false;
+    private static void initFields() {
+        if (fieldsInitialized) return;
+        fieldsInitialized = true;
         try {
-            Class<com.discord.api.message.embed.MessageEmbed> c = com.discord.api.message.embed.MessageEmbed.class;
+            var c = com.discord.api.message.embed.MessageEmbed.class;
             authorField = c.getDeclaredField("author");
             authorField.setAccessible(true);
             colorField = c.getDeclaredField("color");
@@ -61,10 +66,11 @@ public class MessageEmbedBuilder {
             urlField.setAccessible(true);
             videoField = c.getDeclaredField("video");
             videoField.setAccessible(true);
-        } catch (Exception e) { Main.logger.error(e); }
+        } catch (ReflectiveOperationException e) {
+            fieldsInitialized = false;
+            throw new RuntimeException("Failed to obtain embed fields", e);
+        }
     }
-
-    private final com.discord.api.message.embed.MessageEmbed embed;
 
     /**
      * Creates a rich embed
@@ -78,6 +84,7 @@ public class MessageEmbedBuilder {
      * @param type {@link EmbedType}
      */
     public MessageEmbedBuilder(EmbedType type) {
+        initFields();
         embed = ReflectUtils.allocateInstance(MessageEmbed.class);
         setType(type);
     }
