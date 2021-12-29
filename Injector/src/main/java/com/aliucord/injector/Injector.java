@@ -220,6 +220,9 @@ public final class Injector {
      * since you're invoking reflection methods using reflection.
      */
     private static void disableHiddenApiPolicy() {
+        // Not supported as it doesn't exist
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return;
+
         try {
             var mForName = Class.class.getDeclaredMethod("forName", String.class);
             var mGetDeclaredMethod = Class.class.getDeclaredMethod("getDeclaredMethod", String.class, Class[].class);
