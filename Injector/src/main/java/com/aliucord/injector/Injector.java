@@ -20,8 +20,10 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.io.*;
+import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import dalvik.system.BaseDexClassLoader;
@@ -29,7 +31,7 @@ import top.canyie.pine.Pine;
 import top.canyie.pine.PineConfig;
 import top.canyie.pine.callback.MethodHook;
 
-@SuppressWarnings({"ResultOfMethodCallIgnored", "JavaReflectionMemberAccess"})
+@SuppressWarnings({ "ResultOfMethodCallIgnored", "JavaReflectionMemberAccess" })
 public final class Injector {
     public static final String LOG_TAG = "Injector";
     private static final String DATA_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/data.json";
@@ -46,6 +48,7 @@ public final class Injector {
         PineConfig.disableHiddenApiPolicyForPlatformDomain = false;
         Pine.disableJitInline();
         Pine.disableProfileSaver();
+        disableHiddenApiPolicy();
 
         try {
             Log.d(LOG_TAG, "Hooking AppActivity.onCreate...");
@@ -169,7 +172,7 @@ public final class Injector {
         assert pathList != null;
         var addDexPath = pathList.getClass().getDeclaredMethod("addDexPath", String.class, File.class);
         addDexPath.setAccessible(true);
-        addDexPath.invoke(pathList, dex.getAbsolutePath(), (File) null);
+        addDexPath.invoke(pathList, dex.getAbsolutePath(), null);
 
         Logger.d("Successfully added Aliucord to the classpath");
     }
@@ -207,5 +210,29 @@ public final class Injector {
             }
         }
         return true;
+    }
+
+    private static void disableHiddenApiPolicy() {
+        try {
+            var mForName = Class.class.getDeclaredMethod("forName", String.class);
+            var mGetDeclaredMethod = Class.class.getDeclaredMethod("getDeclaredMethod", String.class, Class[].class);
+
+            var cVMRuntime = mForName.invoke(null, "dalvik.system.VMRuntime");
+            var mGetRuntime = (Method) mGetDeclaredMethod.invoke(cVMRuntime, "getRuntime", null);
+            Objects.requireNonNull(mGetRuntime, "Failed to get getRuntime()!");
+
+            var mSetHiddenApiExemptions = (Method) mGetDeclaredMethod.invoke(
+                cVMRuntime,
+                "setHiddenApiExemptions",
+                new Class[]{ String[].class }
+            );
+            Objects.requireNonNull(mSetHiddenApiExemptions, "Failed to get setHiddenApiExemptions()!");
+
+            var vmRuntime = mGetRuntime.invoke(null);
+            Objects.requireNonNull(vmRuntime, "Failed to get VMRuntime!");
+            mSetHiddenApiExemptions.invoke(vmRuntime, (Object) new String[]{ "L" });
+        } catch (Throwable t) {
+            Logger.e("Failed to disable hidden api policy!", t);
+        }
     }
 }
