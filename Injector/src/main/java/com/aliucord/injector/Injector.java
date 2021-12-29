@@ -212,6 +212,13 @@ public final class Injector {
         return true;
     }
 
+    /**
+     * Disables the Android Hidden API by adding an exemption for everything ("L")
+     * Works by getting reflection methods through reflection,
+     * then invoking those methods to get and invoke a setter for hidden API exemptions.
+     * This works because the VM thinks its internals calling the hidden method,
+     * since you're invoking reflection methods using reflection.
+     */
     private static void disableHiddenApiPolicy() {
         try {
             var mForName = Class.class.getDeclaredMethod("forName", String.class);
