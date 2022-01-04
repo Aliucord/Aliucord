@@ -213,11 +213,13 @@ public final class Injector {
     }
 
     /**
-     * Disables the Android Hidden API by adding an exemption for everything ("L")
+     * Disables the Android Hidden API by adding an exemption for everything ("L", the prefix of all class references, e.g. Ljava/lang/String)
      * Works by getting reflection methods through reflection,
      * then invoking those methods to get and invoke a setter for hidden API exemptions.
-     * This works because the VM thinks its internals calling the hidden method,
-     * since you're invoking reflection methods using reflection.
+     * This works because the VM thinks it's internals calling the hidden method,
+     * since we're invoking reflection methods using reflection.
+     * 
+     * See https://weishu.me/2019/03/16/another-free-reflection-above-android-p/ (chinese)
      */
     private static void disableHiddenApiPolicy() {
         // Not supported as it doesn't exist
@@ -227,6 +229,7 @@ public final class Injector {
             var mForName = Class.class.getDeclaredMethod("forName", String.class);
             var mGetDeclaredMethod = Class.class.getDeclaredMethod("getDeclaredMethod", String.class, Class[].class);
 
+            // https://android.googlesource.com/platform/libcore/+/master/libart/src/main/java/dalvik/system/VMRuntime.java
             var cVMRuntime = mForName.invoke(null, "dalvik.system.VMRuntime");
             var mGetRuntime = (Method) mGetDeclaredMethod.invoke(cVMRuntime, "getRuntime", null);
             Objects.requireNonNull(mGetRuntime, "Failed to get getRuntime()!");
