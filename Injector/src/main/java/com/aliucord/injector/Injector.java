@@ -48,6 +48,7 @@ public final class Injector {
         PineConfig.disableHiddenApiPolicyForPlatformDomain = false;
         Pine.disableJitInline();
         Pine.disableProfileSaver();
+        // Use our own hidden api bypass since pine bypass causes crashes according to Juby
         disableHiddenApiPolicy();
 
         try {
