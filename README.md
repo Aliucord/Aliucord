@@ -34,7 +34,7 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
 
 ### Supported Discord version(s)
 
--   105.12 / Beta 105112 (You don't need the apk, the installer will download it for you)
+-   110.5 / Beta 110105 (You don't need the apk, the installer will download it for you)
 
 ## 🎨 Features
 
