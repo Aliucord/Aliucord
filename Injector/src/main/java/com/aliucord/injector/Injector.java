@@ -20,8 +20,10 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.io.*;
+import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import dalvik.system.BaseDexClassLoader;
@@ -29,7 +31,7 @@ import top.canyie.pine.Pine;
 import top.canyie.pine.PineConfig;
 import top.canyie.pine.callback.MethodHook;
 
-@SuppressWarnings({"ResultOfMethodCallIgnored", "JavaReflectionMemberAccess"})
+@SuppressWarnings({ "ResultOfMethodCallIgnored", "JavaReflectionMemberAccess" })
 public final class Injector {
     public static final String LOG_TAG = "Injector";
     private static final String DATA_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/data.json";
@@ -46,6 +48,8 @@ public final class Injector {
         PineConfig.disableHiddenApiPolicyForPlatformDomain = false;
         Pine.disableJitInline();
         Pine.disableProfileSaver();
+        // Use our own hidden api bypass since pine bypass causes crashes according to Juby
+        disableHiddenApiPolicy();
 
         try {
             Log.d(LOG_TAG, "Hooking AppActivity.onCreate...");
@@ -169,7 +173,7 @@ public final class Injector {
         assert pathList != null;
         var addDexPath = pathList.getClass().getDeclaredMethod("addDexPath", String.class, File.class);
         addDexPath.setAccessible(true);
-        addDexPath.invoke(pathList, dex.getAbsolutePath(), (File) null);
+        addDexPath.invoke(pathList, dex.getAbsolutePath(), null);
 
         Logger.d("Successfully added Aliucord to the classpath");
     }
@@ -207,5 +211,42 @@ public final class Injector {
             }
         }
         return true;
+    }
+
+    /**
+     * Disables the Android Hidden API by adding an exemption for everything ("L", the prefix of all class references, e.g. Ljava/lang/String)
+     * Works by getting reflection methods through reflection,
+     * then invoking those methods to get and invoke a setter for hidden API exemptions.
+     * This works because the VM thinks it's internals calling the hidden method,
+     * since we're invoking reflection methods using reflection.
+     * 
+     * See https://weishu.me/2019/03/16/another-free-reflection-above-android-p/ (chinese)
+     */
+    private static void disableHiddenApiPolicy() {
+        // Not supported as it doesn't exist
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return;
+
+        try {
+            var mForName = Class.class.getDeclaredMethod("forName", String.class);
+            var mGetDeclaredMethod = Class.class.getDeclaredMethod("getDeclaredMethod", String.class, Class[].class);
+
+            // https://android.googlesource.com/platform/libcore/+/master/libart/src/main/java/dalvik/system/VMRuntime.java
+            var cVMRuntime = mForName.invoke(null, "dalvik.system.VMRuntime");
+            var mGetRuntime = (Method) mGetDeclaredMethod.invoke(cVMRuntime, "getRuntime", null);
+            Objects.requireNonNull(mGetRuntime, "Failed to get getRuntime()!");
+
+            var mSetHiddenApiExemptions = (Method) mGetDeclaredMethod.invoke(
+                cVMRuntime,
+                "setHiddenApiExemptions",
+                new Class[]{ String[].class }
+            );
+            Objects.requireNonNull(mSetHiddenApiExemptions, "Failed to get setHiddenApiExemptions()!");
+
+            var vmRuntime = mGetRuntime.invoke(null);
+            Objects.requireNonNull(vmRuntime, "Failed to get VMRuntime!");
+            mSetHiddenApiExemptions.invoke(vmRuntime, (Object) new String[]{ "L" });
+        } catch (Throwable t) {
+            Logger.e("Failed to disable hidden api policy!", t);
+        }
     }
 }
