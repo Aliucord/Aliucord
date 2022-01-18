@@ -308,7 +308,7 @@ public final class Main {
     }
 
     private static void loadAllPlugins(Context context) {
-        File dir = new File(Constants.BASE_PATH + "/plugins");
+        File dir = new File(Constants.PLUGINS_PATH);
         if (!dir.exists()) {
             boolean res = dir.mkdirs();
             if (!res) {

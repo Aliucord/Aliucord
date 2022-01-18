@@ -165,7 +165,7 @@ public class PluginUpdater {
 
         try (var res = new Http.Request(url).execute()) {
             res.saveToFile(
-                    new File(Constants.BASE_PATH + "/plugins", p.__filename + ".zip"),
+                    new File(Constants.PLUGINS_PATH + "/", p.__filename + ".zip"),
                     updateInfo.sha1sum
             );
         }

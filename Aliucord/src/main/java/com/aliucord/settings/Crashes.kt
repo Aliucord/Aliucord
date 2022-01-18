@@ -156,7 +156,7 @@ class Crashes : SettingsPage() {
     }
 
     private fun getCrashes(): Map<Int, CrashLog>? {
-        val folder = File(Constants.BASE_PATH, "crashlogs")
+        val folder = File(Constants.CRASHLOGS_PATH)
         val files = folder.listFiles()?.apply {
             sortByDescending { it.lastModified() }
         } ?: return null

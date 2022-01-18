@@ -11,8 +11,8 @@ import java.util.*
 
 /** Utility class to store and retrieve preferences  */
 class SettingsUtilsJSON(private val plugin: String) {
-    private val settingsPath = Constants.BASE_PATH + "/settings/"
-    private val settingsFile = Constants.BASE_PATH + "/settings/" + plugin + ".json"
+    private val settingsPath = Constants.SETTINGS_PATH + "/"
+    private val settingsFile = settingsPath + plugin + ".json"
     private val keyPrefix = "AC_" + plugin + "_"
     private val cache: MutableMap<String, Any> = HashMap()
     private val settings: JSONObject by lazy {
