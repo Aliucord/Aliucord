@@ -286,7 +286,7 @@ public class Plugins extends SettingsPage {
 
         if (!PluginManager.failedToLoad.isEmpty()) {
             var failedPluginsView = new Button(context);
-            failedPluginsView.setText("Plugins that failed to load");
+            failedPluginsView.setText("Plugin Errors");
             failedPluginsView.setOnClickListener(v -> Utils.openPage(context, FailedPluginsPage.class));
             addView(failedPluginsView);
             addView(new Divider(context));
