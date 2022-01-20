@@ -8,11 +8,14 @@ package com.aliucord.fragments;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.view.View;
+import android.graphics.drawable.Drawable;
+import android.view.*;
 import android.widget.LinearLayout;
 
+import androidx.annotation.DrawableRes;
 import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.content.ContextCompat;
 import androidx.core.widget.NestedScrollView;
 
 import com.aliucord.Utils;
@@ -21,8 +24,9 @@ import com.aliucord.views.ToolbarButton;
 import com.discord.app.AppFragment;
 import com.google.android.material.appbar.AppBarLayout;
 
+
 /** Settings Page Fragment */
-@SuppressWarnings("unused")
+@SuppressWarnings({ "deprecation", "unused" })
 public class SettingsPage extends AppFragment {
     private static final int resId = Utils.getResId("widget_settings_behavior", "layout");
     private CoordinatorLayout view;
@@ -43,6 +47,7 @@ public class SettingsPage extends AppFragment {
         setActionBarDisplayHomeAsUpEnabled();
 
         clear();
+        getHeaderBar().getMenu().clear();
         setPadding(DimenUtils.getDefaultPadding());
     }
 
@@ -69,14 +74,93 @@ public class SettingsPage extends AppFragment {
         getLinearLayout().setPadding(p, p, p, p);
     }
 
-    /** Adds a button from the Toolbar associated with this Page */
+    /**
+     * Add a button to the header {@link Toolbar} of this page
+     *
+     * @param id       The id of this button
+     * @param order    The order to show this button in. See {@link MenuItem#getOrder()}
+     * @param title    The title of this button
+     * @param drawable The drawable this button should have
+     * @param onClick  The onClick listener of this button
+     * @return The id of this header button
+     * @see Toolbar#getMenu()
+     * @see Menu#add(int, int, int, CharSequence)
+     */
+    public final int addHeaderButton(int id, int order, String title, Drawable drawable, MenuItem.OnMenuItemClickListener onClick) {
+        getHeaderBar().getMenu()
+            .add(Menu.NONE, id, order, title)
+            .setIcon(drawable)
+            .setShowAsActionFlags(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+            .setOnMenuItemClickListener(onClick);
+        return id;
+    }
+
+    /**
+     * Add a button to the header {@link Toolbar} of this page
+     *
+     * @param id       The id of this button
+     * @param title    The title of this button
+     * @param drawable The drawable this button should have
+     * @param onClick  The onClick listener of this button
+     * @return The id of this header button
+     * @see Toolbar#getMenu()
+     * @see Menu#add(int, int, int, CharSequence)
+     */
+    public final int addHeaderButton(int id, String title, Drawable drawable, MenuItem.OnMenuItemClickListener onClick) {
+        return addHeaderButton(id, Menu.NONE, title, drawable, onClick);
+    }
+
+    /**
+     * Add a button to the header {@link Toolbar} of this page
+     *
+     * @param title    The title of this button
+     * @param drawable The drawable this button should have
+     * @param onClick  The onClick listener of this button
+     * @return The id of this header button
+     * @see Toolbar#getMenu()
+     * @see Menu#add(int, int, int, CharSequence)
+     */
+    public final int addHeaderButton(String title, Drawable drawable, MenuItem.OnMenuItemClickListener onClick) {
+        return addHeaderButton(View.generateViewId(), title, drawable, onClick);
+    }
+
+    /**
+     * Add a button to the header {@link Toolbar} of this page
+     *
+     * @param title      The title of this button
+     * @param drawableId The id of the drawable this button should have
+     * @param onClick    The onClick listener of this button
+     * @return The id of this header button
+     * @see Toolbar#getMenu()
+     * @see Menu#add(int, int, int, CharSequence)
+     */
+    public final int addHeaderButton(String title, @DrawableRes int drawableId, MenuItem.OnMenuItemClickListener onClick) {
+        return addHeaderButton(View.generateViewId(), title, ContextCompat.getDrawable(Utils.getAppContext(), drawableId), onClick);
+    }
+
+    /**
+     * Adds a button from the Toolbar associated with this Page
+     *
+     * @deprecated Use {@link #addHeaderButton(String, Drawable, MenuItem.OnMenuItemClickListener)}
+     * or {@link #getHeaderBar()}.getMenu().add(...)
+     */
+    @Deprecated
     public final void addHeaderButton(ToolbarButton button) {
         getHeaderBar().addView(button);
     }
 
-    /** Removes a button to the Toolbar associated with this Page */
+    /**
+     * Removes a button to the Toolbar associated with this Page
+     *
+     * @deprecated Use {@link #removeHeaderButton(int)} with id returned by {@link #addHeaderButton(String, Drawable, MenuItem.OnMenuItemClickListener)}
+     */
+    @Deprecated
     public final void removeHeaderButton(ToolbarButton button) {
         getHeaderBar().removeView(button);
+    }
+
+    public final void removeHeaderButton(int id) {
+        getHeaderBar().getMenu().removeItem(id);
     }
 
     /** Adds a view to the LinearLayout associated with this Page */
@@ -97,6 +181,7 @@ public class SettingsPage extends AppFragment {
     /** Removes all views from the LinearLayout associated with this Page and calls onViewBound */
     public final void reRender() {
         clear();
+        getHeaderBar().getMenu().clear();
         onViewBound(view);
     }
 

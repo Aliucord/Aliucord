@@ -10,10 +10,17 @@ import androidx.appcompat.widget.AppCompatImageButton;
 import com.aliucord.Utils;
 import com.lytefast.flexinput.R;
 
-/** Settings Header Toolbar Button */
+/**
+ * Settings Header Toolbar Button
+ *
+ * @deprecated See Deprecation reason of {@link com.aliucord.fragments.SettingsPage#addHeaderButton(ToolbarButton)}
+ */
+@SuppressWarnings({ "DeprecatedIsStillUsed", "deprecation" })
+@Deprecated
 public class ToolbarButton extends AppCompatImageButton {
     /**
      * Creates a header-toolbar button
+     *
      * @param context {@link Context}
      */
     public ToolbarButton(Context context) {

@@ -6,14 +6,11 @@
 package com.aliucord.settings
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Bundle
 import android.text.SpannableStringBuilder
 import android.view.Gravity
 import android.view.View
 import android.widget.TextView
-import androidx.annotation.DrawableRes
-import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import com.aliucord.*
@@ -21,7 +18,6 @@ import com.aliucord.fragments.SettingsPage
 import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.MDUtils
 import com.aliucord.views.DangerButton
-import com.aliucord.views.ToolbarButton
 import com.aliucord.widgets.BottomSheet
 import com.discord.views.CheckedSetting
 import com.lytefast.flexinput.R
@@ -29,19 +25,18 @@ import java.io.File
 import java.util.*
 
 const val autoDisableKey = "autoDisableCrashingPlugins"
-private data class CrashLog(val timestamp: String, val stacktrace: String, var times: Int)
 
-private val uniqueId = View.generateViewId()
+private data class CrashLog(val timestamp: String, val stacktrace: String, var times: Int)
 
 class CrashSettings : BottomSheet() {
     override fun onViewCreated(view: View, bundle: Bundle?) {
         super.onViewCreated(view, bundle)
 
         Utils.createCheckedSetting(
-                view.context,
-                CheckedSetting.ViewType.SWITCH,
-                "Auto Disable Plugins",
-                "Automatically disable plugins when they cause a crash"
+            view.context,
+            CheckedSetting.ViewType.SWITCH,
+            "Auto Disable Plugins",
+            "Automatically disable plugins when they cause a crash"
         ).run {
             isChecked = SettingsUtils.getBool(autoDisableKey, true)
             setOnCheckedListener {
@@ -54,18 +49,6 @@ class CrashSettings : BottomSheet() {
 }
 
 class Crashes : SettingsPage() {
-    private fun createToolbarButton(ctx: Context, @DrawableRes drawableId: Int, marginEnd: Int, onClickListener: View.OnClickListener) =
-        ToolbarButton(ctx).apply {
-            layoutParams = Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT).apply {
-                gravity = Gravity.END
-                val m = DimenUtils.defaultPadding / 2
-                setMargins(m, m, m + marginEnd, m)
-            }
-
-            setImageDrawable(ContextCompat.getDrawable(ctx, drawableId))
-            setOnClickListener(onClickListener)
-        }
-
     @SuppressLint("SetTextI18n")
     override fun onViewBound(view: View) {
         super.onViewBound(view)
@@ -79,35 +62,27 @@ class Crashes : SettingsPage() {
         val files = dir.listFiles()
         val hasCrashes = files != null && files.isNotEmpty()
 
-        if (headerBar.findViewById<View?>(uniqueId) == null) {
-            createToolbarButton(context, R.e.ic_settings_24dp, p) {
-                CrashSettings().show(parentFragmentManager, "Crash Settings")
-            }.run {
-                id = uniqueId
-                addHeaderButton(this)
+        addHeaderButton("Open Crashlog Folder", R.e.ic_open_in_new_white_24dp) {
+            if (!dir.exists() && !dir.mkdir()) {
+                Utils.showToast("Failed to create crashlogs directory!", true)
+            } else {
+                Utils.launchFileExplorer(dir)
             }
-
-            createToolbarButton(context, R.e.ic_open_in_new_white_24dp, 0) {
-                if (!dir.exists() && !dir.mkdir()) {
-                    Utils.showToast("Failed to create crashlogs directory!", true)
-                } else {
-                    Utils.launchFileExplorer(dir)
-                }
-            }.run {
-                addHeaderButton(this)
-            }
-
-            createToolbarButton(context, R.e.ic_delete_white_24dp, 0) { v ->
-                files?.forEach { it.delete() }
-                v.alpha = 0.5f
-                v.isClickable = false
-                reRender()
-            }.run {
-                alpha = if (hasCrashes) 1f else 0.5f
-                isClickable = hasCrashes
-                addHeaderButton(this)
-            }
+            true
         }
+        headerBar.menu.add("Clear Crashes")
+            .setIcon(ContextCompat.getDrawable(context, R.e.ic_delete_24dp))
+            .setEnabled(hasCrashes)
+            .setOnMenuItemClickListener { item ->
+                files?.forEach { it.delete() }
+                reRender()
+                true
+            }
+        addHeaderButton("Settings", R.e.ic_settings_24dp) {
+            CrashSettings().show(parentFragmentManager, "Crash Settings")
+            true
+        }
+
 
         val crashes = getCrashes()
         if (crashes == null || crashes.isEmpty()) {

@@ -20,24 +20,18 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
 
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
-
 import com.aliucord.SettingsUtils;
 import com.aliucord.Utils;
 import com.aliucord.fragments.ConfirmDialog;
 import com.aliucord.fragments.SettingsPage;
 import com.aliucord.updater.PluginUpdater;
 import com.aliucord.utils.DimenUtils;
-import com.aliucord.views.ToolbarButton;
 import com.aliucord.widgets.BottomSheet;
 import com.aliucord.widgets.UpdaterPluginCard;
 import com.discord.views.CheckedSetting;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.lytefast.flexinput.R;
-
-import java.lang.Runtime;
 
 public class Updater extends SettingsPage {
     public static class UpdaterSettings extends BottomSheet {
@@ -88,7 +82,6 @@ public class Updater extends SettingsPage {
         }
     }
 
-    private static final int id = View.generateViewId();
     private String stateText = "No new updates found";
 
     @Override
@@ -103,117 +96,87 @@ public class Updater extends SettingsPage {
         int padding = DimenUtils.getDefaultPadding();
 
         Utils.threadPool.execute(() -> {
-                Snackbar sb;
-                if (usingDexFromStorage()) {
-                    sb = Snackbar.make(getLinearLayout(), "Updater disabled due to using Aliucord from storage.", Snackbar.LENGTH_INDEFINITE);
-                } else if (isDiscordOutdated()) {
-                    sb = Snackbar
-                            .make(getLinearLayout(), "Your Base Discord is outdated. Please update using the installer.", BaseTransientBottomBar.LENGTH_INDEFINITE)
-                            .setAction("Open Installer", v -> {
-                                var ctx = v.getContext();
-                                var i = ctx.getPackageManager().getLaunchIntentForPackage("com.aliucord.installer");
-                                if (i != null)
-                                    ctx.startActivity(i);
-                                else
-                                    Utils.showToast("Please install the Aliucord installer and try again.");
-                            });
-                } else if (isAliucordOutdated()) {
-                    sb = Snackbar
-                            .make(getLinearLayout(), "Your Aliucord is outdated.", Snackbar.LENGTH_INDEFINITE)
-                            .setAction("Update", v -> Utils.threadPool.execute(() -> {
-                                var ctx = v.getContext();
-                                try {
-                                    updateAliucord(ctx);
-                                    Utils.showToast("Successfully updated Aliucord.");
-                                    Snackbar rb = Snackbar
-                                        .make(getLinearLayout(), "Restart to apply the update.", Snackbar.LENGTH_INDEFINITE)
-                                        .setAction("Restart", e -> {
-                                            Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
-                                            context.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
-                                            Runtime.getRuntime().exit(0);
-                                        });
-                                    rb.setBackgroundTint(0xffffbb33);
-                                    rb.setTextColor(Color.BLACK);
-                                    rb.setActionTextColor(Color.BLACK);
-                                    rb.show();
-                                } catch (Throwable th) {
-                                    PluginUpdater.logger.errorToast("Failed to update Aliucord. Check the debug log for more info", th);
-                                }
-                            }));
-                } else return;
+            Snackbar sb;
+            if (usingDexFromStorage()) {
+                sb = Snackbar.make(getLinearLayout(), "Updater disabled due to using Aliucord from storage.", Snackbar.LENGTH_INDEFINITE);
+            } else if (isDiscordOutdated()) {
+                sb = Snackbar
+                    .make(getLinearLayout(), "Your Base Discord is outdated. Please update using the installer.", BaseTransientBottomBar.LENGTH_INDEFINITE)
+                    .setAction("Open Installer", v -> {
+                        var ctx = v.getContext();
+                        var i = ctx.getPackageManager().getLaunchIntentForPackage("com.aliucord.installer");
+                        if (i != null)
+                            ctx.startActivity(i);
+                        else
+                            Utils.showToast("Please install the Aliucord installer and try again.");
+                    });
+            } else if (isAliucordOutdated()) {
+                sb = Snackbar
+                    .make(getLinearLayout(), "Your Aliucord is outdated.", Snackbar.LENGTH_INDEFINITE)
+                    .setAction("Update", v -> Utils.threadPool.execute(() -> {
+                        var ctx = v.getContext();
+                        try {
+                            updateAliucord(ctx);
+                            Utils.showToast("Successfully updated Aliucord.");
+                            Snackbar rb = Snackbar
+                                .make(getLinearLayout(), "Restart to apply the update.", Snackbar.LENGTH_INDEFINITE)
+                                .setAction("Restart", e -> {
+                                    Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+                                    context.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
+                                    Runtime.getRuntime().exit(0);
+                                });
+                            rb.setBackgroundTint(0xffffbb33);
+                            rb.setTextColor(Color.BLACK);
+                            rb.setActionTextColor(Color.BLACK);
+                            rb.show();
+                        } catch (Throwable th) {
+                            PluginUpdater.logger.errorToast("Failed to update Aliucord. Check the debug log for more info", th);
+                        }
+                    }));
+            } else return;
 
-                sb
-                        .setBackgroundTint(0xffffbb33) // https://developer.android.com/reference/android/R.color#holo_orange_light
-                        .setTextColor(Color.BLACK)
-                        .setActionTextColor(Color.BLACK)
-                        .show();
+            sb
+                .setBackgroundTint(0xffffbb33) // https://developer.android.com/reference/android/R.color#holo_orange_light
+                .setTextColor(Color.BLACK)
+                .setActionTextColor(Color.BLACK)
+                .show();
         });
 
-        if (getHeaderBar().findViewById(id) == null) {
-            int p = padding / 2;
-
-            ToolbarButton refreshButton = new ToolbarButton(context);
-            refreshButton.setId(id);
-            ToolbarButton updateAllButton = new ToolbarButton(context);
-            ToolbarButton settingsButton = new ToolbarButton(context);
-
-            Toolbar.LayoutParams childParams = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
-            childParams.gravity = Gravity.END;
-            refreshButton.setLayoutParams(childParams);
-            updateAllButton.setLayoutParams(childParams);
-
-            Toolbar.LayoutParams marginEndParams = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
-            marginEndParams.gravity = Gravity.END;
-            marginEndParams.setMarginEnd(p);
-            settingsButton.setLayoutParams(marginEndParams);
-            refreshButton.setPadding(p, p, p, p);
-            settingsButton.setPadding(p, p, p, p);
-            updateAllButton.setPadding(p, p, p, p);
-
-            //noinspection ConstantConditions
-            refreshButton.setImageDrawable(Utils.tintToTheme(ContextCompat.getDrawable(context, R.e.ic_refresh_white_a60_24dp).mutate()), false);
-            updateAllButton.setImageDrawable(ContextCompat.getDrawable(context, R.e.ic_file_download_white_24dp));
-            settingsButton.setImageDrawable(ContextCompat.getDrawable(context, R.e.ic_guild_settings_24dp));
-
-            updateAllButton.setOnClickListener(e -> {
-                updateAllButton.setEnabled(false);
-                setActionBarSubtitle("Updating...");
-                Utils.threadPool.execute(() -> {
-                    int updateCount = PluginUpdater.updateAll();
-                    if (updateCount == 0) {
-                        stateText = "No updates found";
-                    } else if (updateCount == -1) {
-                        stateText = "Something went wrong while updating. Please try again";
-                    } else {
-                        stateText = String.format("Successfully updated %s!", Utils.pluralise(updateCount, "plugin"));
-                    }
-                    updateAllButton.setEnabled(true);
-                    Utils.mainThread.post(this::reRender);
-                });
+        addHeaderButton("Refresh", R.e.ic_refresh_white_a60_24dp, item -> {
+            item.setEnabled(false);
+            setActionBarSubtitle("Checking for updates...");
+            Utils.threadPool.execute(() -> {
+                PluginUpdater.cache.clear();
+                PluginUpdater.checkUpdates(false);
+                int updateCount = PluginUpdater.updates.size();
+                if (updateCount == 0)
+                    stateText = "No updates found";
+                else
+                    stateText = String.format("Found %s", Utils.pluralise(updateCount, "update"));
+                Utils.mainThread.post(this::reRender);
             });
-
-            refreshButton.setOnClickListener(e -> {
-                refreshButton.setEnabled(false);
-                setActionBarSubtitle("Checking for updates...");
-                Utils.threadPool.execute(() -> {
-                    PluginUpdater.cache.clear();
-                    PluginUpdater.checkUpdates(false);
-                    int updateCount = PluginUpdater.updates.size();
-                    if (updateCount == 0)
-                        stateText = "No updates found";
-                    else
-                        stateText = String.format("Found %s", Utils.pluralise(updateCount, "update"));
-                    refreshButton.setEnabled(true);
-                    Utils.mainThread.post(this::reRender);
-                });
+            return true;
+        });
+        addHeaderButton("Update All", R.e.ic_file_download_white_24dp, item -> {
+            item.setEnabled(false);
+            setActionBarSubtitle("Updating...");
+            Utils.threadPool.execute(() -> {
+                int updateCount = PluginUpdater.updateAll();
+                if (updateCount == 0) {
+                    stateText = "No updates found";
+                } else if (updateCount == -1) {
+                    stateText = "Something went wrong while updating. Please try again";
+                } else {
+                    stateText = String.format("Successfully updated %s!", Utils.pluralise(updateCount, "plugin"));
+                }
+                Utils.mainThread.post(this::reRender);
             });
-
-            settingsButton.setOnClickListener(e -> new UpdaterSettings().show(getParentFragmentManager(), "Updater Settings"));
-
-            addHeaderButton(settingsButton);
-            addHeaderButton(updateAllButton);
-            addHeaderButton(refreshButton);
-        }
+            return true;
+        });
+        addHeaderButton("Settings", R.e.ic_guild_settings_24dp, item -> {
+            new UpdaterSettings().show(getParentFragmentManager(), "Updater Settings");
+            return true;
+        });
 
         int updateCount = PluginUpdater.updates.size();
 
