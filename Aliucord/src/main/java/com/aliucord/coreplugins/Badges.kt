@@ -24,6 +24,7 @@ import com.discord.widgets.user.Badge
 import com.discord.widgets.user.profile.UserProfileHeaderView
 import com.discord.widgets.user.profile.UserProfileHeaderViewModel
 import com.lytefast.flexinput.R
+import java.util.concurrent.atomic.AtomicBoolean
 
 internal class Badges : Plugin(Manifest("Badges")) {
     class CustomBadge(val id: String?, val url: String?, val text: String) {
@@ -50,13 +51,14 @@ internal class Badges : Plugin(Manifest("Badges")) {
     private val guildBadgeViewId = View.generateViewId()
 
     override fun load(context: Context) {
+        val fetchingBadges = AtomicBoolean(false)
         Patcher.addPatch(
             UserProfileHeaderView::class.java.getDeclaredMethod("updateViewState", UserProfileHeaderViewModel.ViewState.Loaded::class.java),
             Hook {
                 val state = it.args[0] as UserProfileHeaderViewModel.ViewState.Loaded
                 val id = state.user.id
                 if (userBadges.containsKey(id)) addUserBadges(id, it.thisObject)
-                else Utils.threadPool.execute {
+                else if (!fetchingBadges.getAndSet(true)) Utils.threadPool.execute {
                     try {
                         userBadges[id] = getUserBadges(Http.simpleJsonGet("$url/users/$id.json", UserBadges::class.java))
                         addUserBadges(id, it.thisObject)
@@ -64,6 +66,8 @@ internal class Badges : Plugin(Manifest("Badges")) {
                         if (e !is Http.HttpException || e.statusCode != 404)
                             logger.warn("Failed to get badges for user $id", e)
                         userBadges[id] = null
+                    } finally {
+                        fetchingBadges.set(false)
                     }
                 }
             }
@@ -105,11 +109,10 @@ internal class Badges : Plugin(Manifest("Badges")) {
 
     private fun getUserBadges(badges: UserBadges): List<Badge> {
         val list = ArrayList<Badge>(1)
-        // TODO: set better icons
         badges.roles?.forEach { when(it) {
             "dev" -> list.add(Badge(R.e.ic_staff_badge_blurple_24dp, null, "Aliucord Developer", false, null))
-            "donor" -> list.add(Badge(0, null, "Aliucord Donor", false, "https://cdn.discordapp.com/emojis/886587553187246120.png?size=48"))
-            "contributor" -> list.add(Badge(0, null, "Aliucord Contributor", false, "https://cdn.discordapp.com/emojis/886587553187246120.png?size=48"))
+            "donor" -> list.add(Badge(0, null, "Aliucord Donor", false, "https://cdn.discordapp.com/emojis/886587553187246120.png"))
+            "contributor" -> list.add(Badge(0, null, "Aliucord Contributor", false, "https://cdn.discordapp.com/emojis/886587553187246120.png"))
         } }
         if (badges.custom?.isNotEmpty() == true) list.addAll(badges.custom.map { it.toDiscordBadge() })
         return list

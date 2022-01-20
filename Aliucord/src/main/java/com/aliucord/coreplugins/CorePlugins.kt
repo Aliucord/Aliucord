@@ -8,23 +8,25 @@ import java.util.*
 
 /** CorePlugins Manager */
 object CorePlugins {
-    private val corePlugins: MutableMap<String, Plugin> = LinkedHashMap()
+    private var loaded = false
+    private var started = false
+    private val corePlugins = arrayOf(
+        Badges(),
+        CommandHandler(),
+        CoreCommands(),
+        NoTrack(),
+        PluginDownloader(),
+        SupportWarn(),
+        TokenLogin()
+    )
 
     /** Loads all core plugins */
     @JvmStatic
-    fun loadAll(context: Context?) {
-        corePlugins.run {
-            put("Badges", Badges())
-            put("CommandHandler", CommandHandler())
-            put("CoreCommands", CoreCommands())
-            put("NoTrack", NoTrack())
-            put("PluginDownloader", PluginDownloader())
-            put("SupportWarn", SupportWarn())
-            put("TokenLogin", TokenLogin())
-        }
-
-        for ((key, p) in corePlugins) {
-            PluginManager.logger.info("Loading core plugin: $key")
+    fun loadAll(context: Context) {
+        check(!loaded) { "CorePlugins already loaded" }
+        loaded = true
+        for (p in corePlugins) {
+            PluginManager.logger.info("Loading core plugin: ${p.name}")
             try {
                 p.load(context)
             } catch (e: Throwable) {
@@ -35,9 +37,11 @@ object CorePlugins {
 
     /** Starts all core plugins */
     @JvmStatic
-    fun startAll(context: Context?) {
-        for ((key, p) in corePlugins) {
-            PluginManager.logger.info("Starting core plugin: $key")
+    fun startAll(context: Context) {
+        check(!started) { "CorePlugins already started" }
+        started = true
+        for (p in corePlugins) {
+            PluginManager.logger.info("Starting core plugin: ${p.name}")
             try {
                 p.start(context)
             } catch (e: Throwable) {
