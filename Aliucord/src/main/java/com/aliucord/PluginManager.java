@@ -29,6 +29,8 @@ public class PluginManager {
     public static final Map<String, Plugin> plugins = new LinkedHashMap<>();
     public static final Map<PathClassLoader, Plugin> classLoaders = new HashMap<>();
     public static final Logger logger = new Logger("PluginManager");
+    /** Plugins that failed to load for various reasons. Map of file to String or Exception */
+    public static final Map<File, Object> failedToLoad = new LinkedHashMap<>();
 
     private static final Field manifestField;
 
@@ -57,7 +59,8 @@ public class PluginManager {
 
             try (var stream = loader.getResourceAsStream("manifest.json")) {
                 if (stream == null) {
-                    logger.errorToast("No manifest found for plugin: " + fileName, null);
+                    failedToLoad.put(file, "No manifest found");
+                    logger.error("Failed to load plugin " + fileName + ": No manifest found", null);
                     return;
                 }
 
@@ -97,7 +100,10 @@ public class PluginManager {
             plugins.put(name, pluginInstance);
             classLoaders.put(loader, pluginInstance);
             pluginInstance.load(context);
-        } catch (Throwable e) { logger.errorToast("Failed to load plugin: " + fileName, e); }
+        } catch (Throwable e) {
+            failedToLoad.put(file, e);
+            logger.error("Failed to load plugin " + fileName + ":\n", e);
+        }
     }
 
     /**

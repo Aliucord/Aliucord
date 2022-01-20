@@ -27,8 +27,8 @@ import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.ConfirmDialog;
 import com.aliucord.fragments.SettingsPage;
 import com.aliucord.utils.*;
-import com.aliucord.views.TextInput;
-import com.aliucord.views.ToolbarButton;
+import com.aliucord.views.*;
+import com.aliucord.views.Button;
 import com.aliucord.widgets.PluginCard;
 import com.discord.app.AppBottomSheet;
 import com.discord.app.AppFragment;
@@ -298,6 +298,14 @@ public class Plugins extends SettingsPage {
             });
 
             addHeaderButton(pluginFolderBtn);
+        }
+
+        if (!PluginManager.failedToLoad.isEmpty()) {
+            var failedPluginsView = new Button(context);
+            failedPluginsView.setText("Plugins that failed to load");
+            failedPluginsView.setOnClickListener(v -> Utils.openPage(context, FailedPluginsPage.class));
+            addView(failedPluginsView);
+            addView(new Divider(context));
         }
 
         TextInput input = new TextInput(context);
