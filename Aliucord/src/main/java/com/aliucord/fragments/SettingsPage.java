@@ -8,6 +8,7 @@ package com.aliucord.fragments;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.view.*;
 import android.widget.LinearLayout;
@@ -128,14 +129,18 @@ public class SettingsPage extends AppFragment {
      * Add a button to the header {@link Toolbar} of this page
      *
      * @param title      The title of this button
-     * @param drawableId The id of the drawable this button should have
+     * @param drawableId The id of the drawable this button should have. Will be tinted to colorInteractiveNormal
      * @param onClick    The onClick listener of this button
      * @return The id of this header button
      * @see Toolbar#getMenu()
      * @see Menu#add(int, int, int, CharSequence)
      */
     public final int addHeaderButton(String title, @DrawableRes int drawableId, MenuItem.OnMenuItemClickListener onClick) {
-        return addHeaderButton(View.generateViewId(), title, ContextCompat.getDrawable(Utils.getAppContext(), drawableId), onClick);
+        var drawable = ContextCompat.getDrawable(Utils.getAppContext(), drawableId);
+        if (drawable == null) throw new Resources.NotFoundException("Drawable not found: " + drawableId);
+        drawable = drawable.mutate();
+        Utils.tintToTheme(drawable);
+        return addHeaderButton(View.generateViewId(), title, drawable, onClick);
     }
 
     /**
