@@ -63,8 +63,10 @@ internal class Badges : Plugin(Manifest("Badges")) {
                         userBadges[id] = getUserBadges(Http.simpleJsonGet("$url/users/$id.json", UserBadges::class.java))
                         addUserBadges(id, it.thisObject)
                     } catch (e: Throwable) {
-                        if (e !is Http.HttpException || e.statusCode != 404)
-                            logger.warn("Failed to get badges for user $id", e)
+                        if (e is Http.HttpException && e.statusCode == 404)
+                            userBadges[id] = null
+                        else
+                            logger.error("Failed to get badges for user $id", e)
                     } finally {
                         fetchingBadges.set(false)
                     }
@@ -97,8 +99,10 @@ internal class Badges : Plugin(Manifest("Badges")) {
                 try {
                     guildBadges[id] = Http.simpleJsonGet("$url/guilds/$id.json", CustomBadge::class.java)
                 } catch (e: Throwable) {
-                    if (e !is Http.HttpException || e.statusCode != 404)
-                        logger.warn("Failed to get badges for guild $id", e)
+                    if (e is Http.HttpException && e.statusCode == 404)
+                        guildBadges[id] = null
+                    else
+                        logger.error("Failed to get badges for guild $id", e)
                 }
                 Utils.mainThread.post { addGuildBadge(id, this) }
             }
