@@ -11,6 +11,7 @@ import com.aliucord.Utils
 import com.aliucord.api.SettingsAPI
 import com.aliucord.entities.Plugin
 import com.aliucord.fragments.ConfirmDialog
+import com.aliucord.fragments.InputDialog
 import com.aliucord.patcher.Hook
 import com.aliucord.patcher.Patcher
 import com.aliucord.settings.delegate
@@ -50,14 +51,14 @@ internal class SupportWarn : Plugin(Manifest("SupportWarn")) {
                 if (settings.acceptedPrdNotRequests) return@Hook
                 Triple(
                     "PLEASE READ: This is not a request channel, do not request plugins!",
-                    "This is NOT A REQUESTING CHANNEL. For information on how to request a plugin, check the pins in this channel.",
+                    "This is NOT A REQUESTING CHANNEL. For information on how to request a plugin, check the pins in this channel. If you have read this, type \"I understand\" into the box.",
                     "acceptedPrdNotRequests"
                 )
             } else {
                 if (settings.acceptedDevNotSupport) return@Hook
                 Triple(
                     "PLEASE READ: This is not a support channel, do not ask for help!",
-                    "This is NOT A SUPPORT CHANNEL. Do NOT ask for help about using or installing a plugin or theme here or you will be muted.",
+                    "This is NOT A SUPPORT CHANNEL. Do NOT ask for help about using or installing a plugin or theme here or you will be muted. If you have read this, type \"I understand\" into the box.",
                     "acceptedDevNotSupport"
                 )
             }
@@ -69,15 +70,16 @@ internal class SupportWarn : Plugin(Manifest("SupportWarn")) {
 
             gateButtonLayout.visibility = View.VISIBLE
             chatWrap.visibility = View.GONE
-
+          
             root.findViewById<TextView>(gateButtonTextId).text = text
             root.findViewById<ImageView>(gateButtonImageId).setImageResource(R.e.ic_warning_circle_24dp)
             root.findViewById<ImageView>(gateButtonArrowId).setOnClickListener {
-                val dialog = ConfirmDialog()
+                val dialog = InputDialog()
                     .setTitle("Warning")
                     .setDescription(desc)
 
                 dialog.setOnOkListener {
+                    if (dialog.input != "I understand") return@setOnOkListener
                     settings.setBool(key, true)
 
                     gateButtonLayout.visibility = View.GONE
