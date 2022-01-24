@@ -73,7 +73,7 @@ class Crashes : SettingsPage() {
         headerBar.menu.add("Clear Crashes")
             .setIcon(ContextCompat.getDrawable(context, R.e.ic_delete_24dp))
             .setEnabled(hasCrashes)
-            .setOnMenuItemClickListener { item ->
+            .setOnMenuItemClickListener {
                 files?.forEach { it.delete() }
                 reRender()
                 true
