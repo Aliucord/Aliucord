@@ -24,7 +24,7 @@ import com.discord.utilities.textprocessing.node.BlockBackgroundNode;
 import java.util.List;
 import java.util.Map;
 
-import c.a.k.b;
+import b.a.k.b;
 
 @SuppressWarnings("unchecked")
 public final class MDUtils {

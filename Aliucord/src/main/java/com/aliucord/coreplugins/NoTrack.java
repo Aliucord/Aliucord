@@ -30,10 +30,10 @@ final class NoTrack extends Plugin {
 
         // com.google.firebase.crashlytics.internal.common.CommonUtils getMappingFileId
         // https://github.com/firebase/firebase-android-sdk/blob/master/firebase-crashlytics/src/main/java/com/google/firebase/crashlytics/internal/common/CommonUtils.java#L582
-        map.put("c.i.c.m.d.k.h", new String[]{ "l" });
+        map.put("b.i.c.m.d.k.h", new String[]{ "l" });
 
-        map.put("c.i.a.f.i.b.k9", new String[]{ "n", "Q" });
-        map.put("c.i.a.b.j.t.h.g", new String[]{ "run" });
+        map.put("b.i.a.f.i.b.k9", new String[]{ "n", "Q" });
+        map.put("b.i.a.b.j.t.h.g", new String[]{ "run" });
         // map.put("c.i.a.f.h.i.r", Collections.singletonList("R"));
         map.put("com.discord.utilities.analytics.AdjustConfig", new String[]{ "init" });
         map.put("com.discord.utilities.analytics.AdjustConfig$AdjustLifecycleListener", new String[]{ "onActivityPaused", "onActivityResumed" });
