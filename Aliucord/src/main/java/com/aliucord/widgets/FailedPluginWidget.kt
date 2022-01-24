@@ -61,7 +61,7 @@ class FailedPluginWidget(ctx: Context, private val file: File, private val reaso
                     weight = 1f
                 }
 
-                text = file.name + " (${FileUtilsKt.getSizeSubtitle(file.length())})"
+                text = "${file.name} (${FileUtilsKt.getSizeSubtitle(file.length())})"
                 addView(this)
             }
 
