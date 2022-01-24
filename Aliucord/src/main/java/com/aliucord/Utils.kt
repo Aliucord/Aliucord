@@ -208,9 +208,8 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
      * @param showLonger Whether to show toast for an extended period of time.
      */
     @Deprecated(
-        "Use {@link #showToast(String, boolean)}", ReplaceWith(
-            "showToast(message, showLonger)"
-        )
+        "Use {@link #showToast(String, boolean)}",
+        ReplaceWith("showToast(message, showLonger)")
     )
     @JvmOverloads
     @JvmStatic
@@ -475,11 +474,14 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
 
     /**
      * Prompts the user to restart Aliucord
+     *
+     * @param msg Message
+     * @param position position, see [Gravity]
      */
     @SuppressLint("ShowToast")
     @JvmStatic
     @JvmOverloads
-    fun promptRestart(msg: String = "Restart required. Restart now?") {
+    fun promptRestart(msg: String = "Restart required. Restart now?", position: Int = Gravity.TOP) {
         val resources = appContext.resources
         val id = resources.getIdentifier("status_bar_height", "dimen", "android")
         val statusBarHeight = if (id > 0) resources.getDimensionPixelSize(id) else 0
@@ -494,7 +496,7 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
 
         bar.view.layoutParams = (bar.view.layoutParams as FrameLayout.LayoutParams).apply {
             topMargin = statusBarHeight + 4.dp
-            gravity = Gravity.TOP
+            gravity = position
         }
 
         bar.setAction("Restart") {

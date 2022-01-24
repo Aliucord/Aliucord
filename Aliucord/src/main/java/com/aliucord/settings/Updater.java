@@ -57,8 +57,10 @@ public class Updater extends SettingsPage {
             var dexFromStorageSwitch = Utils.createCheckedSetting(ctx, CheckedSetting.ViewType.SWITCH, "Aliucord from storage", "Use custom Aliucord build from Aliucord/Aliucord.zip");
             dexFromStorageSwitch.setChecked(SettingsUtils.getBool(ALIUCORD_FROM_STORAGE, false));
             dexFromStorageSwitch.setOnCheckedListener(c -> {
-                if (!c) SettingsUtils.setBool(ALIUCORD_FROM_STORAGE, false);
-                else {
+                if (!c) {
+                    SettingsUtils.setBool(ALIUCORD_FROM_STORAGE, false);
+                    Utils.promptRestart();
+                } else {
                     // Spooky, lets make sure no one gets scammed
                     var dialog = new ConfirmDialog();
                     dialog
@@ -67,6 +69,7 @@ public class Updater extends SettingsPage {
                         .setDescription("If someone else told you to do this, you are LIKELY GETTING SCAMMED. Only check this option if you know what you're doing!")
                         .setOnOkListener(v -> {
                             SettingsUtils.setBool(ALIUCORD_FROM_STORAGE, true);
+                            Utils.promptRestart();
                             dialog.dismiss();
                         })
                         .setOnCancelListener(v -> {
@@ -103,50 +106,50 @@ public class Updater extends SettingsPage {
         int padding = DimenUtils.getDefaultPadding();
 
         Utils.threadPool.execute(() -> {
-                Snackbar sb;
-                if (usingDexFromStorage()) {
-                    sb = Snackbar.make(getLinearLayout(), "Updater disabled due to using Aliucord from storage.", Snackbar.LENGTH_INDEFINITE);
-                } else if (isDiscordOutdated()) {
-                    sb = Snackbar
-                            .make(getLinearLayout(), "Your Base Discord is outdated. Please update using the installer.", BaseTransientBottomBar.LENGTH_INDEFINITE)
-                            .setAction("Open Installer", v -> {
-                                var ctx = v.getContext();
-                                var i = ctx.getPackageManager().getLaunchIntentForPackage("com.aliucord.installer");
-                                if (i != null)
-                                    ctx.startActivity(i);
-                                else
-                                    Utils.showToast("Please install the Aliucord installer and try again.");
-                            });
-                } else if (isAliucordOutdated()) {
-                    sb = Snackbar
-                            .make(getLinearLayout(), "Your Aliucord is outdated.", Snackbar.LENGTH_INDEFINITE)
-                            .setAction("Update", v -> Utils.threadPool.execute(() -> {
-                                var ctx = v.getContext();
-                                try {
-                                    updateAliucord(ctx);
-                                    Utils.showToast("Successfully updated Aliucord.");
-                                    Snackbar rb = Snackbar
-                                        .make(getLinearLayout(), "Restart to apply the update.", Snackbar.LENGTH_INDEFINITE)
-                                        .setAction("Restart", e -> {
-                                            Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
-                                            context.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
-                                            Runtime.getRuntime().exit(0);
-                                        });
-                                    rb.setBackgroundTint(0xffffbb33);
-                                    rb.setTextColor(Color.BLACK);
-                                    rb.setActionTextColor(Color.BLACK);
-                                    rb.show();
-                                } catch (Throwable th) {
-                                    PluginUpdater.logger.errorToast("Failed to update Aliucord. Check the debug log for more info", th);
-                                }
-                            }));
-                } else return;
+            Snackbar sb;
+            if (usingDexFromStorage()) {
+                sb = Snackbar.make(getLinearLayout(), "Updater disabled due to using Aliucord from storage.", Snackbar.LENGTH_INDEFINITE);
+            } else if (isDiscordOutdated()) {
+                sb = Snackbar
+                    .make(getLinearLayout(), "Your Base Discord is outdated. Please update using the installer.", BaseTransientBottomBar.LENGTH_INDEFINITE)
+                    .setAction("Open Installer", v -> {
+                        var ctx = v.getContext();
+                        var i = ctx.getPackageManager().getLaunchIntentForPackage("com.aliucord.installer");
+                        if (i != null)
+                            ctx.startActivity(i);
+                        else
+                            Utils.showToast("Please install the Aliucord installer and try again.");
+                    });
+            } else if (isAliucordOutdated()) {
+                sb = Snackbar
+                    .make(getLinearLayout(), "Your Aliucord is outdated.", Snackbar.LENGTH_INDEFINITE)
+                    .setAction("Update", v -> Utils.threadPool.execute(() -> {
+                        var ctx = v.getContext();
+                        try {
+                            updateAliucord(ctx);
+                            Utils.showToast("Successfully updated Aliucord.");
+                            Snackbar rb = Snackbar
+                                .make(getLinearLayout(), "Restart to apply the update.", Snackbar.LENGTH_INDEFINITE)
+                                .setAction("Restart", e -> {
+                                    Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+                                    context.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
+                                    Runtime.getRuntime().exit(0);
+                                });
+                            rb.setBackgroundTint(0xffffbb33);
+                            rb.setTextColor(Color.BLACK);
+                            rb.setActionTextColor(Color.BLACK);
+                            rb.show();
+                        } catch (Throwable th) {
+                            PluginUpdater.logger.errorToast("Failed to update Aliucord. Check the debug log for more info", th);
+                        }
+                    }));
+            } else return;
 
-                sb
-                        .setBackgroundTint(0xffffbb33) // https://developer.android.com/reference/android/R.color#holo_orange_light
-                        .setTextColor(Color.BLACK)
-                        .setActionTextColor(Color.BLACK)
-                        .show();
+            sb
+                .setBackgroundTint(0xffffbb33) // https://developer.android.com/reference/android/R.color#holo_orange_light
+                .setTextColor(Color.BLACK)
+                .setActionTextColor(Color.BLACK)
+                .show();
         });
 
         if (getHeaderBar().findViewById(id) == null) {
