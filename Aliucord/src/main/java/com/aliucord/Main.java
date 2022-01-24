@@ -318,6 +318,7 @@ public final class Main {
         }
 
         File[] sortedPlugins = dir.listFiles();
+        // Always sort plugins alphabetically for reproducible results
         Arrays.sort(sortedPlugins, Comparator.comparing(File::getName));
 
         for (File f : sortedPlugins) {
@@ -334,6 +335,8 @@ public final class Main {
             }
         }
         loadedPlugins = true;
+        if (!PluginManager.failedToLoad.isEmpty())
+            Utils.showToast("Some plugins failed to load. Check the plugins page for more info.");
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")

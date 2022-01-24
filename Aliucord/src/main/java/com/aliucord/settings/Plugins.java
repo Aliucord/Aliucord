@@ -13,12 +13,11 @@ import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
 import android.text.*;
 import android.text.style.ClickableSpan;
-import android.view.*;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.*;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.*;
 
@@ -27,8 +26,8 @@ import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.ConfirmDialog;
 import com.aliucord.fragments.SettingsPage;
 import com.aliucord.utils.*;
-import com.aliucord.views.TextInput;
-import com.aliucord.views.ToolbarButton;
+import com.aliucord.views.Button;
+import com.aliucord.views.*;
 import com.aliucord.widgets.PluginCard;
 import com.discord.app.AppBottomSheet;
 import com.discord.app.AppFragment;
@@ -39,8 +38,6 @@ import java.io.File;
 import java.util.*;
 
 public class Plugins extends SettingsPage {
-    private static final int uniqueId = View.generateViewId();
-
     public static class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> implements Filterable {
         public static final class ViewHolder extends RecyclerView.ViewHolder {
             private final Adapter adapter;
@@ -149,13 +146,13 @@ public class Plugins extends SettingsPage {
                 else {
                     String search = constraint.toString().toLowerCase().trim();
                     resultsList = CollectionUtils.filter(originalData, p -> {
-                                if (p.getName().toLowerCase().contains(search)) return true;
-                                Plugin.Manifest manifest = p.getManifest();
-                                if (manifest.description.toLowerCase().contains(search)) return true;
-                                for (Plugin.Manifest.Author author : manifest.authors)
-                                    if (author.name.toLowerCase().contains(search)) return true;
-                                return false;
-                            }
+                            if (p.getName().toLowerCase().contains(search)) return true;
+                            Plugin.Manifest manifest = p.getManifest();
+                            if (manifest.description.toLowerCase().contains(search)) return true;
+                            for (Plugin.Manifest.Author author : manifest.authors)
+                                if (author.name.toLowerCase().contains(search)) return true;
+                            return false;
+                        }
                     );
                 }
                 FilterResults results = new FilterResults();
@@ -165,6 +162,7 @@ public class Plugins extends SettingsPage {
 
             @Override
             protected void publishResults(CharSequence constraint, FilterResults results) {
+                @SuppressWarnings("unchecked")
                 List<Plugin> res = (List<Plugin>) results.values;
                 var diff = DiffUtil.calculateDiff(new DiffUtil.Callback() {
                     @Override
@@ -196,9 +194,9 @@ public class Plugins extends SettingsPage {
 
         private String getGithubUrl(Plugin plugin) {
             return plugin
-                    .getManifest().updateUrl
-                    .replace("raw.githubusercontent.com", "github.com")
-                    .replaceFirst("/builds.*", "");
+                .getManifest().updateUrl
+                .replace("raw.githubusercontent.com", "github.com")
+                .replaceFirst("/builds.*", "");
         }
 
         public void onGithubClick(int position) {
@@ -218,13 +216,13 @@ public class Plugins extends SettingsPage {
             Plugin p = data.get(position);
             if (p.settingsTab.type == Plugin.SettingsTab.Type.PAGE && p.settingsTab.page != null) {
                 Fragment page = p.settingsTab.args != null
-                        ? ReflectUtils.invokeConstructorWithArgs(p.settingsTab.page, p.settingsTab.args)
-                        : p.settingsTab.page.newInstance();
+                    ? ReflectUtils.invokeConstructorWithArgs(p.settingsTab.page, p.settingsTab.args)
+                    : p.settingsTab.page.newInstance();
                 Utils.openPageWithProxy(ctx, page);
             } else if (p.settingsTab.type == Plugin.SettingsTab.Type.BOTTOM_SHEET && p.settingsTab.bottomSheet != null) {
                 AppBottomSheet sheet = p.settingsTab.args != null
-                        ? ReflectUtils.invokeConstructorWithArgs(p.settingsTab.bottomSheet, p.settingsTab.args)
-                        : p.settingsTab.bottomSheet.newInstance();
+                    ? ReflectUtils.invokeConstructorWithArgs(p.settingsTab.bottomSheet, p.settingsTab.args)
+                    : p.settingsTab.bottomSheet.newInstance();
 
                 sheet.show(fragment.getParentFragmentManager(), p.getName() + "Settings");
             }
@@ -240,9 +238,9 @@ public class Plugins extends SettingsPage {
         public void onUninstallClick(int position) {
             Plugin p = data.get(position);
             ConfirmDialog dialog = new ConfirmDialog()
-                    .setIsDangerous(true)
-                    .setTitle("Delete " + p.getName())
-                    .setDescription("Are you sure you want to delete this plugin? This action cannot be undone.");
+                .setIsDangerous(true)
+                .setTitle("Delete " + p.getName())
+                .setDescription("Are you sure you want to delete this plugin? This action cannot be undone.");
             dialog.setOnOkListener(e -> {
                 File pluginFile = new File(Constants.BASE_PATH + "/plugins/" + p.__filename + ".zip");
                 if (pluginFile.exists() && !pluginFile.delete()) {
@@ -275,29 +273,23 @@ public class Plugins extends SettingsPage {
 
         var context = view.getContext();
         int padding = DimenUtils.getDefaultPadding();
-        int p = padding / 2;
 
-        if (getHeaderBar().findViewById(uniqueId) == null) {
-            ToolbarButton pluginFolderBtn = new ToolbarButton(context);
-            pluginFolderBtn.setId(uniqueId);
+        addHeaderButton("Open Plugins Folder", R.e.ic_open_in_new_white_24dp, item -> {
+            File dir = new File(Constants.PLUGINS_PATH);
+            if (!dir.exists() && !dir.mkdir()) {
+                Utils.showToast("Failed to create plugins directory!", true);
+                return true;
+            }
+            Utils.launchFileExplorer(dir);
+            return true;
+        });
 
-            Toolbar.LayoutParams params = new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
-            params.gravity = Gravity.END;
-            params.setMarginEnd(p);
-            pluginFolderBtn.setLayoutParams(params);
-            pluginFolderBtn.setPadding(p, p, p, p);
-            pluginFolderBtn.setImageDrawable(ContextCompat.getDrawable(context, R.e.ic_open_in_new_white_24dp));
-
-            pluginFolderBtn.setOnClickListener(e -> {
-                File dir = new File(Constants.PLUGINS_PATH);
-                if (!dir.exists() && !dir.mkdir()) {
-                    Utils.showToast("Failed to create plugins directory!", true);
-                    return;
-                }
-                Utils.launchFileExplorer(dir);
-            });
-
-            addHeaderButton(pluginFolderBtn);
+        if (!PluginManager.failedToLoad.isEmpty()) {
+            var failedPluginsView = new Button(context);
+            failedPluginsView.setText("Plugin Errors");
+            failedPluginsView.setOnClickListener(v -> Utils.openPage(context, FailedPluginsPage.class));
+            addView(failedPluginsView);
+            addView(new Divider(context));
         }
 
         TextInput input = new TextInput(context);
@@ -319,16 +311,13 @@ public class Plugins extends SettingsPage {
         addView(recyclerView);
 
         EditText editText = input.getEditText();
-        if (editText != null) {
-            editText.setMaxLines(1);
-            editText.addTextChangedListener(new TextWatcher() {
-                public void afterTextChanged(Editable s) {
-                    adapter.getFilter().filter(s);
-                }
-
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-                public void onTextChanged(CharSequence s, int start, int before, int count) { }
-            });
-        }
+        editText.setMaxLines(1);
+        editText.addTextChangedListener(new TextWatcher() {
+            public void afterTextChanged(Editable s) {
+                adapter.getFilter().filter(s);
+            }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+        });
     }
 }
