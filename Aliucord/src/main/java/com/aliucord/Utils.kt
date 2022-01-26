@@ -51,6 +51,7 @@ import java.lang.reflect.Field
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.system.exitProcess
 
 /** Utility class that holds miscellaneous Utilities  */
 object Utils {
@@ -503,6 +504,7 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
             val ctx = it.context
             val intent = ctx.packageManager.getLaunchIntentForPackage(ctx.packageName)
             appActivity.startActivity(Intent.makeRestartActivityTask(intent!!.component))
+            exitProcess(0)
         }
         bar.show()
     }
