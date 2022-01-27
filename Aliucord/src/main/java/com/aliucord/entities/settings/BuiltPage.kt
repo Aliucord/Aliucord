@@ -12,10 +12,14 @@ import com.aliucord.entities.Plugin
 import com.aliucord.fragments.SettingsPage
 import com.aliucord.widgets.BottomSheet
 
-class BuiltPage internal constructor(private val plugin: Plugin, private val items: List<BaseItem>) : SettingsPage() {
+// data is a pair, because otherwise constructor lookup fails, since parameter is Plugin, but the actual class will
+// be a subclass of Plugin
+
+class BuiltPage internal constructor(private val data: Pair<Plugin, List<BaseItem>>) : SettingsPage() {
     override fun onViewBound(view: View) {
         super.onViewBound(view)
 
+        val (plugin, items) = data
         setActionBarTitle(plugin.name)
 
         items.forEach {
@@ -24,10 +28,11 @@ class BuiltPage internal constructor(private val plugin: Plugin, private val ite
     }
 }
 
-class BuiltSheet internal constructor(private val plugin: Plugin, private val items: List<BaseItem>) : BottomSheet() {
+class BuiltSheet internal constructor(private val data: Pair<Plugin, List<BaseItem>>) : BottomSheet() {
     override fun onViewCreated(view: View, bundle: Bundle?) {
         super.onViewCreated(view, bundle)
 
+        val (plugin, items) = data
         items.forEach {
             addView(it.make(view.context, plugin.settings))
         }

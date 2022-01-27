@@ -31,7 +31,7 @@ class SettingsBuilder(val plugin: Plugin, val type: Plugin.SettingsTab.Type) {
             Plugin.SettingsTab.Type.PAGE -> BuiltPage::class.java
         },
         type
-    ).withArgs(plugin, items)
+    ).withArgs(plugin to items)
 
     /**
      * Add a String input
@@ -41,8 +41,9 @@ class SettingsBuilder(val plugin: Plugin, val type: Plugin.SettingsTab.Type) {
      * @param init Optional init method to customise the input
      */
     @JvmOverloads
-    fun addStringInput(settingsKey: String, defaultValue: String, init: TextInputBuilder.() -> Unit = {}) {
+    fun addStringInput(settingsKey: String, defaultValue: String, init: TextInputBuilder.() -> Unit = {}): SettingsBuilder {
         items.add(TextInputBuilder(settingsKey, defaultValue, init))
+        return this
     }
 
     /**
@@ -53,8 +54,9 @@ class SettingsBuilder(val plugin: Plugin, val type: Plugin.SettingsTab.Type) {
      * @param init Optional init method to customise the input
      */
     @JvmOverloads
-    fun addNumberInput(settingsKey: String, defaultValue: Int, init: NumberInputBuilder.() -> Unit = {}) {
+    fun addNumberInput(settingsKey: String, defaultValue: Int, init: NumberInputBuilder.() -> Unit = {}): SettingsBuilder {
         items.add(NumberInputBuilder(settingsKey, defaultValue, init))
+        return this
     }
 
     /**
@@ -65,47 +67,53 @@ class SettingsBuilder(val plugin: Plugin, val type: Plugin.SettingsTab.Type) {
      * @param init Optional init method to customise the switch
      */
     @JvmOverloads
-    fun addSwitch(settingsKey: String, defaultValue: Boolean, init: SwitchBuilder.() -> Unit = {}) {
+    fun addSwitch(settingsKey: String, defaultValue: Boolean, init: SwitchBuilder.() -> Unit = {}): SettingsBuilder {
         items.add(SwitchBuilder(settingsKey, defaultValue, init))
+        return this
     }
 
     /**
      * Add a Header
      * @param lazyMakeText Function that returns the text this header should have
      */
-    fun addHeader(lazyMakeText: (context: Context, settings: SettingsAPI) -> CharSequence) {
+    fun addHeader(lazyMakeText: (context: Context, settings: SettingsAPI) -> CharSequence): SettingsBuilder {
         items.add(BaseItem.Header(lazyMakeText))
+        return this
     }
 
     /**
      * Add a Header
      * @param text The text of this header
      */
-    fun addHeader(text: CharSequence) {
+    fun addHeader(text: CharSequence): SettingsBuilder {
         addHeader() { _, _ -> text }
+        return this
     }
 
     /**
      * Add a TextView
      * @param lazyMakeText Function that returns the text this TextView should have
      */
-    fun addText(lazyMakeText: (context: Context, settings: SettingsAPI) -> CharSequence) {
+    fun addText(lazyMakeText: (context: Context, settings: SettingsAPI) -> CharSequence): SettingsBuilder {
         items.add(BaseItem.Text(lazyMakeText))
+        return this
     }
 
     /**
      * Add a TextView
      * @param text The text of this textView
      */
-    fun addText(text: CharSequence) {
+    fun addText(text: CharSequence): SettingsBuilder {
         addText() { _, _ -> text }
+        return this
     }
 
     /**
      * Add a [com.aliucord.views.Divider]
      */
-    fun addDivider() {
+    fun addDivider(): SettingsBuilder {
         items.add(BaseItem.DIVIDER)
+        return this
     }
 
     /**
@@ -113,8 +121,9 @@ class SettingsBuilder(val plugin: Plugin, val type: Plugin.SettingsTab.Type) {
      *
      * @param item Item to add
      */
-    fun addCustom(item: BaseItem) {
+    fun addCustom(item: BaseItem): SettingsBuilder {
         items.add(item)
+        return this
     }
 
     /**
@@ -140,11 +149,12 @@ class SettingsBuilder(val plugin: Plugin, val type: Plugin.SettingsTab.Type) {
         settingsKey: String,
         defaultValue: TTransformed,
         build: BaseBuilder<T, TTransformed>.(ctx: Context, settings: SettingsAPI) -> View,
-    ) {
+    ): SettingsBuilder {
         addCustom(object : BaseBuilder<T, TTransformed>(settingsKey, defaultValue) {
             override fun buildView(ctx: Context, settings: SettingsAPI): View {
                 return build(this, ctx, settings)
             }
         })
+        return this
     }
 }

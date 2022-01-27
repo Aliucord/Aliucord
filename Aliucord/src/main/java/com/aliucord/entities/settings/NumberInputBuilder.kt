@@ -6,6 +6,11 @@
 
 package com.aliucord.entities.settings
 
+import android.content.Context
+import android.view.inputmethod.EditorInfo
+import com.aliucord.api.SettingsAPI
+import com.aliucord.views.TextInput
+
 class NumberInputBuilder(key: String, default: Int, init: NumberInputBuilder.() -> Unit = {}) : TextInputBuilder(key, default.toString(), {
     transform = {
         it.toInt()
@@ -21,5 +26,11 @@ class NumberInputBuilder(key: String, default: Int, init: NumberInputBuilder.() 
 }) {
     init {
         init(this)
+    }
+
+    override fun buildView(ctx: Context, settings: SettingsAPI): TextInput {
+        return super.buildView(ctx, settings).apply {
+            editText.inputType = EditorInfo.TYPE_CLASS_NUMBER
+        }
     }
 }
