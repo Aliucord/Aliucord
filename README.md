@@ -44,7 +44,7 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
     -   Toggle on and off, configure or uninstall your plugins via the plugins page
     -   Minimum Discord versions for plugins so no breaking changes are sent out to outdated Discord versions
 -   In-app updater to keep Aliucord and your plugins up-to-date
--   Blocked Discord Tracking/Analytics
+-   Blocks most Discord Tracking/Analytics (doesn't completely block all tracking, that's not really possible)
 -   Crash logging!
     -   In-app crash log page to give a more native feel
     -   Logs are also saved to `Aliucord/crashlogs` for easy access outside of the app
