@@ -14,6 +14,10 @@ import com.aliucord.api.SettingsAPI
 import com.discord.views.CheckedSetting
 
 class SwitchBuilder(key: String, default: Boolean, init: SwitchBuilder.() -> Unit) : BaseBuilder<Boolean, Boolean>(key, default) {
+    init {
+        init(this)
+    }
+
     /** The type of this switch. Defaults to [CheckedSetting.ViewType.SWITCH] */
     var switchType = CheckedSetting.ViewType.SWITCH
 

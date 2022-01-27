@@ -11,10 +11,27 @@ import android.view.View
 import com.aliucord.api.SettingsAPI
 import com.aliucord.entities.Plugin
 
-class SettingsBuilder(val plugin: Plugin) {
+/**
+ * SettingsBuilder that auto generates a highly customisable Settings Page for you
+ *
+ * @property plugin Plugin to build page for
+ * @see [Plugin.buildSettings]
+ */
+class SettingsBuilder(val plugin: Plugin, val type: Plugin.SettingsTab.Type) {
     private val items = ArrayList<BaseItem>()
 
-    fun build() = BuiltPage(plugin, items)
+    /**
+     * Build this SettingsPage
+     *
+     * @return built [Plugin.SettingsTab] for use as [Plugin.settingsTab]
+     */
+    fun build(): Plugin.SettingsTab = Plugin.SettingsTab(
+        when (type) {
+            Plugin.SettingsTab.Type.BOTTOM_SHEET -> BuiltSheet::class.java
+            Plugin.SettingsTab.Type.PAGE -> BuiltPage::class.java
+        },
+        type
+    ).withArgs(plugin, items)
 
     /**
      * Add a String input
@@ -104,7 +121,9 @@ class SettingsBuilder(val plugin: Plugin) {
      * Build and add a custom component
      *
      * @param T Type parameter for the initial input. Usually String
-     * @param TTransformed Type parameter for the transformed input. If this differs from [T], you must set the transform method to one
+     * @param TTransformed Type parameter for the transformed input.
+     * If you need no transforming, simply make this the same as [T].
+     * If this differs from [T], you must set the transform method to one
      * that returns a value of this type. For instance, if [T] is String and [TTransformed] is Int, you must set [BaseBuilder.transform] to something like
      * { it.toInt() }. You should also set [BaseBuilder.validator] to make sure the input is valid before transforming it
      * @param settingsKey The key of this setting
@@ -114,6 +133,8 @@ class SettingsBuilder(val plugin: Plugin) {
      * Some fields you can use to make this component:
      * - [BaseBuilder.currentValue]: Refers to the current value
      * - [BaseBuilder.setValue]: Will transform the provided value using [BaseBuilder.transform], update [BaseBuilder.currentValue], save to settings and call [BaseBuilder.onChange]
+     *
+     * See some of the Builder implementations like [SwitchBuilder] or [TextInputBuilder] for examples
      */
     fun <T : Any, TTransformed : Any> addCustom(
         settingsKey: String,
