@@ -7,7 +7,6 @@ import com.aliucord.utils.ReflectUtils
 import com.aliucord.coreplugins.ButtonsAPI
 
 import com.discord.api.botuikit.*
-import com.discord.api.message.embed.MessageEmbed
 import com.discord.models.message.Message
 import com.discord.stores.StoreStream
 
@@ -16,10 +15,14 @@ import java.util.*
 @Suppress("UNCHECKED_CAST")
 object ButtonsAPI {
 
-    class ButtonContext(var message: Message, var context: Context)
-
+    /**
+     * Adds a button component to the message.
+     * @param label   The label of the button.
+     * @param style   The style of the button. {@link ButtonStyle}
+     * @param onPress Callback for when the button is pressed, passing the message as an argument.
+     */
     @JvmStatic
-    fun Message.addButton(label: String, style: ButtonStyle, onPress: (ButtonContext) -> Unit) {
+    fun Message.addButton(label: String, style: ButtonStyle, onPress: (Message) -> Unit) {
         var components = this.components
         val id = -CommandsAPI.generateId()
 

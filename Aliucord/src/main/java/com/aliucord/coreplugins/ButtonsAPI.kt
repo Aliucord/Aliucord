@@ -2,12 +2,12 @@ package com.aliucord.coreplugins
 
 import android.content.Context
 
-import com.aliucord.Logger
 import com.aliucord.api.ButtonsAPI
 import com.aliucord.api.CommandsAPI
 import com.aliucord.entities.Plugin
 import com.aliucord.patcher.*
 
+import com.discord.models.message.Message
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemBotComponentRow
 
 import de.robv.android.xposed.XposedBridge
@@ -17,16 +17,15 @@ import kotlin.text.startsWith
 
 internal class ButtonsAPI : Plugin(Manifest("ButtonsAPI")) {
     override fun load(context: Context) {
-        Patcher.addPatch(WidgetChatListAdapterItemBotComponentRow::class.java.getDeclaredMethod("onButtonComponentClick", Int::class.java, String::class.java), InsteadHook {
+        Patcher.addPatch(WidgetChatListAdapterItemBotComponentRow::class.java.getDeclaredMethod("onButtonComponentClick", Int::class.java, String::class.java), PreHook {
             val _this = it.thisObject as WidgetChatListAdapterItemBotComponentRow
             val customId = it.args[1] as String
-            val entry = _this.entry
             val acId = (-CommandsAPI.ALIUCORD_APP_ID).toString()
-            if(!customId.startsWith(acId)) { XposedBridge.invokeOriginalMethod(it.method, it.thisObject, it.args); return@InsteadHook null }
-            
-            val id = customId.subSequence(CommandsAPI.ALIUCORD_APP_ID.toString().length, customId.length).toString()
-        
-            Companion.actions[id]?.invoke(ButtonsAPI.ButtonContext(entry.message, _this.itemView.context))
+            if(customId.startsWith(acId)) { 
+                val id = customId.subSequence(CommandsAPI.ALIUCORD_APP_ID.toString().length, customId.length).toString()
+                Companion.actions[id]?.invoke(_this.entry.message)
+                it.result = null
+            }
         })
     }
 
@@ -34,6 +33,6 @@ internal class ButtonsAPI : Plugin(Manifest("ButtonsAPI")) {
     override fun stop(context: Context) {}
 
     companion object {
-        val actions = HashMap<String, (ButtonsAPI.ButtonContext) -> Unit>()
+        val actions = HashMap<String, (Message) -> Unit>()
     }
 }
