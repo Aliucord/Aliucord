@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.aliucord.*;
+import com.aliucord.api.ButtonsAPI;
 import com.aliucord.entities.CommandContext;
 import com.aliucord.entities.Plugin;
 import com.aliucord.utils.ReflectUtils;
@@ -164,6 +165,7 @@ public class CommandsAPI {
                             ));
 
                             StoreMessages.access$handleLocalMessageCreate(storeMessages, commandMessage);
+                            if(res.button != null) ButtonsAPI.addButton(commandMessage, res.button);
                         } catch (Throwable e) { logger.error((String) null, e); }
                     } else {
                         if (hasEmbeds)
@@ -374,6 +376,8 @@ public class CommandsAPI {
         public String username;
         /** The avatar url of the pseudo clyde associated with this CommandResult */
         public String avatarUrl;
+        /** Button component that will appear on the response message */
+        public ButtonsAPI.ButtonData button;
 
         /**
          * calls {@link CommandResult#CommandResult(String, List, boolean)} with default arguments.
@@ -422,13 +426,15 @@ public class CommandsAPI {
          * @param send      Whether to send the message or not. If false, messages will appear locally, otherwise they'll be sent to the current channel.
          * @param username  Username for Clyde. Requires <code>send</code> to be false.
          * @param avatarUrl Avatar URL for Clyde, must be a direct link, not a redirect. Requires <code>send</code> to be false.
+         * @param button    Button component that will appear on the response message
          */
-        public CommandResult(@Nullable String content, @Nullable List<MessageEmbed> embeds, boolean send, @Nullable String username, @Nullable String avatarUrl) {
+        public CommandResult(@Nullable String content, @Nullable List<MessageEmbed> embeds, boolean send, @Nullable String username, @Nullable String avatarUrl, @Nullable ButtonsAPI.ButtonData button) {
             this.content = content;
             this.embeds = embeds;
             this.username = username;
             this.avatarUrl = avatarUrl;
             this.send = send;
+            this.button = button;
         }
     }
 }

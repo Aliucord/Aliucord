@@ -1,6 +1,7 @@
 package com.aliucord.coreplugins
 
 import android.content.Context
+import androidx.fragment.app.FragmentManager
 
 import com.aliucord.api.ButtonsAPI
 import com.aliucord.api.CommandsAPI
@@ -23,7 +24,7 @@ internal class ButtonsAPI : Plugin(Manifest("ButtonsAPI")) {
             val acId = (-CommandsAPI.ALIUCORD_APP_ID).toString()
             if(customId.startsWith(acId)) { 
                 val id = customId.subSequence(CommandsAPI.ALIUCORD_APP_ID.toString().length, customId.length).toString()
-                Companion.actions[id]?.invoke(_this.entry.message)
+                Companion.actions[id]?.invoke(_this.entry.message, _this.adapter.fragmentManager)
                 it.result = null
             }
         })
@@ -33,6 +34,6 @@ internal class ButtonsAPI : Plugin(Manifest("ButtonsAPI")) {
     override fun stop(context: Context) {}
 
     companion object {
-        val actions = HashMap<String, (Message) -> Unit>()
+        val actions = HashMap<String, (Message, FragmentManager) -> Unit>()
     }
 }
