@@ -9,8 +9,8 @@ package com.aliucord;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.*;
@@ -64,7 +64,7 @@ public final class Main {
     /** Whether Aliucord has been initialized */
     public static boolean initialized = false;
     public static final Logger logger = new Logger();
-
+    public static SettingsUtilsJSON settings = new SettingsUtilsJSON("Aliucord");
     private static boolean loadedPlugins;
 
     /** Aliucord's preInit hook. Plugins are loaded here */
@@ -308,6 +308,16 @@ public final class Main {
     }
 
     private static void loadAllPlugins(Context context) {
+        if (!SettingsUtils.getBool("migratedPMSettings", false)) {
+            SettingsUtils.getAll("AC_PM_").forEach((key, value) -> {
+                try {
+                    settings.setBool(key, (boolean) value);
+                    SettingsUtils.remove(key);
+                } catch (Exception e) { logger.error(e); }
+            });
+            SettingsUtils.setBool("migratedPMSettings", true);
+        }
+
         File dir = new File(Constants.PLUGINS_PATH);
         if (!dir.exists()) {
             boolean res = dir.mkdirs();

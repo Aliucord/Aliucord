@@ -13,7 +13,8 @@ import android.content.res.Resources;
 import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.PreHook;
-import com.aliucord.utils.*;
+import com.aliucord.utils.GsonUtils;
+import com.aliucord.utils.MapUtils;
 
 import java.io.File;
 import java.io.InputStreamReader;
@@ -125,7 +126,7 @@ public class PluginManager {
      */
     public static void enablePlugin(String name) {
         if (isPluginEnabled(name)) return;
-        SettingsUtils.setBool(getPluginPrefKey(name), true);
+        Main.settings.setBool(getPluginPrefKey(name), true);
         try {
             startPlugin(name);
         } catch (Throwable e) { logger.error("Exception while starting plugin: " + name, e); }
@@ -137,7 +138,7 @@ public class PluginManager {
      */
     public static void disablePlugin(String name) {
         if (!isPluginEnabled(name)) return;
-        SettingsUtils.setBool(getPluginPrefKey(name), false);
+        Main.settings.setBool(getPluginPrefKey(name), false);
         try {
             stopPlugin(name);
         } catch (Throwable e) { logger.error("Exception while stopping plugin: " + name, e); }
@@ -202,7 +203,7 @@ public class PluginManager {
      * @return Whether the plugin is enabled
      */
     public static boolean isPluginEnabled(String name) {
-        return SettingsUtils.getBool(getPluginPrefKey(name), true);
+        return Main.settings.getBool(getPluginPrefKey(name), true);
     }
     /**
      * Checks whether a plugin is enabled
