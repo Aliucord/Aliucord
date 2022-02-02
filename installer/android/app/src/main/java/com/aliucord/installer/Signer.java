@@ -76,7 +76,9 @@ public final class Signer {
         if (!ks.exists()) newKeystore(ks);
         char[] password = "password".toCharArray();
         KeyStore keyStore = KeyStore.getInstance("BKS", "BC");
-        keyStore.load(new FileInputStream(ks), null);
+        try (FileInputStream fis = new FileInputStream(ks)) {
+            keyStore.load(fis, null);
+        }
         String alias = keyStore.aliases().nextElement();
         KeySet keySet = new KeySet((X509Certificate) keyStore.getCertificate(alias), (PrivateKey) keyStore.getKey(alias, password));
 
@@ -114,12 +116,12 @@ public final class Signer {
             manifest.getEntries().put(name, attributes);
             sectionDigests.put(name, hashEntrySection(name, attributes, dig));
         }
-        ByteArrayOutputStream manifestStream = new ByteArrayOutputStream();
-        manifest.write(manifestStream);
-        manifestStream.close();
-        zip.openEntry(JarFile.MANIFEST_NAME);
-        zip.writeEntry(manifestStream.toByteArray(), manifestStream.size());
-        zip.closeEntry();
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            manifest.write(baos);
+            zip.openEntry(JarFile.MANIFEST_NAME);
+            zip.writeEntry(baos.toByteArray(), baos.size());
+            zip.closeEntry();
+        }
 
         String manifestHash = getManifestHash(manifest, dig);
         Manifest tmpManifest = new Manifest();
@@ -138,13 +140,14 @@ public final class Signer {
             attributes.put(digestAttr, entry.getValue());
             manifest.getEntries().put(entry.getKey(), attributes);
         }
-        ByteArrayOutputStream sigStream = new ByteArrayOutputStream();
-        manifest.write(sigStream);
-        sigStream.close();
-        byte[] sigBytes = sigStream.toByteArray();
-        zip.openEntry("META-INF/CERT.SF");
-        zip.writeEntry(sigBytes, sigStream.size());
-        zip.closeEntry();
+        byte[] sigBytes;
+        try (ByteArrayOutputStream sigStream = new ByteArrayOutputStream()) {
+            manifest.write(sigStream);
+            sigBytes = sigStream.toByteArray();
+            zip.openEntry("META-INF/CERT.SF");
+            zip.writeEntry(sigBytes, sigStream.size());
+            zip.closeEntry();
+        }
 
         byte[] signature = signSigFile(keySet, sigBytes);
         zip.openEntry("META-INF/CERT.RSA");
@@ -157,23 +160,23 @@ public final class Signer {
     private static String hashEntrySection(String name, Attributes attrs, MessageDigest dig) throws IOException {
         Manifest manifest = new Manifest();
         manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
-        ByteArrayOutputStream o = new ByteArrayOutputStream();
-        manifest.write(o);
-        int emptyLen = o.toByteArray().length;
-        manifest.getEntries().put(name, attrs);
-        o.reset();
-        manifest.write(o);
-        byte[] ob = o.toByteArray();
-        o.close();
-        ob = Arrays.copyOfRange(ob, emptyLen, ob.length);
-        return toBase64(dig.digest(ob));
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            manifest.write(baos);
+            int emptyLen = baos.toByteArray().length;
+            manifest.getEntries().put(name, attrs);
+            baos.reset();
+            manifest.write(baos);
+            byte[] ob = baos.toByteArray();
+            ob = Arrays.copyOfRange(ob, emptyLen, ob.length);
+            return toBase64(dig.digest(ob));
+        }
     }
 
     private static String getManifestHash(Manifest manifest, MessageDigest dig) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        manifest.write(baos);
-        baos.close();
-        return toBase64(dig.digest(baos.toByteArray()));
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            manifest.write(baos);
+            return toBase64(dig.digest(baos.toByteArray()));
+        }
     }
 
     private static byte[] signSigFile(KeySet keySet, byte[] content) throws Exception {
