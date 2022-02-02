@@ -58,6 +58,7 @@ public final class Signer {
             serialNumber,
             new Date(System.currentTimeMillis() - 1000L * 60L * 60L * 24L * 30L),
             new Date(System.currentTimeMillis() + 1000L * 60L * 60L * 24L * 366L * 30L),
+            Locale.ENGLISH,
             x500Name,
             SubjectPublicKeyInfo.getInstance(pair.getPublic().getEncoded())
         );
