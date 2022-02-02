@@ -54,7 +54,9 @@ class _InstallPageState extends State<InstallPage> {
       _install(apk);
     } on DioError catch (e) {
       _onFailed();
-      setState(() => _logs += '${e.error}\n');
+      setState(() =>
+        _logs += '\nAn exception occurred while downloading Discord. Please try again. If this error persists, try a different network.\n${e.error}\n'
+      );
     }
   }
 
