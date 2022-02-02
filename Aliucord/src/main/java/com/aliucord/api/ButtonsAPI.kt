@@ -94,7 +94,7 @@ object ButtonsAPI {
             }
 
             rowItems.add(buttonComponent)
-            ButtonsAPI.actions.put(id.toString(), onPress)
+            ButtonsAPI.actions[id] = onPress
 
             StoreStream.`access$getDispatcher$p`(StoreStream.getPresences().stream).schedule { 
                 StoreStream.`access$handleMessageUpdate`(StoreStream.getPresences().stream, synthesizeApiMessage())
