@@ -17,6 +17,10 @@ import com.discord.models.message.Message
 import com.discord.stores.StoreStream
 
 import java.util.*
+import java.lang.reflect.*
+import kotlin.collections.lastOrNull
+import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KProperty
 
 /**
  * Adds methods for creating button components
@@ -28,6 +32,26 @@ object ButtonsAPI {
      * Stores data about a button
      */
     data class ButtonData(val label: String, val style: ButtonStyle, val onPress: (Message, FragmentManager) -> Unit)
+
+    class LazyField<T>(private val clazz : Class<*>, private val field: String? ) : ReadOnlyProperty<T, Field> {
+        private var v = null as Field?
+        override fun getValue(thisRef: T, property: KProperty<*>) = v ?: clazz.getDeclaredField(field ?: property.name.replace("Field", "")).apply {
+            setAccessible(true)
+            v = this
+        }
+    }
+
+    inline fun <reified T> lazyField(field: String? = null) = LazyField<Any>(T::class.java, field)
+
+    private val componentsField by lazyField<ActionRowComponent>()
+    private val msgComponentsField by lazyField<Message>("components")
+    private val arTypeField by lazyField<ActionRowComponent>("type")
+
+    private val labelField by lazyField<ButtonComponent>()
+    private val styleField by lazyField<ButtonComponent>()
+    private val disabledField by lazyField<ButtonComponent>()
+    private val idField by lazyField<ButtonComponent>("customId")
+    private val typeField by lazyField<ButtonComponent>()
 
     /**
      * Creates a button with the given data
@@ -46,38 +70,34 @@ object ButtonsAPI {
      */
     @JvmStatic
     fun Message.addButton(label: String, style: ButtonStyle, onPress: (Message, FragmentManager) -> Unit) {
-        var components = this.components
-        val id = -CommandsAPI.generateId()
-
-        if(components == null) {
-            components = ArrayList<Component>()
-            try {
-                ReflectUtils.setField(this, "components", components)
-            } catch (_ : Throwable) {}
+        val id = (-CommandsAPI.generateId()).toString()
+        val components = this.components ?: ArrayList<Component>().also { components -> 
+            msgComponentsField[this] = components
         }
 
         try{
             val buttonComponent = ReflectUtils.allocateInstance(ButtonComponent::class.java) as ButtonComponent
-            ReflectUtils.setField(buttonComponent, "label", label)
-            ReflectUtils.setField(buttonComponent, "style", style)
-            ReflectUtils.setField(buttonComponent, "disabled", false)
-            ReflectUtils.setField(buttonComponent, "type", ComponentType.BUTTON)
-            ReflectUtils.setField(buttonComponent, "customId", "${-CommandsAPI.ALIUCORD_APP_ID}-${id}")
 
-            var actionRow = ReflectUtils.allocateInstance(ActionRowComponent::class.java) as ActionRowComponent
-            ReflectUtils.setField(actionRow, "components", ArrayList<Any>())
-            ReflectUtils.setField(actionRow, "type", ComponentType.ACTION_ROW)
+            labelField[buttonComponent] = label
+            styleField[buttonComponent] = style
+            disabledField[buttonComponent] = false
+            typeField[buttonComponent] = ComponentType.BUTTON
+            idField[buttonComponent] = "${-CommandsAPI.ALIUCORD_APP_ID}-${id}"
 
-            if(components.size == 0) components.add(actionRow)
-            actionRow = components.get(components.size - 1) as ActionRowComponent
-            val actionRowItems = ReflectUtils.getField(actionRow, "components") as ArrayList<Component>
-            actionRowItems.add(buttonComponent)
+            val row = components.lastOrNull() ?: ReflectUtils.allocateInstance<ActionRowComponent>(ActionRowComponent::class.java).also { row ->
+                arTypeField[row] = ComponentType.ACTION_ROW
+                components.add(row)
+            }
 
-            ReflectUtils.setField(actionRow, "components", actionRowItems)
+            val rowItems = componentsField[row] as ArrayList<Component>? ?: ArrayList<Component>().also { rowItems ->
+                componentsField[row] = rowItems
+            }
+
+            rowItems.add(buttonComponent)
             ButtonsAPI.actions.put(id.toString(), onPress)
 
             StoreStream.`access$getDispatcher$p`(StoreStream.getPresences().stream).schedule { 
-                StoreStream.`access$handleMessageUpdate`(StoreStream.getPresences().stream, this.synthesizeApiMessage())
+                StoreStream.`access$handleMessageUpdate`(StoreStream.getPresences().stream, synthesizeApiMessage())
             }
         } catch (t: Throwable) {
             Logger("ButtonsAPI").error("Failed to create button component", t)
