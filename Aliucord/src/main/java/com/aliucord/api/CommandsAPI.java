@@ -166,7 +166,7 @@ public class CommandsAPI {
 
                             StoreMessages.access$handleLocalMessageCreate(storeMessages, commandMessage);
                             if(res.buttons != null) 
-                                for(val button : res.buttons) ButtonsAPI.addButton(commandMessage, button);
+                                for(var button : res.buttons) ButtonsAPI.addButton(commandMessage, button);
                         } catch (Throwable e) { logger.error((String) null, e); }
                     } else {
                         if (hasEmbeds)
