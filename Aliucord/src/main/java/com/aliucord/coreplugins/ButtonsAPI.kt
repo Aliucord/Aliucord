@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021 Juby210 & Vendicated
+ * Licensed under the Open Software License version 3.0
+ */
+
 package com.aliucord.coreplugins
 
 import android.content.Context
@@ -19,9 +24,9 @@ internal class ButtonsAPI : Plugin(Manifest("ButtonsAPI")) {
         patcher.before<WidgetChatListAdapterItemBotComponentRow>("onButtonComponentClick", Int::class.java, String::class.java) {
             val customId = it.args[1] as String
             val acId = (-CommandsAPI.ALIUCORD_APP_ID).toString()
-            if(customId.startsWith(acId)) { 
+            if (customId.startsWith(acId)) {
                 val id = customId.subSequence(CommandsAPI.ALIUCORD_APP_ID.toString().length, customId.length).toString()
-                Companion.actions[id]?.invoke(this.entry.message, this.adapter.fragmentManager.fragments[0]!!.activity!!)
+                Companion.actions[id]?.invoke(entry.message, adapter.fragmentManager.fragments[0]!!.activity!!)
                 it.result = null
             }
         }

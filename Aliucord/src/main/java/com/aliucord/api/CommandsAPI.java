@@ -153,8 +153,8 @@ public class CommandsAPI {
                             ReflectUtils.setField(c, commandMessage, "flags", MessageFlags.EPHEMERAL);
                             ReflectUtils.setField(c, commandMessage, "interaction", thinkingMsg.getInteraction());
 
-                            if(res.buttons != null) 
-                                for(var button : res.buttons) 
+                            if (res.buttons != null)
+                                for (var button : res.buttons)
                                     ButtonsAPI.addButton(commandMessage, button);
 
                             // TODO: add arguments

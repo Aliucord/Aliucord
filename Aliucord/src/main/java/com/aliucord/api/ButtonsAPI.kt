@@ -8,10 +8,10 @@ package com.aliucord.api
 import android.content.Context
 import androidx.fragment.app.FragmentActivity
 
+import com.aliucord.coreplugins.ButtonsAPI
 import com.aliucord.Logger
 import com.aliucord.utils.ReflectUtils
 import com.aliucord.utils.lazyField
-import com.aliucord.coreplugins.ButtonsAPI
 
 import com.discord.api.botuikit.*
 import com.discord.models.message.Message
@@ -59,11 +59,11 @@ object ButtonsAPI {
     @JvmStatic
     fun Message.addButton(label: String, style: ButtonStyle, onPress: (Message, FragmentActivity) -> Unit) {
         val id = (-CommandsAPI.generateId()).toString()
-        val components = this.components ?: ArrayList<Component>().also { components -> 
+        val components = this.components ?: ArrayList<Component>().also { components ->
             msgComponentsField[this] = components
         }
 
-        try{
+        try {
             val buttonComponent = ReflectUtils.allocateInstance(ButtonComponent::class.java) as ButtonComponent
 
             labelField[buttonComponent] = label
@@ -84,7 +84,7 @@ object ButtonsAPI {
             rowItems.add(buttonComponent)
             ButtonsAPI.actions[id] = onPress
 
-            StoreStream.`access$getDispatcher$p`(StoreStream.getPresences().stream).schedule { 
+            StoreStream.`access$getDispatcher$p`(StoreStream.getPresences().stream).schedule {
                 StoreStream.`access$handleMessageUpdate`(StoreStream.getPresences().stream, synthesizeApiMessage())
             }
         } catch (t: Throwable) {
