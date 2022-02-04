@@ -153,6 +153,10 @@ public class CommandsAPI {
                             ReflectUtils.setField(c, commandMessage, "flags", MessageFlags.EPHEMERAL);
                             ReflectUtils.setField(c, commandMessage, "interaction", thinkingMsg.getInteraction());
 
+                            if(res.buttons != null) 
+                                for(var button : res.buttons) 
+                                    ButtonsAPI.addButton(commandMessage, button);
+
                             // TODO: add arguments
                             long guildId = ChannelWrapper.getGuildId(StoreStream.getChannels().getChannel(channelId));
                             interactionsStore.put(id, new WidgetApplicationCommandBottomSheetViewModel.StoreState(
@@ -165,8 +169,6 @@ public class CommandsAPI {
                             ));
 
                             StoreMessages.access$handleLocalMessageCreate(storeMessages, commandMessage);
-                            if(res.buttons != null) 
-                                for(var button : res.buttons) ButtonsAPI.addButton(commandMessage, button);
                         } catch (Throwable e) { logger.error((String) null, e); }
                     } else {
                         if (hasEmbeds)
@@ -427,7 +429,22 @@ public class CommandsAPI {
          * @param send      Whether to send the message or not. If false, messages will appear locally, otherwise they'll be sent to the current channel.
          * @param username  Username for Clyde. Requires <code>send</code> to be false.
          * @param avatarUrl Avatar URL for Clyde, must be a direct link, not a redirect. Requires <code>send</code> to be false.
-         * @param buttons    Button components that will appear on the response message
+         */
+        public CommandResult(@Nullable String content, @Nullable List<MessageEmbed> embeds, boolean send, @Nullable String username, @Nullable String avatarUrl) {
+            this.content = content;
+            this.embeds = embeds;
+            this.username = username;
+            this.avatarUrl = avatarUrl;
+            this.send = send;
+        }
+
+        /**
+         * @param content   Output message content
+         * @param embeds    Embeds to include in the command output. Requires <code>send</code> to be false.
+         * @param send      Whether to send the message or not. If false, messages will appear locally, otherwise they'll be sent to the current channel.
+         * @param username  Username for Clyde. Requires <code>send</code> to be false.
+         * @param avatarUrl Avatar URL for Clyde, must be a direct link, not a redirect. Requires <code>send</code> to be false.
+         * @param buttons   Button components that will appear on the response message
          */
         public CommandResult(@Nullable String content, @Nullable List<MessageEmbed> embeds, boolean send, @Nullable String username, @Nullable String avatarUrl, @Nullable List<ButtonsAPI.ButtonData> buttons) {
             this.content = content;

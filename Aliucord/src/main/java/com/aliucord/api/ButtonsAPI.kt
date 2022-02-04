@@ -6,10 +6,11 @@
 package com.aliucord.api
 
 import android.content.Context
-import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentActivity
 
 import com.aliucord.Logger
 import com.aliucord.utils.ReflectUtils
+import com.aliucord.utils.lazyField
 import com.aliucord.coreplugins.ButtonsAPI
 
 import com.discord.api.botuikit.*
@@ -17,10 +18,7 @@ import com.discord.models.message.Message
 import com.discord.stores.StoreStream
 
 import java.util.*
-import java.lang.reflect.*
 import kotlin.collections.lastOrNull
-import kotlin.properties.ReadOnlyProperty
-import kotlin.reflect.KProperty
 
 /**
  * Adds methods for creating button components
@@ -31,17 +29,7 @@ object ButtonsAPI {
     /**
      * Stores data about a button
      */
-    data class ButtonData(val label: String, val style: ButtonStyle, val onPress: (Message, FragmentManager) -> Unit)
-
-    class LazyField<T>(private val clazz : Class<*>, private val field: String? ) : ReadOnlyProperty<T, Field> {
-        private var v = null as Field?
-        override fun getValue(thisRef: T, property: KProperty<*>) = v ?: clazz.getDeclaredField(field ?: property.name.replace("Field", "")).apply {
-            setAccessible(true)
-            v = this
-        }
-    }
-
-    inline fun <reified T> lazyField(field: String? = null) = LazyField<Any>(T::class.java, field)
+    data class ButtonData(val label: String, val style: ButtonStyle, val onPress: (Message, FragmentActivity) -> Unit)
 
     private val componentsField by lazyField<ActionRowComponent>()
     private val msgComponentsField by lazyField<Message>("components")
@@ -69,7 +57,7 @@ object ButtonsAPI {
      * @param onPress Callback for when the button is pressed, passing the message as an argument.
      */
     @JvmStatic
-    fun Message.addButton(label: String, style: ButtonStyle, onPress: (Message, FragmentManager) -> Unit) {
+    fun Message.addButton(label: String, style: ButtonStyle, onPress: (Message, FragmentActivity) -> Unit) {
         val id = (-CommandsAPI.generateId()).toString()
         val components = this.components ?: ArrayList<Component>().also { components -> 
             msgComponentsField[this] = components
