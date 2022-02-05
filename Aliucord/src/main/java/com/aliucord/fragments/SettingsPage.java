@@ -61,6 +61,11 @@ public class SettingsPage extends AppFragment {
         return layout;
     }
 
+    /**
+     * All Pages are wrapped into a Scrollview. This makes it so that if the page extends the screen height, it will automatically be scrollable, however it introduces lag if you add a recycler and may mess up your layout.
+     * <p>
+     * This method removes the scrollview so you are only working with a linear layout.
+     */
     public void removeScrollView() {
         var layout = getLinearLayout();
 
