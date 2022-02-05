@@ -61,14 +61,15 @@ public class SettingsPage extends AppFragment {
         return layout;
     }
 
-    public void fuckScrollView() {
-        var scrollView = (NestedScrollView) getLinearLayout().getParent();
-        var linearLayout = getLinearLayout();
-        scrollView.removeView(linearLayout);
-        var dp = DimenUtils.dpToPx(70);
-        view.removeView(scrollView);
-        view.addView(linearLayout, 1);
-        getLinearLayout().setPadding(dp / 4, dp, dp / 4, dp / 4);
+    public void removeScrollView() {
+        var layout = getLinearLayout();
+
+        ((NestedScrollView) layout.getParent()).removeView(layout);
+        view.removeView((View) layout.getParent());
+        view.addView(layout, 1);
+
+        var p = DimenUtils.getDefaultPadding();
+        layout.setPadding(p, p * 4, p, p);
     }
 
     /** Returns the Toolbar associated with this Page */
