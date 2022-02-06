@@ -28,4 +28,4 @@ class LazyField<T>(private val clazz: Class<*>, private val fieldName: String?) 
  *
  * @param fieldName The name of the field.
  */
-inline fun <reified T> lazyField(fieldName: String? = null) = LazyField<Any>(T::class.java, field)
+inline fun <reified T> lazyField(fieldName: String? = null) = LazyField<Any>(T::class.java, fieldName)
