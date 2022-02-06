@@ -1,5 +1,5 @@
 name: Blank Template
-description: Use this ONLY if your issue does not fit into another template.
+description: Use this ONLY if your issue does not fit into another TEMPLATE. DO NOT ASK FOR AN UNBAN FROM THE ALIUCORD DISCORD. THIS REPO IS FOR DEVELOPMENT, NOT SUPPORT.
 labels: []
 body:
   - type: textarea
