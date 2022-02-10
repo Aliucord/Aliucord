@@ -136,6 +136,7 @@ internal class Badges : Plugin(Manifest("Badges")) {
         val binding = WidgetChannelsList.`access$getBinding$p`(widgetChannelsList)
         val toolbar = binding.g.parent as ViewGroup
         with(toolbar.findViewById<ImageView>(guildBadgeViewId)) {
+            if (this == null) return
             if (badge == null) visibility = View.GONE
             else {
                 visibility = View.VISIBLE
