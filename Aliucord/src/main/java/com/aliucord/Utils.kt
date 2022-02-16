@@ -237,6 +237,9 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
     }
 
     @JvmStatic
+    val debugLogs = ArrayList<AppLog.LoggedItem>()
+
+    @JvmStatic
     fun openPage(context: Context, clazz: Class<out AppComponent>, intent: Intent?) {
         j.d(context, clazz, intent)
     }
