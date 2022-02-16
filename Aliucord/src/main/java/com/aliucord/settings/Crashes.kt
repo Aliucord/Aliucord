@@ -22,11 +22,10 @@ import com.aliucord.widgets.BottomSheet
 import com.discord.views.CheckedSetting
 import com.lytefast.flexinput.R
 import java.io.File
-import java.util.*
 
 const val autoDisableKey = "autoDisableCrashingPlugins"
 
-private data class CrashLog(val timestamp: String, val stacktrace: String, var times: Int)
+data class CrashLog(val timestamp: String, val stacktrace: String, var times: Int, val timestampmilis: Long)
 
 class CrashSettings : BottomSheet() {
     override fun onViewCreated(view: View, bundle: Bundle?) {
@@ -130,25 +129,28 @@ class Crashes : SettingsPage() {
         }
     }
 
-    private fun getCrashes(): Map<Int, CrashLog>? {
-        val folder = File(Constants.CRASHLOGS_PATH)
-        val files = folder.listFiles()?.apply {
-            sortByDescending { it.lastModified() }
-        } ?: return null
+    companion object {
+        fun getCrashes(): Map<Int, CrashLog>? {
+            val folder = File(Constants.BASE_PATH, "crashlogs")
+            val files = folder.listFiles()?.apply {
+                sortByDescending { it.lastModified() }
+            } ?: return null
 
-        val res = LinkedHashMap<Int, CrashLog>()
-        for (file in files) {
-            if (!file.isFile) continue
-            val content = file.readText()
-            val hashCode = content.hashCode()
-            res.computeIfAbsent(hashCode) {
-                CrashLog(
-                    timestamp = file.name.replace(".txt", "").replace("_".toRegex(), ":"),
-                    stacktrace = content,
-                    times = 0
-                )
-            }.times++
+            val res = LinkedHashMap<Int, CrashLog>()
+            for (file in files) {
+                if (!file.isFile) continue
+                val content = file.readText()
+                val hashCode = content.hashCode()
+                res.computeIfAbsent(hashCode) {
+                    CrashLog(
+                        timestamp = file.name.replace(".txt", "").replace("_".toRegex(), ":"),
+                        stacktrace = content,
+                        times = 0,
+                        timestampmilis = file.lastModified()
+                    )
+                }.times++
+            }
+            return res
         }
-        return res
     }
 }

@@ -5,13 +5,22 @@
 package com.aliucord.coreplugins
 
 import android.content.Context
+import android.net.Uri
 import android.os.Build
 import com.aliucord.*
 import com.aliucord.api.CommandsAPI
 import com.aliucord.api.CommandsAPI.CommandResult
 import com.aliucord.entities.Plugin
+import com.aliucord.settings.Crashes
+import com.aliucord.updater.PluginUpdater
+import com.aliucord.updater.Updater
+import com.aliucord.utils.RxUtils.subscribe
 import com.discord.api.commands.ApplicationCommandType
-import java.io.File
+import com.discord.app.AppLog
+import external.org.apache.commons.lang3.StringUtils
+import org.json.JSONObject
+import java.io.*
+import java.util.*
 
 internal class CoreCommands : Plugin(Manifest("CoreCommands")) {
     override fun start(context: Context) {
@@ -31,8 +40,17 @@ internal class CoreCommands : Plugin(Manifest("CoreCommands")) {
             CommandResult(it.getRequiredString("message"))
         }
 
-        fun formatPlugins(plugins: List<Plugin>, showVersions: Boolean): String =
-            plugins.joinToString(transform = { p -> p.getName() + if (showVersions) " (${p.manifest.version})" else "" })
+        fun formatPlugins(plugins: List<Plugin>, showVersions: Boolean, joiner: String = ", ", showOutdated: Boolean = false): String =
+            StringBuilder().run {
+                plugins.forEach {
+                    append(it.name)
+                    if (showVersions) append(" (").append(it.manifest.version).append(')')
+                    if (showOutdated && PluginUpdater.checkPluginUpdate(it)) append(" (Outdated)")
+                    append(joiner)
+                }
+                setLength(length - joiner.length) // Remove last joiner
+                toString()
+            }
 
         commands.registerCommand(
             "plugins",
@@ -84,6 +102,65 @@ ${if (disabled.isEmpty()) "None" else "> $disabledStr"}
 
             CommandResult(str)
         }
+
+        AppLog.d.subscribe {
+            if (this.k != 2) Utils.debugLogs.add(this) //this is for preventing http request logs from getting saved
+            if (Utils.debugLogs.size > 400) {
+                Utils.debugLogs.removeFirst()
+            }
+        }
+        commands.registerCommand("doctor", "Posts crash logs with device info") {
+            val plugins = PluginManager.plugins
+            val (enabled, disabled) = plugins.values.partition(PluginManager::isPluginEnabled)
+            val enabledStr = formatPlugins(enabled, true, "\n  • ", showOutdated = true)
+            val disabledStr = formatPlugins(disabled, true, "\n  • ", showOutdated = true)
+            val crashes = Crashes.getCrashes()?.filter {
+                it.value.timestampmilis > Calendar.getInstance().timeInMillis - 3600 * 1000
+            }
+            val debugLog = StringBuilder()
+            (Utils.debugLogs.clone() as ArrayList<AppLog.LoggedItem>).forEach {
+                val indentLevel = "\n" + StringUtils.repeat("\t", it.k - 3)
+                debugLog.append(indentLevel + it.l)
+                if (it.k == 6 && it.m != null) { //level 6 is error and it.m is throwable
+                    val sw = StringWriter()
+                    it.m.printStackTrace(PrintWriter(sw))
+                    val exceptionAsString: String = sw.toString()
+                    debugLog.append(exceptionAsString.trim().replace("\n", indentLevel))
+                }
+            }
+            val res = StringBuilder()
+            crashes?.forEach { res.append(it.value.timestamp + "\n" + it.value.stacktrace) }
+
+            if (res.isEmpty()) res.append("No Crashes")
+            val info =
+                """
+❯ Discord: ${Constants.DISCORD_VERSION} ${if (Updater.isDiscordOutdated()) " (Outdated)" else ""}
+❯ Aliucord: ${BuildConfig.GIT_REVISION} (${PluginManager.plugins.size} plugins) ${if (Updater.isAliucordOutdated()) " (Outdated)" else ""}
+❯ System: Android ${Build.VERSION.RELEASE} (SDK v${Build.VERSION.SDK_INT}) - ${getArchitecture()}
+❯ Rooted: ${getIsRooted() ?: "Unknown"}
+❯ Device: ${Build.DEVICE}
+❯ Model: ${Build.MODEL}
+❯ Manufacturer: ${Build.MANUFACTURER}
+❯ Enabled Plugins (${enabled.size})
+${if (enabled.isEmpty()) "None" else "  • $enabledStr"}
+❯ Disabled Plugins (${disabled.size})
+${if (disabled.isEmpty()) "None" else "  • $disabledStr"}
+❯ Recent Crashlogs
+$res
+❯ Debug Log
+${debugLog.trim()}
+"""
+            if (info.length > 400000) {
+                val file = File.createTempFile("doctor_temp", null)
+                file.writeText(info)
+                file.deleteOnExit()
+                it.addAttachment(Uri.fromFile(file).toString(), "doctor.txt")
+                CommandResult("")
+            } else {
+                val key = JSONObject(Http.simplePost("https://haste.powercord.dev/documents", info)).get("key")
+                CommandResult("https://haste.powercord.dev/$key")
+            }
+        }
     }
 
     private fun getIsRooted() =
@@ -103,6 +180,7 @@ ${if (disabled.isEmpty()) "None" else "> $disabledStr"}
         return System.getProperty("os.arch") ?: System.getProperty("ro.product.cpu.abi")
         ?: "Unknown Architecture"
     }
+
 
     override fun stop(context: Context) {}
 }

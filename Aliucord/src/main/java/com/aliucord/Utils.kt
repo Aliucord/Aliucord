@@ -34,8 +34,7 @@ import com.discord.api.commands.ApplicationCommandType
 import com.discord.api.commands.CommandChoice
 import com.discord.api.message.attachment.MessageAttachment
 import com.discord.api.user.User
-import com.discord.app.AppActivity
-import com.discord.app.AppComponent
+import com.discord.app.*
 import com.discord.models.commands.ApplicationCommandOption
 import com.discord.nullserializable.NullSerializable
 import com.discord.stores.StoreStream
@@ -48,7 +47,6 @@ import com.google.android.material.snackbar.Snackbar
 import com.lytefast.flexinput.R
 import java.io.File
 import java.lang.reflect.Field
-import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.system.exitProcess
@@ -201,6 +199,9 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
             ).show()
         }
     }
+
+    @JvmStatic
+    val debugLogs = ArrayList<AppLog.LoggedItem>()
 
     /**
      * Send a toast from any [Thread]
