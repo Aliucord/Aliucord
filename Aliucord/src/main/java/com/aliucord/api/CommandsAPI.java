@@ -162,7 +162,7 @@ public class CommandsAPI {
                             interactionsStore.put(id, new WidgetApplicationCommandBottomSheetViewModel.StoreState(
                                 me,
                                 guildId == 0 ? null : StoreStream.getGuilds().getMembers().get(guildId).get(me.getId()),
-                                new StoreApplicationInteractions.State.Loaded(new ApplicationCommandData("", "", "", name, Collections.emptyList())),
+                                new StoreApplicationInteractions.State.Loaded(new ApplicationCommandData("", "", "", name, Collections.emptyList(), Collections.emptyList())),
                                 CommandsAPI.getAliucordApplication(),
                                 Collections.emptySet(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(),
                                 Collections.emptyMap()
@@ -172,6 +172,7 @@ public class CommandsAPI {
                         } catch (Throwable e) { logger.error((String) null, e); }
                     } else {
                         if (hasEmbeds)
+                            // imagine selfbot embeds in 2022 (impossible)
                             logger.error(String.format("[%s]", name), new IllegalArgumentException("Embeds may not be specified when send is set to true"));
                         List<? extends Attachment<?>> attachments = ctx.getAttachments();
                         if (!hasContent && attachments.size() == 0) {
