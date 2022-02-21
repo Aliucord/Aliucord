@@ -33,6 +33,8 @@ Future<bool> checkPermissions() async => await channel.invokeMethod('checkPermis
 Future<double> getFreeSpace() async => await channel.invokeMethod('getFreeSpace');
 Future<int> getVersionCode() async => await channel.invokeMethod('getVersionCode');
 Future<String> getVersionName() async => await channel.invokeMethod('getVersionName');
+Future<bool> checkKeystoreDeleted() async => await channel.invokeMethod('checkKeystoreDeleted');
+Future<void> uninstallAliucord() async => await channel.invokeMethod('uninstallAliucord');
 Future<void> toast(String message) => channel.invokeMethod('toast', message);
 
 Future<Iterable<AppInfo>> getInstalledDiscordApps() async {
