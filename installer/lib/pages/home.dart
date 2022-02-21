@@ -49,7 +49,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _checkPermissions();
-    checkKeystore();
+    _checkKeystore();
   }
 
   @override
@@ -134,7 +134,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void checkKeystore() {
+  void _checkKeystore() {
     checkKeystoreDeleted().then((res) {
       if (res) {
         showDialog(context: navigatorKey.currentContext!, barrierDismissible: false, builder: (context) => AlertDialog(
