@@ -223,6 +223,22 @@ public final class MainActivity extends FlutterActivity {
                         result.error("installApk", e.getMessage(), Utils.stackTraceToString(e.getStackTrace()));
                     }
                     break;
+                case "checkKeystoreDeleted":
+                    if (new File(Environment.getExternalStorageDirectory(), "Aliucord/ks.keystore").exists()) {
+                        result.success(false);
+                    } else try {
+                        getPackageManager().getPackageInfo("com.aliucord", 0);
+                        result.success(true);
+                    } catch (PackageManager.NameNotFoundException ignored) {
+                        result.success(false);
+                    }
+                    break;
+                case "uninstallAliucord":
+                    Intent intent = new Intent(Intent.ACTION_DELETE);
+                    intent.setData(Uri.parse("package:com.aliucord"));
+                    startActivity(intent);
+                    result.success(null);
+                    break;
             }
         });
     }
