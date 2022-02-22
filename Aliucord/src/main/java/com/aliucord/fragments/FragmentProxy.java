@@ -525,6 +525,7 @@ public class FragmentProxy extends Fragment implements AppComponent {
         // Horrible hack but hey it is better than crash
         if (mFragment == null) {
             if (!didHack) {
+                Main.logger.warn("Proxied fragment is null. Closing...");
                 didHack = true;
                 Utils.getAppActivity().onBackPressed();
             }
