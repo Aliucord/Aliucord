@@ -22,6 +22,7 @@ import androidx.lifecycle.*;
 import androidx.loader.app.LoaderManager;
 
 import com.aliucord.Main;
+import com.aliucord.Utils;
 import com.discord.app.AppComponent;
 
 import java.io.FileDescriptor;
@@ -510,6 +511,7 @@ public class FragmentProxy extends Fragment implements AppComponent {
         getmFragment().dump(prefix, fd, writer, args);
     }
 
+    private boolean didHack = false;
     public Fragment getmFragment() {
         if (mFragment == null) {
             Bundle bundle = getArguments();
@@ -519,6 +521,16 @@ public class FragmentProxy extends Fragment implements AppComponent {
                 fragments.remove(id);
             }
         }
+
+        // Horrible hack but hey it is better than crash
+        if (mFragment == null) {
+            if (!didHack) {
+                didHack = true;
+                Utils.getAppActivity().onBackPressed();
+            }
+            return new Fragment();
+        }
+
         return mFragment;
     }
 }
