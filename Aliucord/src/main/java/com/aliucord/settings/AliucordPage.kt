@@ -62,7 +62,7 @@ class AliucordPage : SettingsPage() {
         addLink(ctx, "Support Server", R.e.ic_help_24dp) {
             Utils.joinSupportServer(it.context)
         }
-        addLink(ctx, "Support Us on Patreon", R.e.ic_heart_24dp) {
+        addLink(ctx, "Support us on Patreon", R.e.ic_heart_24dp) {
             Utils.launchUrl(Constants.ALIUCORD_PATREON)
         }
         addLink(ctx, "Find us on Onlyfans", R.e.ic_heart_24dp) {
