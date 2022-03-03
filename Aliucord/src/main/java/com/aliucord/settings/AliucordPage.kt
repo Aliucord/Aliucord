@@ -65,7 +65,7 @@ class AliucordPage : SettingsPage() {
         addLink(ctx, "Support us on Patreon", R.e.ic_heart_24dp) {
             Utils.launchUrl(Constants.ALIUCORD_PATREON)
         }
-        addLink(ctx, "Find us on Onlyfans", R.e.ic_heart_24dp) {
+        addLink(ctx, "... or on OnlyFans", R.e.ic_heart_24dp) {
             Utils.launchUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
         }
     }
