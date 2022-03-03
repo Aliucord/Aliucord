@@ -8,6 +8,8 @@ package com.aliucord
 
 import android.annotation.SuppressLint
 import android.content.*
+import android.content.pm.ApplicationInfo
+import android.content.res.Resources
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -18,10 +20,10 @@ import android.text.SpannableStringBuilder
 import android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
 import android.text.style.ClickableSpan
 import android.text.style.StyleSpan
-import android.view.Gravity
-import android.view.View
+import android.view.*
 import android.widget.FrameLayout
 import android.widget.Toast
+import androidx.annotation.AttrRes
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
@@ -38,12 +40,14 @@ import com.discord.app.AppActivity
 import com.discord.app.AppComponent
 import com.discord.models.commands.ApplicationCommandOption
 import com.discord.nullserializable.NullSerializable
+import com.discord.stores.StoreInviteSettings
 import com.discord.stores.StoreStream
 import com.discord.utilities.SnowflakeUtils
 import com.discord.utilities.fcm.NotificationClient
 import com.discord.views.CheckedSetting
 import com.discord.widgets.chat.list.WidgetChatList
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemAttachment
+import com.discord.widgets.guilds.invite.WidgetGuildInvite
 import com.google.android.material.snackbar.Snackbar
 import com.lytefast.flexinput.R
 import java.io.File
@@ -77,6 +81,13 @@ object Utils {
             .also { mAppContext = it }
 
     /**
+     * Whether Aliucord is debuggable
+     */
+    @JvmStatic
+    val isDebuggable
+        get() = appContext.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
+
+    /**
      * Instance of WidgetChatList. Use this instead of patching it's constructor and storing it.
      */
     @JvmField
@@ -99,6 +110,52 @@ object Utils {
     fun launchUrl(url: Uri) {
         appActivity.startActivity(Intent(Intent.ACTION_VIEW).setData(url))
     }
+
+    /**
+     * Prompt to join the Aliucord support server
+     *
+     * @param ctx Context
+     */
+    @JvmStatic
+    fun joinSupportServer(ctx: Context) {
+        (WidgetGuildInvite.Companion).launch(ctx, StoreInviteSettings.InviteCode(Constants.ALIUCORD_SUPPORT, "", null))
+    }
+
+    /**
+     * Get a drawable by attribute
+     *
+     * @param context Context
+     * @param attr The attribute id, e.g. R.b.ic_navigate_next
+     * @return Resolved drawable
+     */
+    @JvmStatic
+    @Throws(Resources.NotFoundException::class)
+    fun getDrawableByAttr(context: Context, @AttrRes attr: Int): Drawable {
+        val attrs = context.theme.obtainStyledAttributes(intArrayOf(attr))
+        val id = attrs.getResourceId(0, 0)
+        attrs.recycle()
+        return ContextCompat.getDrawable(context, id)
+            ?: throw Resources.NotFoundException("Resource ID #0x" + attr.toString(16))
+    }
+
+    /**
+     * Nested childAt. Used to turn nightmares like
+     * ```kt
+     * val layout = ((v.getChildAt(1) as ViewGroup).getChildAt(0) as ViewGroup).getChildAt(1) as LinearLayout
+     * ```
+     * into the much nicer
+     * ```kt
+     * val layout = Utils.nestedChildAt<LinearLayout>(v, 1, 0, 1)
+     * ```
+     * @param root The root that holds the children
+     * @param indices Indices of the children. They will be done in order
+     * @return Child at the specified nested index
+     */
+    @JvmStatic
+    @Suppress("UNCHECKED_CAST")
+    fun <R> nestedChildAt(root: ViewGroup, vararg indices: Int) = indices.fold(root as View) { last, curr ->
+        (last as ViewGroup).getChildAt(curr) as View
+    } as R
 
     /**
      * Launches the file explorer in the specified folder.

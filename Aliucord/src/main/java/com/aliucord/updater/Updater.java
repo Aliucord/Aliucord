@@ -8,6 +8,7 @@ package com.aliucord.updater;
 import android.content.Context;
 
 import com.aliucord.*;
+import com.aliucord.settings.AliucordPageKt;
 import com.aliucord.utils.ReflectUtils;
 
 import java.io.File;
@@ -105,9 +106,9 @@ public class Updater {
 
     /**
      * Determines whether the Aliucord dex is being loaded from storage
-     * @return Whether preference {@link com.aliucord.settings.Updater.UpdaterSettings#ALIUCORD_FROM_STORAGE} is set to true
+     * @return Whether preference {@link AliucordPageKt#ALIUCORD_FROM_STORAGE_KEY} is set to true
      */
     public static boolean usingDexFromStorage() {
-        return SettingsUtils.getBool(com.aliucord.settings.Updater.UpdaterSettings.ALIUCORD_FROM_STORAGE, false);
+        return SettingsUtils.getBool(AliucordPageKt.ALIUCORD_FROM_STORAGE_KEY, false);
     }
 }
