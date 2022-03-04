@@ -49,6 +49,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _checkPermissions();
+    _checkKeystore();
   }
 
   @override
@@ -129,6 +130,26 @@ class _HomePageState extends State<HomePage> {
     checkPermissions().then((res) {
       if (_permissionsGranted != res) {
         setState(() => _permissionsGranted = res);
+      }
+    });
+  }
+
+  void _checkKeystore() {
+    checkKeystoreDeleted().then((res) {
+      if (res) {
+        showDialog(context: navigatorKey.currentContext!, barrierDismissible: false, builder: (context) => AlertDialog(
+          title: const Text('Keystore Missing'),
+          content: const Text('Aliucord is installed, but the keystore is missing. This likely means you deleted "ks.keystore" in the Aliucord folder. As a consequence, you can not update Aliucord directly and must instead first uninstall the old Aliucord.'),
+          actions: [
+            TextButton(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [ Icon(Icons.delete_outlined), Text(' Uninstall') ],
+              ),
+              onPressed: () async => await uninstallAliucord(),
+            ),
+          ],
+        ));
       }
     });
   }

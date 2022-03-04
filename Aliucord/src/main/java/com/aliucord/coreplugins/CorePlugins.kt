@@ -17,7 +17,8 @@ object CorePlugins {
         NoTrack(),
         PluginDownloader(),
         SupportWarn(),
-        TokenLogin()
+        TokenLogin(),
+        ButtonsAPI()
     )
 
     /** Loads all core plugins */
