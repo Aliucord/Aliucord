@@ -102,7 +102,7 @@ public final class Main {
             var font = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium);
 
             layout.addView(
-                makeSettingsEntry(font, context, "Aliucord", R.e.ic_behavior_24dp, AliucordPage.class),
+                makeSettingsEntry(font, context, "Settings", R.e.ic_behavior_24dp, AliucordPage.class),
                 baseIndex++
             );
             layout.addView(

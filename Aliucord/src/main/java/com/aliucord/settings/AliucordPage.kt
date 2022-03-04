@@ -18,6 +18,7 @@ import com.discord.stores.StoreStream
 import com.discord.views.CheckedSetting
 import com.lytefast.flexinput.R
 
+// These keys aren't consistent because they were originally part of different modules
 const val AUTO_DISABLE_ON_CRASH_KEY = "autoDisableCrashingPlugins"
 const val AUTO_UPDATE_PLUGINS_KEY = "AC_plugins_auto_update_enabled"
 const val AUTO_UPDATE_ALIUCORD_KEY = "AC_aliucord_auto_update_enabled"
@@ -37,7 +38,7 @@ class AliucordPage : SettingsPage() {
         addSwitch(ctx,
             AUTO_DISABLE_ON_CRASH_KEY,
             "Automatically disable plugins on crash",
-            "When a plugin is found to be causing crashes, it will automatically be deleted",
+            "When a plugin is found to be causing crashes, it will automatically be disabled",
             true
         )
         addSwitch(ctx, AUTO_UPDATE_ALIUCORD_KEY, "Automatically update Aliucord", null)
@@ -65,9 +66,9 @@ class AliucordPage : SettingsPage() {
         addLink(ctx, "Support us on Patreon", R.e.ic_heart_24dp) {
             Utils.launchUrl(Constants.ALIUCORD_PATREON)
         }
-        addLink(ctx, "... or on OnlyFans", R.e.ic_heart_24dp) {
+        /*addLink(ctx, "... or on OnlyFans", R.e.ic_heart_24dp) {
             Utils.launchUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-        }
+        }*/
     }
 
     private fun addSwitch(ctx: Context, setting: String, title: String, subtitle: String?, default: Boolean = false) {
