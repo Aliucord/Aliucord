@@ -34,6 +34,8 @@ public final class Constants {
 
     /** Link to the Aliucord github repo */
     public static final String ALIUCORD_GITHUB_REPO = "https://github.com/Aliucord/Aliucord";
+    /** Link to Aliucord's Patreon */
+    public static final String ALIUCORD_PATREON = "https://patreon.com/Aliucord";
     /** Code of the Aliucord discord server */
     public static final String ALIUCORD_SUPPORT = "EsNDvBaHVU";
     public static final long ALIUCORD_GUILD_ID = 811255666990907402L;

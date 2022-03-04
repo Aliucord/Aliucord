@@ -12,6 +12,7 @@ import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.view.*;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.DrawableRes;
 import androidx.appcompat.widget.Toolbar;
@@ -21,13 +22,15 @@ import androidx.core.widget.NestedScrollView;
 
 import com.aliucord.Utils;
 import com.aliucord.utils.DimenUtils;
+import com.aliucord.views.Divider;
 import com.aliucord.views.ToolbarButton;
 import com.discord.app.AppFragment;
 import com.google.android.material.appbar.AppBarLayout;
+import com.lytefast.flexinput.R;
 
 
 /** Settings Page Fragment */
-@SuppressWarnings({ "deprecation", "unused" })
+@SuppressWarnings("unused")
 public class SettingsPage extends AppFragment {
     private static final int resId = Utils.getResId("widget_settings_behavior", "layout");
     private CoordinatorLayout view;
@@ -56,7 +59,7 @@ public class SettingsPage extends AppFragment {
     public final LinearLayout getLinearLayout() {
         if (layout == null) {
             if (view == null) throw new IllegalStateException("This Page has not been initialised yet. Did you forget to call super.onViewBound?");
-            layout = (LinearLayout) ((NestedScrollView) view.getChildAt(1)).getChildAt(0);
+            layout = Utils.nestedChildAt(view, 1, 0);
         }
         return layout;
     }
@@ -182,6 +185,26 @@ public class SettingsPage extends AppFragment {
 
     public final void removeHeaderButton(int id) {
         getHeaderBar().getMenu().removeItem(id);
+    }
+
+    /**
+     * Adds a Divider
+     *
+     * @param context Context
+     */
+    public final void addDivider(Context context) {
+        addView(new Divider(requireContext()));
+    }
+
+    /**
+     * Add a header
+     * @param context Context
+     * @param text Header text
+     */
+    public final void addHeader(Context context, String text) {
+        var header = new TextView(context, null, 0, R.i.UiKit_Settings_Item_Header);
+        header.setText(text);
+        addView(header);
     }
 
     /** Adds a view to the LinearLayout associated with this Page */
