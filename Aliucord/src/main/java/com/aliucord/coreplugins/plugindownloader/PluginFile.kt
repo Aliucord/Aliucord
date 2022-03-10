@@ -22,8 +22,11 @@ internal class PluginFile(val plugin: String) : File("${Constants.PLUGINS_PATH}/
             val isReinstall = isInstalled
 
             try {
-                Http.Request(url).execute().let { res ->
-                    res.saveToFile(this)
+                Http.simpleDownload(url, this)
+                // Plugins are started on the main thread.
+                // Post to main thread here for consistency.
+                // Otherwise, plugins that create Handler instances or similar will error
+                Utils.mainThread.post {
                     if (isReinstall) {
                         PluginManager.stopPlugin(plugin)
                         PluginManager.unloadPlugin(plugin)
