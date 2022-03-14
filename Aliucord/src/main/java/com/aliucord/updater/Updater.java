@@ -101,7 +101,7 @@ public class Updater {
      * @return Whether preference "disableAliucordUpdater" is set to true
      */
     public static boolean isUpdaterDisabled() {
-        return SettingsUtils.getBool("disableAliucordUpdater", false);
+        return Main.settings.getBool("disableAliucordUpdater", false);
     }
 
     /**
@@ -109,6 +109,6 @@ public class Updater {
      * @return Whether preference {@link AliucordPageKt#ALIUCORD_FROM_STORAGE_KEY} is set to true
      */
     public static boolean usingDexFromStorage() {
-        return SettingsUtils.getBool(AliucordPageKt.ALIUCORD_FROM_STORAGE_KEY, false);
+        return Main.settings.getBool(AliucordPageKt.ALIUCORD_FROM_STORAGE_KEY, false);
     }
 }

@@ -61,6 +61,8 @@ public final class Main {
 
     private static boolean loadedPlugins;
 
+    public static SettingsUtilsJSON settings;
+
     /** Aliucord's preInit hook. Plugins are loaded here */
     public static void preInit(AppActivity activity) throws NoSuchMethodException {
         if (preInitialized) return;
@@ -68,16 +70,20 @@ public final class Main {
 
         Utils.appActivity = activity;
 
-        if (checkPermissions(activity)) {
-            CorePlugins.loadAll(activity);
-            loadAllPlugins(activity);
-        }
+        if (checkPermissions(activity)) preInitWithPermissions(activity);
 
         Patcher.addPatch(AppActivity.class, "onCreate", new Class<?>[]{ Bundle.class }, new Hook(param ->
             Utils.appActivity = (AppActivity) param.thisObject));
 
         Patcher.addPatch(WidgetChatList.class.getDeclaredConstructor(), new Hook(param ->
             Utils.widgetChatList = (WidgetChatList) param.thisObject));
+    }
+
+    private static void preInitWithPermissions(AppCompatActivity activity) {
+        settings = new SettingsUtilsJSON("Aliucord");
+        SettingsUtilsJSON.Companion.migrateAliucordSettings(settings);
+        CorePlugins.loadAll(activity);
+        loadAllPlugins(activity);
     }
 
     /** Aliucord's init hook. Plugins are started here */
@@ -227,9 +233,9 @@ public final class Main {
                                 }
 
                                 badPlugin = entry.getValue().getName();
-                                if (SettingsUtils.getBool(AliucordPageKt.AUTO_DISABLE_ON_CRASH_KEY, true)) {
+                                if (Main.settings.getBool(AliucordPageKt.AUTO_DISABLE_ON_CRASH_KEY, true)) {
                                     disabledPlugin = true;
-                                    SettingsUtils.setBool(PluginManager.getPluginPrefKey(badPlugin), false);
+                                    Main.settings.setBool(PluginManager.getPluginPrefKey(badPlugin), false);
                                 }
                                 break;
                             } catch (ClassNotFoundException ignored) {
@@ -347,9 +353,8 @@ public final class Main {
         if (activity.checkSelfPermission(perm) == PackageManager.PERMISSION_GRANTED) return true;
         activity.registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
             if (granted == Boolean.TRUE) {
-                CorePlugins.loadAll(activity);
+                preInitWithPermissions(activity);
                 CorePlugins.startAll(activity);
-                loadAllPlugins(activity);
                 startAllPlugins();
             } else Toast.makeText(activity, "You have to grant storage permission to use Aliucord", Toast.LENGTH_LONG).show();
         }).launch(perm);

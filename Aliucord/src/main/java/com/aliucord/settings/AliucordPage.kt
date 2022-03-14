@@ -73,9 +73,9 @@ class AliucordPage : SettingsPage() {
 
     private fun addSwitch(ctx: Context, setting: String, title: String, subtitle: String?, default: Boolean = false) {
         Utils.createCheckedSetting(ctx, CheckedSetting.ViewType.SWITCH, title, subtitle).run {
-            isChecked = SettingsUtils.getBool(setting, default)
+            isChecked = Main.settings.getBool(setting, default)
             setOnCheckedListener {
-                SettingsUtils.setBool(setting, it)
+                Main.settings.setBool(setting, it)
             }
             linearLayout.addView(this)
         }

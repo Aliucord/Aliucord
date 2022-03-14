@@ -66,7 +66,7 @@ public class PluginUpdater {
 
         String updatablePlugins = String.format("**%s**", TextUtils.join("**, **", updates.toArray()));
         String body;
-        if (SettingsUtils.getBool(AliucordPageKt.AUTO_UPDATE_PLUGINS_KEY, false)) {
+        if (Main.settings.getBool(AliucordPageKt.AUTO_UPDATE_PLUGINS_KEY, false)) {
             int res = PluginUpdater.updateAll();
             if (res == 0) return;
             if (res == -1) {
@@ -82,7 +82,7 @@ public class PluginUpdater {
             if (Updater.isDiscordOutdated()) {
                 body = "Your Base Discord is outdated. Please update using the installer - " + body;
             } else if (Updater.isAliucordOutdated()) {
-                if (SettingsUtils.getBool(AliucordPageKt.AUTO_UPDATE_ALIUCORD_KEY, false)) {
+                if (Main.settings.getBool(AliucordPageKt.AUTO_UPDATE_ALIUCORD_KEY, false)) {
                     try {
                         Updater.updateAliucord(Utils.appActivity);
                         body = "Auto updated Aliucord. Please restart Aliucord to load the update - " + body;

@@ -13,7 +13,8 @@ import android.content.res.Resources;
 import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.PreHook;
-import com.aliucord.utils.*;
+import com.aliucord.utils.GsonUtils;
+import com.aliucord.utils.MapUtils;
 
 import java.io.File;
 import java.io.InputStreamReader;
@@ -45,10 +46,11 @@ public class PluginManager {
 
     /**
      * Loads a plugin
+     *
      * @param context Context
-     * @param file Plugin file
+     * @param file    Plugin file
      */
-    @SuppressWarnings({"JavaReflectionMemberAccess", "unchecked"})
+    @SuppressWarnings({ "JavaReflectionMemberAccess", "unchecked" })
     public static void loadPlugin(Context context, File file) {
         String fileName = file.getName().replace(".zip", "");
         logger.info("Loading plugin: " + fileName);
@@ -108,6 +110,7 @@ public class PluginManager {
 
     /**
      * Unloads a plugin
+     *
      * @param name Name of the plugin to unload
      */
     public static void unloadPlugin(String name) {
@@ -121,11 +124,12 @@ public class PluginManager {
 
     /**
      * Enables a loaded plugin if it isn't already enabled
+     *
      * @param name Name of the plugin to enable
      */
     public static void enablePlugin(String name) {
         if (isPluginEnabled(name)) return;
-        SettingsUtils.setBool(getPluginPrefKey(name), true);
+        Main.settings.setBool(getPluginPrefKey(name), true);
         try {
             startPlugin(name);
         } catch (Throwable e) { logger.error("Exception while starting plugin: " + name, e); }
@@ -133,11 +137,12 @@ public class PluginManager {
 
     /**
      * Disables a loaded plugin if it isn't already disables
+     *
      * @param name Name of the plugin to disable
      */
     public static void disablePlugin(String name) {
         if (!isPluginEnabled(name)) return;
-        SettingsUtils.setBool(getPluginPrefKey(name), false);
+        Main.settings.setBool(getPluginPrefKey(name), false);
         try {
             stopPlugin(name);
         } catch (Throwable e) { logger.error("Exception while stopping plugin: " + name, e); }
@@ -145,6 +150,7 @@ public class PluginManager {
 
     /**
      * Toggles a plugin. If it is enabled, it will be disabled and vice versa.
+     *
      * @param name Name of the plugin to toggle
      */
     public static void togglePlugin(String name) {
@@ -154,17 +160,19 @@ public class PluginManager {
 
     /**
      * Starts a plugin
+     *
      * @param name Name of the plugin to start
      */
     public static void startPlugin(String name) {
         logger.info("Starting plugin: " + name);
-         try {
+        try {
             Objects.requireNonNull(plugins.get(name)).start(Utils.getAppContext());
-         } catch (Throwable e) { logger.error("Exception while starting plugin: " + name, e); }
+        } catch (Throwable e) { logger.error("Exception while starting plugin: " + name, e); }
     }
 
     /**
      * Stops a plugin
+     *
      * @param name Name of the plugin to stop
      */
     public static void stopPlugin(String name) {
@@ -176,6 +184,7 @@ public class PluginManager {
 
     /**
      * Remounts the plugin (stop -> unload -> load -> start)
+     *
      * @param name Name of the plugin to remount
      */
     public static void remountPlugin(String name) {
@@ -190,6 +199,7 @@ public class PluginManager {
     /**
      * Gets the preferences key for a plugin. This is used as key for plugin settings.
      * Format: AC_PM_{PLUGIN_NAME}
+     *
      * @param name Name of the plugin
      */
     public static String getPluginPrefKey(String name) {
@@ -198,14 +208,17 @@ public class PluginManager {
 
     /**
      * Checks whether a plugin is enabled
+     *
      * @param name Name of the plugin
      * @return Whether the plugin is enabled
      */
     public static boolean isPluginEnabled(String name) {
-        return SettingsUtils.getBool(getPluginPrefKey(name), true);
+        return Main.settings.getBool(getPluginPrefKey(name), true);
     }
+
     /**
      * Checks whether a plugin is enabled
+     *
      * @param plugin Plugin
      * @return Whether the plugin is enabled
      */
