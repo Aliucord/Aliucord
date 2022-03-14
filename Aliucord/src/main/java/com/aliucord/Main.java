@@ -210,74 +210,76 @@ public final class Main {
             }));
         } catch (Throwable e) { logger.error(e); }
 
-        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
-            if (Looper.getMainLooper().getThread() != thread) {
-                logger.error("Uncaught exception on thread " + thread.getName(), throwable);
-                return;
-            }
-            new Thread() {
-                @Override
-                public void run() {
-                    Looper.prepare();
-                    String badPlugin = null;
-                    boolean disabledPlugin = false;
-                    for (StackTraceElement ele : throwable.getStackTrace()) {
-                        String className = ele.getClassName();
-
-                        for (Map.Entry<PathClassLoader, Plugin> entry : PluginManager.classLoaders.entrySet()) {
-                            try {
-                                var loadedClass = entry.getKey().loadClass(className);
-                                if (!loadedClass.getClassLoader().equals(entry.getKey())) {
-                                    // class was loaded from the parent classloader, ignore
-                                    continue;
-                                }
-
-                                badPlugin = entry.getValue().getName();
-                                if (Main.settings.getBool(AliucordPageKt.AUTO_DISABLE_ON_CRASH_KEY, true)) {
-                                    disabledPlugin = true;
-                                    Main.settings.setBool(PluginManager.getPluginPrefKey(badPlugin), false);
-                                }
-                                break;
-                            } catch (ClassNotFoundException ignored) {
-                            }
-                        }
-
-                        if (badPlugin != null) {
-                            break;
-                        }
-                    }
-                    File folder = new File(Constants.CRASHLOGS_PATH);
-                    if (folder.exists() || folder.mkdir()) {
-                        File file = new File(folder, new Timestamp(System.currentTimeMillis()).toString().replaceAll(":", "_") + ".txt");
-                        try (PrintStream ps = new PrintStream(file)) {
-                            throwable.printStackTrace(ps);
-                        } catch (FileNotFoundException ignored) {}
-                    }
-
-                    var sb = new StringBuilder("An unrecoverable crash occurred. ");
-                    if (badPlugin != null) {
-                        sb.append("This crash was caused by ").append(badPlugin);
-                        if (disabledPlugin) {
-                            sb.append(", so I automatically disabled it for you");
-                        }
-                        sb.append(". ");
-                    }
-                    sb.append("Check the crashes section in the settings for more info.");
-
-                    Toast.makeText(Utils.getAppContext(), sb.toString(), Toast.LENGTH_LONG).show();
-                    Looper.loop();
-                }
-            }.start();
-            try {
-                Thread.sleep(4200); // Wait for toast to end
-            } catch (InterruptedException ignored) {}
-            System.exit(2);
-        });
+        Thread.setDefaultUncaughtExceptionHandler(Main::crashHandler);
 
         if (loadedPlugins) {
             CorePlugins.startAll(activity);
             startAllPlugins();
         }
+    }
+
+    private static void crashHandler(Thread thread, Throwable throwable) {
+        if (Looper.getMainLooper().getThread() != thread) {
+            logger.error("Uncaught exception on thread " + thread.getName(), throwable);
+            return;
+        }
+        new Thread() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                String badPlugin = null;
+                boolean disabledPlugin = false;
+                for (StackTraceElement ele : throwable.getStackTrace()) {
+                    String className = ele.getClassName();
+
+                    for (Map.Entry<PathClassLoader, Plugin> entry : PluginManager.classLoaders.entrySet()) {
+                        try {
+                            var loadedClass = entry.getKey().loadClass(className);
+                            if (!loadedClass.getClassLoader().equals(entry.getKey())) {
+                                // class was loaded from the parent classloader, ignore
+                                continue;
+                            }
+
+                            badPlugin = entry.getValue().getName();
+                            if (Main.settings.getBool(AliucordPageKt.AUTO_DISABLE_ON_CRASH_KEY, true)) {
+                                disabledPlugin = true;
+                                Main.settings.setBool(PluginManager.getPluginPrefKey(badPlugin), false);
+                            }
+                            break;
+                        } catch (ClassNotFoundException ignored) {
+                        }
+                    }
+
+                    if (badPlugin != null) {
+                        break;
+                    }
+                }
+                File folder = new File(Constants.CRASHLOGS_PATH);
+                if (folder.exists() || folder.mkdir()) {
+                    File file = new File(folder, new Timestamp(System.currentTimeMillis()).toString().replaceAll(":", "_") + ".txt");
+                    try (PrintStream ps = new PrintStream(file)) {
+                        throwable.printStackTrace(ps);
+                    } catch (FileNotFoundException ignored) {}
+                }
+
+                var sb = new StringBuilder("An unrecoverable crash occurred. ");
+                if (badPlugin != null) {
+                    sb.append("This crash was caused by ").append(badPlugin);
+                    if (disabledPlugin) {
+                        sb.append(", so I automatically disabled it for you");
+                    }
+                    sb.append(". ");
+                }
+                sb.append("Check the crashes section in the settings for more info.");
+
+                Toast.makeText(Utils.getAppContext(), sb.toString(), Toast.LENGTH_LONG).show();
+                Looper.loop();
+            }
+        }.start();
+        try {
+            Thread.sleep(4200); // Wait for toast to end
+        } catch (InterruptedException ignored) {}
+        System.exit(2);
     }
 
     private static TextView makeSettingsEntry(Typeface font, Context context, String text, @DrawableRes int resId, Class<? extends AppComponent> component) {
