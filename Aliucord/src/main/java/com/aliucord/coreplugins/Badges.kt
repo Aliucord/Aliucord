@@ -130,13 +130,12 @@ internal class Badges : Plugin(Manifest("Badges")) {
 
     private var lastSetGuild: Long = 0
     private fun addGuildBadge(id: Long, widgetChannelsList: WidgetChannelsList) {
-        if (lastSetGuild == id) return
+        if (widgetChannelsList.view == null || lastSetGuild == id) return
         lastSetGuild = id
         val badge = guildBadges[id]
         val binding = WidgetChannelsList.`access$getBinding$p`(widgetChannelsList)
         val toolbar = binding.g.parent as ViewGroup
-        with(toolbar.findViewById<ImageView>(guildBadgeViewId)) {
-            if (this == null) return
+        toolbar.findViewById<ImageView>(guildBadgeViewId)?.apply {
             if (badge == null) visibility = View.GONE
             else {
                 visibility = View.VISIBLE
