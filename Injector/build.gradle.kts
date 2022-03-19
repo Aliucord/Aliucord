@@ -1,6 +1,7 @@
 plugins {
     id("com.android.library")
     id("com.aliucord.gradle")
+    id("kotlin-android")
 }
 
 aliucord {
@@ -25,6 +26,13 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    kotlinOptions {
+        jvmTarget = "11"
+        freeCompilerArgs = freeCompilerArgs +
+            "-Xno-call-assertions" +
+            "-Xno-param-assertions" +
+            "-Xno-receiver-assertions"
+    }
 
     buildFeatures {
         viewBinding = true
@@ -33,6 +41,6 @@ android {
 
 dependencies {
     discord("com.discord:discord:${findProperty("discord_version")}")
-    implementation("androidx.appcompat:appcompat:1.3.1")
-    implementation("com.github.Aliucord:pine:83f67b2cdb")
+    implementation("androidx.appcompat:appcompat:1.4.1")
+    implementation(files("../.assets/pine.jar"))
 }

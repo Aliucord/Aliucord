@@ -1,12 +1,12 @@
 /*
  * This file is part of Aliucord, an Android Discord client mod.
- * Copyright (c) 2021 Juby210 & Vendicated
+ * Copyright (c) 2022 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
 
 package com.discord.app;
 
-import com.aliucord.injector.Injector;
+import com.aliucord.injector.InjectorKt;
 
 import kotlin.jvm.internal.DefaultConstructorMarker;
 
@@ -15,7 +15,7 @@ import kotlin.jvm.internal.DefaultConstructorMarker;
 @SuppressWarnings("unused")
 public final class App$a {
     static {
-        Injector.init();
+        InjectorKt.init();
     }
 
     public App$a(DefaultConstructorMarker defaultConstructorMarker) {}
