@@ -72,23 +72,7 @@ private fun init(appActivity: AppActivity) {
     try {
         val dexFile = File(appActivity.codeCacheDir, "Aliucord.zip")
 
-        val localDex = if (appActivity.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-            val settingsFile = File(BASE_DIRECTORY, "settings/Aliucord.json")
-            if (settingsFile.exists()) {
-                val useLocalDex = settingsFile.readText().let {
-                    if (it == "") false else JSONObject(it).getBoolean("AC_from_storage")
-                }
-                if (useLocalDex) File(BASE_DIRECTORY, "Aliucord.zip").run {
-                    if (exists()) {
-                        Logger.d("Loading dex from $absolutePath")
-                        copyTo(dexFile, true)
-                        true
-                    } else false
-                } else false
-            } else false
-        } else false
-
-        if (!localDex && !dexFile.exists()) {
+        if (!useLocalDex(appActivity, dexFile) && !dexFile.exists()) {
             val successRef = AtomicBoolean(true)
             Thread {
                 try {
@@ -141,6 +125,28 @@ private fun init(appActivity: AppActivity) {
         } catch (ignored: Throwable) {
         }
     }
+}
+
+/**
+ * Checks if app has permission for storage and if so checks settings and copies local dex to code cache
+ */
+private fun useLocalDex(appActivity: AppActivity, dexFile: File): Boolean {
+    if (appActivity.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+        val settingsFile = File(BASE_DIRECTORY, "settings/Aliucord.json")
+        if (settingsFile.exists()) {
+            val useLocalDex = settingsFile.readText().let {
+                it.isNotEmpty() && JSONObject(it).getBoolean("AC_from_storage")
+            }
+            if (useLocalDex) File(BASE_DIRECTORY, "Aliucord.zip").run {
+                if (exists()) {
+                    Logger.d("Loading dex from $absolutePath")
+                    copyTo(dexFile, true)
+                    return true
+                }
+            }
+        }
+    }
+    return false
 }
 
 /**
