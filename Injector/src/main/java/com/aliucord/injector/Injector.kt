@@ -31,6 +31,7 @@ const val LOG_TAG = "Injector"
 private const val DATA_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/data.json"
 private const val DEX_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/Aliucord.zip"
 private val BASE_DIRECTORY = File(Environment.getExternalStorageDirectory().absolutePath, "Aliucord")
+private const val ALIUCORD_FROM_STORAGE_KEY = "AC_from_storage"
 
 private var unhook: MethodHook.Unhook? = null
 
@@ -135,7 +136,7 @@ private fun useLocalDex(appActivity: AppActivity, dexFile: File): Boolean {
         val settingsFile = File(BASE_DIRECTORY, "settings/Aliucord.json")
         if (settingsFile.exists()) {
             val useLocalDex = settingsFile.readText().let {
-                it.isNotEmpty() && JSONObject(it).getBoolean("AC_from_storage")
+                it.isNotEmpty() && JSONObject(it).let { json -> json.has(ALIUCORD_FROM_STORAGE_KEY) && json.getBoolean(ALIUCORD_FROM_STORAGE_KEY) }
             }
             if (useLocalDex) File(BASE_DIRECTORY, "Aliucord.zip").run {
                 if (exists()) {
