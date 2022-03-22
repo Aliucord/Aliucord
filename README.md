@@ -13,41 +13,31 @@
 </p>
 
 <p align="center">
-Aliucord is a modification for the Android Discord app inspired by desktop client modifications.
-</p>
-<p align="center">
-Unlike other Android Discord app modifications, you don't need to rebuild the APK when adding or removing plugins, because Aliucord hooks at runtime using the <a href="https://github.com/canyie/pine">Pine</a> java method hook framework.
+Aliucord is a modification for the Android Discord app
 </p>
 
 ## ⚠️ Important Information
 
-### Supported Architectures
+### Supported Android Versions
 
--   `arm`
--   `arm64`
-
-Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does not either.
-
-### Supported Android version(s)
-
--   7 (SDK 24) - 13 (SDK 33)
+- Android 7 (SDK 24) - 13 (SDK 33)
+- arm64, armeabi-v7, x86, x86_64
 
 ### Supported Discord version(s)
 
--   115.4 / Beta 115104 (You don't need the apk, the installer will download it for you)
+- 115.4 / Beta 115104 (You don't need the apk, the installer will download it for you)
 
 ## 🎨 Features
 
--   Rootless! Aliucord itself does not require a rooted device in order to use it
--   Robust plugin system using Pine!
-    -   Allows swapping in and out your plugins without needing to rebuild Aliucord
-    -   Toggle on and off, configure or uninstall your plugins via the plugins page
-    -   Minimum Discord versions for plugins so no breaking changes are sent out to outdated Discord versions
--   In-app updater to keep Aliucord and your plugins up-to-date
--   Blocks most Discord Tracking/Analytics (doesn't completely block all tracking, that's not really possible)
--   Crash logging!
-    -   In-app crash log page to give a more native feel
-    -   Logs are also saved to `Aliucord/crashlogs` for easy access outside of the app
+- No root needed
+- Robust plugin system
+    - Allows swapping in and out your plugins without needing to rebuild Aliucord
+    - Toggle on and off, configure or uninstall your plugins via the plugins page
+- In-app updater to keep Aliucord and your plugins up-to-date
+- Blocks most Discord Tracking/Analytics (doesn't completely block all tracking, that's not really possible)
+- Crash logging (for the rare cases we fail to catch errors)
+    - In-app crash log page to give a more native feel
+    - Logs are also saved to `Aliucord/crashlogs` for easy access outside of the app
 
 ## 📲 Installation
 
@@ -58,12 +48,13 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
   <img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/Aliucord/Aliucord/Build?label=App%20Build&logo=githubactions&logoColor=white&style=flat-square">
 </a>
 
-1. Download and install [Installer-release.apk](https://github.com/Aliucord/Aliucord/releases/latest/download/Installer-release.apk) from latest release
+1. Download and install [Installer-release.apk](https://github.com/Aliucord/Aliucord/releases/latest/download/Installer-release.apk) from latest
+   release
 2. Open the newly installed "Aliucord Installer" app from your app drawer
 3. Click "Install", then choose the "Download" option
 4. Wait for it to finish patching the Discord APK
-5. Click "Install" once prompted by Android and wait for Aliucord to finish installing.
-   If the installer just stops or the apk fails to install just try again and it should work
+5. Click "Install" once prompted by Android and wait for Aliucord to finish installing. If the installer just stops or the apk fails to install just
+   try again and it should work
 6. If Google Play warns you about this application being unverified, ignore it. This happens because Aliucord is built & signed locally on your device
    so Play Protect doesn't recognise the signature¹
 7. Open Aliucord, grant access to files (it needs this for finding plugins), log in to your account, and voila! Aliucord is at your fingertips!
@@ -76,18 +67,19 @@ Pine does not support `x86` or `x86_64` architectures, and thus Aliucord does no
 
 1. Join our [support server](https://discord.gg/EsNDvBaHVU) and visit the `#plugins-list` channel for a list of available plugins
 2. Hold down the message (NOT the link, the entire message) with the desired plugin and click "Open PluginDownloader"
-3. Find the desired plugin in the list and click install. It should immediately start working, however some plugins may require you to restart to make them fully work
+3. Find the desired plugin in the list and click install. It should immediately start working, however some plugins may require you to restart to make
+   them fully work
 
 ⚠️ IF YOU CAME HERE FROM A YOUTUBE TUTORIAL:
 
-> -   PluginDownloader now comes preinstalled with Aliucord so you don't need to install it
-> -   If you were promised free nitro, you were clickbaited. The most that is possible is free emotes (sends emote image links instead)
+> - PluginDownloader now comes preinstalled with Aliucord so you don't need to install it
+> - If you were promised free nitro, you were clickbaited. The most that is possible is free emotes (sends emote image links instead)
 
 ## 🐛 Troubleshooting
 
--   Try closing and then reopening Aliucord
--   Double check that Aliucord has permission to access files
--   Reinstall Aliucord using the installer
+- Try closing and then reopening Aliucord
+- Double check that Aliucord has permission to access files
+- Reinstall Aliucord using the installer
 
 ...and if none of these work, please visit our [support server](https://discord.gg/EsNDvBaHVU) and go to `#support` for help!
 
@@ -100,12 +92,14 @@ See `.github/workflows/build.yml` for all build steps.
 1. Download the apk of the version you want to port to (#official-discord-updates in Aliucord server)
 2. Decompile it using [Apktool](https://github.com/iBotPeaches/Apktool)
     - `apktool d discord.apk` (Replace discord.apk with whatever the file name is)
-3. Apply `manifest.patch` to the `AndroidManifest.xml` file (Using git bash or any shell on Linux or Macos run in the apktool decompile folder: `patch < manifest.patch`)
+3. Apply `manifest.patch` to the `AndroidManifest.xml` file (Using git bash or any shell on Linux or Macos run in the apktool decompile
+   folder: `patch < manifest.patch`)
 4. IMPORTANT: set targetSDK to 29 in both apktool.yml and AndroidManifest.xml or Aliucord will fail to install
 5. Rebuild the Discord APK using Apktool
     - `apktool b discord` (Replace discord with the folder name)
 6. Copy `build/apk/AndroidManifest.xml` to `.assets/AndroidManifest.xml` and to `Aliucord/AndroidManifest.xml` on your Android device
-7. Repeat the same steps and this time add `android:debuggable=true` in the main category where there's also app name and icon, name this manifest AndroidManifest-debuggable.xml
+7. Repeat the same steps and this time add `android:debuggable=true` in the main category where there's also app name and icon, name this manifest
+   AndroidManifest-debuggable.xml
 8. Change `discord_version` to the correct one in gradle.properties and resync gradle
 9. Fix any errors you encounter and deploy Aliucord to your device with `./gradlew Aliucord:deployWithAdb`
 10. Open Aliucord > Settings > Updater > Top right settings > Use Aliucord.zip from storage and restart Aliucord
@@ -113,7 +107,8 @@ See `.github/workflows/build.yml` for all build steps.
 
 ## Credits
 
--   [Pine](https://github.com/canyie/pine) - Dynamic java method hook framework on ART
--   [apktool](https://ibotpeaches.github.io/Apktool/) - A tool for reverse engineering Android apk files
--   [jadx](https://github.com/skylot/jadx) - Dex to Java decompiler
--   [dex2jar](https://github.com/pxb1988/dex2jar) - Tools to work with android .dex and java .class files
+- [LSPlant](https://github.com/LSPosed/LSPlant) - A hook framework for Android Runtime (ART)
+- [Pine](https://github.com/canyie/pine) - Dynamic java method hook framework on ART
+- [apktool](https://ibotpeaches.github.io/Apktool/) - A tool for reverse engineering Android apk files
+- [jadx](https://github.com/skylot/jadx) - Dex to Java decompiler
+- [dex2jar](https://github.com/pxb1988/dex2jar) - Tools to work with android .dex and java .class files

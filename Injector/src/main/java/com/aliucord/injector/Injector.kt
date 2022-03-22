@@ -18,10 +18,8 @@ import com.discord.stores.StoreClientVersion
 import com.discord.stores.StoreStream
 import dalvik.system.BaseDexClassLoader
 import org.json.JSONObject
-import top.canyie.pine.Pine
-import top.canyie.pine.Pine.CallFrame
-import top.canyie.pine.PineConfig
-import top.canyie.pine.callback.MethodHook
+import de.robv.android.xposed.XposedBridge
+import de.robv.android.xposed.XC_MethodHook
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
@@ -30,27 +28,20 @@ import java.util.concurrent.atomic.AtomicBoolean
 const val LOG_TAG = "Injector"
 private const val DATA_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/data.json"
 private const val DEX_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/Aliucord.zip"
+@Suppress("DEPRECATION")
 private val BASE_DIRECTORY = File(Environment.getExternalStorageDirectory().absolutePath, "Aliucord")
 private const val ALIUCORD_FROM_STORAGE_KEY = "AC_from_storage"
 
-private var unhook: MethodHook.Unhook? = null
+private var unhook: XC_MethodHook.Unhook? = null
 
 fun init() {
-    PineConfig.debug = File(BASE_DIRECTORY, ".pine_debug").exists()
-    PineConfig.debuggable = File(BASE_DIRECTORY, ".debuggable").exists()
-    Log.d(LOG_TAG, "Debuggable: " + PineConfig.debuggable)
-    PineConfig.disableHiddenApiPolicy = false
-    PineConfig.disableHiddenApiPolicyForPlatformDomain = false
-    Pine.disableJitInline()
-    Pine.disableProfileSaver()
-
     HiddenApiPolicy.disableHiddenApiPolicy()
 
     try {
         Log.d(LOG_TAG, "Hooking AppActivity.onCreate...")
-        unhook = Pine.hook(AppActivity::class.java.getDeclaredMethod("onCreate", Bundle::class.java), object : MethodHook() {
-            override fun beforeCall(callFrame: CallFrame) {
-                init(callFrame.thisObject as AppActivity)
+        unhook = XposedBridge.hookMethod(AppActivity::class.java.getDeclaredMethod("onCreate", Bundle::class.java), object : XC_MethodHook() {
+            override fun beforeHookedMethod(param: MethodHookParam) {
+                init(param.thisObject as AppActivity)
                 unhook!!.unhook()
                 unhook = null
             }
@@ -67,8 +58,6 @@ private fun error(ctx: Context, msg: String, th: Throwable?) {
 
 private fun init(appActivity: AppActivity) {
     Logger.d("Initializing Aliucord...")
-    if (!pruneArtProfile(appActivity))
-        Logger.w("Failed to prune art profile")
 
     try {
         val dexFile = File(appActivity.codeCacheDir, "Aliucord.zip")
@@ -175,25 +164,4 @@ private fun addDexToClasspath(dex: File, classLoader: ClassLoader) {
         .apply { isAccessible = true }
     addDexPath.invoke(pathList, dex.absolutePath, null)
     Logger.d("Successfully added Aliucord to the classpath")
-}
-
-/**
- * Try to prevent method inlining by deleting the usage profile used by AOT compilation
- * https://source.android.com/devices/tech/dalvik/configure#how_art_works
- */
-private fun pruneArtProfile(ctx: Context): Boolean {
-    Logger.d("Pruning ART usage profile...")
-    val profile = File("/data/misc/profiles/cur/0/" + ctx.packageName + "/primary.prof")
-    if (!profile.exists()) {
-        return false
-    }
-    if (profile.length() > 0) {
-        try {
-            // Delete file contents
-            FileOutputStream(profile).close()
-        } catch (ignored: Throwable) {
-            return false
-        }
-    }
-    return true
 }
