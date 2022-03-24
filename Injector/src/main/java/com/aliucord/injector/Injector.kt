@@ -36,11 +36,6 @@ private const val ALIUCORD_FROM_STORAGE_KEY = "AC_from_storage"
 private var unhook: XC_MethodHook.Unhook? = null
 
 fun init() {
-    if (!XposedBridge.disableProfileSaver())
-        Logger.w("Failed to disable profile saver")
-
-    HiddenApiPolicy.disableHiddenApiPolicy()
-
     try {
         Log.d(LOG_TAG, "Hooking AppActivity.onCreate...")
         unhook = XposedBridge.hookMethod(AppActivity::class.java.getDeclaredMethod("onCreate", Bundle::class.java), object : XC_MethodHook() {
@@ -61,6 +56,12 @@ private fun error(ctx: Context, msg: String, th: Throwable?) {
 }
 
 private fun init(appActivity: AppActivity) {
+    if (!XposedBridge.disableProfileSaver())
+        Logger.w("Failed to disable profile saver")
+
+    if (!XposedBridge.disableHiddenApiRestrictions())
+        Logger.w("Failed to disable hidden api restrictions")
+
     if (!pruneArtProfile(appActivity))
         Logger.w("Failed to prune art profile")
 
