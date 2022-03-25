@@ -6,9 +6,11 @@
 
 package com.aliucord.wrappers
 
-import com.discord.api.channel.Channel
-import com.discord.api.channel.ChannelRecipientNick
+import com.discord.api.channel.*
 import com.discord.api.guildhash.GuildHashes
+import com.discord.api.permission.PermissionOverwrite
+import com.discord.api.thread.ThreadMember
+import com.discord.api.thread.ThreadMetadata
 import com.discord.api.user.User
 
 /**
@@ -17,188 +19,223 @@ import com.discord.api.user.User
  */
 @Suppress("unused")
 class ChannelWrapper(private val channel: Channel) {
-  /** Returns the raw (obfuscated) [Channel] Object associated with this wrapper */
-  fun raw() = channel
+    /** Returns the raw (obfuscated) [Channel] Object associated with this wrapper */
+    fun raw() = channel
 
-  val applicationId
-    get() = channel.applicationId
+    val applicationId
+        get() = channel.applicationId
 
-  val bitrate
-    get() = channel.bitrate
+    val appliedTags
+        get() = channel.appliedTags
 
-  val defaultAutoArchiveDuration
-    get() = channel.defaultAutoArchiveDuration
+    val availableTags
+        get() = channel.availableTags
 
-  val guildHashes
-    get() = channel.guildHashes
+    val bitrate
+        get() = channel.bitrate
 
-  val guildId
-    get() = channel.guildId
+    val defaultAutoArchiveDuration
+        get() = channel.defaultAutoArchiveDuration
 
-  val icon
-    get() = channel.icon
+    val guildHashes
+        get() = channel.guildHashes
 
-  val id
-    get() = channel.id
+    val guildId
+        get() = channel.guildId
 
-  val lastMessageId
-    get() = channel.lastMessageId
+    val icon
+        get() = channel.icon
 
-  val memberListId
-    get() = channel.memberListId
+    val id
+        get() = channel.id
 
-  val messageCount
-    get() = channel.messageCount
+    val lastMessageId
+        get() = channel.lastMessageId
 
-  val name
-    get() = channel.name
+    val member
+        get() = channel.member
 
-  val nicks
-    get() = channel.nicks
+    val memberListId
+        get() = channel.memberListId
 
-  @get:JvmName("isNsfw")
-  val nsfw
-    get() = channel.nsfw
+    val messageCount
+        get() = channel.messageCount
 
-  val originChannelId
-    get() = channel.originChannelId
+    val name
+        get() = channel.name
 
-  val ownerId
-    get() = channel.ownerId
+    val nicks
+        get() = channel.nicks
 
-  val parentId
-    get() = channel.parentId
-
-  val position
-    get() = channel.position
-
-  val rateLimitPerUser
-    get() = channel.rateLimitPerUser
-
-  val recipientIds
-    get() = channel.recipientIds
-
-  val recipients
-    get() = channel.recipients
-
-  val rtcRegion
-    get() = channel.rtcRegion
-
-  val topic
-    get() = channel.topic
-
-  val type
-    get() = channel.type
-
-  val userLimit
-    get() = channel.userLimit
-
-  fun isDM() = channel.isDM()
-
-  fun isGuild() = channel.isGuild()
-
-  companion object {
-    @JvmStatic
-    val Channel.applicationId
-      get() = b()
-
-    @JvmStatic
-    val Channel.bitrate
-      get() = c()
-
-    @JvmStatic
-    val Channel.defaultAutoArchiveDuration: Int?
-      get() = d()
-
-    @JvmStatic
-    val Channel.guildHashes: GuildHashes?
-      get() = e()
-
-    @JvmStatic
-    val Channel.guildId
-      get() = f()
-
-    @JvmStatic
-    val Channel.icon: String?
-      get() = g()
-
-    @JvmStatic
-    val Channel.id
-      get() = h()
-
-    @JvmStatic
-    val Channel.lastMessageId
-      get() = i()
-
-    @JvmStatic
-    val Channel.memberListId: String
-      get() = k()
-
-    @JvmStatic
-    val Channel.messageCount: Int?
-      get() = l()
-
-    @JvmStatic
-    val Channel.name: String
-      get() = m()
-
-    @JvmStatic
-    val Channel.nicks: List<ChannelRecipientNick>
-      get() = n()
-
-    @JvmStatic
     @get:JvmName("isNsfw")
-    val Channel.nsfw
-      get() = o()
+    val nsfw
+        get() = channel.nsfw
 
-    @JvmStatic
-    val Channel.originChannelId
-      get() = p()
+    val originChannelId
+        get() = channel.originChannelId
 
-    @JvmStatic
-    val Channel.ownerId
-      get() = q()
+    val ownerId
+        get() = channel.ownerId
 
-    @JvmStatic
-    val Channel.parentId
-      get() = r()
+    val parentId
+        get() = channel.parentId
 
-    @JvmStatic
-    val Channel.position
-      get() = t()
+    val permissionOverwrites
+        get() = channel.permissionOverwrites
 
-    @JvmStatic
-    val Channel.rateLimitPerUser
-      get() = u()
+    val position
+        get() = channel.position
 
-    @JvmStatic
-    val Channel.recipientIds: List<Long>
-      get() = v()
+    val rateLimitPerUser
+        get() = channel.rateLimitPerUser
 
-    @JvmStatic
-    val Channel.recipients: List<User>?
-      get() = w()
+    val recipientIds
+        get() = channel.recipientIds
 
-    @JvmStatic
-    val Channel.rtcRegion: String?
-      get() = x()
+    val recipients
+        get() = channel.recipients
 
-    @JvmStatic
-    val Channel.topic: String?
-      get() = z()
+    val rtcRegion
+        get() = channel.rtcRegion
 
-    @JvmStatic
-    val Channel.type
-      get() = A()
+    val threadMetadata
+        get() = channel.threadMetadata
 
-    @JvmStatic
-    val Channel.userLimit
-      get() = B()
+    val topic
+        get() = channel.topic
 
-    @JvmStatic
-    fun Channel.isDM() = guildId == 0L
+    val type
+        get() = channel.type
 
-    @JvmStatic
-    fun Channel.isGuild() = !isDM()
-  }
+    val userLimit
+        get() = channel.userLimit
+
+    fun isDM() = channel.isDM()
+
+    fun isGuild() = channel.isGuild()
+
+    companion object {
+        @JvmStatic
+        val Channel.applicationId
+            get() = b()
+
+        @JvmStatic
+        val Channel.appliedTags: List<Long>
+            get() = c()
+
+        @JvmStatic
+        val Channel.availableTags: List<ForumTag>
+            get() = d()
+
+        @JvmStatic
+        val Channel.bitrate
+            get() = e()
+
+        @JvmStatic
+        val Channel.defaultAutoArchiveDuration: Int?
+            get() = f()
+
+        @JvmStatic
+        val Channel.guildHashes: GuildHashes?
+            get() = g()
+
+        @JvmStatic
+        val Channel.guildId
+            get() = h()
+
+        @JvmStatic
+        val Channel.icon: String?
+            get() = i()
+
+        @JvmStatic
+        val Channel.id
+            get() = j()
+
+        @JvmStatic
+        val Channel.lastMessageId
+            get() = k()
+
+        @JvmStatic
+        val Channel.member: ThreadMember?
+            get() = l()
+
+        @JvmStatic
+        val Channel.memberListId: String
+            get() = m()
+
+        @JvmStatic
+        val Channel.messageCount: Int?
+            get() = n()
+
+        @JvmStatic
+        val Channel.name: String
+            get() = o()
+
+        @JvmStatic
+        val Channel.nicks: List<ChannelRecipientNick>
+            get() = p()
+
+        @JvmStatic
+        @get:JvmName("isNsfw")
+        val Channel.nsfw
+            get() = q()
+
+        @JvmStatic
+        val Channel.originChannelId
+            get() = r()
+
+        @JvmStatic
+        val Channel.ownerId
+            get() = s()
+
+        @JvmStatic
+        val Channel.parentId
+            get() = t()
+
+        @JvmStatic
+        val Channel.permissionOverwrites: List<PermissionOverwrite>
+            get() = u()
+
+        @JvmStatic
+        val Channel.position
+            get() = v()
+
+        @JvmStatic
+        val Channel.rateLimitPerUser
+            get() = w()
+
+        @JvmStatic
+        val Channel.recipientIds: List<Long>
+            get() = x()
+
+        @JvmStatic
+        val Channel.recipients: List<User>?
+            get() = y()
+
+        @JvmStatic
+        val Channel.rtcRegion: String?
+            get() = z()
+
+        @JvmStatic
+        val Channel.threadMetadata: ThreadMetadata?
+            get() = A()
+
+        @JvmStatic
+        val Channel.topic: String?
+            get() = B()
+
+        @JvmStatic
+        val Channel.type
+            get() = C()
+
+        @JvmStatic
+        val Channel.userLimit
+            get() = D()
+
+        @JvmStatic
+        fun Channel.isDM() = guildId == 0L
+
+        @JvmStatic
+        fun Channel.isGuild() = !isDM()
+    }
 }
