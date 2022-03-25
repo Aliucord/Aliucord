@@ -172,14 +172,17 @@ public final class MainActivity extends FlutterActivity {
                             zip.closeEntry();
 
                             AssetManager assets = getAssets();
-                            Utils.writeEntry(zip, "classes5.dex", Utils.readBytes(assets.open("pine/classes.dex")));
 
                             zip.openEntry("AndroidManifest.xml");
                             zip.compressFile(getFilesDir().getAbsolutePath() + "/AndroidManifest.xml");
                             zip.closeEntry();
 
-                            Utils.writeEntry(zip, "lib/arm64-v8a/libpine.so", Utils.readBytes(assets.open("pine/arm64-v8a/libpine.so")));
-                            Utils.writeEntry(zip, "lib/armeabi-v7a/libpine.so", Utils.readBytes(assets.open("pine/armeabi-v7a/libpine.so")));
+                            Utils.writeEntry(zip, "classes5.dex", Utils.readBytes(assets.open("aliuhook/classes.dex")));
+                            for (String arch : new String[] { "arm64-v8a", "armeabi-v7a", "x86", "x86_64" }) {
+                                for (String file : new String[] { "/libaliuhook.so", "/liblsplant.so", "/libc++_shared.so"}) {
+                                    Utils.writeEntry(zip, "lib/" + arch + file, Utils.readBytes(assets.open("aliuhook/" + arch + file)));
+                                }
+                            }
 
                             Utils.writeEntry(zip, "classes6.dex", Utils.readBytes(assets.open("kotlin/classes.dex")));
                             zip.close();

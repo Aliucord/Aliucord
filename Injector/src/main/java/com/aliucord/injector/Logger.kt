@@ -9,7 +9,7 @@ package com.aliucord.injector
 import com.discord.app.AppLog
 
 object Logger {
-    private val TAG = "[$LOG_TAG] "
+    private const val TAG = "[$LOG_TAG] "
 
     fun d(msg: String) = AppLog.g.d(TAG + msg, null)
     fun w(msg: String) = AppLog.g.w(TAG + msg, null)

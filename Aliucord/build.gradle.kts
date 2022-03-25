@@ -57,12 +57,12 @@ android {
 
 
 dependencies {
-    api("androidx.appcompat:appcompat:1.3.1")
-    api("com.google.android.material:material:1.4.0")
-    api("androidx.constraintlayout:constraintlayout:2.1.1")
+    api("androidx.appcompat:appcompat:1.4.1")
+    api("com.google.android.material:material:1.5.0")
+    api("androidx.constraintlayout:constraintlayout:2.1.3")
 
     discord("com.discord:discord:${findProperty("discord_version")}")
-    api(files("../.assets/pine.jar"))
+    api(files("../.assets/aliuhook.jar"))
 }
 
 tasks.dokkaHtml.configure {
