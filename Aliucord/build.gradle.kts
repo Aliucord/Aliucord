@@ -62,7 +62,7 @@ dependencies {
     api("androidx.constraintlayout:constraintlayout:2.1.3")
 
     discord("com.discord:discord:${findProperty("discord_version")}")
-    api(files("../.assets/aliuhook.jar"))
+    api("com.aliucord:Aliuhook:fb7bf41")
 }
 
 tasks.dokkaHtml.configure {

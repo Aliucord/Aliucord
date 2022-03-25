@@ -43,5 +43,5 @@ android {
 dependencies {
     discord("com.discord:discord:${findProperty("discord_version")}")
     implementation("androidx.appcompat:appcompat:1.4.1")
-    implementation(files("../.assets/aliuhook.jar"))
+    implementation("com.aliucord:Aliuhook:fb7bf41")
 }
