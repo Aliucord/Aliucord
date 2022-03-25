@@ -21,7 +21,7 @@ Aliucord is a modification for the Android Discord app
 ### Supported Android Versions
 
 - Android 7 (SDK 24) - 13 (SDK 33)
-- arm64, armeabi-v7, x86, x86_64
+- arm64, armeabi-v7, x86_64
 
 ### Supported Discord version(s)
 
