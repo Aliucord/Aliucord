@@ -10,10 +10,11 @@ import java.lang.reflect.Type
 import java.math.BigDecimal
 import java.util.*
 
+@Suppress("Deprecation", "unused")
 /** Utility class to store and retrieve preferences  */
 class SettingsUtilsJSON(plugin: String) {
     private val settingsPath = Constants.SETTINGS_PATH + "/"
-    private val settingsFile = settingsPath + plugin + ".json"
+    private val settingsFile = "$settingsPath$plugin.json"
     private val cache: MutableMap<String, Any> = HashMap()
     private val settings: JSONObject by lazy {
         val file = File(settingsFile)

@@ -10,7 +10,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.aliucord.utils.*;
-
 import com.discord.stores.StoreStream;
 import com.discord.utilities.analytics.AnalyticSuperProperties;
 import com.discord.utilities.rest.RestAPI;
@@ -19,11 +18,12 @@ import java.io.*;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.util.*;
 
 /** Http Utilities */
-@SuppressWarnings({"unused", "UnusedReturnValue"})
+@SuppressWarnings({ "unused", "UnusedReturnValue" })
 public class Http {
     public static class HttpException extends IOException {
         /** The url of this request */
@@ -51,17 +51,18 @@ public class Http {
         }
 
         private String message;
+
         @Override
         @NonNull
         public String getMessage() {
             if (message == null) {
                 var sb = new StringBuilder()
-                        .append(res.statusCode)
-                        .append(": ")
-                        .append(res.statusMessage)
-                        .append(" (")
-                        .append(req.conn.getURL())
-                        .append(')');
+                    .append(res.statusCode)
+                    .append(": ")
+                    .append(res.statusMessage)
+                    .append(" (")
+                    .append(req.conn.getURL())
+                    .append(')');
 
                 try (var eis = req.conn.getErrorStream()) {
                     var s = IOUtils.readAsText(eis);
@@ -85,7 +86,8 @@ public class Http {
 
         /**
          * Append query parameter. Will automatically be encoded for you
-         * @param key The parameter key
+         *
+         * @param key   The parameter key
          * @param value The parameter value
          * @return self
          */
@@ -104,51 +106,70 @@ public class Http {
         @NonNull
         public String toString() {
             String str = sb.toString();
-            return str.substring(0, str.length() -1); // Remove last & or ? if no query specified
+            return str.substring(0, str.length() - 1); // Remove last & or ? if no query specified
         }
     }
 
+    /** Utility to build MultiPart requests */
     public static class MultiPartBuilder implements Closeable {
         private static final String LINE_FEED = "\r\n";
         private static final String PREFIX = "--";
 
-        private final ByteArrayOutputStream outputStream;
-        private final PrintWriter writer;
-        private final String boundary;
+        private final OutputStream outputStream;
+        private final byte[] boundary;
 
+        /**
+         * @deprecated Use {@link #MultiPartBuilder(String, OutputStream)}
+         */
+        @Deprecated
         public MultiPartBuilder(@NonNull String boundary) {
-            this.boundary = boundary;
-            outputStream = new ByteArrayOutputStream();
-            writer = new PrintWriter(outputStream, true);
+            this(boundary, new ByteArrayOutputStream());
+        }
+
+        /**
+         * Construct a new MultiPartBuilder writing to the provided OutputStream
+         *
+         * @param boundary Boundary
+         * @param os       OutputStream to write to. Should optimally be the result of connection.getOutputStream()
+         */
+        public MultiPartBuilder(@NonNull String boundary, @NonNull OutputStream os) {
+            this.boundary = boundary.getBytes(StandardCharsets.UTF_8);
+            outputStream = os;
+        }
+
+        private MultiPartBuilder append(String s) throws IOException {
+            return append(s.getBytes(StandardCharsets.UTF_8));
+        }
+
+        private MultiPartBuilder append(byte[] b) throws IOException {
+            outputStream.write(b);
+            return this;
         }
 
         /**
          * Append file. Will automatically be encoded for you
-         * @param fieldName The parameter field name
+         *
+         * @param fieldName  The parameter field name
          * @param uploadFile The parameter file
          * @return self
          */
         @NonNull
         public MultiPartBuilder appendFile(@NonNull String fieldName, @NonNull File uploadFile) throws IOException {
-            writer.append(PREFIX).append(boundary).append(LINE_FEED);
-            writer.append(
-                "Content-Disposition: form-data; name=\"" + fieldName
-                    + "\"; filename=\"" + uploadFile.getName() + "\"")
+            append(PREFIX).append(boundary).append(LINE_FEED);
+            append("Content-Disposition: form-data; name=\"").append(fieldName).append("\"; filename=\"").append(uploadFile.getName()).append("\"")
                 .append(LINE_FEED);
-            writer.append(
-                "Content-Type: "
-                    + URLConnection.guessContentTypeFromName(uploadFile.getName()))
+            append("Content-Type: ").append(URLConnection.guessContentTypeFromName(uploadFile.getName()))
                 .append(LINE_FEED);
-            writer.append("Content-Transfer-Encoding: binary").append(LINE_FEED);
-            writer.append(LINE_FEED);
-            writer.flush();
+            append("Content-Transfer-Encoding: binary").append(LINE_FEED);
+            append(LINE_FEED);
+            outputStream.flush();
 
-            try (FileInputStream inputStream = new FileInputStream(uploadFile)) {
+            try (var inputStream = new FileInputStream(uploadFile)) {
                 IOUtils.pipe(inputStream, outputStream);
             }
 
-            writer.append(LINE_FEED);
-            writer.flush();
+            append(LINE_FEED);
+            outputStream.flush();
 
             return this;
         }
@@ -156,61 +177,73 @@ public class Http {
 
         /**
          * Append InputStream. Will automatically be encoded for you
+         *
          * @param fieldName The parameter field name
-         * @param stream The parameter stream
+         * @param is        The parameter stream
          * @return self
          */
         @NonNull
         public MultiPartBuilder appendStream(@NonNull String fieldName, @NonNull InputStream is) throws IOException {
-            writer.append(PREFIX).append(boundary).append(LINE_FEED);
-            writer.append("Content-Disposition: form-data; name=\"" + fieldName + "\"")
-                .append(LINE_FEED);
-            writer.append("Content-Transfer-Encoding: binary").append(LINE_FEED);
-            writer.append(LINE_FEED);
-            writer.flush();
-            
+            append(PREFIX).append(boundary).append(LINE_FEED);
+            append("Content-Disposition: form-data; name=\"").append(fieldName).append("\"").append(LINE_FEED);
+            append("Content-Transfer-Encoding: binary").append(LINE_FEED);
+            append(LINE_FEED);
+            outputStream.flush();
+
             IOUtils.pipe(is, outputStream);
 
-            writer.append(LINE_FEED);
-            writer.flush();
+            append(LINE_FEED);
+            outputStream.flush();
 
             return this;
         }
 
         /**
          * Append field. Will automatically be encoded for you
+         *
          * @param fieldName The parameter field name
-         * @param value The parameter value
+         * @param value     The parameter value
          * @return self
          */
         @NonNull
-        public MultiPartBuilder appendField(@NonNull String fieldName, @NonNull String value) {
-            writer.append(PREFIX).append(boundary).append(LINE_FEED);
-            writer.append("Content-Disposition: form-data; name=\"" + fieldName + "\"")
-                .append(LINE_FEED);
-            writer.append(LINE_FEED);
-            writer.append(value).append(LINE_FEED);
-            writer.flush();
+        public MultiPartBuilder appendField(@NonNull String fieldName, @NonNull String value) throws IOException {
+            append(PREFIX).append(boundary).append(LINE_FEED);
+            append("Content-Disposition: form-data; name=\"").append(fieldName).append("\"").append(LINE_FEED);
+            append(LINE_FEED);
+            append(value).append(LINE_FEED);
+            outputStream.flush();
 
             return this;
         }
 
         /**
          * Build the finished byte array
-         * @return
+         *
+         * @deprecated This method is only supported on ByteArrayOutputStreams. However, a HTTPUrlConnection OutputStream should be passed instead.
          */
         @NonNull
-        public byte[] getBytes() {
-            writer.append(LINE_FEED);
-            writer.append(PREFIX).append(boundary).append(PREFIX).append(LINE_FEED);
-            writer.flush();
+        @Deprecated
+        public byte[] getBytes() throws UnsupportedOperationException, IOException {
+            if (outputStream instanceof ByteArrayOutputStream) {
+                finish();
 
-            return outputStream.toByteArray();
+                return ((ByteArrayOutputStream) outputStream).toByteArray();
+            }
+            throw new UnsupportedOperationException("getBytes is only supported on ByteArrayOutputStream builders");
+        }
+
+        /**
+         * Finishes this MultiPartForm. This should be called last.
+         * Calling any other methods on this Builder after calling this will lead to undefined behaviour.
+         */
+        public void finish() throws IOException {
+            append(PREFIX).append(boundary).append(PREFIX).append(LINE_FEED);
+            outputStream.flush();
+            close();
         }
 
         @Override
         public void close() throws IOException {
-            writer.close();
             outputStream.close();
         }
     }
@@ -222,6 +255,7 @@ public class Http {
 
         /**
          * Builds a GET request with the specified QueryBuilder
+         *
          * @param builder QueryBuilder
          * @throws IOException If an I/O exception occurs
          */
@@ -231,6 +265,7 @@ public class Http {
 
         /**
          * Builds a GET request with the specified url
+         *
          * @param url Url
          * @throws IOException If an I/O exception occurs
          */
@@ -240,7 +275,8 @@ public class Http {
 
         /**
          * Builds a request with the specified url and method
-         * @param url Url
+         *
+         * @param url    Url
          * @param method <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods">HTTP method</a>
          * @throws IOException If an I/O exception occurs
          */
@@ -252,7 +288,8 @@ public class Http {
 
         /**
          * Add a header
-         * @param key the name
+         *
+         * @param key   the name
          * @param value the value
          * @return self
          */
@@ -263,6 +300,7 @@ public class Http {
 
         /**
          * Sets the request connection and read timeout
+         *
          * @param timeout the timeout, in milliseconds
          * @return self
          */
@@ -274,6 +312,7 @@ public class Http {
 
         /**
          * Sets whether redirects should be followed
+         *
          * @param follow Whether redirects should be followed
          * @return self
          */
@@ -284,6 +323,7 @@ public class Http {
 
         /**
          * Execute the request
+         *
          * @return A response object
          */
         public Response execute() throws IOException {
@@ -292,6 +332,7 @@ public class Http {
 
         /**
          * Execute the request with the specified body. May not be used in GET requests.
+         *
          * @param body The request body
          * @return Response
          */
@@ -305,6 +346,7 @@ public class Http {
 
         /**
          * Execute the request with the specified raw bytes. May not be used in GET requests.
+         *
          * @param bytes The request body in raw bytes
          * @return Response
          */
@@ -324,6 +366,7 @@ public class Http {
 
         /**
          * Execute the request with the specified object as json. May not be used in GET requests.
+         *
          * @param body The request body
          * @return Response
          */
@@ -335,6 +378,7 @@ public class Http {
          * Execute the request with the specified object as
          * <a href="https://url.spec.whatwg.org/#application/x-www-form-urlencoded">url encoded form data</a>.
          * May not be used in GET requests.
+         *
          * @param params the form data
          * @return Response
          * @throws IOException if an I/O exception occurred
@@ -349,31 +393,54 @@ public class Http {
 
         /**
          * Execute the request with the specified object as multipart form-data. May not be used in GET requests.
+         * <p>
+         * Please note that this will set the <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding">Transfer-Encoding</a> to chunked.
+         * Some servers may not support this. To upload un-chunked (will lead to running out of memory when uploading large files), call
+         * <code>executeWithMultipartForm(params, false)</code>
+         *
          * @param params Map of params. These will be converted in the following way:
-         * <ul>
-         *     <li>File: Append filename and content-type, then append the bytes of the file</li>
-         *     <li>InputStream: Read the stream fully and append the bytes</li>
-         *     <li>Other: Objects.toString() and append</li>
-         * </ul>
+         *               <ul>
+         *                   <li>File: Append filename and content-type, then append the bytes of the file</li>
+         *                   <li>InputStream: Read the stream fully and append the bytes</li>
+         *                   <li>Other: Objects.toString() and append</li>
+         *               </ul>
          * @return Response
          * @throws IOException if an I/O exception occurred
          */
         @NonNull
         public Response executeWithMultipartForm(@NonNull Map<String, Object> params) throws IOException {
+            return executeWithMultipartForm(params, true);
+        }
+
+        /**
+         * @param doChunkedUploading Whether to upload in chunks. If this is false, a buffer will be allocated to hold the entire
+         *                           multi part form. When uploading large files this way, you will run out of memory. Not every server
+         *                           supports this, also does not support redirects.
+         * @see #executeWithMultipartForm(Map)
+         */
+        public Response executeWithMultipartForm(@NonNull Map<String, Object> params, boolean doChunkedUploading) throws IOException {
+            if (conn.getRequestMethod().equals("GET")) throw new IOException("MultiPartForm may not be specified in GET requests");
+
+            if (doChunkedUploading) {
+                conn.setChunkedStreamingMode(-1);
+            }
+
             final String boundary = "--" + UUID.randomUUID().toString() + "--";
 
-            try (MultiPartBuilder mb = new MultiPartBuilder(boundary)) {
+            setHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
+            conn.setDoOutput(true);
 
-                for (Map.Entry<String, Object> entry : params.entrySet()) {
+            try (var builder = new MultiPartBuilder(boundary, conn.getOutputStream())) {
+                for (var entry : params.entrySet()) {
                     if (entry.getValue() instanceof File)
-                        mb.appendFile(entry.getKey(), (File) entry.getValue());
+                        builder.appendFile(entry.getKey(), (File) entry.getValue());
                     else if (entry.getValue() instanceof InputStream)
-                        mb.appendStream(entry.getKey(), (InputStream) entry.getValue());
+                        builder.appendStream(entry.getKey(), (InputStream) entry.getValue());
                     else
-                        mb.appendField(entry.getKey(), Objects.toString(entry.getValue()));
+                        builder.appendField(entry.getKey(), Objects.toString(entry.getValue()));
                 }
-
-                return setHeader("Content-Type", "multipart/form-data; boundary=" + boundary).executeWithBody(mb.getBytes());
+                builder.finish();
+                return execute();
             }
         }
 
@@ -385,6 +452,7 @@ public class Http {
 
         /**
          * Performs a GET request to a Discord route
+         *
          * @param builder QueryBuilder
          * @throws IOException If an I/O exception occurs
          */
@@ -394,6 +462,7 @@ public class Http {
 
         /**
          * Performs a GET request to a Discord route
+         *
          * @param route A Discord route, such as `/users/@me`
          * @throws IOException If an I/O exception occurs
          */
@@ -403,7 +472,8 @@ public class Http {
 
         /**
          * Performs a request to a Discord route
-         * @param route A Discord route, such as `/users/@me`
+         *
+         * @param route  A Discord route, such as `/users/@me`
          * @param method <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods">HTTP method</a>
          * @throws IOException If an I/O exception occurs
          */
@@ -414,7 +484,7 @@ public class Http {
                 .setHeader("Accept", "*/*");
             try {
                 req.setHeader("Authorization", (String) ReflectUtils.getField(StoreStream.getAuthentication(), "authToken"));
-            } catch (ReflectiveOperationException ignored){}
+            } catch (ReflectiveOperationException ignored) {}
             return req;
         }
     }
@@ -429,6 +499,7 @@ public class Http {
 
         /**
          * Construct a Response
+         *
          * @param req The http request to execute
          * @throws IOException If an error occurred connecting to the server
          */
@@ -464,6 +535,7 @@ public class Http {
 
         /**
          * Deserializes json response
+         *
          * @param type Type to deserialize into
          * @return Response Object
          */
@@ -473,6 +545,7 @@ public class Http {
 
         /**
          * Deserializes json response
+         *
          * @param type Class to deserialize into
          * @return Response Object
          */
@@ -482,6 +555,7 @@ public class Http {
 
         /**
          * Get the raw response stream of this connection
+         *
          * @return InputStream
          */
         public InputStream stream() throws IOException {
@@ -491,6 +565,7 @@ public class Http {
 
         /**
          * Pipe response into OutputStream. Remember to close the OutputStream
+         *
          * @param os The OutputStream to pipe into
          */
         public void pipe(OutputStream os) throws IOException {
@@ -501,6 +576,7 @@ public class Http {
 
         /**
          * Saves the received data to the specified {@link File}
+         *
          * @param file The file to save the data to
          * @throws IOException If an I/O error occurred: No such file, file is directory, etc
          */
@@ -511,7 +587,8 @@ public class Http {
         /**
          * Saves the received data to the specified {@link File}
          * and verifies its integrity using the specified sha1sum
-         * @param file The file to save the data to
+         *
+         * @param file    The file to save the data to
          * @param sha1sum checksum to check the file's integrity. May be null to skip integrity check
          * @throws IOException If an I/O error occurred: No such file, file is directory, integrity check failed, etc
          */
@@ -532,8 +609,8 @@ public class Http {
                 boolean shouldVerify = sha1sum != null;
                 var md = shouldVerify ? MessageDigest.getInstance("SHA-1") : null;
                 try (
-                        var is = shouldVerify ? new DigestInputStream(stream(), md) : stream();
-                        var os = new FileOutputStream(tempFile)
+                    var is = shouldVerify ? new DigestInputStream(stream(), md) : stream();
+                    var os = new FileOutputStream(tempFile)
                 ) {
                     IOUtils.pipe(is, os);
 
@@ -566,6 +643,7 @@ public class Http {
 
     /**
      * Send a simple GET request
+     *
      * @param url The url to fetch
      * @return Raw response (String). If you want Json, use simpleJsonGet
      */
@@ -575,7 +653,8 @@ public class Http {
 
     /**
      * Download content from the specified url to the specified {@link File}
-     * @param url The url to download content from
+     *
+     * @param url        The url to download content from
      * @param outputFile The file to save to
      */
     public static void simpleDownload(String url, File outputFile) throws IOException {
@@ -584,7 +663,8 @@ public class Http {
 
     /**
      * Send a simple GET request
-     * @param url The url to fetch
+     *
+     * @param url    The url to fetch
      * @param schema Class to <a href="https://en.wikipedia.org/wiki/Serialization">deserialize</a> the response into
      * @return Response Object
      */
@@ -595,7 +675,8 @@ public class Http {
 
     /**
      * Send a simple GET request
-     * @param url The url to fetch
+     *
+     * @param url    The url to fetch
      * @param schema Class to <a href="https://en.wikipedia.org/wiki/Serialization">deserialize</a> the response into
      * @return Response Object
      */
@@ -605,7 +686,8 @@ public class Http {
 
     /**
      * Send a simple POST request
-     * @param url The url to fetch
+     *
+     * @param url  The url to fetch
      * @param body The request body
      * @return Raw response (String). If you want Json, use simpleJsonPost
      */
@@ -615,8 +697,9 @@ public class Http {
 
     /**
      * Send a simple POST request and parse the JSON response
-     * @param url The url to fetch
-     * @param body The request body
+     *
+     * @param url    The url to fetch
+     * @param body   The request body
      * @param schema Class to <a href="https://en.wikipedia.org/wiki/Serialization">deserialize</a> the response into
      * @return Response deserialized into the provided Class
      */
@@ -626,10 +709,12 @@ public class Http {
     }
 
     // This is just here for proper Generics so you can do simpleJsonPost(url, body, myClass).myMethod() without having to cast
+
     /**
      * Send a simple POST request and parse the JSON response
-     * @param url The url to fetch
-     * @param body The request body
+     *
+     * @param url    The url to fetch
+     * @param body   The request body
      * @param schema Class to <a href="https://en.wikipedia.org/wiki/Serialization">deserialize</a> the response into
      * @return Response deserialized into the provided Class
      */
@@ -639,8 +724,9 @@ public class Http {
 
     /**
      * Send a simple POST request with JSON body
-     * @param url The url to fetch
-     * @param body The request body
+     *
+     * @param url    The url to fetch
+     * @param body   The request body
      * @param schema Class to <a href="https://en.wikipedia.org/wiki/Serialization">deserialize</a> the response into
      * @return Response deserialized into the provided Class
      */
@@ -649,10 +735,12 @@ public class Http {
     }
 
     // This is just here for proper Generics so you can do simpleJsonPost(url, body, myClass).myMethod() without having to cast
+
     /**
      * Send a simple POST request with JSON body
-     * @param url The url to fetch
-     * @param body The request body
+     *
+     * @param url    The url to fetch
+     * @param body   The request body
      * @param schema Class to <a href="https://en.wikipedia.org/wiki/Serialization">deserialize</a> the response into
      * @return Response deserialized into the provided Class
      */
