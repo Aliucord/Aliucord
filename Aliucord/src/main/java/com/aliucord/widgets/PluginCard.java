@@ -75,10 +75,10 @@ public class PluginCard extends MaterialCardView {
         buttonLayout.setPadding(p2, 0, p2, 0);
 
         settingsButton = new Button(ctx);
-        settingsButton.setText("Settings");
+        settingsButton.setText(context.getString(R.h.settings));
 
         uninstallButton = new DangerButton(ctx);
-        uninstallButton.setText("Uninstall");
+        uninstallButton.setText(ctx.getString(R.h.delete));
 
         repoButton = new ToolbarButton(ctx);
         repoButton.setImageDrawable(ContextCompat.getDrawable(ctx, R.e.ic_account_github_white_24dp));

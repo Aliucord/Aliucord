@@ -108,7 +108,7 @@ public final class Main {
             var font = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium);
 
             layout.addView(
-                makeSettingsEntry(font, context, "Settings", R.e.ic_behavior_24dp, AliucordPage.class),
+                makeSettingsEntry(font, context, context.getString(R.h.settings), R.e.ic_behavior_24dp, AliucordPage.class),
                 baseIndex++
             );
             layout.addView(
@@ -116,15 +116,15 @@ public final class Main {
                 baseIndex++
             );
             layout.addView(
-                makeSettingsEntry(font, context, "Updater", R.e.ic_file_download_white_24dp, Updater.class),
+                makeSettingsEntry(font, context, context.getString(R.h.update_badge_header), R.e.ic_file_download_white_24dp, Updater.class),
                 baseIndex++
             );
             layout.addView(
-                makeSettingsEntry(font, context, "Crashes", R.e.ic_history_white_24dp, Crashes.class),
+                makeSettingsEntry(font, context, context.getString(R.h.crash_details), R.e.ic_history_white_24dp, Crashes.class),
                 baseIndex++
             );
             layout.addView(
-                makeSettingsEntry(font, context, "Open Debug Log", R.e.ic_audit_logs_24dp, WidgetDebugging.class),
+                makeSettingsEntry(font, context, context.getString(R.h.debug), R.e.ic_audit_logs_24dp, WidgetDebugging.class),
                 baseIndex
             );
 
