@@ -29,9 +29,10 @@ class Crashes : SettingsPage() {
     @SuppressLint("SetTextI18n")
     override fun onViewBound(view: View) {
         super.onViewBound(view)
-        setActionBarTitle("Crash Logs")
 
         val context = view.context
+        setActionBarTitle(context.getString(R.h.crash_details))
+        
         val padding = DimenUtils.defaultPadding
         val p = padding / 2
 

@@ -35,10 +35,10 @@ public class Updater extends SettingsPage {
     public void onViewBound(View view) {
         super.onViewBound(view);
 
-        setActionBarTitle("Updater");
+        var context = view.getContext();
+        setActionBarTitle(context.getString(R.h.update_badge_header));
         setActionBarSubtitle(stateText);
 
-        var context = view.getContext();
         int padding = DimenUtils.getDefaultPadding();
 
         Utils.threadPool.execute(() -> {
