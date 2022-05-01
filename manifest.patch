@@ -1,5 +1,5 @@
-*** a/AndroidManifest.xml	2021-11-06 14:30:06.474371600 +0100
---- b/AndroidManifest.xml	2021-11-06 14:33:03.665000000 +0100
+*** a/AndroidManifest.xml	2022-05-01 17:48:26.558624400 +0200
+--- b/AndroidManifest.xml	2022-05-01 17:52:16.419841300 +0200
 ***************
 *** 1,4 ****
 ! <?xml version="1.0" encoding="utf-8" standalone="no"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" android:compileSdkVersion="30" android:compileSdkVersionCodename="11" android:installLocation="auto" package="com.discord" platformBuildVersionCode="30" platformBuildVersionName="11">
@@ -12,32 +12,32 @@
       <uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
       <uses-feature android:name="android.hardware.faketouch" android:required="false"/>
 ***************
-*** 22,28 ****
-      <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
+*** 23,29 ****
       <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
       <uses-permission android:name="android.permission.READ_CONTACTS"/>
+      <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
 !     <permission android:description="@string/app_permission_connect_desc" android:label="@string/app_permission_connect_label" android:name="com.discord.permission.CONNECT" android:protectionLevel="dangerous"/>
       <queries>
           <intent>
               <action android:name="android.intent.action.CHOOSER"/>
---- 22,28 ----
-      <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
+--- 23,29 ----
       <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
       <uses-permission android:name="android.permission.READ_CONTACTS"/>
+      <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
 !     <permission android:description="@string/app_permission_connect_desc" android:label="@string/app_permission_connect_label" android:name="com.aliucord.permission.CONNECT" android:protectionLevel="dangerous"/>
       <queries>
           <intent>
               <action android:name="android.intent.action.CHOOSER"/>
 ***************
-*** 62,68 ****
+*** 63,69 ****
       <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
       <uses-permission android:name="com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE"/>
       <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-!     <application android:allowBackup="false" android:appCategory="social" android:appComponentFactory="androidx.core.app.CoreComponentFactory" android:icon="@mipmap/ic_logo_square_beta" android:label="@string/discord" android:largeHeap="true" android:name="com.discord.app.App" android:networkSecurityConfig="@xml/network_security_config" android:roundIcon="@mipmap/ic_logo_round_beta" android:supportsRtl="true" android:theme="@style/AppTheme.Dark">
+!     <application android:allowBackup="false" android:appCategory="social" android:appComponentFactory="androidx.core.app.CoreComponentFactory" android:icon="@mipmap/ic_logo_square" android:label="@string/discord" android:largeHeap="true" android:name="com.discord.app.App" android:networkSecurityConfig="@xml/network_security_config" android:roundIcon="@mipmap/ic_logo_round" android:supportsRtl="true" android:theme="@style/AppTheme.Dark">
           <activity android:name="com.discord.samsung.SamsungConnectActivity" android:theme="@style/AppTheme.Translucent"/>
           <activity android:name="com.discord.app.AppActivity" android:screenOrientation="fullUser" android:theme="@style/AppTheme.Dark" android:windowSoftInputMode="adjustResize|stateHidden"/>
           <activity android:exported="true" android:launchMode="singleTask" android:name="com.discord.app.AppActivity$Main" android:screenOrientation="fullUser" android:theme="@style/AppTheme.Loading" android:windowSoftInputMode="adjustResize|stateHidden">
---- 62,69 ----
+--- 63,70 ----
       <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
       <uses-permission android:name="com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE"/>
       <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
@@ -47,7 +47,7 @@
           <activity android:name="com.discord.app.AppActivity" android:screenOrientation="fullUser" android:theme="@style/AppTheme.Dark" android:windowSoftInputMode="adjustResize|stateHidden"/>
           <activity android:exported="true" android:launchMode="singleTask" android:name="com.discord.app.AppActivity$Main" android:screenOrientation="fullUser" android:theme="@style/AppTheme.Loading" android:windowSoftInputMode="adjustResize|stateHidden">
 ***************
-*** 151,157 ****
+*** 146,152 ****
           </activity>
           <activity android:excludeFromRecents="true" android:launchMode="singleTask" android:name="com.discord.app.AppActivity$Call"/>
           <activity android:excludeFromRecents="true" android:launchMode="singleTask" android:name="com.discord.app.AppActivity$IncomingCall" android:showOnLockScreen="true" android:showWhenLocked="true" android:turnScreenOn="true"/>
@@ -55,7 +55,7 @@
               <intent-filter>
                   <action android:name="com.discord.intent.action.SDK"/>
                   <category android:name="android.intent.category.DEFAULT"/>
---- 152,158 ----
+--- 147,153 ----
           </activity>
           <activity android:excludeFromRecents="true" android:launchMode="singleTask" android:name="com.discord.app.AppActivity$Call"/>
           <activity android:excludeFromRecents="true" android:launchMode="singleTask" android:name="com.discord.app.AppActivity$IncomingCall" android:showOnLockScreen="true" android:showWhenLocked="true" android:turnScreenOn="true"/>
@@ -64,7 +64,7 @@
                   <action android:name="com.discord.intent.action.SDK"/>
                   <category android:name="android.intent.category.DEFAULT"/>
 ***************
-*** 174,180 ****
+*** 169,175 ****
                   <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
               </intent-filter>
           </service>
@@ -72,7 +72,7 @@
               <intent-filter>
                   <action android:name="com.discord.intent.action.CONNECT"/>
                   <data android:host="app" android:pathPattern="/connect/.*" android:scheme="discord"/>
---- 175,181 ----
+--- 170,176 ----
                   <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
               </intent-filter>
           </service>
@@ -81,7 +81,7 @@
                   <action android:name="com.discord.intent.action.CONNECT"/>
                   <data android:host="app" android:pathPattern="/connect/.*" android:scheme="discord"/>
 ***************
-*** 197,206 ****
+*** 192,201 ****
               </intent-filter>
           </receiver>
           <service android:foregroundServiceType="mediaProjection" android:name="com.discord.utilities.voice.VoiceEngineForegroundService"/>
@@ -92,7 +92,7 @@
           <meta-data android:name="com.google.android.nearby.messages.API_KEY" android:value="AIzaSyD-4L6bgKMixqBRtrG2UktVXK6IexXlsog"/>
           <meta-data android:name="com.google.android.actions" android:resource="@xml/actions"/>
           <meta-data android:name="libdiscord_version" android:value="89.0.26-pixel6-hwdec"/>
---- 198,207 ----
+--- 193,202 ----
               </intent-filter>
           </receiver>
           <service android:foregroundServiceType="mediaProjection" android:name="com.discord.utilities.voice.VoiceEngineForegroundService"/>
@@ -104,7 +104,7 @@
           <meta-data android:name="com.google.android.actions" android:resource="@xml/actions"/>
           <meta-data android:name="libdiscord_version" android:value="89.0.26-pixel6-hwdec"/>
 ***************
-*** 210,218 ****
+*** 205,213 ****
                   <action android:name="android.service.chooser.ChooserTargetService"/>
               </intent-filter>
           </service>
@@ -114,7 +114,7 @@
           <activity android:excludeFromRecents="true" android:exported="false" android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
           <service android:exported="true" android:name="com.google.android.gms.auth.api.signin.RevocationBoundService" android:permission="com.google.android.gms.auth.api.signin.permission.REVOCATION_NOTIFICATION" android:visibleToInstantApps="true"/>
           <service android:directBootAware="true" android:exported="false" android:name="com.google.firebase.components.ComponentDiscoveryService">
---- 211,219 ----
+--- 206,214 ----
                   <action android:name="android.service.chooser.ChooserTargetService"/>
               </intent-filter>
           </service>
@@ -125,7 +125,7 @@
           <service android:exported="true" android:name="com.google.android.gms.auth.api.signin.RevocationBoundService" android:permission="com.google.android.gms.auth.api.signin.permission.REVOCATION_NOTIFICATION" android:visibleToInstantApps="true"/>
           <service android:directBootAware="true" android:exported="false" android:name="com.google.firebase.components.ComponentDiscoveryService">
 ***************
-*** 241,249 ****
+*** 236,244 ****
           <receiver android:enabled="true" android:exported="false" android:name="com.google.android.gms.measurement.AppMeasurementReceiver"/>
           <service android:enabled="true" android:exported="false" android:name="com.google.android.gms.measurement.AppMeasurementService"/>
           <service android:enabled="true" android:exported="false" android:name="com.google.android.gms.measurement.AppMeasurementJobService" android:permission="android.permission.BIND_JOB_SERVICE"/>
@@ -135,7 +135,7 @@
           <service android:directBootAware="false" android:enabled="@bool/enable_system_alarm_service_default" android:exported="false" android:name="androidx.work.impl.background.systemalarm.SystemAlarmService"/>
           <service android:directBootAware="false" android:enabled="@bool/enable_system_job_service_default" android:exported="true" android:name="androidx.work.impl.background.systemjob.SystemJobService" android:permission="android.permission.BIND_JOB_SERVICE"/>
           <service android:directBootAware="false" android:enabled="@bool/enable_system_foreground_service_default" android:exported="false" android:name="androidx.work.impl.foreground.SystemForegroundService"/>
---- 242,250 ----
+--- 237,245 ----
           <receiver android:enabled="true" android:exported="false" android:name="com.google.android.gms.measurement.AppMeasurementReceiver"/>
           <service android:enabled="true" android:exported="false" android:name="com.google.android.gms.measurement.AppMeasurementService"/>
           <service android:enabled="true" android:exported="false" android:name="com.google.android.gms.measurement.AppMeasurementJobService" android:permission="android.permission.BIND_JOB_SERVICE"/>

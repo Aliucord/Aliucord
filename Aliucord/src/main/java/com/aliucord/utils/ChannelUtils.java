@@ -20,7 +20,7 @@ public final class ChannelUtils {
     }
 
     public static boolean isGuildTextyChannel(Channel channel) {
-        return com.discord.api.channel.ChannelUtils.t(channel);
+        return com.discord.api.channel.ChannelUtils.v(channel);
     }
 
     public static User getDMRecipient(Channel channel) {
@@ -28,7 +28,7 @@ public final class ChannelUtils {
     }
 
     public static boolean isTextChannel(Channel channel) {
-        return com.discord.api.channel.ChannelUtils.C(channel);
+        return com.discord.api.channel.ChannelUtils.F(channel);
     }
 
     public static String getDisplayName(Channel channel) {

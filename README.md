@@ -25,7 +25,7 @@ Aliucord is a modification for the Android Discord app
 
 ### Supported Discord version(s)
 
-- 120.11 / Beta 120111 (You don't need the apk, the installer will download it for you)
+- 124.12 / Stable 124012 (You don't need the apk, the installer will download it for you)
 
 ## 🎨 Features
 
