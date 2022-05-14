@@ -24,9 +24,9 @@ jobs:
         path: src
 
     - name: Setup Flutter
-      uses: subosito/flutter-action@4389e6cbc6cb8a4b18c628ff96ff90be0e926aa8 # v1.5.3
+      uses: subosito/flutter-action@d8687e6979e8ef66d2b2970e2c92c1d8e801d7bf # v2.4.0
       with:
-        flutter-version: '2.8.1'
+        flutter-version: '3.0.0'
 
     - name: Build Installer
       run: |
