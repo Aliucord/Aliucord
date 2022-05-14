@@ -116,12 +116,12 @@ class _HomePageState extends State<HomePage> {
         )),
         Flexible(child: CommitsWidget(selectCommit: _selectCommit)),
       ])),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.extension), label: 'Plugins'),
+      bottomNavigationBar: NavigationBar(
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
+          NavigationDestination(icon: Icon(Icons.extension), label: 'Plugins'),
         ],
-        onTap: (page) => page == 1 ? toast('Plugins page is not done yet.') : null,
+        onDestinationSelected: (page) => page == 1 ? toast('Plugins page is not done yet.') : null,
       ),
     );
   }
