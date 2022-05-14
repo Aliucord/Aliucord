@@ -16,8 +16,8 @@ import 'utils/main.dart';
 class _HttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) =>
-      super.createHttpClient(context)
-        ..badCertificateCallback = (cert, host, port) => true;
+    super.createHttpClient(context)
+      ..badCertificateCallback = (cert, host, port) => true;
 }
 
 void main() {
