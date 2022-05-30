@@ -75,7 +75,7 @@ Aliucord is a modification for the Android Discord app
 > - PluginDownloader now comes preinstalled with Aliucord so you don't need to install it
 > - If you were promised free nitro, you were clickbaited. The most that is possible is free emotes (sends emote image links instead)
 
-## 🐛 Troubleshooting
+## 🚬🐛 Troubleshooting
 
 - Try closing and then reopening Aliucord
 - Double check that Aliucord has permission to access files
