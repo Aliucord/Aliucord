@@ -29,7 +29,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputLayout;
 import com.lytefast.flexinput.R;
 
-import java.util.List;
+import java.util.*;
 
 import kotlin.Unit;
 
@@ -72,7 +72,7 @@ final class TokenLogin extends Plugin {
         }
 
         public void login(CharSequence token) {
-            StoreAuthentication.access$dispatchLogin(StoreStream.getAuthentication(), new ModelLoginResult(token.toString().startsWith("mfa."), null, token.toString(), null));
+            StoreAuthentication.access$dispatchLogin(StoreStream.getAuthentication(), new ModelLoginResult(token.toString().startsWith("mfa."), null, token.toString(), null, new ArrayList<>()));
         }
     }
 
