@@ -481,10 +481,8 @@ public class Http {
             Request req = new Request(!route.startsWith("http") ? "https://discord.com/api/v9" + route : route, method);
             req.setHeader("User-Agent", RestAPI.AppHeadersProvider.INSTANCE.getUserAgent())
                 .setHeader("X-Super-Properties", AnalyticSuperProperties.INSTANCE.getSuperPropertiesStringBase64())
-                .setHeader("Accept", "*/*");
-            try {
-                req.setHeader("Authorization", (String) ReflectUtils.getField(StoreStream.getAuthentication(), "authToken"));
-            } catch (ReflectiveOperationException ignored) {}
+                .setHeader("Accept", "*/*")
+                .setHeader("Authorization", RestAPI.AppHeadersProvider.INSTANCE.getAuthToken());
             return req;
         }
     }
