@@ -34,6 +34,8 @@ public final class Constants {
 
     /** Link to the Aliucord github repo */
     public static final String ALIUCORD_GITHUB_REPO = "https://github.com/Aliucord/Aliucord";
+    /** Link to Aliucord's Patreon */
+    public static final String ALIUCORD_PATREON = "https://patreon.com/Aliucord";
     /** Code of the Aliucord discord server */
     public static final String ALIUCORD_SUPPORT = "EsNDvBaHVU";
     public static final long ALIUCORD_GUILD_ID = 811255666990907402L;
@@ -63,7 +65,7 @@ public final class Constants {
      * <hr><br>
      * <h3>One of</h3>
      * <ul>
-     *     <li>app_productionStableRelease</li>
+     *     <li>app_productionGoogleRelease</li>
      *     <li>app_productionBetaRelease</li>
      *     <li>app_productionCanaryRelease</li>
      * </ul>
@@ -94,7 +96,7 @@ public final class Constants {
             //      101107 -> 1
             //      101007 -> 0
             int release = (version / 100) % 10;
-            suffix = new String[] { "app_productionStableRelease", "app_productionBetaRelease", "app_productionCanaryRelease" }[release];
+            suffix = new String[] { "app_productionGoogleRelease", "app_productionBetaRelease", "app_productionCanaryRelease" }[release];
         } catch (Throwable e) {
             Main.logger.error("Failed to determine discord release. Defaulting to beta", e);
             suffix = "app_productionBetaRelease";

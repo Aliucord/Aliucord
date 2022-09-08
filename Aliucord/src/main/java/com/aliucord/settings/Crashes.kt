@@ -6,47 +6,24 @@
 package com.aliucord.settings
 
 import android.annotation.SuppressLint
-import android.os.Bundle
 import android.text.SpannableStringBuilder
 import android.view.Gravity
 import android.view.View
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
-import com.aliucord.*
+import com.aliucord.Constants
+import com.aliucord.Utils
 import com.aliucord.fragments.SettingsPage
 import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.MDUtils
 import com.aliucord.views.DangerButton
-import com.aliucord.widgets.BottomSheet
-import com.discord.views.CheckedSetting
 import com.lytefast.flexinput.R
 import java.io.File
 import java.util.*
 
-const val autoDisableKey = "autoDisableCrashingPlugins"
 
 private data class CrashLog(val timestamp: String, val stacktrace: String, var times: Int)
-
-class CrashSettings : BottomSheet() {
-    override fun onViewCreated(view: View, bundle: Bundle?) {
-        super.onViewCreated(view, bundle)
-
-        Utils.createCheckedSetting(
-            view.context,
-            CheckedSetting.ViewType.SWITCH,
-            "Auto Disable Plugins",
-            "Automatically disable plugins when they cause a crash"
-        ).run {
-            isChecked = SettingsUtils.getBool(autoDisableKey, true)
-            setOnCheckedListener {
-                SettingsUtils.setBool(autoDisableKey, it)
-            }
-
-            linearLayout.addView(this)
-        }
-    }
-}
 
 class Crashes : SettingsPage() {
     @SuppressLint("SetTextI18n")
@@ -78,10 +55,6 @@ class Crashes : SettingsPage() {
                 reRender()
                 true
             }
-        addHeaderButton("Settings", R.e.ic_settings_24dp) {
-            CrashSettings().show(parentFragmentManager, "Crash Settings")
-            true
-        }
 
 
         val crashes = getCrashes()

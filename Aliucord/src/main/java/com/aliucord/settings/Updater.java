@@ -12,79 +12,22 @@ import static com.aliucord.updater.Updater.updateAliucord;
 import static com.aliucord.updater.Updater.usingDexFromStorage;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
 
-import com.aliucord.SettingsUtils;
 import com.aliucord.Utils;
-import com.aliucord.fragments.ConfirmDialog;
 import com.aliucord.fragments.SettingsPage;
 import com.aliucord.updater.PluginUpdater;
 import com.aliucord.utils.DimenUtils;
-import com.aliucord.widgets.BottomSheet;
 import com.aliucord.widgets.UpdaterPluginCard;
-import com.discord.views.CheckedSetting;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.lytefast.flexinput.R;
 
 public class Updater extends SettingsPage {
-    public static class UpdaterSettings extends BottomSheet {
-        public static final String AUTO_UPDATE_PLUGINS_KEY = "AC_plugins_auto_update_enabled";
-        public static final String AUTO_UPDATE_ALIUCORD_KEY = "AC_aliucord_auto_update_enabled";
-        public static final String ALIUCORD_FROM_STORAGE = "AC_from_storage";
-
-        @Override
-        public void onViewCreated(View view, Bundle bundle) {
-            super.onViewCreated(view, bundle);
-
-            var ctx = view.getContext();
-
-            addView(createSwitch(ctx, "Auto Update Aliucord", "Whether Aliucord should automatically be updated", AUTO_UPDATE_ALIUCORD_KEY));
-            addView(createSwitch(ctx, "Auto Update Plugins", "Whether Plugins should automatically be updated", AUTO_UPDATE_PLUGINS_KEY));
-
-            var dexFromStorageSwitch = Utils.createCheckedSetting(ctx, CheckedSetting.ViewType.SWITCH, "Aliucord from storage", "Use custom Aliucord build from Aliucord/Aliucord.zip");
-            dexFromStorageSwitch.setChecked(SettingsUtils.getBool(ALIUCORD_FROM_STORAGE, false));
-            dexFromStorageSwitch.setOnCheckedListener(c -> {
-                if (!c) {
-                    SettingsUtils.setBool(ALIUCORD_FROM_STORAGE, false);
-                    Utils.promptRestart();
-                } else {
-                    // Spooky, lets make sure no one gets scammed
-                    var dialog = new ConfirmDialog();
-                    dialog
-                        .setIsDangerous(true)
-                        .setTitle("HOLD ON")
-                        .setDescription("If someone else told you to do this, you are LIKELY GETTING SCAMMED. Only check this option if you know what you're doing!")
-                        .setOnOkListener(v -> {
-                            SettingsUtils.setBool(ALIUCORD_FROM_STORAGE, true);
-                            Utils.promptRestart();
-                            dialog.dismiss();
-                        })
-                        .setOnCancelListener(v -> {
-                            dexFromStorageSwitch.setChecked(false);
-                            dialog.dismiss();
-                        })
-                        .show(getParentFragmentManager(), "ALIUCORD_FROM_STORAGE_WARNING");
-                }
-            });
-
-            addView(dexFromStorageSwitch);
-        }
-
-        private CheckedSetting createSwitch(Context ctx, String text, String subText, String settingsKey) {
-            var cs = Utils.createCheckedSetting(ctx, CheckedSetting.ViewType.SWITCH, text, subText);
-            cs.setChecked(SettingsUtils.getBool(settingsKey, false));
-            cs.setOnCheckedListener(c -> SettingsUtils.setBool(settingsKey, c));
-            return cs;
-        }
-    }
-
     private String stateText = "No new updates found";
 
     @Override
@@ -145,7 +88,7 @@ public class Updater extends SettingsPage {
                 .show();
         });
 
-        addHeaderButton("Refresh", R.e.ic_refresh_white_a60_24dp, item -> {
+        addHeaderButton("Refresh", Utils.tintToTheme(Utils.getDrawableByAttr(context, R.b.ic_refresh)), item -> {
             item.setEnabled(false);
             setActionBarSubtitle("Checking for updates...");
             Utils.threadPool.execute(() -> {
@@ -160,6 +103,7 @@ public class Updater extends SettingsPage {
             });
             return true;
         });
+
         addHeaderButton("Update All", R.e.ic_file_download_white_24dp, item -> {
             item.setEnabled(false);
             setActionBarSubtitle("Updating...");
@@ -174,10 +118,6 @@ public class Updater extends SettingsPage {
                 }
                 Utils.mainThread.post(this::reRender);
             });
-            return true;
-        });
-        addHeaderButton("Settings", R.e.ic_guild_settings_24dp, item -> {
-            new UpdaterSettings().show(getParentFragmentManager(), "Updater Settings");
             return true;
         });
 

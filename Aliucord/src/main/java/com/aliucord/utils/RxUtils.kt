@@ -34,7 +34,7 @@ object RxUtils {
      * @see [ReactiveX operators documentation: backpressure operators](http://reactivex.io/documentation/operators/backpressure.html)
      */
     @JvmStatic
-    fun <T> Observable<T>.onBackpressureBuffer(): Observable<T> = J()
+    fun <T> Observable<T>.onBackpressureBuffer(): Observable<T> = K()
 
     /**
      * Subscribe to the [Observable]
@@ -152,7 +152,7 @@ object RxUtils {
      * @see [ReactiveX operators documentation: Map](http://reactivex.io/documentation/operators/map.html)
      */
     @JvmStatic
-    fun <T, R> Observable<T>.map(func: (T) -> R): Observable<R> = F { func(it) }
+    fun <T, R> Observable<T>.map(func: (T) -> R): Observable<R> = G { func(it) }
 
     /**
      * Returns a new Observable by applying a function that you supply to each item emitted by the source

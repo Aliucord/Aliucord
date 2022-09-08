@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.aliucord.*;
+import com.aliucord.api.ButtonsAPI;
 import com.aliucord.entities.CommandContext;
 import com.aliucord.entities.Plugin;
 import com.aliucord.utils.ReflectUtils;
@@ -152,12 +153,16 @@ public class CommandsAPI {
                             ReflectUtils.setField(c, commandMessage, "flags", MessageFlags.EPHEMERAL);
                             ReflectUtils.setField(c, commandMessage, "interaction", thinkingMsg.getInteraction());
 
+                            if (res.buttons != null)
+                                for (var button : res.buttons)
+                                    ButtonsAPI.addButton(commandMessage, button);
+
                             // TODO: add arguments
                             long guildId = ChannelWrapper.getGuildId(StoreStream.getChannels().getChannel(channelId));
                             interactionsStore.put(id, new WidgetApplicationCommandBottomSheetViewModel.StoreState(
                                 me,
                                 guildId == 0 ? null : StoreStream.getGuilds().getMembers().get(guildId).get(me.getId()),
-                                new StoreApplicationInteractions.State.Loaded(new ApplicationCommandData("", "", "", name, Collections.emptyList())),
+                                new StoreApplicationInteractions.State.Loaded(new ApplicationCommandData("", "", "", name, Collections.emptyList(), Collections.emptyList())),
                                 CommandsAPI.getAliucordApplication(),
                                 Collections.emptySet(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(),
                                 Collections.emptyMap()
@@ -167,6 +172,7 @@ public class CommandsAPI {
                         } catch (Throwable e) { logger.error((String) null, e); }
                     } else {
                         if (hasEmbeds)
+                            // imagine selfbot embeds in 2022 (impossible)
                             logger.error(String.format("[%s]", name), new IllegalArgumentException("Embeds may not be specified when send is set to true"));
                         List<? extends Attachment<?>> attachments = ctx.getAttachments();
                         if (!hasContent && attachments.size() == 0) {
@@ -374,6 +380,8 @@ public class CommandsAPI {
         public String username;
         /** The avatar url of the pseudo clyde associated with this CommandResult */
         public String avatarUrl;
+        /** Button components that will appear on the response message */
+        public List<ButtonsAPI.ButtonData> buttons;
 
         /**
          * calls {@link CommandResult#CommandResult(String, List, boolean)} with default arguments.
@@ -429,6 +437,23 @@ public class CommandsAPI {
             this.username = username;
             this.avatarUrl = avatarUrl;
             this.send = send;
+        }
+
+        /**
+         * @param content   Output message content
+         * @param embeds    Embeds to include in the command output. Requires <code>send</code> to be false.
+         * @param send      Whether to send the message or not. If false, messages will appear locally, otherwise they'll be sent to the current channel.
+         * @param username  Username for Clyde. Requires <code>send</code> to be false.
+         * @param avatarUrl Avatar URL for Clyde, must be a direct link, not a redirect. Requires <code>send</code> to be false.
+         * @param buttons   Button components that will appear on the response message
+         */
+        public CommandResult(@Nullable String content, @Nullable List<MessageEmbed> embeds, boolean send, @Nullable String username, @Nullable String avatarUrl, @Nullable List<ButtonsAPI.ButtonData> buttons) {
+            this.content = content;
+            this.embeds = embeds;
+            this.username = username;
+            this.avatarUrl = avatarUrl;
+            this.send = send;
+            this.buttons = buttons;
         }
     }
 }

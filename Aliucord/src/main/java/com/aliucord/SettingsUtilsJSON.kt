@@ -1,6 +1,7 @@
 package com.aliucord
 
 import com.aliucord.PluginManager.logger
+import com.aliucord.settings.*
 import com.aliucord.utils.GsonUtils
 import org.json.JSONArray
 import org.json.JSONObject
@@ -9,11 +10,11 @@ import java.lang.reflect.Type
 import java.math.BigDecimal
 import java.util.*
 
+@Suppress("Deprecation", "unused")
 /** Utility class to store and retrieve preferences  */
-class SettingsUtilsJSON(private val plugin: String) {
+class SettingsUtilsJSON(plugin: String) {
     private val settingsPath = Constants.SETTINGS_PATH + "/"
-    private val settingsFile = settingsPath + plugin + ".json"
-    private val keyPrefix = "AC_" + plugin + "_"
+    private val settingsFile = "$settingsPath$plugin.json"
     private val cache: MutableMap<String, Any> = HashMap()
     private val settings: JSONObject by lazy {
         val file = File(settingsFile)
@@ -27,24 +28,7 @@ class SettingsUtilsJSON(private val plugin: String) {
     init {
         val dir = File(settingsPath)
         if (!dir.exists() && !dir.mkdir()) throw RuntimeException("Failed to create settings dir")
-        if (!SettingsUtils.getBool(keyPrefix + "migratedToJson", false)) {
-            try {
-                getPreferenceSettings()?.forEach {
-                    val keyName = it.key.replace(keyPrefix, "").trim()
-                    if (keyName == "migratedToJson") return@forEach
-                    settings.put(keyName, it.value)
-                    SettingsUtils.remove(it.key)
-                }
-                SettingsUtils.setBool(keyPrefix + "migratedToJson", true)
-                writeData()
-                logger.info("'$plugin' Settings Are Migrated")
-            } catch (e: Exception) {
-                logger.error("'$plugin' Settings couldn't migrated", e)
-            }
-        }
     }
-
-    private fun getPreferenceSettings() = SettingsUtils.getAll(keyPrefix)
 
     private fun writeData() {
         if (settings.length() > 0) {
@@ -226,7 +210,8 @@ class SettingsUtilsJSON(private val plugin: String) {
         val cached = cache[key]
         if (cached != null) try {
             return cached as T
-        } catch (ignored: Throwable) {}
+        } catch (ignored: Throwable) {
+        }
         val t: T? = if (settings.has(key)) GsonUtils.fromJson(settings.getString(key), type) else null
         return t ?: defValue
     }
@@ -240,5 +225,33 @@ class SettingsUtilsJSON(private val plugin: String) {
         cache[key] = value
         val stringJson = GsonUtils.toJson(value)
         putObject(key, if (stringJson.startsWith("{")) JSONObject(stringJson) else JSONArray(stringJson))
+    }
+
+    companion object {
+        /**
+         * Migration from old settings for Aliucord itself
+         *
+         * @param settings
+         */
+        fun migrateAliucordSettings(settings: SettingsUtilsJSON) {
+            if (!settings.getBool("migratedAliucordSettings", false)) {
+                Main.logger.info("Migrating Aliucord settings")
+                val allKeys = listOf(
+                    "disableAliucordUpdater",
+                    AUTO_DISABLE_ON_CRASH_KEY,
+                    AUTO_UPDATE_PLUGINS_KEY,
+                    AUTO_UPDATE_ALIUCORD_KEY,
+                    ALIUCORD_FROM_STORAGE_KEY
+                )
+                for ((key, value) in SettingsUtils.getAll()) {
+                    if (key.startsWith("AC_PM_") || allKeys.contains(key)) {
+                        settings.settings.put(key, value)
+                        SettingsUtils.remove(key)
+                    }
+                }
+                settings.setBool("migratedAliucordSettings", true)
+                Main.logger.info("Migrated Aliucord settings")
+            }
+        }
     }
 }

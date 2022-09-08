@@ -79,7 +79,7 @@ internal class SupportWarn : Plugin(Manifest("SupportWarn")) {
                     .setDescription(desc)
 
                 dialog.setOnOkListener {
-                    if (dialog.input != "I understand") return@setOnOkListener
+                    if (!dialog.input.contains("I understand", ignoreCase = true)) return@setOnOkListener
                     settings.setBool(key, true)
 
                     gateButtonLayout.visibility = View.GONE
