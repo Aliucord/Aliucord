@@ -31,13 +31,11 @@ import com.aliucord.patcher.*;
 import com.aliucord.settings.*;
 import com.aliucord.updater.PluginUpdater;
 import com.aliucord.utils.ChangelogUtils;
-import com.aliucord.utils.ReflectUtils;
 import com.aliucord.views.Divider;
 import com.aliucord.views.ToolbarButton;
 import com.discord.app.*;
 import com.discord.databinding.WidgetChangeLogBinding;
 import com.discord.databinding.WidgetDebuggingAdapterItemBinding;
-import com.discord.models.domain.*;
 import com.discord.models.domain.emoji.ModelEmojiUnicode;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.widgets.changelog.WidgetChangeLog;
@@ -92,8 +90,7 @@ public final class Main {
     @SuppressLint("SetTextI18n")
     public static void init(AppActivity activity) {
         if (initialized) return;
-
-        patchUserSettingsParserBug();
+        initialized = true;
 
         Patcher.addPatch(WidgetSettings.class, "onViewBound", new Class<?>[]{ View.class }, new Hook(param -> {
             ViewGroup layout = Utils.nestedChildAt((ViewGroup) param.args[0], 1, 0);
@@ -364,28 +361,5 @@ public final class Main {
             } else Toast.makeText(activity, "You have to grant storage permission to use Aliucord", Toast.LENGTH_LONG).show();
         }).launch(perm);
         return false;
-    }
-
-    private static List<ModelGuildFolder> readGuildFolders = null;
-
-    private static void patchUserSettingsParserBug() {
-        Patcher.addPatch(ModelUserSettings.class, "convertFromPositions", new Class<?>[]{ List.class }, new PreHook(param -> {
-            if (readGuildFolders != null) {
-                param.setResult(readGuildFolders);
-                readGuildFolders = null;
-            }
-        }));
-
-        Patcher.addPatch(ModelUserSettings.class, "assignField", new Class<?>[]{ Model.JsonReader.class }, new Hook(param -> {
-            var $this = (ModelUserSettings) param.thisObject;
-            if ($this.getGuildFolders() != null) {
-                try {
-                    readGuildFolders = $this.getGuildFolders();
-                    ReflectUtils.setField($this, "guildFolders", null);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }));
     }
 }
