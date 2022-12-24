@@ -41,6 +41,7 @@ final class NoTrack extends Plugin {
         map.put("com.discord.utilities.analytics.AnalyticSuperProperties", new String[]{ "setCampaignProperties" });
         map.put("com.discord.utilities.analytics.AnalyticsUtils$Tracker", new String[]{ "drainEventsQueue", "setTrackingData", "track", "trackFireBase" });
         map.put("com.discord.utilities.integrations.SpotifyHelper$openPlayStoreForSpotify$1", new String[]{ "run" });
+        map.put("com.discord.stores.StoreUserTyping", new String[]{ "setUserTyping" });
 
         final ClassLoader cl = Objects.requireNonNull(NoTrack.class.getClassLoader());
 
