@@ -42,10 +42,10 @@ Aliucord is a modification for the Android Discord app
 ## 📲 Installation
 
 <a href="https://github.com/Aliucord/Aliucord/actions/workflows/build-installer.yml">
-  <img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/Aliucord/Aliucord/Build%20Installer?label=Installer%20Build&logo=githubactions&logoColor=white&style=flat-square">
+  <img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/Aliucord/Aliucord/build-installer.yml?label=Installer%20Build&logo=githubactions&logoColor=white&style=flat-square">
 </a>
 <a href="https://github.com/Aliucord/Aliucord/actions/workflows/build.yml">
-  <img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/Aliucord/Aliucord/Build?label=App%20Build&logo=githubactions&logoColor=white&style=flat-square">
+  <img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/Aliucord/Aliucord/build-aliucord.yml?label=App%20Build&logo=githubactions&logoColor=white&style=flat-square">
 </a>
 
 1. Download and install [Installer-release.apk](https://github.com/Aliucord/Aliucord/releases/latest/download/Installer-release.apk) from latest
