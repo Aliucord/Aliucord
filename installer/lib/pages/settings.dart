@@ -28,6 +28,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderStateMixin {
   static final List<CheckBoxData> _checkBoxes = [
     CheckBoxData('replace_bg', 'Replace icon background with Aliucord\'s', true),
+    CheckBoxData('github_proxy', 'Proxy github content to evade ISP blocks', true),
     CheckBoxData('use_dex_from_storage', 'Use Injector.dex from storage', false),
     CheckBoxData('developer_mode', 'Developer Mode', false),
   ];

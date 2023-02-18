@@ -116,5 +116,8 @@ class GithubAPI with ChangeNotifier {
     return null;
   }
 
-  String getDownloadUrl(String ref, String file) => 'https://raw.githubusercontent.com/$_org/$_repo/$ref/$file';
+  String getDownloadUrl(String ref, String file) =>
+    (prefs.getBool('github_proxy') ?? true) ?
+      'https://cdn.jsdelivr.net/gh/$_org/$_repo@$ref/$file' :
+      'https://raw.githubusercontent.com/$_org/$_repo/$ref/$file';
 }
