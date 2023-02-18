@@ -27,7 +27,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 const val LOG_TAG = "Injector"
 private const val DATA_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/data.json"
+private const val DATA_URL_PROXY = "https://cdn.jsdelivr.net/gh/Aliucord/Aliucord@builds/data.json"
 private const val DEX_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/Aliucord.zip"
+private const val DEX_URL_PROXY = "https://cdn.jsdelivr.net/gh/Aliucord/Aliucord@builds/Aliucord.zip"
 
 @Suppress("DEPRECATION")
 private val BASE_DIRECTORY = File(Environment.getExternalStorageDirectory().absolutePath, "Aliucord")
@@ -86,14 +88,22 @@ private fun init(appActivity: AppActivity) {
                     Logger.d("Retrieved local Discord version: $version")
 
                     Logger.d("Fetching latest Discord version...")
-                    val conn = URL(DATA_URL).openConnection() as HttpURLConnection
-                    val remoteVersion = JSONObject(conn.inputStream.bufferedReader().readText()).getInt("versionCode")
+                    var useProxy = false
+                    val remoteVersion = try {
+                        val conn = URL(DATA_URL).openConnection() as HttpURLConnection
+                        JSONObject(conn.inputStream.bufferedReader().readText()).getInt("versionCode")
+                    } catch (e: Throwable) {
+                        useProxy = true
+                        val conn = URL(DATA_URL_PROXY).openConnection() as HttpURLConnection
+                        JSONObject(conn.inputStream.bufferedReader().readText()).getInt("versionCode")
+                    }
+
                     Logger.d("Retrieved remote Discord version: $remoteVersion")
 
                     if (remoteVersion > version) {
                         error(appActivity, "Your base Discord is outdated. Please reinstall using the Installer.", null)
                         successRef.set(false)
-                    } else downloadLatestAliucordDex(dexFile)
+                    } else downloadLatestAliucordDex(dexFile, useProxy)
                 } catch (e: Throwable) {
                     error(appActivity, "Failed to install aliucord :(", e)
                     successRef.set(false)
@@ -152,9 +162,10 @@ private fun useLocalDex(appActivity: AppActivity, dexFile: File): Boolean {
  * outputFile should be new File(context.getCodeCacheDir(), "Aliucord.zip");
  */
 @Throws(IOException::class)
-fun downloadLatestAliucordDex(outputFile: File) {
-    Logger.d("Downloading Aliucord.zip from $DEX_URL...")
-    val conn = URL(DEX_URL).openConnection() as HttpURLConnection
+fun downloadLatestAliucordDex(outputFile: File, useProxy: Boolean) {
+    val url = if (useProxy) DEX_URL_PROXY else DEX_URL
+    Logger.d("Downloading Aliucord.zip from $url...")
+    val conn = URL(url).openConnection() as HttpURLConnection
     conn.inputStream.use { it.copyTo(FileOutputStream(outputFile)) }
     Logger.d("Finished downloading Aliucord.zip")
 }
