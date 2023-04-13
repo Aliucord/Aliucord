@@ -1,27 +1,6 @@
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-        maven("https://jitpack.io")
-        maven("https://maven.aliucord.com/snapshots")
-    }
-    dependencies {
-        classpath("com.android.tools.build:gradle:7.0.4")
-        classpath("com.github.Aliucord:gradle:main-SNAPSHOT")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.21")
-        classpath("org.jetbrains.dokka:dokka-gradle-plugin:1.5.0")
-    }
-}
-
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-        maven("https://jitpack.io")
-        maven("https://maven.aliucord.com/snapshots")
-    }
-}
-
-task<Delete>("clean") {
-    delete(rootProject.buildDir)
-}
+val androidTargetSdkVersion by extra(33)
+val androidMinSdkVersion by extra(21)
+val androidBuildToolsVersion by extra("33.0.0")
+val androidCompileSdkVersion by extra(33)
+val androidNdkVersion by extra("25.1.8937393")
+val androidCmakeVersion by extra("3.22.1+")

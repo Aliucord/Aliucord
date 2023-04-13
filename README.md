@@ -1,114 +1,150 @@
-<h1 align="center">Aliucord</h1>
-<p align="center">
-  <a href="https://discord.gg/EsNDvBaHVU">
-    <img alt="Discord" src="https://img.shields.io/discord/811255666990907402?color=%2300C853&label=Support%20Server&logo=discord&logoColor=%2300C853&style=for-the-badge">
-  </a>
-</p>
-<p align="center">
-  <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/Aliucord/Aliucord?color=181717&logo=github&style=for-the-badge">
-  <img alt="GitHub forks" src="https://img.shields.io/github/forks/Aliucord/Aliucord?color=181717&logo=github&style=for-the-badge">
-  <a href="https://github.com/Aliucord/Aliucord/blob/main/LICENSE">
-    <img alt="License" src="https://img.shields.io/badge/LICENSE-OSL--3.0-0099E5?style=for-the-badge">
-  </a>
-</p>
+# LSPlant
 
-<p align="center">
-Aliucord is a modification for the Android Discord app
-</p>
+![](https://img.shields.io/badge/license-LGPL--3.0-orange.svg)
+![](https://img.shields.io/badge/Android-5.0%20--%2013-blue.svg)
+![](https://img.shields.io/badge/arch-armeabi--v7a%20%7C%20arm64--v8a%20%7C%20x86%20%7C%20x86--64%7C%20riscv64-brightgreen.svg)
+![](https://github.com/LSPosed/LSPlant/actions/workflows/build.yml/badge.svg?branch=master&event=push)
+![](https://img.shields.io/maven-central/v/org.lsposed.lsplant/lsplant.svg)
 
-## ⚠️ Important Information
+LSPlant is an Android ART hook library, providing Java method hook/unhook and inline deoptimization.
 
-### Supported Android Versions
+This project is part of LSPosed framework under GNU Lesser General Public License.
 
-- Android 7 (SDK 24) - 13 (SDK 33)
-- arm64, armeabi-v7, x86_64
+## Features
 
-### Supported Discord version(s)
++ Support Android 5.0 - 14 (API level 21 - 34)
++ Support armeabi-v7a, arm64-v8a, x86, x86-64, riscv64
++ Support customized inline hook framework and ART symbol resolver
 
-- 126.21 / Stable 126021 (You don't need the apk, the installer will download it for you)
+## Documentation
 
-## 🎨 Features
+https://lsposed.org/LSPlant/namespacelsplant.html
 
-- No root needed
-- Robust plugin system
-    - Allows swapping in and out your plugins without needing to rebuild Aliucord
-    - Toggle on and off, configure or uninstall your plugins via the plugins page
-- In-app updater to keep Aliucord and your plugins up-to-date
-- Blocks most Discord Tracking/Analytics (doesn't completely block all tracking, that's not really possible)
-- Crash logging (for the rare cases we fail to catch errors)
-    - In-app crash log page to give a more native feel
-    - Logs are also saved to `Aliucord/crashlogs` for easy access outside of the app
+## Quick Start
 
-## 📲 Installation
+```gradle
+repositories {
+    mavenCentral()
+}
 
-<a href="https://github.com/Aliucord/Aliucord/actions/workflows/build-installer.yml">
-  <img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/Aliucord/Aliucord/build-installer.yml?label=Installer%20Build&logo=githubactions&logoColor=white&style=flat-square">
-</a>
-<a href="https://github.com/Aliucord/Aliucord/actions/workflows/build.yml">
-  <img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/Aliucord/Aliucord/build-aliucord.yml?label=App%20Build&logo=githubactions&logoColor=white&style=flat-square">
-</a>
+android {
+    buildFeatures {
+        prefab true
+    }
+}
 
-1. Download and install [Installer-release.apk](https://github.com/Aliucord/Aliucord/releases/latest/download/Installer-release.apk) from latest
-   release
-2. Open the newly installed "Aliucord Installer" app from your app drawer
-3. Click "Install", then choose the "Download" option
-4. Wait for it to finish patching the Discord APK
-5. Click "Install" once prompted by Android and wait for Aliucord to finish installing. If the installer just stops or the apk fails to install just
-   try again and it should work
-6. If Google Play warns you about this application being unverified, ignore it. This happens because Aliucord is built & signed locally on your device
-   so Play Protect doesn't recognise the signature¹
-7. Open Aliucord, grant access to files (it needs this for finding plugins), log in to your account, and voila! Aliucord is at your fingertips!
+dependencies {
+    implementation "org.lsposed.lsplant:lsplant:5.2"
+}
+```
 
-> ¹ If you'd like, you can disable this warning by turning off Play Protect in Google Play's settings, play protect is useless.
->
-> Play Protect can be turned off by tapping on your user icon in the top right of Google Play, tapping on "Play Protect," tapping on the cog icon in the top right, and finally toggling "Scan apps with Play Protect" to off. This may result in Google Play "nagging" you to re-enable it sometimes when sideloading apps.\*
+If you don't want to include `libc++_shared.so` in your APK, you can use `lsplant-standalone` instead:
 
-## 🔌 Plugin Installation
+```gradle
+dependencies {
+    implementation "org.lsposed.lsplant:lsplant-standalone:5.2"
+}
+```
 
-1. Join our [support server](https://discord.gg/EsNDvBaHVU) and visit the `#plugins-list` channel for a list of available plugins
-2. Hold down the message (NOT the link, the entire message) with the desired plugin and click "Open PluginDownloader"
-3. Find the desired plugin in the list and click install. It should immediately start working, however some plugins may require you to restart to make
-   them fully work
+### 1. Init LSPlant within JNI_OnLoad
 
-⚠️ IF YOU CAME HERE FROM A YOUTUBE TUTORIAL:
+Initialize LSPlant for the proceeding hook. It mainly prefetch needed symbols and hook some functions.
 
-> - PluginDownloader now comes preinstalled with Aliucord so you don't need to install it
-> - If you were promised free nitro, you were clickbaited. The most that is possible is free emotes (sends emote image links instead)
++ `env` is the Java environment.
 
-## 🚬🐛 Troubleshooting
++ `info` is the information for initialized.
 
-- Try closing and then reopening Aliucord
-- Double check that Aliucord has permission to access files
-- Reinstall Aliucord using the installer
+  Basically, the info provides the inline hooker and unhooker together with a symbol resolver of `libart.so` to hook and extract needed native functions of ART.
 
-...and if none of these work, please visit our [support server](https://discord.gg/EsNDvBaHVU) and go to `#support` for help!
+```c++
+bool Init(JNIEnv *env,
+          const InitInfo &info);
+```
 
-## 🧱 Building from source
+Returns whether initialization succeed. Behavior is undefined if calling other LSPlant interfaces before initialization or after a fail initialization.
 
-See `.github/workflows/build.yml` for all build steps.
+### 2. Hook
 
-## ⏭️ Porting Aliucord to the latest Discord version
+Hook a Java method by providing the `target_method` together with the context object `hooker_object` and its callback `callback_method`.
 
-1. Download the apk of the version you want to port to (#official-discord-updates in Aliucord server)
-2. Decompile it using [Apktool](https://github.com/iBotPeaches/Apktool)
-    - `apktool d discord.apk` (Replace discord.apk with whatever the file name is)
-3. Apply `manifest.patch` to the `AndroidManifest.xml` file (Using git bash or any shell on Linux or Macos run in the apktool decompile
-   folder: `patch < manifest.patch`)
-4. IMPORTANT: set targetSDK to 29 in both apktool.yml and AndroidManifest.xml or Aliucord will fail to install
-5. Rebuild the Discord APK using Apktool
-    - `apktool b discord` (Replace discord with the folder name)
-6. Copy `build/apk/AndroidManifest.xml` to `.assets/AndroidManifest.xml` and to `Aliucord/AndroidManifest.xml` on your Android device
-7. Repeat the same steps and this time add `android:debuggable=true` in the main category where there's also app name and icon, name this manifest
-   AndroidManifest-debuggable.xml
-8. Change `discord_version` to the correct one in gradle.properties and resync gradle
-9. Fix any errors you encounter and deploy Aliucord to your device with `./gradlew Aliucord:deployWithAdb`
-10. Open Aliucord > Settings > Updater > Top right settings > Use Aliucord.zip from storage and restart Aliucord
-11. Enjoy debugging if all hell breaks loose
++ `env` is the Java environment.
+
++ `target_method` is an `Method` object to the method you want to hook.
+
++ `hooker_object` is an object to store the context of the hook.
+
+  The most likely usage is to store the backup method into it so that when `callback_method` is invoked, it can call the original method. Another scenario is that, for example, in Xposed framework, multiple modules can hook the same Java method and the `hooker_object` can be used to store all the callbacks to allow multiple modules work simultaneously without conflict.
+
++ `callback_method` is an `Method` object, the callback method to the `hooker_object` used to replace the `target_method`.
+
+  Whenever the `target_method` is invoked, the callback_method will be invoked instead of the original `target_method`. The signature of the `callback_method` must be: `public Object callback_method(Object []args)`.
+
+  That is, the return type must be `Object` and the parameter type must be `Object[]`. Behavior is undefined if the signature does not match the requirement. Extra info can be provided by defining member variables of `hooker_object`. This method must be a method to `hooker_object`.
+
+```c++
+jobject Hook(JNIEnv *env,
+             jobject target_method,
+             jobject hooker_object,
+             jobject callback_method);
+```
+
+Returns the backup method. You can invoke it by reflection to invoke the original method. null if fails.
+
+This function will automatically generate a stub class for hook. To help debug, you can set the generated class name, its field name, its source name and its method name by setting `generated_*` in `InitInfo`.
+
+This function thread safe (you can call it simultaneously from multiple thread) but it's not atomic to the same `target_method`. That means `UnHook` or `IsUnhook` does not guarantee to work properly on the same `target_method` before it returns. Also, simultaneously call on this function with the same target_method does not guarantee only one will success. If you call this with different `hooker_object` on the same `target_method` simultaneously, the behavior is undefined.
+
+### 3. Check
+
+Check if a Java function is hooked by LSPlant or not.
+
+```c++
+bool IsHooked(JNIEnv *env,
+              jobject method);
+```
+
+Returns whether the method is hooked.
+
+### 4. Unhook
+
+Unhook a Java function that is previously hooked.
+
++ `env` is the Java environment.
+
++ `target_method` is an `Method` object to the method you want to hook.
+
+```c++
+bool UnHook(JNIEnv *env,
+            jobject target_method);
+```
+
+Returns whether the unhook succeed.
+
+Calling backup (the return method of `Hook()`) after unhooking is undefined behavior. Please read `Hook()`'s note for more details.
+
+### 5. Deoptimize
+
+Deoptimize a method to avoid hooked callee not being called because of inline.
+
++ `env` is the Java environment.
+
++ `method` is an `Method` object to the method to deoptimize.
+
+  By deoptimizing the method, the method will back all callee without inlining. For example, if you hooked a short method B that is invoked by method A, and you find that your callback to B is not invoked after hooking, then it may mean A has inlined B inside its method body. To force A to call your hooked B, you can deoptimize A and then your hook can take effect. Generally, you need to find all the callers of your hooked callee and that can be hardly achieve. Use this function if you are sure the deoptimized callers are all you need. Otherwise, it would be better to change the hook point or to deoptimize the whole app manually (by simple reinstall the app without uninstalled).
+
+```c++
+bool Deoptimize(JNIEnv *env,
+                jobject method);
+```
+
+Returns whether the deoptimizing succeed or not.
+
+It is safe to call deoptimizing on a hooked method because the deoptimization will perform on the backup method instead.
+
 
 ## Credits
-
-- [LSPlant](https://github.com/LSPosed/LSPlant) - A hook framework for Android Runtime (ART)
-- [Pine](https://github.com/canyie/pine) - Dynamic java method hook framework on ART
-- [apktool](https://ibotpeaches.github.io/Apktool/) - A tool for reverse engineering Android apk files
-- [jadx](https://github.com/skylot/jadx) - Dex to Java decompiler
-- [dex2jar](https://github.com/pxb1988/dex2jar) - Tools to work with android .dex and java .class files
+Inspired by the following frameworks:
+- [YAHFA](https://github.com/PAGalaxyLab/YAHFA)
+- [SandHook](https://github.com/asLody/SandHook)
+- [Pine](https://github.com/canyie/pine)
+- [Epic](https://github.com/tiann/epic)
