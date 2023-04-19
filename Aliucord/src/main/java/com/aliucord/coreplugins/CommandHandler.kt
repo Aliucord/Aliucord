@@ -74,8 +74,8 @@ internal class CommandHandler : Plugin(Manifest("CommandHandler")) {
     // 3. clear input after executing command
     Patcher.addPatch(
       `WidgetChatInput$configureSendListeners$2`::class.java.getDeclaredMethod("invoke", List::class.java, ApplicationCommandData::class.java, Function1::class.java),
-      PreHook {
-        val data = it.args[1] as ApplicationCommandData? ?: return@PreHook
+      PreHook { (it, _: Any, data: ApplicationCommandData?) ->
+        if (data == null) return@PreHook
         val command = data.applicationCommand.also { c -> if (c == null || c !is RemoteApplicationCommand || !c.builtIn) return@PreHook }
         val values = data.values ?: return@PreHook
         val commandArgs = LinkedHashMap<String, Any?>(values.size).apply { addValues(this, values) }
@@ -92,8 +92,8 @@ internal class CommandHandler : Plugin(Manifest("CommandHandler")) {
     val bindingField = autocompleteItemViewHolder.getDeclaredField("binding").apply { isAccessible = true }
     Patcher.addPatch(
       autocompleteItemViewHolder.getDeclaredMethod("bindCommand", ApplicationCommandAutocompletable::class.java),
-      Hook {
-        val cmd = (it.args[0] as ApplicationCommandAutocompletable).command.run { if (this is ApplicationSubCommand) rootCommand else this }
+      Hook { (it, autocompletable: ApplicationCommandAutocompletable) ->
+        val cmd = autocompletable.command.run { if (this is ApplicationSubCommand) rootCommand else this }
           .apply { if (!builtIn) return@Hook }
         val plugin = CommandsAPI.commandsAndPlugins[cmd.name] ?: return@Hook
         val binding = bindingField[it.thisObject] as WidgetChatInputAutocompleteItemBinding
@@ -112,9 +112,9 @@ internal class CommandHandler : Plugin(Manifest("CommandHandler")) {
     // don't mark Aliucord command messages as
     Patcher.addPatch(
       WidgetChatListAdapterItemMessage::class.java.getDeclaredMethod("processMessageText", SimpleDraweeSpanTextView::class.java, MessageEntry::class.java),
-      Hook {
-        val message = (it.args[1] as MessageEntry).message ?: return@Hook
-        if (message.isLocal && CoreUser(message.author).id == -1L) with(it.args[0] as TextView) {
+      Hook { (_, textView: TextView, messageEntry: MessageEntry) ->
+        val message = messageEntry.message ?: return@Hook
+        if (message.isLocal && CoreUser(message.author).id == -1L) with(textView) {
           if (alpha != 1.0f) alpha = 1.0f
         }
       }

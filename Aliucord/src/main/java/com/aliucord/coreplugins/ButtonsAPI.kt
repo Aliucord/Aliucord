@@ -21,8 +21,7 @@ import kotlin.text.startsWith
 
 internal class ButtonsAPI : Plugin(Manifest("ButtonsAPI")) {
     override fun load(context: Context) {
-        patcher.before<WidgetChatListAdapterItemBotComponentRow>("onButtonComponentClick", Int::class.java, String::class.java) {
-            val customId = it.args[1] as String
+        patcher.before<WidgetChatListAdapterItemBotComponentRow>("onButtonComponentClick", Int::class.java, String::class.java) { (it, _: Any, customId: String) ->
             val acId = (-CommandsAPI.ALIUCORD_APP_ID).toString()
             if (customId.startsWith(acId)) {
                 val id = customId.subSequence(CommandsAPI.ALIUCORD_APP_ID.toString().length, customId.length).toString()

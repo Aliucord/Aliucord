@@ -54,8 +54,7 @@ internal class Badges : Plugin(Manifest("Badges")) {
         val fetchingBadges = AtomicBoolean(false)
         Patcher.addPatch(
             UserProfileHeaderView::class.java.getDeclaredMethod("updateViewState", UserProfileHeaderViewModel.ViewState.Loaded::class.java),
-            Hook {
-                val state = it.args[0] as UserProfileHeaderViewModel.ViewState.Loaded
+            Hook { (it, state: UserProfileHeaderViewModel.ViewState.Loaded) ->
                 val id = state.user.id
                 if (userBadges.containsKey(id)) addUserBadges(id, it.thisObject)
                 else if (!fetchingBadges.getAndSet(true)) Utils.threadPool.execute {
@@ -76,8 +75,7 @@ internal class Badges : Plugin(Manifest("Badges")) {
 
         val badgeViewHolder = UserProfileHeaderView.BadgeViewHolder::class.java
         val bindingField = badgeViewHolder.getDeclaredField("binding").apply { isAccessible = true }
-        Patcher.addPatch(badgeViewHolder.getDeclaredMethod("bind", Badge::class.java), Hook {
-            val badge = it.args[0] as Badge
+        Patcher.addPatch(badgeViewHolder.getDeclaredMethod("bind", Badge::class.java), Hook { (it, badge: Badge) ->
             val url = badge.objectType
             if (badge.icon == 0 && url != null)
                 (bindingField[it.thisObject] as UserProfileHeaderBadgeBinding).b.setImageUrl(url)
@@ -92,8 +90,8 @@ internal class Badges : Plugin(Manifest("Badges")) {
             }, 0)
         }
 
-        patcher.after<WidgetChannelsList>("configureHeaderIcons", Guild::class.java, Boolean::class.javaPrimitiveType!!) {
-            val id = (it.args[0] as Guild? ?: return@after).id
+        patcher.after<WidgetChannelsList>("configureHeaderIcons", Guild::class.java, Boolean::class.javaPrimitiveType!!) { (_, guild: Guild?) ->
+            val id = guild?.id ?: return@after
             if (guildBadges.containsKey(id)) addGuildBadge(id, this)
             else Utils.threadPool.execute {
                 try {
