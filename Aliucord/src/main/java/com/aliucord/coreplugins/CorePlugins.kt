@@ -3,8 +3,6 @@ package com.aliucord.coreplugins
 import android.content.Context
 import com.aliucord.PluginManager
 import com.aliucord.coreplugins.plugindownloader.PluginDownloader
-import com.aliucord.entities.Plugin
-import java.util.*
 
 /** CorePlugins Manager */
 object CorePlugins {
@@ -18,7 +16,8 @@ object CorePlugins {
         PluginDownloader(),
         SupportWarn(),
         TokenLogin(),
-        ButtonsAPI()
+        ButtonsAPI(),
+        UploadSize()
     )
 
     /** Loads all core plugins */
