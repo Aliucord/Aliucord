@@ -3,7 +3,7 @@ package com.aliucord.coreplugins
 import android.content.Context
 import android.view.View
 import com.aliucord.entities.Plugin
-import com.aliucord.patcher.instead
+import com.aliucord.patcher.*
 import com.discord.api.premium.PremiumTier
 import com.discord.models.user.User
 import com.discord.utilities.premium.PremiumUtils
@@ -16,16 +16,16 @@ internal class UploadSize : Plugin(Manifest("UploadSize")) {
     }
 
     override fun load(context: Context?) {
-        patcher.instead<PremiumUtils>("getGuildMaxFileSizeMB", Int::class.java) {
-            when (it.args[0] as Int) {
+        patcher.instead<PremiumUtils>("getGuildMaxFileSizeMB", Int::class.java) { (_, tier: Int) ->
+            when (tier) {
                 2 -> 50
                 3 -> 100
                 else -> DEFAULT_MAX_FILE_SIZE
             }
         }
 
-        patcher.instead<PremiumUtils>("getMaxFileSizeMB", User::class.java) {
-            when ((it.args[0] as User).premiumTier!!) {
+        patcher.instead<PremiumUtils>("getMaxFileSizeMB", User::class.java) { (_, user: User) ->
+            when (user.premiumTier!!) {
                 PremiumTier.TIER_1 -> 50 // Nitro Classic
                 PremiumTier.TIER_2 -> 500 // Nitro
                 else -> DEFAULT_MAX_FILE_SIZE

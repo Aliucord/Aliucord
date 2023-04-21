@@ -17,6 +17,8 @@ import com.aliucord.Logger
 import com.aliucord.Utils
 import com.aliucord.entities.Plugin
 import com.aliucord.patcher.Hook
+import com.aliucord.patcher.component1
+import com.aliucord.patcher.component2
 import com.aliucord.wrappers.messages.AttachmentWrapper.Companion.filename
 import com.aliucord.wrappers.messages.AttachmentWrapper.Companion.url
 import com.discord.utilities.color.ColorCompat
@@ -45,13 +47,13 @@ internal class PluginDownloader : Plugin(Manifest("PluginDownloader")) {
     override fun start(context: Context) {
         patcher.patch(
             WidgetChatListActions::class.java.getDeclaredMethod("configureUI", WidgetChatListActions.Model::class.java),
-            Hook { param ->
+            Hook { (param, model: WidgetChatListActions.Model) ->
                 val actions = param.thisObject as WidgetChatListActions
                 val layout = (actions.requireView() as ViewGroup).getChildAt(0) as ViewGroup
 
                 if (layout.findViewById<View>(viewId) != null) return@Hook
 
-                val msg = (param.args[0] as WidgetChatListActions.Model).message
+                val msg = model.message
                 val content = msg?.content ?: return@Hook
 
                 if (msg.channelId == PLUGIN_DEVELOPMENT_CHANNEL_ID && msg.hasAttachments()) {
