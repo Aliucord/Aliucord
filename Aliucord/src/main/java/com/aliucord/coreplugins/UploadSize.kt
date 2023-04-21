@@ -1,11 +1,14 @@
 package com.aliucord.coreplugins
 
 import android.content.Context
+import android.view.View
 import com.aliucord.entities.Plugin
 import com.aliucord.patcher.*
 import com.discord.api.premium.PremiumTier
 import com.discord.models.user.User
 import com.discord.utilities.premium.PremiumUtils
+import de.robv.android.xposed.XposedBridge
+import b.a.a.c as ImageUploadFailedDialog
 
 internal class UploadSize : Plugin(Manifest("UploadSize")) {
     private companion object {
@@ -27,6 +30,19 @@ internal class UploadSize : Plugin(Manifest("UploadSize")) {
                 PremiumTier.TIER_2 -> 500 // Nitro
                 else -> DEFAULT_MAX_FILE_SIZE
             }
+        }
+
+        patcher.instead<ImageUploadFailedDialog>("onViewBound", View::class.java) {
+            val maxFileSize = argumentsOrDefault.getInt("PARAM_MAX_FILE_SIZE_MB")
+
+            argumentsOrDefault.putInt("PARAM_MAX_FILE_SIZE_MB", 8)
+
+            XposedBridge.invokeOriginalMethod(it.method, it.thisObject, it.args)
+
+            @Suppress("SetTextI18n")
+            g().j.text = "Max file size is $maxFileSize MB"
+
+            null
         }
     }
 
