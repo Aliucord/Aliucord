@@ -1,6 +1,6 @@
 /*
  * This file is part of Aliucord, an Android Discord client mod.
- * Copyright (c) 2021 Juby210 & Vendicated
+ * Copyright (c) 2023 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
 
@@ -478,12 +478,53 @@ public class Http {
          * @throws IOException If an I/O exception occurs
          */
         public static Request newDiscordRequest(String route, String method) throws IOException {
-            Request req = new Request(!route.startsWith("http") ? "https://discord.com/api/v9" + route : route, method);
+            Request req = new Request(getDiscordRoute(route), method);
             req.setHeader("User-Agent", RestAPI.AppHeadersProvider.INSTANCE.getUserAgent())
                 .setHeader("X-Super-Properties", AnalyticSuperProperties.INSTANCE.getSuperPropertiesStringBase64())
                 .setHeader("Accept", "*/*")
                 .setHeader("Authorization", RestAPI.AppHeadersProvider.INSTANCE.getAuthToken());
             return req;
+        }
+
+        /**
+         * Performs a GET request to a Discord route using RN headers
+         *
+         * @param builder QueryBuilder
+         * @throws IOException If an I/O exception occurs
+         */
+        public static Request newDiscordRNRequest(QueryBuilder builder) throws IOException {
+            return newDiscordRNRequest(builder.toString(), "GET");
+        }
+
+        /**
+         * Performs a request to a Discord route using RN headers
+         *
+         * @param route A Discord route, such as `/users/@me`
+         * @throws IOException If an I/O exception occurs
+         */
+        public static Request newDiscordRNRequest(String route) throws IOException {
+            return newDiscordRNRequest(route, "GET");
+        }
+
+        /**
+         * Performs a request to a Discord route using RN headers
+         *
+         * @param route  A Discord route, such as `/users/@me`
+         * @param method <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods">HTTP method</a>
+         * @throws IOException If an I/O exception occurs
+         */
+        public static Request newDiscordRNRequest(String route, String method) throws IOException {
+            var req = new Request(getDiscordRoute(route), method);
+            req.setHeader("User-Agent", "Discord-Android/" + RNSuperProperties.versionCode + ";RNA")
+                .setHeader("X-Super-Properties", RNSuperProperties.getSuperPropertiesBase64())
+                .setHeader("Accept-Language", "en-US")
+                .setHeader("Accept", "*/*")
+                .setHeader("Authorization", RestAPI.AppHeadersProvider.INSTANCE.getAuthToken());
+            return req;
+        }
+
+        private static String getDiscordRoute(String route) {
+            return route.startsWith("http") ? route : "https://discord.com/api/v9" + route;
         }
     }
 
