@@ -9,8 +9,8 @@ package com.aliucord.utils
 import android.os.Build
 import android.util.Base64
 import com.aliucord.Main
-import com.discord.utilities.analytics.AnalyticSuperProperties
 import org.json.JSONObject
+import java.util.Locale
 import java.util.UUID
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -22,15 +22,11 @@ object RNSuperProperties {
     }
 
     @JvmStatic
-    val superProperties = JSONObject(AnalyticSuperProperties.INSTANCE.superProperties).apply {
-        remove("client_performance_cpu")
-        remove("client_performance_memory")
-        remove("cpu_core_count")
-        remove("accessibility_features")
-        remove("os_sdk_version")
-        remove("accessibility_support_enabled")
-
+    val superProperties = JSONObject().apply {
+        put("os", "Android")
+        put("browser", "Discord Android")
         put("device", Build.DEVICE)
+        put("system_locale", Locale.getDefault().toString().replace("_", "-"))
         put("client_version", versionString)
         put("release_channel", "betaRelease")
         put("device_vendor_id", vendorId)

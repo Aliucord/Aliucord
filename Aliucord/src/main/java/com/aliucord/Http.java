@@ -515,11 +515,13 @@ public class Http {
          */
         public static Request newDiscordRNRequest(String route, String method) throws IOException {
             var req = new Request(getDiscordRoute(route), method);
+            var headersProvider = RestAPI.AppHeadersProvider.INSTANCE;
             req.setHeader("User-Agent", "Discord-Android/" + RNSuperProperties.versionCode + ";RNA")
                 .setHeader("X-Super-Properties", RNSuperProperties.getSuperPropertiesBase64())
-                .setHeader("Accept-Language", "en-US")
+                .setHeader("Accept-Language", headersProvider.getAcceptLanguages())
                 .setHeader("Accept", "*/*")
-                .setHeader("Authorization", RestAPI.AppHeadersProvider.INSTANCE.getAuthToken());
+                .setHeader("Authorization", headersProvider.getAuthToken())
+                .setHeader("X-Discord-Locale", headersProvider.getLocale());
             return req;
         }
 
