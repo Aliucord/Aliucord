@@ -15,6 +15,12 @@ import java.util.UUID
 
 @Suppress("MemberVisibilityCanBePrivate")
 object RNSuperProperties {
+    // vendorId is a random UUID even in normal Discord RN
+    @JvmStatic
+    val vendorId = Main.settings.getString("rnVendorId", null) ?: UUID.randomUUID().toString().also {
+        Main.settings.setString("rnVendorId", it)
+    }
+
     @JvmStatic
     val superProperties = JSONObject(AnalyticSuperProperties.INSTANCE.superProperties).apply {
         remove("client_performance_cpu")
@@ -38,12 +44,6 @@ object RNSuperProperties {
 
     @JvmStatic
     val superPropertiesBase64: String = Base64.encodeToString(superProperties.toString().toByteArray(), 2)
-
-    // vendorId is a random UUID in normal Discord RN
-    @JvmStatic
-    val vendorId = Main.settings.getString("rnVendorId", null) ?: UUID.randomUUID().toString().also {
-        Main.settings.setString("rnVendorId", it)
-    }
 
     // update to latest Beta branch sometimes
     const val versionCode = 176120
