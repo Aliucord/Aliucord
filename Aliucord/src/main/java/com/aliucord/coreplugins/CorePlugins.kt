@@ -3,12 +3,14 @@ package com.aliucord.coreplugins
 import android.content.Context
 import com.aliucord.PluginManager
 import com.aliucord.coreplugins.plugindownloader.PluginDownloader
+import com.aliucord.coreplugins.rn.RNAPI
 
 /** CorePlugins Manager */
 object CorePlugins {
     private var loaded = false
     private var started = false
     private val corePlugins = arrayOf(
+        RNAPI(),
         Badges(),
         CommandHandler(),
         CoreCommands(),

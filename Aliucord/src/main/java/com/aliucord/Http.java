@@ -478,11 +478,14 @@ public class Http {
          * @throws IOException If an I/O exception occurs
          */
         public static Request newDiscordRequest(String route, String method) throws IOException {
-            Request req = new Request(getDiscordRoute(route), method);
-            req.setHeader("User-Agent", RestAPI.AppHeadersProvider.INSTANCE.getUserAgent())
+            var req = new Request(getDiscordRoute(route), method);
+            var headersProvider = RestAPI.AppHeadersProvider.INSTANCE;
+            req.setHeader("User-Agent", headersProvider.getUserAgent())
                 .setHeader("X-Super-Properties", AnalyticSuperProperties.INSTANCE.getSuperPropertiesStringBase64())
                 .setHeader("Accept", "*/*")
-                .setHeader("Authorization", RestAPI.AppHeadersProvider.INSTANCE.getAuthToken());
+                .setHeader("Authorization", headersProvider.getAuthToken())
+                .setHeader("Accept-Language", headersProvider.getAcceptLanguages())
+                .setHeader("X-Discord-Locale", headersProvider.getLocale());
             return req;
         }
 
@@ -516,7 +519,7 @@ public class Http {
         public static Request newDiscordRNRequest(String route, String method) throws IOException {
             var req = new Request(getDiscordRoute(route), method);
             var headersProvider = RestAPI.AppHeadersProvider.INSTANCE;
-            req.setHeader("User-Agent", "Discord-Android/" + RNSuperProperties.versionCode + ";RNA")
+            req.setHeader("User-Agent", RNSuperProperties.userAgent)
                 .setHeader("X-Super-Properties", RNSuperProperties.getSuperPropertiesBase64())
                 .setHeader("Accept-Language", headersProvider.getAcceptLanguages())
                 .setHeader("Accept", "*/*")
