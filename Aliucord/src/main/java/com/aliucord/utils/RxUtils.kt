@@ -7,6 +7,7 @@
 package com.aliucord.utils
 
 import android.os.Looper
+import j0.l.a.c
 import rx.*
 import rx.functions.*
 import java.util.concurrent.CountDownLatch
@@ -170,4 +171,7 @@ object RxUtils {
      */
     @JvmStatic
     fun <T, R> Observable<T>.switchMap(func: (T) -> Observable<R>): Observable<R> = Y { func(it) }
+
+    @JvmStatic
+    val empty: Observable<Any> = c.k
 }

@@ -371,7 +371,7 @@ public class Http {
          * @return Response
          */
         public Response executeWithJson(Object body) throws IOException {
-            return setHeader("Content-Type", "application/json").executeWithBody(GsonUtils.toJson(body));
+            return setHeader("Content-Type", "application/json").executeWithBody(GsonUtils.toJson(GsonUtils.getGson(), body));
         }
 
         /**
@@ -584,7 +584,7 @@ public class Http {
          * @return Response Object
          */
         public <T> T json(Type type) throws IOException {
-            return GsonUtils.fromJson(text(), type);
+            return GsonUtils.fromJson(GsonUtils.getGson(), text(), type);
         }
 
         /**
@@ -594,7 +594,7 @@ public class Http {
          * @return Response Object
          */
         public <T> T json(Class<T> type) throws IOException {
-            return GsonUtils.fromJson(text(), type);
+            return GsonUtils.fromJson(GsonUtils.getGson(), text(), type);
         }
 
         /**
@@ -714,7 +714,7 @@ public class Http {
      */
     public static <T> T simpleJsonGet(String url, Type schema) throws IOException {
         String res = simpleGet(url);
-        return GsonUtils.fromJson(res, schema);
+        return GsonUtils.fromJson(GsonUtils.getGson(), res, schema);
     }
 
     /**
@@ -749,7 +749,7 @@ public class Http {
      */
     public static <T> T simpleJsonPost(String url, String body, Type schema) throws IOException {
         String res = simplePost(url, body);
-        return GsonUtils.fromJson(res, schema);
+        return GsonUtils.fromJson(GsonUtils.getGson(), res, schema);
     }
 
     // This is just here for proper Generics so you can do simpleJsonPost(url, body, myClass).myMethod() without having to cast

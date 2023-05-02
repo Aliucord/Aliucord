@@ -67,7 +67,7 @@ public class PluginManager {
                 }
 
                 try (var reader = new InputStreamReader(stream)) {
-                    manifest = GsonUtils.fromJson(reader, Plugin.Manifest.class);
+                    manifest = GsonUtils.fromJson(GsonUtils.getGson(), reader, Plugin.Manifest.class);
                 }
             }
 

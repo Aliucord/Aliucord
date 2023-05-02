@@ -2,7 +2,9 @@ package com.aliucord
 
 import com.aliucord.PluginManager.logger
 import com.aliucord.settings.*
-import com.aliucord.utils.GsonUtils
+import com.aliucord.utils.GsonUtils.fromJson
+import com.aliucord.utils.GsonUtils.gson
+import com.aliucord.utils.GsonUtils.toJson
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -77,9 +79,9 @@ class SettingsUtilsJSON(plugin: String) {
      * @return List of all keys
      */
     fun getAllKeys(): List<String> {
-        val iter: Iterator<String> = settings.keys()
+        val iterator: Iterator<String> = settings.keys()
         val copy: MutableList<String> = ArrayList()
-        while (iter.hasNext()) copy.add(iter.next())
+        while (iterator.hasNext()) copy.add(iterator.next())
         return copy
     }
 
@@ -212,7 +214,7 @@ class SettingsUtilsJSON(plugin: String) {
             return cached as T
         } catch (ignored: Throwable) {
         }
-        val t: T? = if (settings.has(key)) GsonUtils.fromJson(settings.getString(key), type) else null
+        val t: T? = if (settings.has(key)) gson.fromJson(settings.getString(key), type) else null
         return t ?: defValue
     }
 
@@ -223,7 +225,7 @@ class SettingsUtilsJSON(plugin: String) {
      */
     fun setObject(key: String, value: Any) {
         cache[key] = value
-        val stringJson = GsonUtils.toJson(value)
+        val stringJson = gson.toJson(value)
         putObject(key, if (stringJson.startsWith("{")) JSONObject(stringJson) else JSONArray(stringJson))
     }
 
