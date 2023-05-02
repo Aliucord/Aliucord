@@ -25,7 +25,7 @@ internal class ButtonsAPI : Plugin(Manifest("ButtonsAPI")) {
             val acId = (-CommandsAPI.ALIUCORD_APP_ID).toString()
             if (customId.startsWith(acId)) {
                 val id = customId.subSequence(CommandsAPI.ALIUCORD_APP_ID.toString().length, customId.length).toString()
-                Companion.actions[id]?.invoke(entry.message, adapter.fragmentManager.fragments[0]!!.activity!!)
+                actions[id]?.invoke(entry.message, adapter.fragmentManager.fragments[0]!!.requireActivity())
                 it.result = null
             }
         }

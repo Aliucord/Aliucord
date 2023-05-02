@@ -92,6 +92,7 @@ public class TextInput extends CardView {
      * Sets the hint message
      * @param hint The hint
      * @return self
+     * @noinspection UnusedReturnValue
      */
     public TextInput setHint(@NonNull CharSequence hint) {
         getRoot().setHint(hint);
@@ -103,7 +104,7 @@ public class TextInput extends CardView {
      * @param hint The hint res id
      * @return self
      */
-    public TextInput setHint(@NonNull @StringRes int hint) {
+    public TextInput setHint(@StringRes int hint) {
         getRoot().setHint(hint);
         return this;
     }
@@ -123,7 +124,7 @@ public class TextInput extends CardView {
      * @param icon End icon drawable res id
      * @return self
      */
-    public TextInput setThemedEndIcon(@NonNull @DrawableRes int icon) {
+    public TextInput setThemedEndIcon(@DrawableRes int icon) {
         getRoot().setEndIconDrawable(Utils.tintToTheme(ContextCompat.getDrawable(getRoot().getContext(), icon)));
         return this;
     }

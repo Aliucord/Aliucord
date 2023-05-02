@@ -206,7 +206,6 @@ public final class ReflectUtils {
     /**
      * Override a final field of a class.
      * WARNING: If this field is of a primitive type, setting it may have no effect as the compiler will inline final primitives.
-     *
      * Please note that this does not cache the lookup result, so if you need to call this many times
      * you should do it manually and cache the {@link Field} to improve performance drastically
      *
@@ -223,7 +222,6 @@ public final class ReflectUtils {
     /**
      * Override a final field of a class.
      * WARNING: If this field is of a primitive type, setting it may have no effect as the compiler will inline final primitives.
-     *
      * Please note that this does not cache the lookup result, so if you need to call this many times
      * you should do it manually and cache the {@link Field} to improve performance drastically
      *

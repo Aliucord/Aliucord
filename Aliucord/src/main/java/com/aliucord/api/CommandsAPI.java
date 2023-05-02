@@ -169,7 +169,7 @@ public class CommandsAPI {
                             ));
 
                             StoreMessages.access$handleLocalMessageCreate(storeMessages, commandMessage);
-                        } catch (Throwable e) { logger.error((String) null, e); }
+                        } catch (Throwable e) { logger.error(e); }
                     } else {
                         if (hasEmbeds)
                             // imagine selfbot embeds in 2022 (impossible)
@@ -217,7 +217,7 @@ public class CommandsAPI {
                                 "Please search for this error on the Aliucord server to see if it's a known issue. " +
                                 "If it isn't, report it to the plugin %s%s.\n\n" +
                                 "Debug:```\nCommand: %s\nPlugin: %s v%s\nDiscord v%s\nAndroid %s (SDK %d)\nAliucord %s```\nArguments:```\n%s```\n",
-                            t.toString(),
+                            t,
                             manifest.authors.length == 1 ? "author" : "authors",
                             manifest.authors.length != 0 ? " (" + TextUtils.join(", ", manifest.authors) + ")" : "",
                             name,

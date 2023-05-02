@@ -1,4 +1,3 @@
-@file:Suppress("unused")
 package com.aliucord.settings
 
 import com.aliucord.api.SettingsAPI

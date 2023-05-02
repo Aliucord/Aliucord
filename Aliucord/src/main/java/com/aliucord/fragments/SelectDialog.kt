@@ -2,7 +2,6 @@ package com.aliucord.fragments
 
 import android.view.*
 import android.widget.TextView
-import androidx.annotation.NonNull
 import androidx.recyclerview.widget.RecyclerView
 import com.aliucord.Utils
 import com.aliucord.utils.DimenUtils
@@ -14,14 +13,13 @@ import com.lytefast.flexinput.R
  */
 class SelectDialog() : AppDialog(Utils.getResId("widget_settings_language_select", "layout")) {
     private inner class Adapter(private val items: Array<String>) : RecyclerView.Adapter<Adapter.ViewHolder?>() {
-        @NonNull
-        override fun onCreateViewHolder(@NonNull parent: ViewGroup, viewType: Int): ViewHolder {
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             return ViewHolder(TextView(parent.context, null, 0, R.i.UiKit_Settings_Item_Icon).apply {
                 layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             })
         }
 
-        override fun onBindViewHolder(@NonNull holder: ViewHolder, position: Int) {
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             holder.bind(position)
         }
 

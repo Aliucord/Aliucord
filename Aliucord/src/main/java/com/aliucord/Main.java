@@ -51,7 +51,6 @@ import java.util.*;
 
 import dalvik.system.PathClassLoader;
 
-@SuppressWarnings({ "ConstantConditions", "unused" })
 public final class Main {
     /** Whether Aliucord has been preInitialized */
     public static boolean preInitialized = false;
@@ -63,7 +62,10 @@ public final class Main {
 
     public static SettingsUtilsJSON settings;
 
-    /** Aliucord's preInit hook. Plugins are loaded here */
+    /**
+     * Aliucord's preInit hook. Plugins are loaded here
+     * @noinspection unused
+     */
     public static void preInit(AppActivity activity) throws NoSuchMethodException {
         if (preInitialized) return;
         preInitialized = true;
@@ -86,7 +88,10 @@ public final class Main {
         loadAllPlugins(activity);
     }
 
-    /** Aliucord's init hook. Plugins are started here */
+    /**
+     * Aliucord's init hook. Plugins are started here
+     * @noinspection unused
+     */
     @SuppressLint("SetTextI18n")
     public static void init(AppActivity activity) {
         if (initialized) return;
@@ -306,25 +311,34 @@ public final class Main {
         }
 
         File[] sortedPlugins = dir.listFiles();
-        // Always sort plugins alphabetically for reproducible results
-        Arrays.sort(sortedPlugins, Comparator.comparing(File::getName));
+        if (sortedPlugins != null) {
+            // Always sort plugins alphabetically for reproducible results
+            Arrays.sort(sortedPlugins, Comparator.comparing(File::getName));
 
-        for (File f : sortedPlugins) {
-            var name = f.getName();
-            if (name.endsWith(".zip")) {
-                PluginManager.loadPlugin(context, f);
-            } else if (!name.equals("oat")) { // Some roms create this
-                if (f.isDirectory()) {
-                    Utils.showToast(String.format("Found directory %s in your plugins folder. DO NOT EXTRACT PLUGIN ZIPS!", name), true);
-                } else if (name.equals("classes.dex") || name.endsWith(".json")) {
-                    Utils.showToast(String.format("Found extracted plugin file %s in your plugins folder. DO NOT EXTRACT PLUGIN ZIPS!", name), true);
+            for (File f : sortedPlugins) {
+                var name = f.getName();
+                if (name.endsWith(".zip")) {
+                    PluginManager.loadPlugin(context, f);
+                } else if (!name.equals("oat")) { // Some roms create this
+                    if (f.isDirectory()) {
+                        Utils.showToast(
+                            String.format("Found directory %s in your plugins folder. DO NOT EXTRACT PLUGIN ZIPS!", name),
+                            true
+                        );
+                    } else if (name.equals("classes.dex") || name.endsWith(".json")) {
+                        Utils.showToast(
+                            String.format("Found extracted plugin file %s in your plugins folder. DO NOT EXTRACT PLUGIN ZIPS!", name),
+                            true
+                        );
+                    }
+                    rmrf(f);
                 }
-                rmrf(f);
             }
+
+            if (!PluginManager.failedToLoad.isEmpty())
+                Utils.showToast("Some plugins failed to load. Check the plugins page for more info.");
         }
         loadedPlugins = true;
-        if (!PluginManager.failedToLoad.isEmpty())
-            Utils.showToast("Some plugins failed to load. Check the plugins page for more info.");
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")

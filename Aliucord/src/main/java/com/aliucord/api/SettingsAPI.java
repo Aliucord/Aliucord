@@ -13,10 +13,6 @@ import java.util.List;
 
 @SuppressWarnings("unused")
 public class SettingsAPI {
-    /**
-     * Prefix for all settings keys: AC_{PLUGIN_NAME}_
-     */
-    private final String keyPrefix;
     private SettingsUtilsJSON settings;
     private final String pluginName;
 
@@ -24,7 +20,6 @@ public class SettingsAPI {
      * Creates a SettingsAPI for the specified plugin
      */
     public SettingsAPI(String plugin) {
-        keyPrefix = "AC_" + plugin + "_";
         settings = new SettingsUtilsJSON(plugin);
         pluginName = plugin;
     }

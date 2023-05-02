@@ -22,9 +22,6 @@ import com.discord.api.sticker.Sticker
  */
 @Suppress("unused")
 class GuildWrapper(private val guild: Guild) {
-  val Guild.test
-    get() = "aaa"
-
   /** Returns the raw (obfuscated) [Guild] Object associated with this wrapper */
   fun raw() = guild
 

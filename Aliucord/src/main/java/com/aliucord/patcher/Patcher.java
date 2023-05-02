@@ -15,7 +15,7 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 
 public class Patcher {
-    public static Logger logger = new Logger("Patcher");
+    public static final Logger logger = new Logger("Patcher");
     private static final ClassLoader cl = Objects.requireNonNull(Patcher.class.getClassLoader());
 
     /**

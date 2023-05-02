@@ -536,7 +536,7 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
      * @param msg Message
      * @param position position, see [Gravity]
      */
-    @SuppressLint("ShowToast")
+    @SuppressLint("ShowToast", "InternalInsetResource")
     @JvmStatic
     @JvmOverloads
     fun promptRestart(msg: String = "Restart required. Restart now?", position: Int = Gravity.TOP) {
