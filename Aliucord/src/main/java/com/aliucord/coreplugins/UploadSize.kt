@@ -120,6 +120,8 @@ internal class UploadSize : Plugin(Manifest("UploadSize")) {
                         .setHeader("Content-Type", upload.mimeType)
                         .setHeader("Content-Length", upload.contentLength.toString())
                     uploadReq.conn.doOutput = true
+                    uploadReq.conn.setFixedLengthStreamingMode(upload.contentLength)
+
                     uploadReq.conn.outputStream.use { outputStream ->
                         var totalBytes: Long = 0
                         var currentBytes: Int
