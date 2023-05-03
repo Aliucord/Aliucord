@@ -14,6 +14,7 @@ import com.google.gson.reflect.TypeToken
 import okhttp3.*
 import rx.Observable
 import java.lang.reflect.Type
+import java.util.Collections
 
 class RNHeadersInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -43,5 +44,10 @@ fun patchUserProfile() {
             val interceptors = it.args[1] as MutableList<Interceptor>
             interceptors.add(2, interceptor)
         }
+    })
+
+    /** discord doesn't check in [com.discord.widgets.user.WidgetUserMutualGuilds.Model] if mutualGuilds list is null */
+    Patcher.addPatch(UserProfile::class.java.getDeclaredMethod("d"), Hook {
+        if (it.result == null) it.result = Collections.EMPTY_LIST
     })
 }
