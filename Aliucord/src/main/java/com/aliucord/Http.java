@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 import com.aliucord.utils.*;
 import com.discord.utilities.analytics.AnalyticSuperProperties;
 import com.discord.utilities.rest.RestAPI;
+import com.google.gson.Gson;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -370,7 +371,18 @@ public class Http {
          * @return Response
          */
         public Response executeWithJson(Object body) throws IOException {
-            return setHeader("Content-Type", "application/json").executeWithBody(GsonUtils.toJson(GsonUtils.getGson(), body));
+            return executeWithJson(GsonUtils.getGson(), body);
+        }
+
+        /**
+         * Execute the request with the specified object as json. May not be used in GET requests.
+         *
+         * @param gson Gson instance
+         * @param body The request body
+         * @return Response
+         */
+        public Response executeWithJson(Gson gson, Object body) throws IOException {
+            return setHeader("Content-Type", "application/json").executeWithBody(GsonUtils.toJson(gson, body));
         }
 
         /**
@@ -583,7 +595,18 @@ public class Http {
          * @return Response Object
          */
         public <T> T json(Type type) throws IOException {
-            return GsonUtils.fromJson(GsonUtils.getGson(), text(), type);
+            return json(GsonUtils.getGson(), type);
+        }
+
+        /**
+         * Deserializes json response
+         *
+         * @param gson Gson instance
+         * @param type Type to deserialize into
+         * @return Response Object
+         */
+        public <T> T json(Gson gson, Type type) throws IOException {
+            return GsonUtils.fromJson(gson, text(), type);
         }
 
         /**
@@ -593,7 +616,18 @@ public class Http {
          * @return Response Object
          */
         public <T> T json(Class<T> type) throws IOException {
-            return GsonUtils.fromJson(GsonUtils.getGson(), text(), type);
+            return json(GsonUtils.getGson(), type);
+        }
+
+        /**
+         * Deserializes json response
+         *
+         * @param gson Gson instance
+         * @param type Class to deserialize into
+         * @return Response Object
+         */
+        public <T> T json(Gson gson, Class<T> type) throws IOException {
+            return GsonUtils.fromJson(gson, text(), type);
         }
 
         /**
