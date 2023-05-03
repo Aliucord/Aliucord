@@ -12,7 +12,7 @@ import java.lang.reflect.Type
 import java.math.BigDecimal
 import java.util.*
 
-@Suppress("Deprecation", "unused")
+@Suppress("unused")
 /** Utility class to store and retrieve preferences  */
 class SettingsUtilsJSON(plugin: String) {
     private val settingsPath = Constants.SETTINGS_PATH + "/"
@@ -227,33 +227,5 @@ class SettingsUtilsJSON(plugin: String) {
         cache[key] = value
         val stringJson = gson.toJson(value)
         putObject(key, if (stringJson.startsWith("{")) JSONObject(stringJson) else JSONArray(stringJson))
-    }
-
-    companion object {
-        /**
-         * Migration from old settings for Aliucord itself
-         *
-         * @param settings
-         */
-        fun migrateAliucordSettings(settings: SettingsUtilsJSON) {
-            if (!settings.getBool("migratedAliucordSettings", false)) {
-                Main.logger.info("Migrating Aliucord settings")
-                val allKeys = listOf(
-                    "disableAliucordUpdater",
-                    AUTO_DISABLE_ON_CRASH_KEY,
-                    AUTO_UPDATE_PLUGINS_KEY,
-                    AUTO_UPDATE_ALIUCORD_KEY,
-                    ALIUCORD_FROM_STORAGE_KEY
-                )
-                for ((key, value) in SettingsUtils.getAll()) {
-                    if (key.startsWith("AC_PM_") || allKeys.contains(key)) {
-                        settings.settings.put(key, value)
-                        SettingsUtils.remove(key)
-                    }
-                }
-                settings.setBool("migratedAliucordSettings", true)
-                Main.logger.info("Migrated Aliucord settings")
-            }
-        }
     }
 }

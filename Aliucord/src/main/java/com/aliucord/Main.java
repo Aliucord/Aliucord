@@ -83,7 +83,6 @@ public final class Main {
 
     private static void preInitWithPermissions(AppCompatActivity activity) {
         settings = new SettingsUtilsJSON("Aliucord");
-        SettingsUtilsJSON.Companion.migrateAliucordSettings(settings);
         CorePlugins.loadAll(activity);
         loadAllPlugins(activity);
     }
