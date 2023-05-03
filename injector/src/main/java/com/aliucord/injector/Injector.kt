@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 const val LOG_TAG = "Injector"
 private const val DATA_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/data.json"
-private const val DEX_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/Aliucord.zip"
+private const val DEX_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/aliucord.zip"
 
 @Suppress("DEPRECATION")
 private val BASE_DIRECTORY = File(Environment.getExternalStorageDirectory().absolutePath, "Aliucord")
@@ -68,7 +68,7 @@ private fun init(appActivity: AppActivity) {
     Logger.d("Initializing Aliucord...")
 
     try {
-        val dexFile = File(appActivity.codeCacheDir, "Aliucord.zip")
+        val dexFile = File(appActivity.codeCacheDir, "aliucord.zip")
 
         if (!useLocalDex(appActivity, dexFile) && !dexFile.exists()) {
             val successRef = AtomicBoolean(true)
@@ -119,7 +119,7 @@ private fun init(appActivity: AppActivity) {
         error(appActivity, "Failed to initialize Aliucord :(", th)
         // Delete file so it is reinstalled the next time
         try {
-            File(appActivity.codeCacheDir, "Aliucord.zip").delete()
+            File(appActivity.codeCacheDir, "aliucord.zip").delete()
         } catch (ignored: Throwable) {
         }
     }
@@ -135,7 +135,7 @@ private fun useLocalDex(appActivity: AppActivity, dexFile: File): Boolean {
             val useLocalDex = settingsFile.readText().let {
                 it.isNotEmpty() && JSONObject(it).let { json -> json.has(ALIUCORD_FROM_STORAGE_KEY) && json.getBoolean(ALIUCORD_FROM_STORAGE_KEY) }
             }
-            if (useLocalDex) File(BASE_DIRECTORY, "Aliucord.zip").run {
+            if (useLocalDex) File(BASE_DIRECTORY, "aliucord.zip").run {
                 if (exists()) {
                     Logger.d("Loading dex from $absolutePath")
                     copyTo(dexFile, true)
@@ -149,14 +149,14 @@ private fun useLocalDex(appActivity: AppActivity, dexFile: File): Boolean {
 
 /**
  * Public so it can be manually triggered from Aliucord to update itself
- * outputFile should be new File(context.getCodeCacheDir(), "Aliucord.zip");
+ * outputFile should be new File(context.getCodeCacheDir(), "aliucord.zip");
  */
 @Throws(IOException::class)
 fun downloadLatestAliucordDex(outputFile: File) {
-    Logger.d("Downloading Aliucord.zip from $DEX_URL...")
+    Logger.d("Downloading aliucord.zip from $DEX_URL...")
     val conn = URL(DEX_URL).openConnection() as HttpURLConnection
     conn.inputStream.use { it.copyTo(FileOutputStream(outputFile)) }
-    Logger.d("Finished downloading Aliucord.zip")
+    Logger.d("Finished downloading aliucord.zip")
 }
 
 @SuppressLint("DiscouragedPrivateApi") // this private api seems to be stable, thanks to facebook who use it in the facebook app

@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - .github/workflows/publish-aliucord.yml
-      - Aliucord/**
+      - aliucord/**
 
 jobs:
   build-aliucord:

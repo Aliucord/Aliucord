@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - .github/workflows/generate-dokka.yml
-      - Aliucord/**
+      - aliucord/**
 
 jobs:
   dokka:

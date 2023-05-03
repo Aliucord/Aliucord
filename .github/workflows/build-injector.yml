@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - .github/workflows/build-injector.yml
-      - Injector/**
+      - injector/**
 
 jobs:
   build-injector:
@@ -35,8 +35,8 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/src
           chmod +x gradlew
-          ./gradlew :Injector:make
-          cp Injector/build/Injector.dex $GITHUB_WORKSPACE/builds
+          ./gradlew :injector:make
+          cp injector/build/Injector.dex $GITHUB_WORKSPACE/builds
 
       - name: Push builds
         run: |

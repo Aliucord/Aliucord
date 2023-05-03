@@ -102,7 +102,7 @@ public class Updater {
             c,
             (Object) null,
             "downloadLatestAliucordDex",
-            new File(ctx.getCodeCacheDir(), "Aliucord.zip")
+            new File(ctx.getCodeCacheDir(), "aliucord.zip")
         );
     }
 

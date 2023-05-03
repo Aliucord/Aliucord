@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - .github/workflows/build-aliucord.yml
-      - Aliucord/**
+      - aliucord/**
       - .assets/data.json
 
 jobs:
@@ -36,8 +36,8 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/src
           chmod +x gradlew
-          ./gradlew :Aliucord:make
-          cp Aliucord/build/Aliucord.zip $GITHUB_WORKSPACE/builds
+          ./gradlew :aliucord:make
+          cp aliucord/build/aliucord.zip $GITHUB_WORKSPACE/builds
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
@@ -46,12 +46,12 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/builds
           cp ../src/.assets/AndroidManifest.xml .
-          if git diff --exit-code Aliucord.zip >/dev/null; then
-            # No changes to Aliucord.zip, simply merge builds data.json and Aliucord data.json to keep the old aliucordHash
+          if git diff --exit-code aliucord.zip >/dev/null; then
+            # No changes to aliucord.zip, simply merge builds data.json and Aliucord data.json to keep the old aliucordHash
             jq -s '.[0] * .[1]' data.json ../src/.assets/data.json > data.json.new
             mv data.json.new data.json
           else
-            # Changes to Aliucord.zip, update aliucordHash
+            # Changes to aliucord.zip, update aliucordHash
             jq ". + { aliucordHash: \"$(git --git-dir=../src/.git rev-parse --short HEAD)\" }" < ../src/.assets/data.json > data.json
           fi
           git config --local user.email "actions@github.com"

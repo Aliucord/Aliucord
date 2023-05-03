@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - .github/workflows/upload-pr-artifact.yml
-      - Aliucord/**
+      - aliucord/**
       - gradle/**
       - settings.gradle
       - gradlew
@@ -29,10 +29,10 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE
           chmod +x gradlew
-          ./gradlew :Aliucord:make
+          ./gradlew :aliucord:make
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: Aliucord
-          path: Aliucord/build/Aliucord.zip
+          path: aliucord/build/aliucord.zip
