@@ -44,4 +44,5 @@ jobs:
           cp -r ../Aliucord/build/dokka/* .
 
           git add .
-          (git commit -m "Generate dokka for https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA" && git push https://$USERNAME:$API_TOKEN@github.com/$REPO.git) | exit 0
+          git commit -m "Generate dokka for https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA" | exit 0
+          git push https://$USERNAME:$API_TOKEN@github.com/$REPO.git
