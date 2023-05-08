@@ -17,6 +17,7 @@ import com.aliucord.utils.RNSuperProperties
 import com.discord.api.message.Message
 import com.discord.api.premium.PremiumTier
 import com.discord.models.user.User
+import com.discord.restapi.RestAPIParams
 import com.discord.restapi.utils.CountingRequestBody
 import com.discord.stores.*
 import com.discord.utilities.messagesend.`MessageQueue$doSend$2`
@@ -44,8 +45,10 @@ internal class UploadSize : Plugin(Manifest("UploadSize")) {
 
         class MessagePayload(
             val content: String,
-            val channel_id: String,
+            val channelId: String,
             val type: Int,
+            val messageReference: RestAPIParams.Message.MessageReference?,
+            val allowedMentions: RestAPIParams.Message.AllowedMentions?,
             val attachments: List<Attachment>,
             val nonce: String
         ) {
@@ -149,7 +152,15 @@ internal class UploadSize : Plugin(Manifest("UploadSize")) {
                 it.result = BehaviorSubject.l0(
                     Http.Request.newDiscordRNRequest("/channels/$channelId/messages", "POST").executeWithJson(
                         GsonUtils.gsonRestApi,
-                        MessagePayload(content.trimEnd(), channelId.toString(), 0, attachments, nonce)
+                        MessagePayload(
+                            content.trimEnd(),
+                            channelId.toString(),
+                            if (messageReference == null) 0 else 19,
+                            messageReference,
+                            allowedMentions,
+                            attachments,
+                            nonce
+                        )
                     ).json(GsonUtils.gsonRestApi, Message::class.java)
                 )
             }

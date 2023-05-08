@@ -22,7 +22,7 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew :Aliucord:publish -Pversion=${GITHUB_REF##*/}-SNAPSHOT
-          ./gradlew :Aliucord:publish -Pversion=$(git rev-parse --short "$GITHUB_SHA")
+          ./gradlew :Aliucord:publish -Pversion=$(git rev-parse --short "$GITHUB_SHA") | exit 0
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
