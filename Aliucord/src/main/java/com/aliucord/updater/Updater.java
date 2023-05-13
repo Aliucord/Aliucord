@@ -28,7 +28,7 @@ public class Updater {
             String[] versions = version.split("\\.");
             String[] newVersions = newVersion.split("\\.");
             int len = versions.length;
-            if (len != newVersions.length) return false;
+            if (len > newVersions.length) return false;
             for (int i = 0; i < len; i++) {
                 int newInt = Integer.parseInt(newVersions[i]);
                 int oldInt = Integer.parseInt(versions[i]);
