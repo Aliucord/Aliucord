@@ -3,6 +3,7 @@ package com.aliucord.api
 import com.aliucord.Logger
 import com.aliucord.api.GatewayAPI.EventListener
 import com.aliucord.patcher.*
+import com.aliucord.utils.lazyField
 import com.discord.gateway.GatewaySocket
 import com.discord.gateway.`GatewaySocket$connect$$inlined$apply$lambda$4`
 import com.discord.models.deserialization.gson.InboundGatewayGsonParser
@@ -27,7 +28,7 @@ object GatewayAPI {
 
     val eventListeners = mutableListOf<Triple<String, Class<*>, EventListener<Any>>>()
     private val rawListeners = mutableListOf<EventListener<String>>()
-    private val socket = StoreGatewayConnection::class.java.getDeclaredField("socket").apply { isAccessible = true }
+    private val socket by lazyField<StoreGatewayConnection>()
     private val logger = Logger("GatewayAPI")
     private val patcher = PatcherAPI(logger)
 
@@ -46,21 +47,25 @@ object GatewayAPI {
 
     private fun patchRawMessageHandler() {
         patcher.after<`GatewaySocket$connect$$inlined$apply$lambda$4`>("onRawMessage", String::class.java) { (_, rawEvent: String) ->
-            val event = JSONObject(rawEvent)
-            val eventName = event.getString("t")
-            val eventData = event["d"].toString()
+            if(eventListeners.isNotEmpty()) {
+                val event = JSONObject(rawEvent)
+                val eventName = event.getString("t")
+                val eventData = event["d"].toString()
 
-            eventListeners.filter { (name, _) -> name == eventName }.forEach { (_, type, listener) ->
-                try {
-                    val data = InboundGatewayGsonParser.fromJson(JsonReader(StringReader(eventData)), type)
-                    listener.invoke(data)
-                } catch (e: Throwable) {
-                    logger.error("Failed to serialize data for event: $eventName", e)
+                eventListeners.filter { (name, _) -> name == eventName }.forEach { (_, type, listener) ->
+                    try {
+                        val data = InboundGatewayGsonParser.fromJson(JsonReader(StringReader(eventData)), type)
+                        listener.invoke(data)
+                    } catch (e: Throwable) {
+                        logger.error("Failed to serialize data for event: $eventName", e)
+                    }
                 }
             }
 
-            rawListeners.forEach { listener ->
-                listener.invoke(rawEvent)
+            if(rawListeners.isNotEmpty()) {
+                rawListeners.forEach { listener ->
+                    listener.invoke(rawEvent)
+                }
             }
         }
     }
@@ -71,11 +76,7 @@ object GatewayAPI {
      * @param listener The method that gets called when a gateway event is received, it is passed the full event string rather than just the data.
      */
     @JvmStatic
-    fun onRawEvent(listener: (rawEvent: String) -> Unit) {
-        rawListeners.add(EventListener { eventData ->
-            listener(eventData)
-        })
-    }
+    fun onRawEvent(listener: EventListener<String>) = rawListeners.add(listener)
 
     /**
      * Listens to a specific gateway event
