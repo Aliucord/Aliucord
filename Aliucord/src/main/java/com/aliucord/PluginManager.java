@@ -166,7 +166,12 @@ public class PluginManager {
     public static void startPlugin(String name) {
         logger.info("Starting plugin: " + name);
         try {
+            long startTime = System.currentTimeMillis();
+
             Objects.requireNonNull(plugins.get(name)).start(Utils.getAppContext());
+
+            logger.info("Started plugin: " + name + " in " + (System.currentTimeMillis() - startTime) + " milliseconds");
+
         } catch (Throwable e) { logger.error("Exception while starting plugin: " + name, e); }
     }
 
