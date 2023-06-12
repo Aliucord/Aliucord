@@ -535,7 +535,8 @@ public class Http {
                 .setHeader("Accept-Language", headersProvider.getAcceptLanguages())
                 .setHeader("Accept", "*/*")
                 .setHeader("Authorization", headersProvider.getAuthToken())
-                .setHeader("X-Discord-Locale", headersProvider.getLocale());
+                .setHeader("X-Discord-Locale", headersProvider.getLocale())
+                .setHeader("X-Discord-Timezone", TimeZone.getDefault().getID());
             return req;
         }
 

@@ -15,6 +15,7 @@ import okhttp3.*
 import rx.Observable
 import java.lang.reflect.Type
 import java.util.Collections
+import java.util.TimeZone
 
 class RNHeadersInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -24,6 +25,7 @@ class RNHeadersInterceptor : Interceptor {
         headersBuilder.a("X-Super-Properties", RNSuperProperties.superPropertiesBase64)
         headersBuilder.d("User-Agent")
         headersBuilder.a("User-Agent", RNSuperProperties.userAgent)
+        headersBuilder.a("X-Discord-Timezone", TimeZone.getDefault().id)
         return chain.a(Request(req.b, req.c, headersBuilder.c(), req.e, req.f))
     }
 }
