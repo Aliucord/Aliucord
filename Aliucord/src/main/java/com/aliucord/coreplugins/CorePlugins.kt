@@ -19,7 +19,8 @@ object CorePlugins {
         SupportWarn(),
         TokenLogin(),
         ButtonsAPI(),
-        UploadSize()
+        UploadSize(),
+        DefaultStickers()
     )
 
     /** Loads all core plugins */
