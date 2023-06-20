@@ -20,7 +20,8 @@ object CorePlugins {
         TokenLogin(),
         ButtonsAPI(),
         UploadSize(),
-        DefaultStickers()
+        DefaultStickers(),
+        PrivateThreads()
     )
 
     /** Loads all core plugins */
