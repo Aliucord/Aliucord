@@ -7,17 +7,28 @@
 package com.aliucord.coreplugins
 
 import android.content.Context
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.aliucord.entities.Plugin
 import com.aliucord.patcher.Hook
 import com.aliucord.patcher.Patcher
 import com.discord.widgets.channels.list.WidgetChannelListModel
 import com.discord.widgets.channels.list.WidgetChannelsList
+import de.robv.android.xposed.XC_MethodHook
 
 internal class PrivateChannelsListScroll : Plugin(Manifest("PrivateChannelsListScroll")) {
+    var unhook: XC_MethodHook.Unhook? = null
+
     override fun load(context: Context?) {
-        Patcher.addPatch(WidgetChannelsList::class.java.getDeclaredMethod("configureUI", WidgetChannelListModel::class.java), Hook {
+        unhook = Patcher.addPatch(WidgetChannelsList::class.java.getDeclaredMethod("configureUI", WidgetChannelListModel::class.java), Hook {
             val model = it.args[0] as WidgetChannelListModel
-            if (!model.isGuildSelected) WidgetChannelsList.`access$getBinding$p`(it.thisObject as WidgetChannelsList).c.scrollToPosition(0)
+            if (!model.isGuildSelected && model.items.size > 1) {
+                val manager = WidgetChannelsList.`access$getBinding$p`(it.thisObject as WidgetChannelsList).c.layoutManager!! as LinearLayoutManager
+                if (manager.findFirstVisibleItemPosition() != 0) {
+                    manager.scrollToPosition(0)
+                    unhook?.unhook()
+                    unhook = null
+                }
+            }
         })
     }
 
