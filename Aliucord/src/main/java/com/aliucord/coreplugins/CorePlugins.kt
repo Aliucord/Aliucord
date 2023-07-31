@@ -21,7 +21,8 @@ object CorePlugins {
         ButtonsAPI(),
         UploadSize(),
         DefaultStickers(),
-        PrivateThreads()
+        PrivateThreads(),
+        PrivateChannelsListScroll()
     )
 
     /** Loads all core plugins */
