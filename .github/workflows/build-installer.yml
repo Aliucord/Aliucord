@@ -24,9 +24,9 @@ jobs:
         path: src
 
     - name: Setup Flutter
-      uses: subosito/flutter-action@d8687e6979e8ef66d2b2970e2c92c1d8e801d7bf # v2.4.0
+      uses: subosito/flutter-action@48cafc24713cca54bbe03cdc3a423187d413aafa # v2.10.0
       with:
-        flutter-version: '3.0.0'
+        flutter-version: '3.10.6'
 
     - name: Build Installer
       run: |
@@ -36,11 +36,11 @@ jobs:
         echo "keyPassword: ${{ secrets.keyPassword }}" >> android/key.properties
         echo "keyAlias: Installer" >> android/key.properties
         echo "storeFile: ../../../../keystore.jks" >> android/key.properties
-        
+
         versionName="${{ github.event.inputs.version }}"
         versionCode="${versionName//./}"
         flutter build apk --build-number "$versionCode" --build-name "$versionName"
-        
+
         mv build/app/outputs/flutter-apk/app-release.apk ../../Installer-release.apk
         rm ../../keystore.jks
         rm android/key.properties

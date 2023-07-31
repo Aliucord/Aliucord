@@ -8,21 +8,21 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=2.19.0 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
 
-  android_intent: ^2.0.2
-  collection: ^1.16.0
-  dio: ^4.0.6
-  filesystem_picker: ^2.0.0
-  path_provider: ^2.0.10
-  shared_preferences: ^2.0.15
+  android_intent_plus: ^4.0.1
+  collection: ^1.17.1
+  dio: ^5.3.1
+  filesystem_picker: ^3.1.0
+  path_provider: ^2.0.15
+  shared_preferences: ^2.2.0
 
 dev_dependencies:
-  flutter_lints: ^2.0.1
+  flutter_lints: ^2.0.2
 
 # The following section is specific to Flutter.
 flutter:
