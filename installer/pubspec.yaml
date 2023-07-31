@@ -20,6 +20,7 @@ dependencies:
   filesystem_picker: ^3.1.0
   path_provider: ^2.0.15
   shared_preferences: ^2.2.0
+  dynamic_color: ^1.6.6
 
 dev_dependencies:
   flutter_lints: ^2.0.2

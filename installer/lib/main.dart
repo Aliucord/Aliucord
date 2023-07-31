@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dynamic_color/dynamic_color.dart';
 
 import 'github.dart';
 import 'pages/home.dart';
@@ -37,14 +38,17 @@ class _AppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     if (!_initialized) return const SizedBox.shrink();
-    return MaterialApp(
-      title: 'Aliucord Installer',
-      theme: Themes.lightTheme,
-      darkTheme: Themes.darkTheme,
-      themeMode: themeManager.currentTheme(),
-      home: const HomePage(),
-      navigatorKey: navigatorKey,
-    );
+    return DynamicColorBuilder(
+      builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
+        return MaterialApp(
+          title: 'Aliucord Installer',
+          theme: themeManager.applyMonet(Themes.lightTheme, lightDynamic),
+          darkTheme: themeManager.applyMonet(Themes.darkTheme, darkDynamic),
+          themeMode: themeManager.currentTheme(),
+          home: const HomePage(),
+          navigatorKey: navigatorKey,
+        );
+    });
   }
 
   @override
