@@ -19,9 +19,9 @@ class Themes {
     primaryColorLight: primaryColorLight,
     primaryColorDark: primaryColorDark,
     primaryTextTheme: const TextTheme(
-      headline6: TextStyle(color: Colors.white),
+      titleLarge: TextStyle(color: Colors.white),
     ),
-    toggleableActiveColor: primaryColor, colorScheme: const ColorScheme.light(primary: primaryColor, primaryVariant: primaryColorDark, onPrimary: Colors.white).copyWith(secondary: primaryColor),
+    colorScheme: const ColorScheme.light(primary: primaryColor, primaryContainer: primaryColorDark, onPrimary: Colors.white).copyWith(secondary: primaryColor),
     useMaterial3: true,
   );
   static final darkTheme = ThemeData(
@@ -32,9 +32,9 @@ class Themes {
     primaryColorLight: primaryColorLight,
     primaryColorDark: primaryColorDark,
     primaryTextTheme: const TextTheme(
-      headline6: TextStyle(color: Colors.white),
+      titleLarge: TextStyle(color: Colors.white),
     ),
-    toggleableActiveColor: primaryColor, colorScheme: const ColorScheme.dark(primary: primaryColor, primaryVariant: primaryColorDark, secondary: primaryColor, onPrimary: Colors.white).copyWith(secondary: primaryColor),
+    colorScheme: const ColorScheme.dark(primary: primaryColor, primaryContainer: primaryColorDark, secondary: primaryColor, onPrimary: Colors.white).copyWith(secondary: primaryColor),
     useMaterial3: true,
   );
 }

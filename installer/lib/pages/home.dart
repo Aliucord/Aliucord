@@ -19,7 +19,7 @@ class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
@@ -40,7 +40,7 @@ class _HomePageState extends State<HomePage> {
         _supportedVersion = json['versionCode'];
         _supportedVersionName = json['versionName'];
       });
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to get data from github:\n${e.error}')));
     }
   }
@@ -63,11 +63,11 @@ class _HomePageState extends State<HomePage> {
           Text(
             'You need to grant storage permission to use this app.',
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headline6
+            style: Theme.of(context).textTheme.titleLarge
           ),
           Padding(padding: const EdgeInsets.only(top: 10), child: ElevatedButton(
-            child: const Text('Grant permission'),
             onPressed: _checkPermissions,
+            child: const Text('Grant permission'),
           )),
       ])),
     );
@@ -86,7 +86,7 @@ class _HomePageState extends State<HomePage> {
           PopupMenuButton<int>(
             onSelected: (action) => Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsPage())),
             itemBuilder: (context) => [
-              const PopupMenuItem(child: Text('Settings'), value: 0),
+              const PopupMenuItem(value: 0, child: Text('Settings')),
             ],
           ),
         ],
@@ -100,18 +100,18 @@ class _HomePageState extends State<HomePage> {
         Card(child: ListTile(
           title: const Text('Aliucord'),
           subtitle: RichText(text: TextSpan(
-            style: Theme.of(context).textTheme.bodyText2,
+            style: Theme.of(context).textTheme.bodyMedium,
             text: 'Supported version: ',
             children: _supportedVersionName == null ? null : [
               TextSpan(text: _supportedVersionName, style: const TextStyle(fontWeight: FontWeight.bold))
             ],
           )),
           trailing: TextButton(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: const [ Icon(Icons.archive_outlined), Text(' Install') ],
-            ),
             onPressed: _commit == null ? null : () => initInstall(context, _commit!, _supportedVersion!),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [ Icon(Icons.archive_outlined), Text(' Install') ],
+            ),
           ),
         )),
         Flexible(child: CommitsWidget(selectCommit: _selectCommit)),
@@ -142,9 +142,9 @@ class _HomePageState extends State<HomePage> {
           content: const Text('Aliucord is installed, but the keystore is missing. This likely means you deleted "ks.keystore" in the Aliucord folder. As a consequence, you can not update Aliucord directly and must instead first uninstall the old Aliucord.'),
           actions: [
             TextButton(
-              child: Row(
+              child: const Row(
                 mainAxisSize: MainAxisSize.min,
-                children: const [ Icon(Icons.delete_outlined), Text(' Uninstall') ],
+                children: [ Icon(Icons.delete_outlined), Text(' Uninstall') ],
               ),
               onPressed: () async => await uninstallAliucord(),
             ),

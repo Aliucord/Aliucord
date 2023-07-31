@@ -55,9 +55,9 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
             trailing: DropdownButton(
               value: _theme,
               items: const [
-                DropdownMenuItem(child: Padding(padding: EdgeInsets.only(right: 70), child: Text('System')), value: 0),
-                DropdownMenuItem(child: Text('Light'), value: 1),
-                DropdownMenuItem(child: Text('Dark'), value: 2),
+                DropdownMenuItem(value: 0, child: Padding(padding: EdgeInsets.only(right: 70), child: Text('System'))),
+                DropdownMenuItem(value: 1, child: Text('Light')),
+                DropdownMenuItem(value: 2, child: Text('Dark')),
               ],
               onChanged: (newValue) {
                 themeManager.switchTheme(newValue as int);
@@ -81,7 +81,6 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             child: ElevatedButton(
-              child: const Text('Clear files cache (Injector.dex and patched manifest)', textAlign: TextAlign.center),
               onPressed: () async {
                 final files = (await getApplicationSupportDirectory()).listSync();
                 for (final file in files) {
@@ -92,6 +91,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.all(7),
               ),
+              child: const Text('Clear files cache (Injector.dex and patched manifest)', textAlign: TextAlign.center),
             ),
           ),
         ],

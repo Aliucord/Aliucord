@@ -58,7 +58,7 @@ class _CommitsWidgetState extends State<CommitsWidget> {
     )) : Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(padding: const EdgeInsets.all(15), child: Text('Commits', style: Theme.of(context).textTheme.subtitle1)),
+        Padding(padding: const EdgeInsets.all(15), child: Text('Commits', style: Theme.of(context).textTheme.titleMedium)),
         Flexible(child: Scrollbar(child: ListView.separated(
           itemBuilder: _buildCommit,
           separatorBuilder: (context, i) => const Divider(),

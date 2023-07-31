@@ -34,7 +34,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
 
   void _update() async {
     setState(() => _updating = true);
-    final outPath = storageRoot.path + '/Aliucord/Installer.apk';
+    final outPath = '${storageRoot.path}/Aliucord/Installer.apk';
     try {
       await dio.download(
         widget.downloadUrl,
@@ -50,25 +50,25 @@ class _UpdateDialogState extends State<UpdateDialog> {
 
   @override
   Widget build(BuildContext context) => _updating ? AlertDialog(
-    title: Text('Updating.. ' + (_progress == null ? '' : (_progress! * 100).round().toString() + '%')),
+    title: Text('Updating.. ${_progress == null ? '' : '${(_progress! * 100).round()}%'}'),
     content: LinearProgressIndicator(value: _progress),
   ) : AlertDialog(
     title: const Text('Update available'),
     content: Text('A new version is available: ${widget.newVersion} ${widget.message}\ncurrent version: ${widget.currentVersion}'),
     actions: [
       TextButton(
-        child: Row(children: const [
+        onPressed: _dismiss,
+        child: const Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.cancel_outlined),
           Text(' Cancel'),
-        ], mainAxisSize: MainAxisSize.min),
-        onPressed: _dismiss,
+        ]),
       ),
       TextButton(
-        child: Row(children: const [
+        onPressed: _update,
+        child: const Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.file_download),
           Text(' Update'),
-        ], mainAxisSize: MainAxisSize.min),
-        onPressed: _update,
+        ]),
       ),
     ],
   );

@@ -36,19 +36,12 @@ class _InitInstallDialogState extends State<_InitInstallDialog> {
     _fetchingInstalled = true;
     final discordApps = await getInstalledDiscordApps();
     _fetchingInstalled = false;
+    // ignore: use_build_context_synchronously
     showDialog(context: context, builder: (context) => AlertDialog(
       title: const Text('Select apk from installed app'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: discordApps.map((app) => TextButton(
-          child: ListTile(
-            leading: app.icon == null ? null : Image.memory(app.icon!),
-            title: Text('${app.name!} (${app.packageName})'),
-            subtitle: Text(
-              '(ver. ${app.versionName} (${app.versionCode}))',
-              style: TextStyle(color: isVersionSupported(app.versionCode, widget.supportedVersion) ? Colors.green : Colors.red)
-            ),
-          ),
           onPressed: () {
             Navigator.of(context, rootNavigator: true).pop();
             setState(() {
@@ -59,6 +52,14 @@ class _InitInstallDialogState extends State<_InitInstallDialog> {
             });
           },
           style: TextButton.styleFrom(padding: EdgeInsets.zero),
+          child: ListTile(
+            leading: app.icon == null ? null : Image.memory(app.icon!),
+            title: Text('${app.name!} (${app.packageName})'),
+            subtitle: Text(
+              '(ver. ${app.versionName} (${app.versionCode}))',
+              style: TextStyle(color: isVersionSupported(app.versionCode, widget.supportedVersion) ? Colors.green : Colors.red)
+            ),
+          ),
         )).toList(),
       ),
       contentPadding: const EdgeInsets.symmetric(vertical: 10),
@@ -84,7 +85,7 @@ class _InitInstallDialogState extends State<_InitInstallDialog> {
     if (prefs.getBool('developer_mode') ?? false) {
       children.add(
           RadioListTile(
-            title: Text('From installed app ' + (_package == null ? '' : '($_package)')),
+            title: Text('From installed app ${_package == null ? '' : '($_package)'}'),
             value: _InstallOption.installedApp,
             groupValue: _option,
             onChanged: _selectFromInstalledApp,
@@ -92,9 +93,9 @@ class _InitInstallDialogState extends State<_InitInstallDialog> {
       );
       children.add(
           RadioListTile(
-            title: Text('From storage ' + (_package == null && _apk != null
+            title: Text('From storage ${_package == null && _apk != null
               ? '(${_apk!.split('/').last})'
-              : '')),
+              : ''}'),
             value: _InstallOption.storage,
             groupValue: _option,
             onChanged: (_InstallOption? value) async {
@@ -117,9 +118,9 @@ class _InitInstallDialogState extends State<_InitInstallDialog> {
       content: Column(mainAxisSize: MainAxisSize.min, children: children),
       actions: [
         TextButton(
-          child: Row(
+          child: const Row(
             mainAxisSize: MainAxisSize.min,
-            children: const [ Icon(Icons.archive_outlined), Text(' Install') ],
+            children: [ Icon(Icons.archive_outlined), Text(' Install') ],
           ),
           onPressed: () => Navigator.pushAndRemoveUntil(
             context, MaterialPageRoute(builder: (context) => InstallPage(apk: _apk, commit: widget.commit, download: _download, supportedVersion: widget.supportedVersion)), (r) => false),

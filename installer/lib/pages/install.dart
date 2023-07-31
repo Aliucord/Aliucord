@@ -52,7 +52,7 @@ class _InstallPageState extends State<InstallPage> {
         _logs += 'Done\n';
       });
       _install(apk);
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       _onFailed();
       setState(() =>
         _logs += '\nAn exception occurred while downloading Discord. Please try again. If this error persists, try a different network.\n${e.error}\n'
@@ -68,7 +68,7 @@ class _InstallPageState extends State<InstallPage> {
       final dexFile = File(prefs.getString('dex_location') ?? defaultDexLocation);
       if (await dexFile.exists()) {
         await dexFile.copy(aliucordDex);
-        final manifestFile = File(storageRoot.path + '/Aliucord/AndroidManifest.xml');
+        final manifestFile = File('${storageRoot.path}/Aliucord/AndroidManifest.xml');
         if (await manifestFile.exists()) {
           await manifestFile.copy('$cache/AndroidManifest.xml');
           downloadManifest = false;
@@ -87,7 +87,7 @@ class _InstallPageState extends State<InstallPage> {
     try {
       await patchApk(apk, prefs.getBool('replace_bg') ?? true);
       await signApk();
-      installApk(storageRoot.path + '/Aliucord/Aliucord.apk');
+      installApk('${storageRoot.path}/Aliucord/Aliucord.apk');
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage()));
     } on PlatformException catch (e) {
       _onFailed();
@@ -145,7 +145,7 @@ class _InstallPageState extends State<InstallPage> {
     if (widget.download) {
       _logs += 'Checking cached apk..\n';
       getTemporaryDirectory().then((cache) async {
-        final cachedApk = cache.path + '/discord.apk';
+        final cachedApk = '${cache.path}/discord.apk';
         if (!await File(cachedApk).exists()) return _downloadDiscord(cachedApk);
         final info = await getApkInfo(cachedApk);
         if (info == null || !isVersionSupported(info.versionCode, widget.supportedVersion)) {

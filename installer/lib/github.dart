@@ -90,7 +90,7 @@ class GithubAPI with ChangeNotifier {
         _commitsCache[commitsUri] = commits;
         return commits;
       }
-    } on DioError {
+    } on DioException {
       // nop
     }
     return [];
@@ -100,7 +100,7 @@ class GithubAPI with ChangeNotifier {
     try {
       final res = await dio.getUri(Uri.https(_apiHost, '$_commitsEndpoint/$commit'));
       if (res.data is Map<String, dynamic>) return Commit.fromJson(res.data);
-    } on DioError {
+    } on DioException {
       // nop
     }
     return null;
@@ -110,7 +110,7 @@ class GithubAPI with ChangeNotifier {
     try {
       final res = await dio.getUri(Uri.https(_apiHost, _latestReleaseEndpoint));
       if (res.data is Map<String, dynamic>) return Release.fromJson(res.data);
-    } on DioError {
+    } on DioException {
       // nop
     }
     return null;
