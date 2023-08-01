@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2021 Juby210 & Vendicated
+ * This file is part of Aliucord, an Android Discord client mod.
+ * Copyright (c) 2023 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
 
@@ -41,7 +42,7 @@ class _HomePageState extends State<HomePage> {
         _supportedVersionName = json['versionName'];
       });
     } on DioException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to get data from github:\n${e.error}')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to get data from github:\n$e')));
     }
   }
 

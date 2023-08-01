@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2021 Juby210 & Vendicated
+ * This file is part of Aliucord, an Android Discord client mod.
+ * Copyright (c) 2023 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
 
@@ -55,7 +56,7 @@ class _InstallPageState extends State<InstallPage> {
     } on DioException catch (e) {
       _onFailed();
       setState(() =>
-        _logs += '\nAn exception occurred while downloading Discord. Please try again. If this error persists, try a different network.\n${e.error}\n'
+        _logs += '\nAn exception occurred while downloading Discord. Please try again. If this error persists, try a different network.\n$e\n'
       );
     }
   }
@@ -88,6 +89,7 @@ class _InstallPageState extends State<InstallPage> {
       await patchApk(apk, prefs.getBool('replace_bg') ?? true);
       await signApk();
       installApk('${storageRoot.path}/Aliucord/Aliucord.apk');
+      // ignore: use_build_context_synchronously
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage()));
     } on PlatformException catch (e) {
       _onFailed();
@@ -106,9 +108,9 @@ class _InstallPageState extends State<InstallPage> {
         _logs += 'Done\n';
       });
       return true;
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       _onFailed();
-      setState(() => _logs += '${e.error}\n');
+      setState(() => _logs += '$e\n');
     }
     return false;
   }
@@ -127,9 +129,9 @@ class _InstallPageState extends State<InstallPage> {
         _logs += 'Done\n';
       });
       return true;
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       _onFailed();
-      setState(() => _logs += '${e.error}\n');
+      setState(() => _logs += '$e\n');
     }
     return false;
   }

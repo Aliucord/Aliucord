@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2021 Juby210 & Vendicated
+ * This file is part of Aliucord, an Android Discord client mod.
+ * Copyright (c) 2023 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
 
@@ -42,8 +43,8 @@ class _UpdateDialogState extends State<UpdateDialog> {
         onReceiveProgress: (count, total) => setState(() => _progress = count / total),
       );
       installApk(outPath);
-    } on DioError catch (e) {
-      toast('Update failed: ${e.error}');
+    } on DioException catch (e) {
+      toast('Update failed: $e');
     }
     _dismiss();
   }

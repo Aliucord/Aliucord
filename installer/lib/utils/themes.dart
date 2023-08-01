@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2021 Juby210 & Vendicated
+ * This file is part of Aliucord, an Android Discord client mod.
+ * Copyright (c) 2023 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
 
@@ -21,20 +22,19 @@ class Themes {
     primaryTextTheme: const TextTheme(
       titleLarge: TextStyle(color: Colors.white),
     ),
-    colorScheme: const ColorScheme.light(primary: primaryColor, primaryContainer: primaryColorDark, onPrimary: Colors.white).copyWith(secondary: primaryColor),
+    colorScheme: const ColorScheme.light(primary: primaryColor, primaryContainer: primaryColorDark, secondary: primaryColor, onPrimary: Colors.white),
     useMaterial3: true,
   );
   static final darkTheme = ThemeData(
     appBarTheme: const AppBarTheme(systemOverlayStyle: SystemUiOverlayStyle.light, iconTheme: IconThemeData(color: Colors.white)),
     brightness: Brightness.dark,
-    checkboxTheme: CheckboxThemeData(fillColor: MaterialStateProperty.resolveWith((states) => primaryColor)),
     primaryColor: primaryColor,
     primaryColorLight: primaryColorLight,
     primaryColorDark: primaryColorDark,
     primaryTextTheme: const TextTheme(
       titleLarge: TextStyle(color: Colors.white),
     ),
-    colorScheme: const ColorScheme.dark(primary: primaryColor, primaryContainer: primaryColorDark, secondary: primaryColor, onPrimary: Colors.white).copyWith(secondary: primaryColor),
+    colorScheme: const ColorScheme.dark(primary: primaryColor, primaryContainer: primaryColorDark, secondary: primaryColor, onPrimary: Colors.white),
     useMaterial3: true,
   );
 }

@@ -7,9 +7,7 @@ package com.aliucord.installer;
 
 import android.Manifest;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
+import android.content.pm.*;
 import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.*;
@@ -147,16 +145,20 @@ public final class MainActivity extends FlutterActivity {
                             zip.close();
 
                             zip = new Zip(outApk, 6, 'a');
-                            if (!patched) {
-                                for (int i = 1; i <= 3; i++) zip.deleteEntry("classes" + (i == 1 ? "" : i) + ".dex");
-                            } else {
+                            if (patched) {
                                 zip.deleteEntry("classes.dex");
                                 zip.deleteEntry("classes5.dex");
                                 zip.deleteEntry("classes6.dex");
+
+                                for (String arch : new String[] { "arm64-v8a", "armeabi-v7a", "x86", "x86_64" }) {
+                                    for (String file : new String[] { "/libaliuhook.so", "/liblsplant.so", "/libc++_shared.so" }) {
+                                        zip.deleteEntry("lib/" + arch + file);
+                                    }
+                                }
+                            } else {
+                                for (int i = 1; i <= 3; i++) zip.deleteEntry("classes" + (i == 1 ? "" : i) + ".dex");
                             }
                             zip.deleteEntry("AndroidManifest.xml");
-                            zip.deleteEntry("lib/arm64-v8a/libpine.so");
-                            zip.deleteEntry("lib/armeabi-v7a/libpine.so");
 
                             if (!patched) for (int i = 2; i <= 4; i++) {
                                 String name = "classes" + i + ".dex";
@@ -194,7 +196,7 @@ public final class MainActivity extends FlutterActivity {
                             handler.post(() -> result.success(null));
                         } catch (Throwable e) {
                             Log.e("Aliucord Installer", null, e);
-                            handler.post(() -> result.error("patchApk", e.getMessage(), Utils.stackTraceToString(e.getStackTrace())));
+                            handler.post(() -> result.error("patchApk", e.toString(), Utils.stackTraceToString(e.getStackTrace())));
                         }
                     }).start();
                     break;
@@ -206,7 +208,7 @@ public final class MainActivity extends FlutterActivity {
                             handler.post(() -> result.success(null));
                         } catch (Throwable e) {
                             Log.e("Aliucord Installer", null, e);
-                            handler.post(() -> result.error("signApk", e.getMessage(), Utils.stackTraceToString(e.getStackTrace())));
+                            handler.post(() -> result.error("signApk", e.toString(), Utils.stackTraceToString(e.getStackTrace())));
                         }
                     }).start();
                     break;
@@ -223,7 +225,7 @@ public final class MainActivity extends FlutterActivity {
                         startActivity(intent);
                         result.success(null);
                     } catch (Throwable e) {
-                        result.error("installApk", e.getMessage(), Utils.stackTraceToString(e.getStackTrace()));
+                        result.error("installApk", e.toString(), Utils.stackTraceToString(e.getStackTrace()));
                     }
                     break;
                 case "checkKeystoreDeleted":
