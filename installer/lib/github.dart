@@ -22,7 +22,7 @@ class Commit {
     : htmlUrl = json['html_url'],
       sha = json['sha'],
       commit = CommitCommit(json['commit']['message']),
-      author = json['author']['login'];
+      author = json['author'] == null ? json['commit']['author']['name'] : json['author']['login'];
 }
 
 class CommitCommit {
