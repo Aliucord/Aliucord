@@ -17,6 +17,7 @@ Aliucord is a modification for the Android Discord app
 </p>
 
 ## ⚠️ Important Information
+PLEASE NOTE THAT this is a MODIFICATION of the Discord APP and this is AGAINST THE DISCORD TOS. Use it at your own risk. 
 
 ### Supported Android Versions
 
