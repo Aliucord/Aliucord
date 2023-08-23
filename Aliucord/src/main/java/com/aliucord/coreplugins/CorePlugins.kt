@@ -22,7 +22,8 @@ object CorePlugins {
         UploadSize(),
         DefaultStickers(),
         PrivateThreads(),
-        PrivateChannelsListScroll()
+        PrivateChannelsListScroll(),
+        MembersListFix()
     )
 
     /** Loads all core plugins */
