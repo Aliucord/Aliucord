@@ -7,4 +7,4 @@
 package com.aliucord.api.rn.user
 
 @Suppress("unused")
-class UserProfileData(val accentColor: Int?, val banner: String?, val bio: String?, val guildId: Long?, val themeColors: IntArray?)
+class UserProfileData(val accentColor: Int?, val banner: String?, val bio: String?, val guildId: Long?, val pronouns: String, val themeColors: IntArray?)

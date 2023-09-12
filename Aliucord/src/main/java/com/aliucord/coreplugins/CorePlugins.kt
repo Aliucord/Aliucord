@@ -23,7 +23,8 @@ object CorePlugins {
         DefaultStickers(),
         PrivateThreads(),
         PrivateChannelsListScroll(),
-        MembersListFix()
+        MembersListFix(),
+        Pronouns(),
     )
 
     /** Loads all core plugins */
