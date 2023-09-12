@@ -27,7 +27,9 @@ internal class Pronouns : Plugin(Manifest("Pronouns")) {
             val view = it.thisObject as UserProfileHeaderView
 
             val profile = state.userProfile as? RNUserProfile ?: return@after
-            val pronouns = profile.userProfile?.pronouns?.ifEmpty { null } ?: return@after
+            val pronouns = profile.guildMemberProfile?.pronouns?.ifEmpty { null }
+                ?: profile.userProfile?.pronouns?.ifEmpty { null }
+                ?: return@after
 
             if (view.id == sheetProfileHeaderViewId) {
                 val secondaryNameView = view.findViewById<SimpleDraweeSpanTextView>(userProfileHeaderSecondaryNameViewId)
