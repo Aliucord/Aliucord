@@ -15,7 +15,9 @@ import com.discord.utilities.embed.EmbedResourceUtils
 internal class GifPreviewFix : Plugin(Manifest("GifPreviewFix")) {
     override fun load(context: Context) {
         patcher.after<EmbedResourceUtils>("getPreviewUrls", String::class.java, Int::class.java, Int::class.java, Boolean::class.java) {
-            // return List<String>
+            // it.args[3] is a boolean that indicates
+            // if the gif should be animated (for example no autoplay setting)
+            if (!(it.args[3] as Boolean)) return@after
             var result = (it.result as List<String>).toMutableList()
 
             val uri = Uri.parse(result[0])
