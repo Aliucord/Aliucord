@@ -25,6 +25,7 @@ object CorePlugins {
         PrivateChannelsListScroll(),
         MembersListFix(),
         Pronouns(),
+        GifPreviewFix()
     )
 
     /** Loads all core plugins */
