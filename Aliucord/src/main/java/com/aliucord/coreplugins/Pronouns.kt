@@ -14,6 +14,7 @@ import com.aliucord.patcher.after
 import com.discord.utilities.view.text.SimpleDraweeSpanTextView
 import com.discord.widgets.user.profile.UserProfileHeaderView
 import com.discord.widgets.user.profile.UserProfileHeaderViewModel
+import com.lytefast.flexinput.R
 
 val sheetProfileHeaderViewId = Utils.getResId("user_sheet_profile_header_view", "id")
 val userProfileHeaderSecondaryNameViewId = Utils.getResId("user_profile_header_secondary_name", "id")
@@ -23,6 +24,7 @@ val pronounsViewId = View.generateViewId()
 internal class Pronouns : Plugin(Manifest("Pronouns")) {
     override fun load(context: Context) {
         patcher.after<UserProfileHeaderView>("configureSecondaryName", UserProfileHeaderViewModel.ViewState.Loaded::class.java) {
+            if (id != sheetProfileHeaderViewId) return@after
             val state = it.args[0] as? UserProfileHeaderViewModel.ViewState.Loaded ?: return@after
 
             val profile = state.userProfile as? RNUserProfile ?: return@after
@@ -30,19 +32,17 @@ internal class Pronouns : Plugin(Manifest("Pronouns")) {
                 ?: profile.userProfile?.pronouns?.ifEmpty { null }
                 ?: return@after
 
-            if (id == sheetProfileHeaderViewId) {
-                val secondaryNameView = findViewById<SimpleDraweeSpanTextView>(userProfileHeaderSecondaryNameViewId)
-                val layout = secondaryNameView.parent as LinearLayout
+            val secondaryNameView = findViewById<SimpleDraweeSpanTextView>(userProfileHeaderSecondaryNameViewId)
+            val layout = secondaryNameView.parent as LinearLayout
 
-                layout.findViewById(pronounsViewId) ?: TextView(layout.context, null, 0, com.lytefast.flexinput.R.i.UiKit_TextView_Semibold).apply {
-                    id = pronounsViewId
-                    typeface = ResourcesCompat.getFont(layout.context, Constants.Fonts.whitney_semibold)
-                    setTextColor(secondaryNameView.currentTextColor)
-                    setTextSize(TypedValue.COMPLEX_UNIT_PX, secondaryNameView.textSize)
-                    text = pronouns
+            layout.findViewById(pronounsViewId) ?: TextView(layout.context, null, 0, R.i.UiKit_TextView_Semibold).apply {
+                id = pronounsViewId
+                typeface = ResourcesCompat.getFont(layout.context, Constants.Fonts.whitney_semibold)
+                setTextColor(secondaryNameView.currentTextColor)
+                setTextSize(TypedValue.COMPLEX_UNIT_PX, secondaryNameView.textSize)
+                text = pronouns
 
-                    layout.addView(this, layout.indexOfChild(secondaryNameView) + 1)
-                }
+                layout.addView(this, layout.indexOfChild(secondaryNameView) + 1)
             }
         }
     }
