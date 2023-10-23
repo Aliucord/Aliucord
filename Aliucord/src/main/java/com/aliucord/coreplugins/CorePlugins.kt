@@ -24,6 +24,7 @@ object CorePlugins {
         PrivateThreads(),
         PrivateChannelsListScroll(),
         MembersListFix(),
+        Pronouns(),
         GifPreviewFix()
     )
 

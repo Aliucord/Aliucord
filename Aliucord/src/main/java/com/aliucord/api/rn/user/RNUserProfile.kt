@@ -11,5 +11,5 @@ import com.discord.api.user.UserProfile
 @Suppress("unused")
 class RNUserProfile(
     val guildMemberProfile: UserProfileData?,
-    val userProfile: UserProfileData
+    val userProfile: UserProfileData?
 ) : UserProfile()
