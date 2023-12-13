@@ -31,15 +31,22 @@ import com.aliucord.patcher.*;
 import com.aliucord.settings.*;
 import com.aliucord.updater.PluginUpdater;
 import com.aliucord.utils.ChangelogUtils;
+import com.aliucord.utils.ReflectUtils;
 import com.aliucord.views.Divider;
 import com.aliucord.views.ToolbarButton;
+import com.aliucord.wrappers.embeds.MessageEmbedWrapper;
+import com.discord.api.message.embed.EmbedField;
 import com.discord.app.*;
 import com.discord.databinding.WidgetChangeLogBinding;
 import com.discord.databinding.WidgetDebuggingAdapterItemBinding;
 import com.discord.models.domain.emoji.ModelEmojiUnicode;
 import com.discord.utilities.color.ColorCompat;
+import com.discord.utilities.guildautomod.AutoModUtils;
 import com.discord.widgets.changelog.WidgetChangeLog;
 import com.discord.widgets.chat.list.WidgetChatList;
+import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemAutoModSystemMessageEmbed;
+import com.discord.widgets.chat.list.entries.AutoModSystemMessageEmbedEntry;
+import com.discord.widgets.chat.list.entries.ChatListEntry;
 import com.discord.widgets.debugging.WidgetDebugging;
 import com.discord.widgets.settings.WidgetSettings;
 import com.lytefast.flexinput.R;
@@ -146,6 +153,26 @@ public final class Main {
         // so they stay in package com.discord instead of apk package name
         Patcher.addPatch(ModelEmojiUnicode.class, "getImageUri", new Class<?>[]{ String.class, Context.class },
             new InsteadHook(param -> "res:///" + Utils.getResId("emoji_" + param.args[0], "raw"))
+        );
+
+        // Patch to fix crash when displaying newer AutoMod embed types like "Quarantined a member at username update"
+        Patcher.addPatch(WidgetChatListAdapterItemAutoModSystemMessageEmbed.class, "onConfigure", new Class<?>[]{ int.class, ChatListEntry.class },
+            new PreHook(param -> {
+                try {
+                    var autoModEntry = (AutoModSystemMessageEmbedEntry) param.args[1];
+
+                    // If the channel_id embed field is missing, then just add one set to 0, it'll be displayed as null
+                    if ("".equals(AutoModUtils.INSTANCE.getEmbedFieldValue(autoModEntry.getEmbed(), "channel_id"))) {
+                        var fields = (ArrayList<EmbedField>) new MessageEmbedWrapper(autoModEntry.getEmbed()).getRawFields();
+
+                        var newField = ReflectUtils.allocateInstance(EmbedField.class);
+                        ReflectUtils.setField(newField, "name", "channel_id");
+                        ReflectUtils.setField(newField, "value", "0");
+
+                        fields.add(newField);
+                    }
+                } catch (Throwable e) { logger.error(e); }
+            })
         );
 
         // Patch to allow changelogs without media
