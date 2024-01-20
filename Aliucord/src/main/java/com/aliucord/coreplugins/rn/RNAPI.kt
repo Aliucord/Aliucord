@@ -20,6 +20,7 @@ class RNAPI : Plugin(Manifest("RNAPI")) {
         patchNextCallAdapter()
         patchUser()
         patchUserProfile()
+        patchDefaultAvatars()
     }
 
     override fun start(context: Context?) {}

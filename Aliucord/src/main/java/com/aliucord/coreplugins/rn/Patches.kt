@@ -19,6 +19,7 @@ import com.discord.models.deserialization.gson.InboundGatewayGsonParser
 import com.discord.models.member.GuildMember
 import com.discord.models.user.CoreUser
 import com.discord.models.user.MeUser
+import com.discord.utilities.icon.IconUtils
 import com.discord.utilities.user.UserUtils
 import com.discord.widgets.user.UserNameFormatterKt
 import com.discord.widgets.user.profile.UserProfileHeaderView
@@ -115,6 +116,38 @@ fun patchUser() {
         val user = it.args[0]
         if (user is RNUser && user.globalName != null) it.result = user.globalName
     })
+}
+
+fun patchDefaultAvatars() {
+    Patcher.addPatch(
+        IconUtils::class.java.getDeclaredMethod(
+            "getForUser",
+            Long::class.javaObjectType,
+            String::class.java,
+            Int::class.javaObjectType,
+            Boolean::class.java,
+            Int::class.javaObjectType
+        ),
+        InsteadHook {
+            val id = it.args[0] as Long?
+            val avatar = it.args[1] as String?
+
+            if (avatar != null && id != null) {
+                val animated = it.args[3] as Boolean
+                val size = it.args[4] as Int?
+                val ext = IconUtils.INSTANCE.getImageExtension(avatar, animated)
+
+                "https://cdn.discordapp.com/avatars/$id/$avatar.$ext" +
+                    (size?.let { "?size=${IconUtils.getMediaProxySize(size)}" } ?: "")
+            } else {
+                val discrim = it.args[2] as Int
+
+                "asset://asset/images/default_avatar_" +
+                    (discrim.takeUnless { it == 0 }?.mod(5) ?: (id!! shr 22).mod(6)) +
+                    ".png"
+            }
+        }
+    )
 }
 
 @Suppress("UNCHECKED_CAST")
