@@ -4,9 +4,12 @@
  * Licensed under the Open Software License version 3.0
  */
 
+@file:Suppress("MISSING_DEPENDENCY_SUPERCLASS")
+
 package com.aliucord.coreplugins.rn
 
 import android.content.Context
+import android.view.View
 import com.aliucord.api.rn.user.RNUser
 import com.aliucord.api.rn.user.RNUserProfile
 import com.aliucord.patcher.*
@@ -15,15 +18,20 @@ import com.discord.api.channel.Channel
 import com.discord.api.channel.`ChannelUtils$getDisplayName$1`
 import com.discord.api.user.User
 import com.discord.api.user.UserProfile
+import com.discord.app.AppFragment
 import com.discord.models.deserialization.gson.InboundGatewayGsonParser
 import com.discord.models.member.GuildMember
 import com.discord.models.user.CoreUser
 import com.discord.models.user.MeUser
+import com.discord.utilities.auth.`AuthUtils$createDiscriminatorInputValidator$1`
 import com.discord.utilities.icon.IconUtils
 import com.discord.utilities.user.UserUtils
+import com.discord.widgets.settings.account.WidgetSettingsAccountUsernameEdit
 import com.discord.widgets.user.UserNameFormatterKt
+import com.discord.widgets.user.WidgetUserPasswordVerify
 import com.discord.widgets.user.profile.UserProfileHeaderView
 import com.discord.widgets.user.profile.UserProfileHeaderViewModel
+import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
 import de.robv.android.xposed.XC_MethodHook
@@ -148,6 +156,27 @@ fun patchDefaultAvatars() {
             }
         }
     )
+}
+
+fun patchUsername() {
+    Patcher.addPatch(
+        `AuthUtils$createDiscriminatorInputValidator$1`::class.java.getDeclaredMethod("getErrorMessage", TextInputLayout::class.java),
+        InsteadHook.DO_NOTHING
+    )
+    Patcher.addPatch(WidgetSettingsAccountUsernameEdit::class.java.getDeclaredMethod("configureUI", MeUser::class.java), Hook {
+        val binding = WidgetSettingsAccountUsernameEdit.`access$getBinding$p`(it.thisObject as WidgetSettingsAccountUsernameEdit)
+        val user = it.args[0] as MeUser
+
+        if (user.discriminator == 0) {
+            (binding.b.parent as View).visibility = View.GONE
+        } else {
+            binding.b.isActivated = false
+        }
+    })
+
+    Patcher.addPatch(WidgetUserPasswordVerify::class.java.getDeclaredMethod("updateAccountInfo", String::class.java), PreHook {
+        (it.thisObject as AppFragment).mostRecentIntent.removeExtra("INTENT_EXTRA_DISCRIMINATOR")
+    })
 }
 
 @Suppress("UNCHECKED_CAST")

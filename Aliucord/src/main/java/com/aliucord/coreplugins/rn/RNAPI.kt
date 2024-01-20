@@ -21,6 +21,7 @@ class RNAPI : Plugin(Manifest("RNAPI")) {
         patchUser()
         patchUserProfile()
         patchDefaultAvatars()
+        patchUsername()
     }
 
     override fun start(context: Context?) {}
