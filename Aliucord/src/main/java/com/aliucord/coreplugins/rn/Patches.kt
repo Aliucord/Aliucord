@@ -23,6 +23,7 @@ import com.discord.models.deserialization.gson.InboundGatewayGsonParser
 import com.discord.models.member.GuildMember
 import com.discord.models.user.CoreUser
 import com.discord.models.user.MeUser
+import com.discord.stores.StoreStream
 import com.discord.utilities.auth.`AuthUtils$createDiscriminatorInputValidator$1`
 import com.discord.utilities.icon.IconUtils
 import com.discord.utilities.user.UserUtils
@@ -159,24 +160,21 @@ fun patchDefaultAvatars() {
 }
 
 fun patchUsername() {
-    Patcher.addPatch(
-        `AuthUtils$createDiscriminatorInputValidator$1`::class.java.getDeclaredMethod("getErrorMessage", TextInputLayout::class.java),
-        InsteadHook.DO_NOTHING
-    )
-    Patcher.addPatch(WidgetSettingsAccountUsernameEdit::class.java.getDeclaredMethod("configureUI", MeUser::class.java), Hook {
-        val binding = WidgetSettingsAccountUsernameEdit.`access$getBinding$p`(it.thisObject as WidgetSettingsAccountUsernameEdit)
-        val user = it.args[0] as MeUser
+    if (StoreStream.getUsers().me.discriminator == 0) {
+        Patcher.addPatch(
+            `AuthUtils$createDiscriminatorInputValidator$1`::class.java.getDeclaredMethod("getErrorMessage", TextInputLayout::class.java),
+            InsteadHook.DO_NOTHING
+        )
+        Patcher.addPatch(WidgetSettingsAccountUsernameEdit::class.java.getDeclaredMethod("configureUI", MeUser::class.java), Hook {
+            val binding = WidgetSettingsAccountUsernameEdit.`access$getBinding$p`(it.thisObject as WidgetSettingsAccountUsernameEdit)
 
-        if (user.discriminator == 0) {
             (binding.b.parent as View).visibility = View.GONE
-        } else {
-            binding.b.isActivated = false
-        }
-    })
+        })
 
-    Patcher.addPatch(WidgetUserPasswordVerify::class.java.getDeclaredMethod("updateAccountInfo", String::class.java), PreHook {
-        (it.thisObject as AppFragment).mostRecentIntent.removeExtra("INTENT_EXTRA_DISCRIMINATOR")
-    })
+        Patcher.addPatch(WidgetUserPasswordVerify::class.java.getDeclaredMethod("updateAccountInfo", String::class.java), PreHook {
+            (it.thisObject as AppFragment).mostRecentIntent.removeExtra("INTENT_EXTRA_DISCRIMINATOR")
+        })
+    }
 }
 
 @Suppress("UNCHECKED_CAST")
