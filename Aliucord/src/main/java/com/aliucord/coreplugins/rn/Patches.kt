@@ -4,8 +4,6 @@
  * Licensed under the Open Software License version 3.0
  */
 
-@file:Suppress("MISSING_DEPENDENCY_SUPERCLASS")
-
 package com.aliucord.coreplugins.rn
 
 import android.content.Context
@@ -160,21 +158,21 @@ fun patchDefaultAvatars() {
 }
 
 fun patchUsername() {
-    if (StoreStream.getUsers().me.discriminator == 0) {
-        Patcher.addPatch(
-            `AuthUtils$createDiscriminatorInputValidator$1`::class.java.getDeclaredMethod("getErrorMessage", TextInputLayout::class.java),
-            InsteadHook.DO_NOTHING
-        )
-        Patcher.addPatch(WidgetSettingsAccountUsernameEdit::class.java.getDeclaredMethod("configureUI", MeUser::class.java), Hook {
-            val binding = WidgetSettingsAccountUsernameEdit.`access$getBinding$p`(it.thisObject as WidgetSettingsAccountUsernameEdit)
+    if (StoreStream.getUsers().me.discriminator != 0) return
 
-            (binding.b.parent as View).visibility = View.GONE
-        })
+    Patcher.addPatch(
+        `AuthUtils$createDiscriminatorInputValidator$1`::class.java.getDeclaredMethod("getErrorMessage", TextInputLayout::class.java),
+        InsteadHook.DO_NOTHING
+    )
+    Patcher.addPatch(WidgetSettingsAccountUsernameEdit::class.java.getDeclaredMethod("configureUI", MeUser::class.java), Hook {
+        val binding = WidgetSettingsAccountUsernameEdit.`access$getBinding$p`(it.thisObject as WidgetSettingsAccountUsernameEdit)
 
-        Patcher.addPatch(WidgetUserPasswordVerify::class.java.getDeclaredMethod("updateAccountInfo", String::class.java), PreHook {
-            (it.thisObject as AppFragment).mostRecentIntent.removeExtra("INTENT_EXTRA_DISCRIMINATOR")
-        })
-    }
+        (binding.b.parent as View).visibility = View.GONE
+    })
+
+    Patcher.addPatch(WidgetUserPasswordVerify::class.java.getDeclaredMethod("updateAccountInfo", String::class.java), PreHook {
+        (it.thisObject as AppFragment).mostRecentIntent.removeExtra("INTENT_EXTRA_DISCRIMINATOR")
+    })
 }
 
 @Suppress("UNCHECKED_CAST")
