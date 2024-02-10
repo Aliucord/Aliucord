@@ -14,6 +14,8 @@ import com.aliucord.patcher.*
 import com.aliucord.utils.RNSuperProperties
 import com.discord.api.channel.Channel
 import com.discord.api.channel.`ChannelUtils$getDisplayName$1`
+import com.discord.api.sticker.Sticker
+import com.discord.api.sticker.StickerFormatType
 import com.discord.api.user.User
 import com.discord.api.user.UserProfile
 import com.discord.app.AppFragment
@@ -190,5 +192,16 @@ fun patchUserProfile() {
     /** discord doesn't check in [com.discord.widgets.user.WidgetUserMutualGuilds.Model] if mutualGuilds list is null */
     Patcher.addPatch(UserProfile::class.java.getDeclaredMethod("d"), Hook {
         if (it.result == null) it.result = Collections.EMPTY_LIST
+    })
+}
+
+fun patchStickers() {
+    Patcher.addPatch(Sticker::class.java.getDeclaredMethod("a"), Hook {
+        if (it.result == StickerFormatType.UNKNOWN) it.result = StickerFormatType.PNG
+    })
+
+    val formatType = Sticker::class.java.getDeclaredField("formatType").apply { isAccessible = true }
+    Patcher.addPatch(Sticker::class.java.getDeclaredMethod("b"), PreHook {
+        if (formatType[it.thisObject] == StickerFormatType.UNKNOWN) it.result = ".gif"
     })
 }
