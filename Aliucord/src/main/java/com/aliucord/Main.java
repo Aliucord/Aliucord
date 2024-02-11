@@ -40,6 +40,8 @@ import com.discord.app.*;
 import com.discord.databinding.WidgetChangeLogBinding;
 import com.discord.databinding.WidgetDebuggingAdapterItemBinding;
 import com.discord.models.domain.emoji.ModelEmojiUnicode;
+import com.discord.stores.StoreStream;
+import com.discord.stores.StoreExperiments;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.utilities.guildautomod.AutoModUtils;
 import com.discord.widgets.changelog.WidgetChangeLog;
@@ -242,6 +244,13 @@ public final class Main {
         } catch (Throwable e) { logger.error(e); }
 
         Thread.setDefaultUncaughtExceptionHandler(Main::crashHandler);
+
+        // set default values for experiments
+        var experiments = StoreStream.getExperiments();
+        var overrides = StoreExperiments.access$getExperimentOverrides$p(experiments);
+        for (var key : new String[]{"2021-10_android_attachment_bottom_sheet", "2021-11_guild_communication_disabled_users", "2021-11_guild_communication_disabled_guilds"}) {
+            if (!overrides.containsKey(key)) experiments.setOverride(key, 1);
+        }
 
         if (loadedPlugins) {
             CorePlugins.startAll(activity);
