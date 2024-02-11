@@ -248,7 +248,7 @@ public final class Main {
         // set default values for experiments
         var experiments = StoreStream.getExperiments();
         var overrides = StoreExperiments.access$getExperimentOverrides$p(experiments);
-        for (var key : new String[]{"2021-10_android_attachment_bottom_sheet", "2021-11_guild_communication_disabled_users", "2021-11_guild_communication_disabled_guilds"}) {
+        for (var key : new String[]{"2021-10_android_attachment_bottom_sheet", "2021-11_guild_communication_disabled_users", "2021-11_guild_communication_disabled_guilds", "2021-10_premium_guild_member_profiles"}) {
             if (!overrides.containsKey(key)) experiments.setOverride(key, 1);
         }
 
