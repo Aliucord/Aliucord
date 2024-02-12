@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2021 Juby210 & Vendicated
+ * This file is part of Aliucord, an Android Discord client mod.
+ * Copyright (c) 2024 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
 
@@ -11,6 +12,8 @@ import android.content.Context;
 
 import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.InsteadHook;
+import com.aliucord.patcher.Patcher;
+import com.discord.utilities.surveys.SurveyUtils;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import java.util.*;
@@ -34,7 +37,7 @@ final class NoTrack extends Plugin {
 
         map.put("b.i.a.f.i.b.k9", new String[]{ "n", "Q" });
         map.put("b.i.a.b.j.t.h.g", new String[]{ "run" });
-        // map.put("c.i.a.f.h.i.r", Collections.singletonList("R"));
+        map.put("com.discord.stores.StoreUserSurvey", new String[]{ "handleConnectionOpen" });
         map.put("com.discord.utilities.analytics.AdjustConfig", new String[]{ "init" });
         map.put("com.discord.utilities.analytics.AdjustConfig$AdjustLifecycleListener", new String[]{ "onActivityPaused", "onActivityResumed" });
         map.put("com.discord.utilities.analytics.AnalyticsTracker$AdjustEventTracker", new String[]{ "trackLogin", "trackRegister" });
@@ -45,12 +48,13 @@ final class NoTrack extends Plugin {
         final ClassLoader cl = Objects.requireNonNull(NoTrack.class.getClassLoader());
 
         for (Map.Entry<String, String[]> entry : map.entrySet()) {
-            String className = entry.getKey();
-            var clazz = cl.loadClass(className);
+            var clazz = cl.loadClass(entry.getKey());
             for (String fn : entry.getValue()) {
                 XposedBridge.hookAllMethods(clazz, fn, InsteadHook.DO_NOTHING);
             }
         }
+
+        Patcher.addPatch(SurveyUtils.class.getDeclaredMethod("isInstallOldEnough"), InsteadHook.returnConstant(false));
     }
 
     @Override
