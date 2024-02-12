@@ -1,6 +1,6 @@
 /*
  * This file is part of Aliucord, an Android Discord client mod.
- * Copyright (c) 2021 Juby210 & Vendicated
+ * Copyright (c) 2024 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
 
@@ -44,13 +44,17 @@ import com.discord.stores.StoreStream;
 import com.discord.stores.StoreExperiments;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.utilities.guildautomod.AutoModUtils;
+import com.discord.utilities.user.UserUtils;
 import com.discord.widgets.changelog.WidgetChangeLog;
 import com.discord.widgets.chat.list.WidgetChatList;
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemAutoModSystemMessageEmbed;
 import com.discord.widgets.chat.list.entries.AutoModSystemMessageEmbedEntry;
 import com.discord.widgets.chat.list.entries.ChatListEntry;
 import com.discord.widgets.debugging.WidgetDebugging;
+import com.discord.widgets.guilds.profile.WidgetChangeGuildIdentity;
+import com.discord.widgets.guilds.profile.WidgetGuildProfileSheet$configureGuildActions$$inlined$apply$lambda$4;
 import com.discord.widgets.settings.WidgetSettings;
+import com.discord.widgets.settings.profile.WidgetEditUserOrGuildMemberProfile;
 import com.lytefast.flexinput.R;
 
 import java.io.*;
@@ -245,12 +249,30 @@ public final class Main {
 
         Thread.setDefaultUncaughtExceptionHandler(Main::crashHandler);
 
-        // set default values for experiments
+        // set default overrides for experiments
         var experiments = StoreStream.getExperiments();
         var overrides = StoreExperiments.access$getExperimentOverrides$p(experiments);
-        for (var key : new String[]{"2021-10_android_attachment_bottom_sheet", "2021-11_guild_communication_disabled_users", "2021-11_guild_communication_disabled_guilds", "2021-10_premium_guild_member_profiles"}) {
-            if (!overrides.containsKey(key)) experiments.setOverride(key, 1);
-        }
+        for (var key : new String[]{
+            "2021-10_android_attachment_bottom_sheet",
+            "2021-11_guild_communication_disabled_users",
+            "2021-11_guild_communication_disabled_guilds"
+        }) if (!overrides.containsKey(key)) experiments.setOverride(key, 1);
+
+        // use new member profile editor for nitro users
+        try {
+            Patcher.addPatch(
+                WidgetGuildProfileSheet$configureGuildActions$$inlined$apply$lambda$4.class.getDeclaredMethod("invoke", View.class),
+                new InsteadHook(param -> {
+                    var ctx = ((View) param.args[0]).getContext();
+                    var gId = ((WidgetGuildProfileSheet$configureGuildActions$$inlined$apply$lambda$4) param.thisObject).$guildId$inlined;
+                    if (UserUtils.INSTANCE.isPremiumTier2(StoreStream.getUsers().getMe()))
+                        WidgetEditUserOrGuildMemberProfile.Companion.launch(ctx, null, gId);
+                    else
+                        WidgetChangeGuildIdentity.Companion.launch(gId, "Guild Bottom Sheet", ctx);
+                    return null;
+                })
+            );
+        } catch (Throwable e) { logger.error(e); }
 
         if (loadedPlugins) {
             CorePlugins.startAll(activity);
