@@ -60,7 +60,7 @@ PLEASE NOTE THAT this is a MODIFICATION of the Discord APP and this is AGAINST T
    so Play Protect doesn't recognise the signature¹
 7. Open Aliucord, grant access to files (it needs this for finding plugins), log in to your account, and voila! Aliucord is at your fingertips!
 
-> ¹ If you'd like, you can disable this warning by turning off Play Protect in Google Play's settings, play protect is useless.
+> ¹ If you'd like, you can disable this warning by turning off Play Protect in Google Play's settings, Play Protect is useless.
 >
 > Play Protect can be turned off by tapping on your user icon in the top right of Google Play, tapping on "Play Protect," tapping on the cog icon in the top right, and finally toggling "Scan apps with Play Protect" to off. This may result in Google Play "nagging" you to re-enable it sometimes when sideloading apps.\*
 
@@ -74,7 +74,7 @@ PLEASE NOTE THAT this is a MODIFICATION of the Discord APP and this is AGAINST T
 ⚠️ IF YOU CAME HERE FROM A YOUTUBE TUTORIAL:
 
 > - PluginDownloader now comes preinstalled with Aliucord so you don't need to install it
-> - If you were promised free nitro, you were clickbaited. The most that is possible is free emotes (sends emote image links instead)
+> - If you were promised free nitro, you were clickbaited. The most that is possible is free "emotes" (sends emote image links instead)
 
 ## 🚬🐛 Troubleshooting
 
