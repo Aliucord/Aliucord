@@ -63,12 +63,9 @@ class AliucordPage : SettingsPage() {
         addLink(ctx, "Support Server", R.e.ic_help_24dp) {
             Utils.joinSupportServer(it.context)
         }
-        addLink(ctx, "Support us on Patreon", R.e.ic_heart_24dp) {
-            Utils.launchUrl(Constants.ALIUCORD_PATREON)
+        addLink(ctx, "Support us on GitHub Sponsors", R.e.ic_heart_24dp) {
+            Utils.launchUrl("https://github.com/sponsors/Juby210")
         }
-        /*addLink(ctx, "... or on OnlyFans", R.e.ic_heart_24dp) {
-            Utils.launchUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-        }*/
     }
 
     private fun addSwitch(ctx: Context, setting: String, title: String, subtitle: String?, default: Boolean = false) {

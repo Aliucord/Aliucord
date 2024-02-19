@@ -39,7 +39,8 @@ internal class Badges : Plugin(Manifest("Badges")) {
     }
     class UserBadges(val roles: Array<String>?, val custom: Array<CustomBadge>?)
 
-    private val url = "https://raw.githubusercontent.com/Aliucord/badges/main"
+    // TODO: move to single fetch from https://aliucord.com/files/badges/data.json
+    private val url = "https://aliucord.com/badges"
 
     private val userBadges = HashMap<Long, List<Badge>?>()
     private val guildBadges = HashMap<Long, CustomBadge?>()
@@ -59,7 +60,7 @@ internal class Badges : Plugin(Manifest("Badges")) {
                 if (userBadges.containsKey(id)) addUserBadges(id, it.thisObject)
                 else if (!fetchingBadges.getAndSet(true)) Utils.threadPool.execute {
                     try {
-                        userBadges[id] = getUserBadges(Http.simpleJsonGet("$url/users/$id.json", UserBadges::class.java))
+                        userBadges[id] = getUserBadges(Http.simpleJsonGet("$url/users/$id", UserBadges::class.java))
                         addUserBadges(id, it.thisObject)
                     } catch (e: Throwable) {
                         if (e is Http.HttpException && e.statusCode == 404)
@@ -95,7 +96,7 @@ internal class Badges : Plugin(Manifest("Badges")) {
             if (guildBadges.containsKey(id)) addGuildBadge(id, this)
             else Utils.threadPool.execute {
                 try {
-                    guildBadges[id] = Http.simpleJsonGet("$url/guilds/$id.json", CustomBadge::class.java)
+                    guildBadges[id] = Http.simpleJsonGet("$url/guilds/$id", CustomBadge::class.java)
                 } catch (e: Throwable) {
                     if (e is Http.HttpException && e.statusCode == 404)
                         guildBadges[id] = null
