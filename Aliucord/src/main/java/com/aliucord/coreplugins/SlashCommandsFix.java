@@ -119,7 +119,7 @@ final class SlashCommandsFix extends Plugin {
         } else {
             try {
                 // Request application index
-                applicationIndex = Http.Request.newDiscordRequest(String.format("/guilds/%d/application-command-index", guildId))
+                applicationIndex = Http.Request.newDiscordRNRequest(String.format("/guilds/%d/application-command-index", guildId))
                     .execute()
                     .json(gson, GuildApplicationCommands.class);
 
