@@ -9,6 +9,7 @@ package com.aliucord.coreplugins;
 import android.content.Context;
 import com.aliucord.entities.Plugin;
 import com.aliucord.Http;
+import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.PreHook;
 import com.aliucord.utils.ReflectUtils;
 import com.discord.api.commands.Application;
@@ -49,7 +50,7 @@ final class SlashCommandsFix extends Plugin {
         var storeApplicationCommands = StoreStream.getApplicationCommands();
 
         // Browsing commands (when just a '/' is typed)
-        patcher.patch(
+        Patcher.addPatch(
             StoreApplicationCommands$requestApplicationCommands$1.class.getDeclaredMethod("invoke"),
             new PreHook(param -> {
                 var this_ = (StoreApplicationCommands$requestApplicationCommands$1) param.thisObject;
@@ -64,7 +65,7 @@ final class SlashCommandsFix extends Plugin {
         );
 
         // Requesting applications present in the guild
-        patcher.patch(
+        Patcher.addPatch(
             StoreApplicationCommands$requestApplications$1.class.getDeclaredMethod("invoke"),
             new PreHook(param -> {
                 var this_ = (StoreApplicationCommands$requestApplications$1) param.thisObject;
@@ -79,7 +80,7 @@ final class SlashCommandsFix extends Plugin {
         );
 
         // Autocompleting commands
-        patcher.patch(
+        Patcher.addPatch(
             StoreApplicationCommands$requestApplicationCommandsQuery$1.class.getDeclaredMethod("invoke"),
             new PreHook(param -> {
                 var this_ = (StoreApplicationCommands$requestApplicationCommandsQuery$1) param.thisObject;
