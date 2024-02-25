@@ -34,6 +34,12 @@ final class SlashCommandsFix extends Plugin {
         }
     }
 
+    private enum RequestSource {
+        GUILD,
+        BROWSE,
+        QUERY;
+    }
+
     private HashMap<Long, CachedGuild> cachedGuilds;
     private Gson gson;
 
@@ -58,7 +64,7 @@ final class SlashCommandsFix extends Plugin {
                     return;
                 }
 
-                this.passCommandData(this_.this$0, this_.$guildId, "discoverCommandsNonce");
+                this.passCommandData(this_.this$0, this_.$guildId, RequestSource.BROWSE);
                 param.setResult(null);
             })
         );
@@ -72,7 +78,7 @@ final class SlashCommandsFix extends Plugin {
                     return;
                 }
 
-                this.passCommandData(this_.this$0, this_.$guildId, "applicationNonce");
+                this.passCommandData(this_.this$0, this_.$guildId, RequestSource.GUILD);
                 param.setResult(null);
             })
         );
@@ -86,7 +92,7 @@ final class SlashCommandsFix extends Plugin {
                     return;
                 }
 
-                this.passCommandData(this_.this$0, this_.$guildId, "queryNonce");
+                this.passCommandData(this_.this$0, this_.$guildId, RequestSource.QUERY);
                 param.setResult(null);
             })
         );
@@ -97,7 +103,7 @@ final class SlashCommandsFix extends Plugin {
 
     // Upcasting Object generates a warning and we need that to get private fields with reflection
     @SuppressWarnings("unchecked")
-    private void passCommandData(StoreApplicationCommands storeApplicationCommands, long guildId, String nonceFieldName) {
+    private void passCommandData(StoreApplicationCommands storeApplicationCommands, long guildId, RequestSource requestSource) {
         // TODO: Cache the fields as they are requested every time this runs
 
         String nonce = null;
@@ -105,6 +111,18 @@ final class SlashCommandsFix extends Plugin {
             // Generate fake (never used) nonce
             nonce = (String) ReflectUtils.invokeMethod(storeApplicationCommands, "generateNonce", new Object[] {});
             // Set appropriate nonce so handleApplicationCommandsUpdate knows what to do with the commands
+            String nonceFieldName = null;
+            switch (requestSource) {
+                case GUILD:
+                    nonceFieldName = "applicationNonce";
+                    break;
+                case BROWSE:
+                    nonceFieldName = "discoverCommandsNonce";
+                    break;
+                case QUERY:
+                    nonceFieldName = "queryNonce";
+                    break;
+            }
             ReflectUtils.setField(storeApplicationCommands, nonceFieldName, nonce);
         } catch (Exception e) {
             throw new RuntimeException(e);
