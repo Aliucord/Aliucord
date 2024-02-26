@@ -29,26 +29,18 @@ import java.util.HashMap;
 import java.util.List;
 
 final class SlashCommandsFix extends Plugin {
-    private class CachedGuild {
-        public GuildApplicationCommands applicationIndex;
-
-        CachedGuild(GuildApplicationCommands applicationIndex) {
-            this.applicationIndex = applicationIndex;
-        }
-    }
-
     private enum RequestSource {
         GUILD,
         BROWSE,
         QUERY;
     }
 
-    private HashMap<Long, CachedGuild> cachedGuilds;
+    private HashMap<Long, GuildApplicationCommands> guildApplicationIndexes;
 
     SlashCommandsFix() {
         super(new Manifest("SlashCommandsFix"));
 
-        this.cachedGuilds = new HashMap<Long, CachedGuild>();
+        this.guildApplicationIndexes = new HashMap<Long, GuildApplicationCommands>();
     }
 
     @Override
@@ -106,14 +98,11 @@ final class SlashCommandsFix extends Plugin {
     private void passCommandData(StoreApplicationCommands storeApplicationCommands, long guildId, RequestSource requestSource) {
         // TODO: Cache the fields as they are requested every time this runs
 
-        GuildApplicationCommands applicationIndex = null;
-        var cachedGuild = this.cachedGuilds.get(guildId);
-        if (cachedGuild != null) {
-            // Reuse cached guild
-            applicationIndex = cachedGuild.applicationIndex;
-        } else {
+        // Reuse application index from cache
+        var applicationIndex = this.guildApplicationIndexes.get(guildId);
+        if (applicationIndex == null) {
             try {
-                // Request application index
+                // Request application index from API
                 applicationIndex = Http.Request.newDiscordRNRequest(String.format("/guilds/%d/application-command-index", guildId))
                     .execute()
                     .json(GsonUtils.getGsonRestApi(), GuildApplicationCommands.class);
@@ -145,7 +134,7 @@ final class SlashCommandsFix extends Plugin {
                 throw new RuntimeException(e);
             }
 
-            this.cachedGuilds.put(guildId, new CachedGuild(applicationIndex));
+            this.guildApplicationIndexes.put(guildId, applicationIndex);
         }
 
         // Pass the information to StoreApplicationCommands
