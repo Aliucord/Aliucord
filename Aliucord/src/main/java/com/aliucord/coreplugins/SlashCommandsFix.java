@@ -12,6 +12,7 @@ import com.aliucord.Http;
 import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.PreHook;
 import com.aliucord.utils.ReflectUtils;
+import com.aliucord.utils.GsonUtils;
 import com.discord.api.commands.Application;
 import com.discord.api.commands.ApplicationCommand;
 import com.discord.api.commands.GuildApplicationCommands;
@@ -43,7 +44,6 @@ final class SlashCommandsFix extends Plugin {
     }
 
     private HashMap<Long, CachedGuild> cachedGuilds;
-    private Gson gson;
 
     SlashCommandsFix() {
         super(new Manifest("SlashCommandsFix"));
@@ -53,8 +53,6 @@ final class SlashCommandsFix extends Plugin {
 
     @Override
     public void start(Context context) throws Throwable {
-        this.gson = (Gson) ReflectUtils.getField(InboundGatewayGsonParser.class, null, "gatewayGsonInstance");
-
         var storeApplicationCommands = StoreStream.getApplicationCommands();
 
         // Browsing commands (when just a '/' is typed)
@@ -118,7 +116,7 @@ final class SlashCommandsFix extends Plugin {
                 // Request application index
                 applicationIndex = Http.Request.newDiscordRNRequest(String.format("/guilds/%d/application-command-index", guildId))
                     .execute()
-                    .json(gson, GuildApplicationCommands.class);
+                    .json(GsonUtils.getGsonRestApi(), GuildApplicationCommands.class);
 
                 // Fix up attributes that are needed by the client but aren't sent via the new API
 
