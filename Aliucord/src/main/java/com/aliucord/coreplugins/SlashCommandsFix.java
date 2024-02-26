@@ -62,7 +62,7 @@ final class SlashCommandsFix extends Plugin {
             StoreApplicationCommands$requestApplicationCommands$1.class.getDeclaredMethod("invoke"),
             new PreHook(param -> {
                 var this_ = (StoreApplicationCommands$requestApplicationCommands$1) param.thisObject;
-                if (this_.$applicationId == null) {
+                if (this_.$guildId == null) {
                     return;
                 }
 
