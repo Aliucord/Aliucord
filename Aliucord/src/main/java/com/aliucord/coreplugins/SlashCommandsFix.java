@@ -20,8 +20,10 @@ import com.discord.stores.StoreApplicationCommands;
 import com.discord.stores.StoreApplicationCommands$requestApplicationCommands$1;
 import com.discord.stores.StoreApplicationCommands$requestApplicationCommandsQuery$1;
 import com.discord.stores.StoreApplicationCommands$requestApplications$1;
+import com.discord.stores.StoreApplicationCommandsKt;
 import com.discord.stores.StoreStream;
 import com.google.gson.Gson;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -106,28 +108,6 @@ final class SlashCommandsFix extends Plugin {
     private void passCommandData(StoreApplicationCommands storeApplicationCommands, long guildId, RequestSource requestSource) {
         // TODO: Cache the fields as they are requested every time this runs
 
-        String nonce = null;
-        try {
-            // Generate fake (never used) nonce
-            nonce = (String) ReflectUtils.invokeMethod(storeApplicationCommands, "generateNonce", new Object[] {});
-            // Set appropriate nonce so handleApplicationCommandsUpdate knows what to do with the commands
-            String nonceFieldName = null;
-            switch (requestSource) {
-                case GUILD:
-                    nonceFieldName = "applicationNonce";
-                    break;
-                case BROWSE:
-                    nonceFieldName = "discoverCommandsNonce";
-                    break;
-                case QUERY:
-                    nonceFieldName = "queryNonce";
-                    break;
-            }
-            ReflectUtils.setField(storeApplicationCommands, nonceFieldName, nonce);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
         GuildApplicationCommands applicationIndex = null;
         var cachedGuild = this.cachedGuilds.get(guildId);
         if (cachedGuild != null) {
@@ -170,14 +150,37 @@ final class SlashCommandsFix extends Plugin {
             this.cachedGuilds.put(guildId, new CachedGuild(applicationIndex));
         }
 
-        try {
-            // Set nonce so handleApplicationCommandsUpdate can recognize it
-            ReflectUtils.setField(applicationIndex, "nonce", nonce);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        // Pass the information to StoreApplicationCommands
+        if (requestSource == RequestSource.GUILD) {
+            var applications = new ArrayList<com.discord.models.commands.Application>();
+            for (var application: applicationIndex.b()) {
+                applications.add(StoreApplicationCommandsKt.toDomainApplication(application));
+            }
+            try {
+                var handleGuildApplicationsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleGuildApplicationsUpdate", List.class);
+                handleGuildApplicationsUpdateMethod.setAccessible(true);
+                handleGuildApplicationsUpdateMethod.invoke(storeApplicationCommands, applications);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        } else if (requestSource == RequestSource.BROWSE || requestSource == RequestSource.QUERY) {
+            var applicationCommands = new ArrayList<com.discord.models.commands.ApplicationCommand>();
+            for (var applicationCommand: applicationIndex.a()) {
+                applicationCommands.add(StoreApplicationCommandsKt.toSlashCommand(applicationCommand));
+            }
+            try {
+                if (requestSource == RequestSource.BROWSE) {
+                    var handleDiscoverCommandsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleDiscoverCommandsUpdate", List.class);
+                    handleDiscoverCommandsUpdateMethod.setAccessible(true);
+                    handleDiscoverCommandsUpdateMethod.invoke(storeApplicationCommands, applicationCommands);
+                } else if (requestSource == RequestSource.QUERY) {
+                    var handleQueryCommandsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleQueryCommandsUpdate", List.class);
+                    handleQueryCommandsUpdateMethod.setAccessible(true);
+                    handleQueryCommandsUpdateMethod.invoke(storeApplicationCommands, applicationCommands);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
-
-        // TODO: Reimplement this so the fake nonce jank is not necessary and gateway updates can be implemented
-        storeApplicationCommands.handleApplicationCommandsUpdate(applicationIndex);
     }
 }
