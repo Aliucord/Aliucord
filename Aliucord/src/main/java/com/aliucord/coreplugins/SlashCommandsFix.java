@@ -11,12 +11,12 @@ import com.aliucord.entities.Plugin;
 import com.aliucord.Http;
 import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.PreHook;
-import com.aliucord.utils.ReflectUtils;
 import com.aliucord.utils.GsonUtils;
-import com.discord.api.commands.Application;
-import com.discord.api.commands.ApplicationCommand;
-import com.discord.api.commands.GuildApplicationCommands;
-import com.discord.models.deserialization.gson.InboundGatewayGsonParser;
+import com.aliucord.utils.ReflectUtils;
+import com.discord.models.commands.Application;
+import com.discord.models.commands.ApplicationCommand;
+import com.discord.models.commands.ApplicationCommandOption;
+import com.discord.models.commands.RemoteApplicationCommand;
 import com.discord.stores.StoreApplicationCommands;
 import com.discord.stores.StoreApplicationCommands$requestApplicationCommands$1;
 import com.discord.stores.StoreApplicationCommands$requestApplicationCommandsQuery$1;
@@ -27,20 +27,108 @@ import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 final class SlashCommandsFix extends Plugin {
+    private class ApiApplication {
+        public final long id;
+        public final String name;
+        public final String icon;
+
+        public ApiApplication() {
+            this.id = 0;
+            this.name = null;
+            this.icon = null;
+        }
+
+        public Application toModel(int commandCount) {
+            return new Application(this.id, this.name, this.icon, null, commandCount, null, false);
+        }
+    }
+
+    private class ApiApplicationCommand {
+        public final long id;
+        public final long applicationId;
+        public final String name;
+        public final String description;
+        public final List<com.discord.api.commands.ApplicationCommandOption> options;
+        public final String version;
+
+        public ApiApplicationCommand() {
+            this.id = 0;
+            this.applicationId = 0;
+            this.name = null;
+            this.description = null;
+            this.options = null;
+            this.version = null;
+        }
+
+        public ApplicationCommand toModel() {
+            var apiOptions = this.options;
+            if (apiOptions == null) {
+                apiOptions = new ArrayList();
+            }
+            var options = apiOptions
+                .stream()
+                .map(option -> StoreApplicationCommandsKt.toSlashCommandOption(option))
+                .collect(Collectors.toList());
+            return new RemoteApplicationCommand(String.valueOf(this.id), this.applicationId, this.name, this.description, options, null, this.version, true, new ArrayList(), null);
+        }
+    }
+
+    private class ApiApplicationIndex {
+        public List<ApiApplication> applications;
+        public List<ApiApplicationCommand> applicationCommands;
+
+        public ApiApplicationIndex() {
+            this.applications = null;
+            this.applicationCommands = null;
+        }
+
+        public ApplicationIndex toModel() {
+            var applicationCommandCounts = new HashMap<Long, Integer>();
+            for (var applicationCommand: this.applicationCommands) {
+                var count = applicationCommandCounts.getOrDefault(applicationCommand.applicationId, 0);
+                count += 1;
+                applicationCommandCounts.put(applicationCommand.applicationId, count);
+            }
+
+            var applications = new ArrayList<Application>();
+            for (var application: this.applications) {
+                applications.add(application.toModel(applicationCommandCounts.getOrDefault(application.id, 0)));
+            }
+            var applicationCommands = new ArrayList<ApplicationCommand>();
+            for (var applicationCommand: this.applicationCommands) {
+                applicationCommands.add(applicationCommand.toModel());
+            }
+
+            return new ApplicationIndex(applications, applicationCommands);
+        }
+    }
+
+    private class ApplicationIndex {
+        public List<Application> applications;
+        public List<ApplicationCommand> applicationCommands;
+
+        public ApplicationIndex(List<Application> applications, List<ApplicationCommand> applicationCommands) {
+            this.applications = applications;
+            this.applicationCommands = applicationCommands;
+        }
+    }
+
     private enum RequestSource {
         GUILD,
         BROWSE,
         QUERY;
     }
 
-    private HashMap<Long, GuildApplicationCommands> guildApplicationIndexes;
+    private Map<Long, ApplicationIndex> guildApplicationIndexes;
 
     SlashCommandsFix() {
         super(new Manifest("SlashCommandsFix"));
 
-        this.guildApplicationIndexes = new HashMap<Long, GuildApplicationCommands>();
+        this.guildApplicationIndexes = new HashMap();
     }
 
     @Override
@@ -105,31 +193,9 @@ final class SlashCommandsFix extends Plugin {
                 // Request application index from API
                 applicationIndex = Http.Request.newDiscordRNRequest(String.format("/guilds/%d/application-command-index", guildId))
                     .execute()
-                    .json(GsonUtils.getGsonRestApi(), GuildApplicationCommands.class);
-
-                // Fix up attributes that are needed by the client but aren't sent via the new API
-
-                // Guild ID
-                ReflectUtils.setField(applicationIndex, "guildId", guildId);
-
-                // Command count
-                var applications = (List<Application>) ReflectUtils.getField(applicationIndex, "applications");
-                var applicationCommands = (List<ApplicationCommand>) ReflectUtils.getField(applicationIndex, "applicationCommands");
-                for (var application: applications) {
-                    var applicationId = (long) ReflectUtils.getField(application, "id");
-                    // TODO: Calculate this for all commands beforehand so there's no nested loop
-                    var commandCount = applicationCommands
-                        .stream()
-                        .filter(applicationCommand -> {
-                            try {
-                                return (long) ReflectUtils.getField(applicationCommand, "applicationId") == applicationId;
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
-                        })
-                        .count();
-                    ReflectUtils.setField(application, "commandCount", (int) commandCount);
-                }
+                    .json(GsonUtils.getGsonRestApi(), ApiApplicationIndex.class)
+                    .toModel();
+                logger.debug(GsonUtils.toJson(applicationIndex));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -139,31 +205,23 @@ final class SlashCommandsFix extends Plugin {
 
         // Pass the information to StoreApplicationCommands
         if (requestSource == RequestSource.GUILD) {
-            var applications = new ArrayList<com.discord.models.commands.Application>();
-            for (var application: applicationIndex.b()) {
-                applications.add(StoreApplicationCommandsKt.toDomainApplication(application));
-            }
             try {
                 var handleGuildApplicationsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleGuildApplicationsUpdate", List.class);
                 handleGuildApplicationsUpdateMethod.setAccessible(true);
-                handleGuildApplicationsUpdateMethod.invoke(storeApplicationCommands, applications);
+                handleGuildApplicationsUpdateMethod.invoke(storeApplicationCommands, applicationIndex.applications);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         } else if (requestSource == RequestSource.BROWSE || requestSource == RequestSource.QUERY) {
-            var applicationCommands = new ArrayList<com.discord.models.commands.ApplicationCommand>();
-            for (var applicationCommand: applicationIndex.a()) {
-                applicationCommands.add(StoreApplicationCommandsKt.toSlashCommand(applicationCommand));
-            }
             try {
                 if (requestSource == RequestSource.BROWSE) {
                     var handleDiscoverCommandsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleDiscoverCommandsUpdate", List.class);
                     handleDiscoverCommandsUpdateMethod.setAccessible(true);
-                    handleDiscoverCommandsUpdateMethod.invoke(storeApplicationCommands, applicationCommands);
+                    handleDiscoverCommandsUpdateMethod.invoke(storeApplicationCommands, applicationIndex.applicationCommands);
                 } else if (requestSource == RequestSource.QUERY) {
                     var handleQueryCommandsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleQueryCommandsUpdate", List.class);
                     handleQueryCommandsUpdateMethod.setAccessible(true);
-                    handleQueryCommandsUpdateMethod.invoke(storeApplicationCommands, applicationCommands);
+                    handleQueryCommandsUpdateMethod.invoke(storeApplicationCommands, applicationIndex.applicationCommands);
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
