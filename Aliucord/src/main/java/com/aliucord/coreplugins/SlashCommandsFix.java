@@ -17,6 +17,7 @@ import com.discord.models.commands.Application;
 import com.discord.models.commands.ApplicationCommand;
 import com.discord.models.commands.ApplicationCommandOption;
 import com.discord.models.commands.RemoteApplicationCommand;
+import com.discord.stores.BuiltInCommandsProvider;
 import com.discord.stores.StoreApplicationCommands;
 import com.discord.stores.StoreApplicationCommands$requestApplicationCommands$1;
 import com.discord.stores.StoreApplicationCommands$requestApplicationCommandsQuery$1;
@@ -204,9 +205,11 @@ final class SlashCommandsFix extends Plugin {
         // Pass the information to StoreApplicationCommands
         if (requestSource == RequestSource.GUILD) {
             try {
+                var applications = new ArrayList(applicationIndex.applications);
+                applications.add(((BuiltInCommandsProvider) ReflectUtils.getField(storeApplicationCommands, "builtInCommandsProvider")).getBuiltInApplication());
                 var handleGuildApplicationsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleGuildApplicationsUpdate", List.class);
                 handleGuildApplicationsUpdateMethod.setAccessible(true);
-                handleGuildApplicationsUpdateMethod.invoke(storeApplicationCommands, applicationIndex.applications);
+                handleGuildApplicationsUpdateMethod.invoke(storeApplicationCommands, applications);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
