@@ -4,6 +4,7 @@ import com.aliucord.Logger
 import com.aliucord.api.GatewayAPI.EventListener
 import com.aliucord.patcher.*
 import com.aliucord.utils.GsonUtils.fromJson
+import com.aliucord.utils.SerializedName
 import com.aliucord.utils.lazyField
 import com.discord.gateway.GatewaySocket
 import com.discord.gateway.`GatewaySocket$connect$$inlined$apply$lambda$4`
@@ -21,20 +22,34 @@ import java.io.StringReader
  */
 object GatewayAPI {
 
-    fun interface EventListener<T> {
+    fun interface EventListener<in T> {
 
         operator fun invoke(eventData: T)
 
     }
 
     /**
+     * A listener registered with [onEvent]
+     *
+     * @param eventName Name of the event to listen to
+     * @param type The type to serialize the event data into
+     * @param listener Callback for the incoming event
+     */
+    @PublishedApi
+    internal data class RegisteredEventListener<T: Any>(
+        val eventName: String,
+        val type: Class<*>,
+        val listener: EventListener<T>
+    )
+
+    /**
      * Model used to extract the name from a gateway event, this is done before we know what type to deserialize data into
      * which is why [EventData] is separated
      *
-     * @param t The name of the event
+     * @param name The name of the event
      */
     private data class EventName(
-        val t: String
+        @SerializedName("t") val name: String
     )
 
     /**
@@ -43,13 +58,14 @@ object GatewayAPI {
      * @see EventName for why this isn't a combined model
      *
      * @param T The type to deserialize data into, usually specified by a plugin
-     * @param d The deserialized data
+     * @param data The deserialized data
      */
     private data class EventData<T>(
-        val d: T
+        @SerializedName("d") val data: T
     )
 
-    val eventListeners = mutableListOf<Triple<String, Class<*>, EventListener<Any>>>()
+    @PublishedApi
+    internal val registeredEventListeners = mutableListOf<RegisteredEventListener<Any>>()
     private val rawListeners = mutableListOf<EventListener<String>>()
     private val socket by lazyField<StoreGatewayConnection>()
     private val logger = Logger("GatewayAPI")
@@ -65,13 +81,15 @@ object GatewayAPI {
      *
      * Ex. `Message create` -> `MESSAGE_CREATE`
      */
-    fun String.asEventName() = uppercase().replace(" ", "_")
+    @PublishedApi
+    internal fun String.asEventName() = uppercase().replace(" ", "_")
 
+    @Suppress("InconsistentCommentForJavaParameter")
     private fun getEventName(json: String): String {
         return InboundGatewayGsonParser.fromJson(
             /* jsonReader = */ JsonReader(StringReader(json)),
             /* aClass = */ EventName::class.java
-        ).t/*ype*/
+        ).name
     }
 
     private fun addRawMessageHandler() {
@@ -84,10 +102,10 @@ object GatewayAPI {
 
     private fun patchRawMessageHandler() {
         patcher.after<`GatewaySocket$connect$$inlined$apply$lambda$4`>("onRawMessage", String::class.java) { (_, rawEvent: String) ->
-            if(eventListeners.isNotEmpty()) {
+            if(registeredEventListeners.isNotEmpty()) {
                 val eventName = getEventName(rawEvent)
 
-                eventListeners.filter { (name, _) -> name == eventName }.forEach { (_, type, listener) ->
+                registeredEventListeners.filter { (name) -> name == eventName }.forEach { (_, type, listener) ->
                     try {
                         val data = InboundGatewayGsonParser.INSTANCE
                             .gatewayGsonInstance // The underlying Gson is needed in order to use a Type with generics since InboundGatewayGsonParser doesn't have a method for it
@@ -96,7 +114,7 @@ object GatewayAPI {
                                 type = TypeToken
                                     .getParameterized(EventData::class.java, type)
                                     .type
-                            ).d/*ata*/
+                            ).data
 
                         listener(data)
                     } catch (e: Throwable) {
@@ -166,7 +184,13 @@ object GatewayAPI {
      */
     inline fun <reified T : Any> onEvent(name: String, crossinline listener: (T) -> Unit) {
         val eventListener = EventListener<Any> { eventData -> listener(eventData as T) }
-        eventListeners.add(Triple(name.asEventName(), T::class.java, eventListener))
+        registeredEventListeners.add(
+            RegisteredEventListener(
+                eventName = name.asEventName(),
+                type = T::class.java,
+                listener = eventListener
+            )
+        )
     }
 
     /**
@@ -183,7 +207,13 @@ object GatewayAPI {
     @Suppress("UNCHECKED_CAST")
     fun <T> onEvent(name: String, clazz: Class<T>, listener: (T) -> Unit) {
         val eventListener = EventListener<Any> { eventData -> listener(eventData as T) }
-        eventListeners.add(Triple(name.asEventName(), clazz, eventListener))
+        registeredEventListeners.add(
+            RegisteredEventListener(
+                eventName = name.asEventName(),
+                type = clazz,
+                listener = eventListener
+            )
+        )
     }
 
 }

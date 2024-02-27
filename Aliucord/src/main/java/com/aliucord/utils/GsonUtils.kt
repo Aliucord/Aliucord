@@ -14,7 +14,16 @@ import b.a.b.a as TypeAdapterRegistrar
 import b.i.d.c as FieldNamingPolicy
 import b.i.d.e as GsonBuilder
 
+/**
+ * An annotation that indicates this member should be serialized to JSON with the provided name
+ * value as its field name.
+ *
+ * [Original source](https://github.com/google/gson/blob/main/gson/src/main/java/com/google/gson/annotations/SerializedName.java)
+ */
+typealias SerializedName = b.i.d.p.b
+
 object GsonUtils {
+
     /** [Gson](https://github.com/google/gson) instance */
     @JvmStatic
     val gson = Gson()
