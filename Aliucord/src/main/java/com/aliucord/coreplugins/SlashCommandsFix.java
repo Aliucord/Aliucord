@@ -194,7 +194,6 @@ final class SlashCommandsFix extends Plugin {
                     .execute()
                     .json(GsonUtils.getGsonRestApi(), ApiApplicationIndex.class)
                     .toModel();
-                logger.debug(GsonUtils.toJson(applicationIndex));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
