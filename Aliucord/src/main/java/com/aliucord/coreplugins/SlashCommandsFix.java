@@ -142,6 +142,7 @@ final class SlashCommandsFix extends Plugin {
             StoreApplicationCommands$requestApplicationCommands$1.class.getDeclaredMethod("invoke"),
             new PreHook(param -> {
                 var this_ = (StoreApplicationCommands$requestApplicationCommands$1) param.thisObject;
+
                 if (this_.$guildId == null) {
                     return;
                 }
@@ -156,6 +157,7 @@ final class SlashCommandsFix extends Plugin {
             StoreApplicationCommands$requestApplications$1.class.getDeclaredMethod("invoke"),
             new PreHook(param -> {
                 var this_ = (StoreApplicationCommands$requestApplications$1) param.thisObject;
+
                 if (this_.$guildId == null) {
                     return;
                 }
@@ -170,6 +172,7 @@ final class SlashCommandsFix extends Plugin {
             StoreApplicationCommands$requestApplicationCommandsQuery$1.class.getDeclaredMethod("invoke"),
             new PreHook(param -> {
                 var this_ = (StoreApplicationCommands$requestApplicationCommandsQuery$1) param.thisObject;
+
                 if (this_.$guildId == null) {
                     return;
                 }
