@@ -25,6 +25,8 @@ import com.discord.stores.StoreApplicationCommands$requestApplications$1;
 import com.discord.stores.StoreApplicationCommandsKt;
 import com.discord.stores.StoreStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -206,6 +208,12 @@ final class SlashCommandsFix extends Plugin {
         if (requestSource == RequestSource.GUILD) {
             try {
                 var applications = new ArrayList(applicationIndex.applications);
+                Collections.sort(applications, new Comparator<Application>() {
+                    @Override
+                    public int compare(Application left, Application right) {
+                        return left.getName().compareTo(right.getName());
+                    }
+                });
                 applications.add(((BuiltInCommandsProvider) ReflectUtils.getField(storeApplicationCommands, "builtInCommandsProvider")).getBuiltInApplication());
                 var handleGuildApplicationsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleGuildApplicationsUpdate", List.class);
                 handleGuildApplicationsUpdateMethod.setAccessible(true);
