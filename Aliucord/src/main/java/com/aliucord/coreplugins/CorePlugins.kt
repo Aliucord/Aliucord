@@ -1,9 +1,10 @@
 package com.aliucord.coreplugins
 
 import android.content.Context
-import com.aliucord.PluginManager
 import com.aliucord.coreplugins.plugindownloader.PluginDownloader
 import com.aliucord.coreplugins.rn.RNAPI
+import com.aliucord.coreplugins.slashcommandsfix.SlashCommandsFix
+import com.aliucord.PluginManager
 
 /** CorePlugins Manager */
 object CorePlugins {

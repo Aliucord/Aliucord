@@ -4,19 +4,19 @@
  * Licensed under the Open Software License version 3.0
  */
 
-package com.aliucord.coreplugins;
+package com.aliucord.coreplugins.slashcommandsfix;
 
 import android.content.Context;
-import com.aliucord.entities.Plugin;
 import com.aliucord.Http;
+import com.aliucord.patcher.InsteadHook;
 import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.PreHook;
 import com.aliucord.utils.GsonUtils;
 import com.aliucord.utils.ReflectUtils;
-import com.discord.models.commands.Application;
+import com.aliucord.Logger;
 import com.discord.models.commands.ApplicationCommand;
+import com.discord.models.commands.ApplicationCommandKt;
 import com.discord.models.commands.ApplicationCommandOption;
-import com.discord.models.commands.RemoteApplicationCommand;
 import com.discord.stores.BuiltInCommandsProvider;
 import com.discord.stores.StoreApplicationCommands;
 import com.discord.stores.StoreApplicationCommands$requestApplicationCommands$1;
@@ -32,20 +32,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-final class SlashCommandsFix extends Plugin {
+final class Patches {
     private class ApiApplication {
         public final long id;
         public final String name;
         public final String icon;
+        public final ApiPermissions permissions;
 
         public ApiApplication() {
             this.id = 0;
             this.name = null;
             this.icon = null;
+            this.permissions = null;
         }
 
         public Application toModel(int commandCount) {
-            return new Application(this.id, this.name, this.icon, null, commandCount, null, false);
+            Permissions permissions = null;
+            if (this.permissions != null) {
+                permissions = this.permissions.toModel();
+            }
+            return new Application(this.id, this.name, this.icon, permissions, commandCount);
         }
     }
 
@@ -55,6 +61,7 @@ final class SlashCommandsFix extends Plugin {
         public final String name;
         public final String description;
         public final List<com.discord.api.commands.ApplicationCommandOption> options;
+        public final ApiPermissions permissions;
         public final String version;
 
         public ApiApplicationCommand() {
@@ -63,6 +70,7 @@ final class SlashCommandsFix extends Plugin {
             this.name = null;
             this.description = null;
             this.options = null;
+            this.permissions = null;
             this.version = null;
         }
 
@@ -75,7 +83,27 @@ final class SlashCommandsFix extends Plugin {
                 .stream()
                 .map(option -> StoreApplicationCommandsKt.toSlashCommandOption(option))
                 .collect(Collectors.toList());
-            return new RemoteApplicationCommand(String.valueOf(this.id), this.applicationId, this.name, this.description, options, null, this.version, true, new ArrayList(), null);
+            Permissions permissions = null;
+            if (this.permissions != null) {
+                permissions = this.permissions.toModel();
+            }
+            return new RemoteApplicationCommand(String.valueOf(this.id), this.applicationId, this.name, this.description, options, permissions, this.version);
+        }
+    }
+
+    private class ApiPermissions {
+        public boolean user;
+        public Map<Long, Boolean> roles;
+        public Map<Long, Boolean> channels;
+
+        public ApiPermissions() {
+            this.user = false;
+            this.roles = null;
+            this.channels = null;
+        }
+
+        public Permissions toModel() {
+            return new Permissions(user, roles, channels);
         }
     }
 
@@ -119,6 +147,40 @@ final class SlashCommandsFix extends Plugin {
         }
     }
 
+    private class Permissions {
+        public boolean user;
+        public Map<Long, Boolean> roles;
+        public Map<Long, Boolean> channels;
+
+        public Permissions(boolean user, Map<Long, Boolean> roles, Map<Long, Boolean> channels) {
+            this.user = user;
+            this.roles = roles;
+            this.channels = channels;
+        }
+
+        public boolean checkFor(long userId, List<Long> roles, long channelId) {
+            return true;
+        }
+    }
+
+    private class Application extends com.discord.models.commands.Application {
+        public Permissions permissions_;
+
+        public Application(long id, String name, String icon, Permissions permissions, int commandCount) {
+            super(id, name, icon, null, commandCount, null, false);
+            this.permissions_ = permissions;
+        }
+    }
+
+    private class RemoteApplicationCommand extends com.discord.models.commands.RemoteApplicationCommand {
+        public Permissions permissions_;
+
+        public RemoteApplicationCommand(String id, long applicationId, String name, String description, List<ApplicationCommandOption> options, Permissions permissions, String version) {
+            super(id, applicationId, name, description, options, null, version, true, null, null); // TODO: defaultPermissions
+            this.permissions_ = permissions;
+        }
+    }
+
     private enum RequestSource {
         GUILD,
         BROWSE,
@@ -126,16 +188,16 @@ final class SlashCommandsFix extends Plugin {
     }
 
     private Map<Long, ApplicationIndex> guildApplicationIndexes;
+    Logger logger;
 
-    SlashCommandsFix() {
-        super(new Manifest("SlashCommandsFix"));
-
+    Patches(Logger logger) {
         this.guildApplicationIndexes = new HashMap();
+        this.logger = logger;
     }
 
-    @Override
-    public void start(Context context) throws Throwable {
+    public void loadPatches(Context context) throws Throwable {
         var storeApplicationCommands = StoreStream.getApplicationCommands();
+        var storeChannelsSelected = StoreStream.getChannelsSelected();
 
         // Browsing commands (when just a '/' is typed)
         Patcher.addPatch(
@@ -181,31 +243,41 @@ final class SlashCommandsFix extends Plugin {
                 param.setResult(null);
             })
         );
-    }
 
-    @Override
-    public void stop(Context context) {}
+        // Command permission check
+        Patcher.addPatch(
+            ApplicationCommandKt.class.getDeclaredMethod("hasPermission", ApplicationCommand.class, long.class, List.class),
+            new InsteadHook(param -> {
+                var applicationCommand = (ApplicationCommand) param.args[0];
+                var userId = (long) param.args[1];
+                var roles = (List<Long>) param.args[2];
+
+                var selectedChannel = storeChannelsSelected.getSelectedChannel();
+                var channelId = selectedChannel.k();
+                var guildId = selectedChannel.i();
+                var applicationId = applicationCommand.getApplicationId();
+                this.logger.debug(String.format("Checking permissions for command %s (%s): user %d with %d roles, channel %d, guild %d", applicationCommand.getId(), applicationCommand.getName(), userId, roles.size(), channelId, guildId));
+                var optionalApplication = this.requestApplicationIndex(guildId)
+                    .applications
+                    .stream()
+                    .filter(a -> {
+                        var id = a.component1();
+                        return id == applicationId;
+                    })
+                    .findFirst();
+                return !(applicationCommand instanceof RemoteApplicationCommand)
+                    || (optionalApplication.get().permissions_.checkFor(userId, roles, channelId)
+                        && ((RemoteApplicationCommand) applicationCommand).permissions_.checkFor(userId, roles, channelId));
+            })
+        );
+    }
 
     // Upcasting Object generates a warning and we need that to get private fields with reflection
     @SuppressWarnings("unchecked")
     private void passCommandData(StoreApplicationCommands storeApplicationCommands, long guildId, RequestSource requestSource) {
         // TODO: Cache the fields as they are requested every time this runs
 
-        // Reuse application index from cache
-        var applicationIndex = this.guildApplicationIndexes.get(guildId);
-        if (applicationIndex == null) {
-            try {
-                // Request application index from API
-                applicationIndex = Http.Request.newDiscordRNRequest(String.format("/guilds/%d/application-command-index", guildId))
-                    .execute()
-                    .json(GsonUtils.getGsonRestApi(), ApiApplicationIndex.class)
-                    .toModel();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-
-            this.guildApplicationIndexes.put(guildId, applicationIndex);
-        }
+        var applicationIndex = this.requestApplicationIndex(guildId);
 
         // Pass the information to StoreApplicationCommands
         if (requestSource == RequestSource.GUILD) {
@@ -239,5 +311,24 @@ final class SlashCommandsFix extends Plugin {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    private ApplicationIndex requestApplicationIndex(long guildId) {
+        // Reuse application index from cache
+        var applicationIndex = this.guildApplicationIndexes.get(guildId);
+        if (applicationIndex == null) {
+            try {
+                // Request application index from API
+                applicationIndex = Http.Request.newDiscordRNRequest(String.format("/guilds/%d/application-command-index", guildId))
+                    .execute()
+                    .json(GsonUtils.getGsonRestApi(), ApiApplicationIndex.class)
+                    .toModel();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+            this.guildApplicationIndexes.put(guildId, applicationIndex);
+        }
+        return applicationIndex;
     }
 }
