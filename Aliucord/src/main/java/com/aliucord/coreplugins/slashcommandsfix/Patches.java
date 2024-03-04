@@ -8,12 +8,12 @@ package com.aliucord.coreplugins.slashcommandsfix;
 
 import android.content.Context;
 import com.aliucord.Http;
+import com.aliucord.Logger;
 import com.aliucord.patcher.InsteadHook;
 import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.PreHook;
 import com.aliucord.utils.GsonUtils;
 import com.aliucord.utils.ReflectUtils;
-import com.aliucord.Logger;
 import com.discord.models.commands.ApplicationCommand;
 import com.discord.models.commands.ApplicationCommandKt;
 import com.discord.models.commands.ApplicationCommandOption;
