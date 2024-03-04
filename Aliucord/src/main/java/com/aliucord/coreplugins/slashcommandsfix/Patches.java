@@ -17,6 +17,7 @@ import com.aliucord.utils.ReflectUtils;
 import com.discord.models.commands.ApplicationCommand;
 import com.discord.models.commands.ApplicationCommandKt;
 import com.discord.models.commands.ApplicationCommandOption;
+import com.discord.models.guild.Guild;
 import com.discord.stores.BuiltInCommandsProvider;
 import com.discord.stores.StoreApplicationCommands;
 import com.discord.stores.StoreApplicationCommands$requestApplicationCommands$1;
@@ -167,7 +168,10 @@ final class Patches {
             this(Optional.empty(), new HashMap(), new HashMap());
         }
 
-        public boolean checkFor(List<Long> roleIds, long channelId, long guildId) {
+        public boolean checkFor(List<Long> roleIds, long channelId, Guild guild, long userId) {
+            var guildId = guild.component7();
+            var ownerId = guild.component9();
+            var isOwner = userId == ownerId;
             var defaultChannelPermission = this.channels.getOrDefault(guildId - 1, true);
             var channelPermission = Optional.ofNullable(this.channels.get(channelId))
                 .orElse(defaultChannelPermission);
@@ -175,7 +179,7 @@ final class Patches {
             var rolePermission = this.calculateRolePermission(roleIds, defaultRolePermission);
             var userPermission = this.user.orElse(true);
 
-            return channelPermission && (userPermission || rolePermission);
+            return isOwner || (channelPermission && (userPermission || rolePermission));
         }
 
         private boolean calculateRolePermission(List<Long> roleIds, boolean defaultPermission) {
@@ -228,6 +232,7 @@ final class Patches {
     public void loadPatches(Context context) throws Throwable {
         var storeApplicationCommands = StoreStream.getApplicationCommands();
         var storeChannelsSelected = StoreStream.getChannelsSelected();
+        var storeGuilds = StoreStream.getGuilds();
 
         // Browsing commands (when just a '/' is typed)
         Patcher.addPatch(
@@ -294,11 +299,27 @@ final class Patches {
                         return id == applicationId;
                     })
                     .findFirst();
+                var guild = storeGuilds.getGuild(guildId);
                 return !(applicationCommand instanceof RemoteApplicationCommand)
-                    || (optionalApplication.get().permissions_.checkFor(roles, channelId, guildId)
-                        && ((RemoteApplicationCommand) applicationCommand).permissions_.checkFor(roles, channelId, guildId));
+                    || (optionalApplication.get().permissions_.checkFor(roles, channelId, guild, userId)
+                        && ((RemoteApplicationCommand) applicationCommand).permissions_.checkFor(roles, channelId, guild, userId));
             })
         );
+
+        // Patcher.addPatch(
+        //     StoreGatewayConnection.class.getDeclaredMethod("handleDispatch", String.class, Object.class),
+        //     new PreHook(param -> {
+        //         var eventName = (String) param.args[0];
+        //         var eventData = param.args[1];
+
+        //         logger.debug(eventName);
+        //         if (eventName != "GUILD_APPLICATION_COMMAND_INDEX_UPDATE") {
+        //             return;
+        //         }
+        //         logger.debug(eventData.getClass().getName());
+        //         param.setResult(null);
+        //     })
+        // );
     }
 
     // Upcasting Object generates a warning and we need that to get private fields with reflection
