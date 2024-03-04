@@ -278,7 +278,6 @@ final class Patches {
                 var channelId = selectedChannel.k();
                 var guildId = selectedChannel.i();
                 var applicationId = applicationCommand.getApplicationId();
-                this.logger.debug(String.format("Checking permissions for command %s (%s): user %d with %d roles, channel %d, guild %d", applicationCommand.getId(), applicationCommand.getName(), userId, roles.size(), channelId, guildId));
                 var optionalApplication = this.requestApplicationIndex(guildId)
                     .applications
                     .stream()
