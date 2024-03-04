@@ -92,12 +92,12 @@ final class Patches {
     }
 
     private class ApiPermissions {
-        public boolean user;
+        public Boolean user;
         public Map<Long, Boolean> roles;
         public Map<Long, Boolean> channels;
 
         public ApiPermissions() {
-            this.user = false;
+            this.user = null;
             this.roles = null;
             this.channels = null;
         }
@@ -148,18 +148,40 @@ final class Patches {
     }
 
     private class Permissions {
-        public boolean user;
+        public Boolean user;
         public Map<Long, Boolean> roles;
         public Map<Long, Boolean> channels;
 
-        public Permissions(boolean user, Map<Long, Boolean> roles, Map<Long, Boolean> channels) {
+        public Permissions(Boolean user, Map<Long, Boolean> roles, Map<Long, Boolean> channels) {
             this.user = user;
             this.roles = roles;
             this.channels = channels;
         }
 
-        public boolean checkFor(long userId, List<Long> roles, long channelId) {
-            return true;
+        public boolean checkFor(List<Long> roleIds, long channelId, long guildId) {
+            var channelPermission = this.channels.get(channelId);
+            var defaultChannelPermission = this.channels.getOrDefault(guildId - 1, true);
+            var userPermission = this.user;
+            var rolePermission = this.calculateRolePermission(roleIds);
+            var defaultRolePermission = this.roles.getOrDefault(guildId, true);
+            return ((channelPermission != null && channelPermission) || (channelPermission == null && defaultChannelPermission)) &&
+                ((userPermission != null && userPermission) ||
+                    (rolePermission != null && rolePermission) ||
+                    (rolePermission == null && defaultRolePermission));
+        }
+
+        private Boolean calculateRolePermission(List<Long> roleIds) {
+            Boolean calculatedRolePermission = null;
+            for (var roleId: roleIds) {
+                var rolePermission = this.roles.get(roleId);
+                if (rolePermission != null) {
+                    calculatedRolePermission = rolePermission;
+                    if (rolePermission) {
+                        break;
+                    }
+                }
+            }
+            return calculatedRolePermission;
         }
     }
 
@@ -266,8 +288,8 @@ final class Patches {
                     })
                     .findFirst();
                 return !(applicationCommand instanceof RemoteApplicationCommand)
-                    || (optionalApplication.get().permissions_.checkFor(userId, roles, channelId)
-                        && ((RemoteApplicationCommand) applicationCommand).permissions_.checkFor(userId, roles, channelId));
+                    || (optionalApplication.get().permissions_.checkFor(roles, channelId, guildId)
+                        && ((RemoteApplicationCommand) applicationCommand).permissions_.checkFor(roles, channelId, guildId));
             })
         );
     }
