@@ -164,6 +164,7 @@ final class Patches {
             var userPermission = this.user;
             var rolePermission = this.calculateRolePermission(roleIds);
             var defaultRolePermission = this.roles.getOrDefault(guildId, true);
+
             return ((channelPermission != null && channelPermission) || (channelPermission == null && defaultChannelPermission)) &&
                 ((userPermission != null && userPermission) ||
                     (rolePermission != null && rolePermission) ||
