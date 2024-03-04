@@ -50,6 +50,8 @@ final class Patches {
             Permissions permissions = null;
             if (this.permissions != null) {
                 permissions = this.permissions.toModel();
+            } else {
+                permissions = new Permissions();
             }
             return new Application(this.id, this.name, this.icon, permissions, commandCount);
         }
@@ -86,6 +88,8 @@ final class Patches {
             Permissions permissions = null;
             if (this.permissions != null) {
                 permissions = this.permissions.toModel();
+            } else {
+                permissions = new Permissions();
             }
             return new RemoteApplicationCommand(String.valueOf(this.id), this.applicationId, this.name, this.description, options, permissions, this.version);
         }
@@ -156,6 +160,10 @@ final class Patches {
             this.user = user;
             this.roles = roles;
             this.channels = channels;
+        }
+
+        public Permissions() {
+            this(null, new HashMap(), new HashMap());
         }
 
         public boolean checkFor(List<Long> roleIds, long channelId, long guildId) {
