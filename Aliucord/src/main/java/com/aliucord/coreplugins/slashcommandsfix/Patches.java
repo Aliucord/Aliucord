@@ -30,6 +30,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 final class Patches {
@@ -107,7 +108,7 @@ final class Patches {
         }
 
         public Permissions toModel() {
-            return new Permissions(user, roles, channels);
+            return new Permissions(Optional.ofNullable(user), roles, channels);
         }
     }
 
@@ -152,35 +153,33 @@ final class Patches {
     }
 
     private class Permissions {
-        public Boolean user;
+        public Optional<Boolean> user;
         public Map<Long, Boolean> roles;
         public Map<Long, Boolean> channels;
 
-        public Permissions(Boolean user, Map<Long, Boolean> roles, Map<Long, Boolean> channels) {
+        public Permissions(Optional<Boolean> user, Map<Long, Boolean> roles, Map<Long, Boolean> channels) {
             this.user = user;
             this.roles = roles;
             this.channels = channels;
         }
 
         public Permissions() {
-            this(null, new HashMap(), new HashMap());
+            this(Optional.empty(), new HashMap(), new HashMap());
         }
 
         public boolean checkFor(List<Long> roleIds, long channelId, long guildId) {
-            var channelPermission = this.channels.get(channelId);
             var defaultChannelPermission = this.channels.getOrDefault(guildId - 1, true);
-            var userPermission = this.user;
-            var rolePermission = this.calculateRolePermission(roleIds);
+            var channelPermission = Optional.ofNullable(this.channels.get(channelId))
+                .orElse(defaultChannelPermission);
             var defaultRolePermission = this.roles.getOrDefault(guildId, true);
+            var rolePermission = this.calculateRolePermission(roleIds, defaultRolePermission);
+            var userPermission = this.user.orElse(true);
 
-            return ((channelPermission != null && channelPermission) || (channelPermission == null && defaultChannelPermission)) &&
-                ((userPermission != null && userPermission) ||
-                    (rolePermission != null && rolePermission) ||
-                    (rolePermission == null && defaultRolePermission));
+            return channelPermission && (userPermission || rolePermission);
         }
 
-        private Boolean calculateRolePermission(List<Long> roleIds) {
-            Boolean calculatedRolePermission = null;
+        private boolean calculateRolePermission(List<Long> roleIds, boolean defaultPermission) {
+            var calculatedRolePermission = defaultPermission;
             for (var roleId: roleIds) {
                 var rolePermission = this.roles.get(roleId);
                 if (rolePermission != null) {
