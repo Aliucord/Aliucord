@@ -311,21 +311,6 @@ final class Patches {
                         && ((RemoteApplicationCommand) applicationCommand).permissions_.checkFor(roleIds, channelId, guild, memberPermissions, user));
             })
         );
-
-        // Patcher.addPatch(
-        //     StoreGatewayConnection.class.getDeclaredMethod("handleDispatch", String.class, Object.class),
-        //     new PreHook(param -> {
-        //         var eventName = (String) param.args[0];
-        //         var eventData = param.args[1];
-
-        //         logger.debug(eventName);
-        //         if (eventName != "GUILD_APPLICATION_COMMAND_INDEX_UPDATE") {
-        //             return;
-        //         }
-        //         logger.debug(eventData.getClass().getName());
-        //         param.setResult(null);
-        //     })
-        // );
     }
 
     // Upcasting Object generates a warning and we need that to get private fields with reflection
