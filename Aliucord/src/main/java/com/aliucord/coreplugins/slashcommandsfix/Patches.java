@@ -14,10 +14,12 @@ import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.PreHook;
 import com.aliucord.utils.GsonUtils;
 import com.aliucord.utils.ReflectUtils;
+import com.discord.api.permission.Permission;
 import com.discord.models.commands.ApplicationCommand;
 import com.discord.models.commands.ApplicationCommandKt;
 import com.discord.models.commands.ApplicationCommandOption;
 import com.discord.models.guild.Guild;
+import com.discord.models.user.MeUser;
 import com.discord.stores.BuiltInCommandsProvider;
 import com.discord.stores.StoreApplicationCommands;
 import com.discord.stores.StoreApplicationCommands$requestApplicationCommands$1;
@@ -25,6 +27,7 @@ import com.discord.stores.StoreApplicationCommands$requestApplicationCommandsQue
 import com.discord.stores.StoreApplicationCommands$requestApplications$1;
 import com.discord.stores.StoreApplicationCommandsKt;
 import com.discord.stores.StoreStream;
+import com.discord.utilities.permissions.PermissionUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -168,18 +171,17 @@ final class Patches {
             this(Optional.empty(), new HashMap(), new HashMap());
         }
 
-        public boolean checkFor(List<Long> roleIds, long channelId, Guild guild, long userId) {
+        public boolean checkFor(List<Long> roleIds, long channelId, Guild guild, long memberPermissions, MeUser user) {
             var guildId = guild.component7();
-            var ownerId = guild.component9();
-            var isOwner = userId == ownerId;
             var defaultChannelPermission = this.channels.getOrDefault(guildId - 1, true);
             var channelPermission = Optional.ofNullable(this.channels.get(channelId))
                 .orElse(defaultChannelPermission);
             var defaultRolePermission = this.roles.getOrDefault(guildId, true);
             var rolePermission = this.calculateRolePermission(roleIds, defaultRolePermission);
             var userPermission = this.user.orElse(true);
+            var administratorPermissions = PermissionUtils.canAndIsElevated(Permission.ADMINISTRATOR, memberPermissions, user.getMfaEnabled(), guild.getMfaLevel());
 
-            return isOwner || (channelPermission && (userPermission || rolePermission));
+            return administratorPermissions || (channelPermission && (userPermission || rolePermission));
         }
 
         private boolean calculateRolePermission(List<Long> roleIds, boolean defaultPermission) {
@@ -232,6 +234,8 @@ final class Patches {
     public void loadPatches(Context context) throws Throwable {
         var storeApplicationCommands = StoreStream.getApplicationCommands();
         var storeChannelsSelected = StoreStream.getChannelsSelected();
+        var storeUsers = StoreStream.getUsers();
+        var storePermissions = StoreStream.getPermissions();
         var storeGuilds = StoreStream.getGuilds();
 
         // Browsing commands (when just a '/' is typed)
@@ -284,14 +288,13 @@ final class Patches {
             ApplicationCommandKt.class.getDeclaredMethod("hasPermission", ApplicationCommand.class, long.class, List.class),
             new InsteadHook(param -> {
                 var applicationCommand = (ApplicationCommand) param.args[0];
-                var userId = (long) param.args[1];
-                var roles = (List<Long>) param.args[2];
+                var roleIds = (List<Long>) param.args[2];
 
                 var selectedChannel = storeChannelsSelected.getSelectedChannel();
                 var channelId = selectedChannel.k();
                 var guildId = selectedChannel.i();
                 var applicationId = applicationCommand.getApplicationId();
-                var optionalApplication = this.requestApplicationIndex(guildId)
+                var application = this.requestApplicationIndex(guildId)
                     .applications
                     .stream()
                     .filter(a -> {
@@ -299,10 +302,13 @@ final class Patches {
                         return id == applicationId;
                     })
                     .findFirst();
+                var user = storeUsers.getMe();
+                var memberPermissions = storePermissions.getGuildPermissions()
+                    .get(guildId);
                 var guild = storeGuilds.getGuild(guildId);
                 return !(applicationCommand instanceof RemoteApplicationCommand)
-                    || (optionalApplication.get().permissions_.checkFor(roles, channelId, guild, userId)
-                        && ((RemoteApplicationCommand) applicationCommand).permissions_.checkFor(roles, channelId, guild, userId));
+                    || (application.get().permissions_.checkFor(roleIds, channelId, guild, memberPermissions, user)
+                        && ((RemoteApplicationCommand) applicationCommand).permissions_.checkFor(roleIds, channelId, guild, memberPermissions, user));
             })
         );
 
