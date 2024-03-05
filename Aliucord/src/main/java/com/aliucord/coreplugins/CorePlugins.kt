@@ -10,6 +10,7 @@ object CorePlugins {
     private var loaded = false
     private var started = false
     private val corePlugins = arrayOf(
+        OpcodeParserBugFix(),
         RNAPI(),
         Badges(),
         CommandHandler(),
