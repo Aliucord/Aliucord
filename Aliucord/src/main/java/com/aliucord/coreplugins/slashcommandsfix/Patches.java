@@ -293,6 +293,7 @@ final class Patches {
                 }
 
                 try {
+                    ReflectUtils.setField(this_.this$0, "query", this_.$query);
                     this.passCommandData(this_.this$0, this_.$guildId, RequestSource.QUERY);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
