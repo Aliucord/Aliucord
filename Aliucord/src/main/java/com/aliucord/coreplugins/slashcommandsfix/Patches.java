@@ -253,7 +253,11 @@ final class Patches {
                     return;
                 }
 
-                this.passCommandData(this_.this$0, this_.$guildId, RequestSource.BROWSE);
+                try {
+                    this.passCommandData(this_.this$0, this_.$guildId, RequestSource.BROWSE);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
                 param.setResult(null);
             })
         );
@@ -268,7 +272,11 @@ final class Patches {
                     return;
                 }
 
-                this.passCommandData(this_.this$0, this_.$guildId, RequestSource.GUILD);
+                try {
+                    this.passCommandData(this_.this$0, this_.$guildId, RequestSource.GUILD);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
                 param.setResult(null);
             })
         );
@@ -283,7 +291,11 @@ final class Patches {
                     return;
                 }
 
-                this.passCommandData(this_.this$0, this_.$guildId, RequestSource.QUERY);
+                try {
+                    this.passCommandData(this_.this$0, this_.$guildId, RequestSource.QUERY);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
                 param.setResult(null);
             })
         );
@@ -320,14 +332,13 @@ final class Patches {
 
     // Upcasting Object generates a warning and we need that to get private fields with reflection
     @SuppressWarnings("unchecked")
-    private void passCommandData(StoreApplicationCommands storeApplicationCommands, long guildId, RequestSource requestSource) {
+    private void passCommandData(StoreApplicationCommands storeApplicationCommands, long guildId, RequestSource requestSource) throws Exception {
         // TODO: Cache the fields as they are requested every time this runs
 
         var applicationIndex = this.requestApplicationIndex(guildId);
 
-        // Pass the information to StoreApplicationCommands
-        if (requestSource == RequestSource.GUILD) {
-            try {
+        switch (requestSource) {
+            case GUILD:
                 var applications = new ArrayList(applicationIndex.applications);
                 Collections.sort(applications, new Comparator<Application>() {
                     @Override
@@ -339,23 +350,19 @@ final class Patches {
                 var handleGuildApplicationsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleGuildApplicationsUpdate", List.class);
                 handleGuildApplicationsUpdateMethod.setAccessible(true);
                 handleGuildApplicationsUpdateMethod.invoke(storeApplicationCommands, applications);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        } else if (requestSource == RequestSource.BROWSE || requestSource == RequestSource.QUERY) {
-            try {
-                if (requestSource == RequestSource.BROWSE) {
-                    var handleDiscoverCommandsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleDiscoverCommandsUpdate", List.class);
-                    handleDiscoverCommandsUpdateMethod.setAccessible(true);
-                    handleDiscoverCommandsUpdateMethod.invoke(storeApplicationCommands, applicationIndex.applicationCommands);
-                } else if (requestSource == RequestSource.QUERY) {
-                    var handleQueryCommandsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleQueryCommandsUpdate", List.class);
-                    handleQueryCommandsUpdateMethod.setAccessible(true);
-                    handleQueryCommandsUpdateMethod.invoke(storeApplicationCommands, applicationIndex.applicationCommands);
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+                break;
+
+            case BROWSE:
+                var handleDiscoverCommandsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleDiscoverCommandsUpdate", List.class);
+                handleDiscoverCommandsUpdateMethod.setAccessible(true);
+                handleDiscoverCommandsUpdateMethod.invoke(storeApplicationCommands, applicationIndex.applicationCommands);
+                break;
+
+            case QUERY:
+                var handleQueryCommandsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleQueryCommandsUpdate", List.class);
+                handleQueryCommandsUpdateMethod.setAccessible(true);
+                handleQueryCommandsUpdateMethod.invoke(storeApplicationCommands, applicationIndex.applicationCommands);
+                break;
         }
     }
 
