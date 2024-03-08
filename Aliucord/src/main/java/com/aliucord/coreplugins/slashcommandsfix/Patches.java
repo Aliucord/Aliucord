@@ -84,7 +84,7 @@ final class Patches {
         public ApplicationCommand toModel() {
             var apiOptions = this.options;
             if (apiOptions == null) {
-                apiOptions = new ArrayList();
+                apiOptions = new ArrayList<>();
             }
             var options = apiOptions
                 .stream()
@@ -166,10 +166,10 @@ final class Patches {
                 user = Optional.empty();
             }
             if (roles == null) {
-                roles = new HashMap();
+                roles = new HashMap<>();
             }
             if (channels == null) {
-                channels = new HashMap();
+                channels = new HashMap<>();
             }
             this.user = user;
             this.roles = roles;
@@ -232,10 +232,11 @@ final class Patches {
     Logger logger;
 
     Patches(Logger logger) {
-        this.guildApplicationIndexes = new HashMap();
+        this.guildApplicationIndexes = new HashMap<>();
         this.logger = logger;
     }
 
+    @SuppressWarnings("unchecked")
     public void loadPatches(Context context) throws Throwable {
         var storeApplicationCommands = StoreStream.getApplicationCommands();
         var storeChannelsSelected = StoreStream.getChannelsSelected();
@@ -330,8 +331,6 @@ final class Patches {
         );
     }
 
-    // Upcasting Object generates a warning and we need that to get private fields with reflection
-    @SuppressWarnings("unchecked")
     private void passCommandData(StoreApplicationCommands storeApplicationCommands, long guildId, RequestSource requestSource) throws Exception {
         // TODO: Cache the fields as they are requested every time this runs
 
@@ -339,10 +338,10 @@ final class Patches {
 
         switch (requestSource) {
             case GUILD:
-                var applications = new ArrayList(applicationIndex.applications);
-                Collections.sort(applications, new Comparator<Application>() {
+                var applications = new ArrayList<com.discord.models.commands.Application>(applicationIndex.applications);
+                Collections.sort(applications, new Comparator<com.discord.models.commands.Application>() {
                     @Override
-                    public int compare(Application left, Application right) {
+                    public int compare(com.discord.models.commands.Application left, com.discord.models.commands.Application right) {
                         return left.getName().compareTo(right.getName());
                     }
                 });
