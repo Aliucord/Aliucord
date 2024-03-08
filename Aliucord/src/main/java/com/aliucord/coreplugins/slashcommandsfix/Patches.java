@@ -56,7 +56,7 @@ final class Patches {
             if (this.permissions != null) {
                 permissions = this.permissions.toModel();
             } else {
-                permissions = new Permissions();
+                permissions = new Permissions(null, null, null);
             }
             return new Application(this.id, this.name, this.icon, permissions, commandCount);
         }
@@ -94,7 +94,7 @@ final class Patches {
             if (this.permissions != null) {
                 permissions = this.permissions.toModel();
             } else {
-                permissions = new Permissions();
+                permissions = new Permissions(null, null, null);
             }
             return new RemoteApplicationCommand(String.valueOf(this.id), this.applicationId, this.name, this.description, options, permissions, this.version);
         }
@@ -162,13 +162,18 @@ final class Patches {
         public Map<Long, Boolean> channels;
 
         public Permissions(Optional<Boolean> user, Map<Long, Boolean> roles, Map<Long, Boolean> channels) {
+            if (user == null) {
+                user = Optional.empty();
+            }
+            if (roles == null) {
+                roles = new HashMap();
+            }
+            if (channels == null) {
+                channels = new HashMap();
+            }
             this.user = user;
             this.roles = roles;
             this.channels = channels;
-        }
-
-        public Permissions() {
-            this(Optional.empty(), new HashMap(), new HashMap());
         }
 
         public boolean checkFor(List<Long> roleIds, long channelId, Guild guild, long memberPermissions, MeUser user) {
