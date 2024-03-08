@@ -14,220 +14,22 @@ import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.PreHook;
 import com.aliucord.utils.GsonUtils;
 import com.aliucord.utils.ReflectUtils;
-import com.discord.api.permission.Permission;
 import com.discord.models.commands.ApplicationCommand;
 import com.discord.models.commands.ApplicationCommandKt;
-import com.discord.models.commands.ApplicationCommandOption;
-import com.discord.models.guild.Guild;
-import com.discord.models.user.MeUser;
 import com.discord.stores.BuiltInCommandsProvider;
 import com.discord.stores.StoreApplicationCommands;
 import com.discord.stores.StoreApplicationCommands$requestApplicationCommands$1;
 import com.discord.stores.StoreApplicationCommands$requestApplicationCommandsQuery$1;
 import com.discord.stores.StoreApplicationCommands$requestApplications$1;
-import com.discord.stores.StoreApplicationCommandsKt;
 import com.discord.stores.StoreStream;
-import com.discord.utilities.permissions.PermissionUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 final class Patches {
-    private class ApiApplication {
-        public final long id;
-        public final String name;
-        public final String icon;
-        public final ApiPermissions permissions;
-
-        public ApiApplication() {
-            this.id = 0;
-            this.name = null;
-            this.icon = null;
-            this.permissions = null;
-        }
-
-        public Application toModel(int commandCount) {
-            Permissions permissions = null;
-            if (this.permissions != null) {
-                permissions = this.permissions.toModel();
-            } else {
-                permissions = new Permissions(null, null, null);
-            }
-            return new Application(this.id, this.name, this.icon, permissions, commandCount);
-        }
-    }
-
-    private class ApiApplicationCommand {
-        public final long id;
-        public final long applicationId;
-        public final String name;
-        public final String description;
-        public final List<com.discord.api.commands.ApplicationCommandOption> options;
-        public final ApiPermissions permissions;
-        public final String version;
-
-        public ApiApplicationCommand() {
-            this.id = 0;
-            this.applicationId = 0;
-            this.name = null;
-            this.description = null;
-            this.options = null;
-            this.permissions = null;
-            this.version = null;
-        }
-
-        public ApplicationCommand toModel() {
-            var apiOptions = this.options;
-            if (apiOptions == null) {
-                apiOptions = new ArrayList<>();
-            }
-            var options = apiOptions
-                .stream()
-                .map(option -> StoreApplicationCommandsKt.toSlashCommandOption(option))
-                .collect(Collectors.toList());
-            Permissions permissions = null;
-            if (this.permissions != null) {
-                permissions = this.permissions.toModel();
-            } else {
-                permissions = new Permissions(null, null, null);
-            }
-            return new RemoteApplicationCommand(String.valueOf(this.id), this.applicationId, this.name, this.description, options, permissions, this.version);
-        }
-    }
-
-    private class ApiPermissions {
-        public Boolean user;
-        public Map<Long, Boolean> roles;
-        public Map<Long, Boolean> channels;
-
-        public ApiPermissions() {
-            this.user = null;
-            this.roles = null;
-            this.channels = null;
-        }
-
-        public Permissions toModel() {
-            return new Permissions(Optional.ofNullable(user), roles, channels);
-        }
-    }
-
-    private class ApiApplicationIndex {
-        public List<ApiApplication> applications;
-        public List<ApiApplicationCommand> applicationCommands;
-
-        public ApiApplicationIndex() {
-            this.applications = null;
-            this.applicationCommands = null;
-        }
-
-        public ApplicationIndex toModel() {
-            var applicationCommandCounts = new HashMap<Long, Integer>();
-            for (var applicationCommand: this.applicationCommands) {
-                var count = applicationCommandCounts.getOrDefault(applicationCommand.applicationId, 0);
-                count += 1;
-                applicationCommandCounts.put(applicationCommand.applicationId, count);
-            }
-
-            var applications = new ArrayList<Application>();
-            for (var application: this.applications) {
-                applications.add(application.toModel(applicationCommandCounts.getOrDefault(application.id, 0)));
-            }
-            var applicationCommands = new ArrayList<ApplicationCommand>();
-            for (var applicationCommand: this.applicationCommands) {
-                applicationCommands.add(applicationCommand.toModel());
-            }
-
-            return new ApplicationIndex(applications, applicationCommands);
-        }
-    }
-
-    private class ApplicationIndex {
-        public List<Application> applications;
-        public List<ApplicationCommand> applicationCommands;
-
-        public ApplicationIndex(List<Application> applications, List<ApplicationCommand> applicationCommands) {
-            this.applications = applications;
-            this.applicationCommands = applicationCommands;
-        }
-    }
-
-    private class Permissions {
-        public Optional<Boolean> user;
-        public Map<Long, Boolean> roles;
-        public Map<Long, Boolean> channels;
-
-        public Permissions(Optional<Boolean> user, Map<Long, Boolean> roles, Map<Long, Boolean> channels) {
-            if (user == null) {
-                user = Optional.empty();
-            }
-            if (roles == null) {
-                roles = new HashMap<>();
-            }
-            if (channels == null) {
-                channels = new HashMap<>();
-            }
-            this.user = user;
-            this.roles = roles;
-            this.channels = channels;
-        }
-
-        public boolean checkFor(List<Long> roleIds, long channelId, Guild guild, long memberPermissions, MeUser user) {
-            var guildId = guild.component7();
-            var defaultChannelPermission = this.channels.getOrDefault(guildId - 1, true);
-            var channelPermission = Optional.ofNullable(this.channels.get(channelId))
-                .orElse(defaultChannelPermission);
-            var defaultRolePermission = this.roles.getOrDefault(guildId, true);
-            var rolePermission = this.calculateRolePermission(roleIds, defaultRolePermission);
-            var userPermission = this.user.orElse(true);
-            var administratorPermissions = PermissionUtils.canAndIsElevated(Permission.ADMINISTRATOR, memberPermissions, user.getMfaEnabled(), guild.getMfaLevel());
-
-            return administratorPermissions || (channelPermission && (userPermission || rolePermission));
-        }
-
-        private boolean calculateRolePermission(List<Long> roleIds, boolean defaultPermission) {
-            var calculatedRolePermission = defaultPermission;
-            for (var roleId: roleIds) {
-                var rolePermission = this.roles.get(roleId);
-                if (rolePermission != null) {
-                    calculatedRolePermission = rolePermission;
-                    if (rolePermission) {
-                        break;
-                    }
-                }
-            }
-            return calculatedRolePermission;
-        }
-    }
-
-    private class Application extends com.discord.models.commands.Application {
-        public Permissions permissions_;
-
-        public Application(long id, String name, String icon, Permissions permissions, int commandCount) {
-            super(id, name, icon, null, commandCount, null, false);
-            this.permissions_ = permissions;
-        }
-    }
-
-    private class RemoteApplicationCommand extends com.discord.models.commands.RemoteApplicationCommand {
-        public Permissions permissions_;
-
-        public RemoteApplicationCommand(String id, long applicationId, String name, String description, List<ApplicationCommandOption> options, Permissions permissions, String version) {
-            super(id, applicationId, name, description, options, null, version, true, null, null); // TODO: defaultPermissions
-            this.permissions_ = permissions;
-        }
-    }
-
-    private enum RequestSource {
-        GUILD,
-        BROWSE,
-        QUERY;
-    }
-
     private Map<Long, ApplicationIndex> guildApplicationIndexes;
     Logger logger;
 
