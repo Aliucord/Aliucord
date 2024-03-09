@@ -31,10 +31,12 @@ import java.util.Map;
 
 final class Patches {
     private Map<Long, ApplicationIndex> guildApplicationIndexes;
-    Logger logger;
+    private Map<Long, ApplicationIndex> dmApplicationIndexes;
+    private Logger logger;
 
     Patches(Logger logger) {
         this.guildApplicationIndexes = new HashMap<>();
+        this.dmApplicationIndexes = new HashMap<>();
         this.logger = logger;
     }
 
@@ -57,7 +59,7 @@ final class Patches {
                 }
 
                 try {
-                    this.passCommandData(this_.this$0, this_.$guildId, RequestSource.BROWSE);
+                    this.passCommandData(this_.this$0, new ApplicationIndexSourceGuild(this_.$guildId), RequestSource.BROWSE);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -76,7 +78,7 @@ final class Patches {
                 }
 
                 try {
-                    this.passCommandData(this_.this$0, this_.$guildId, RequestSource.GUILD);
+                    this.passCommandData(this_.this$0, new ApplicationIndexSourceGuild(this_.$guildId), RequestSource.GUILD);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -96,7 +98,7 @@ final class Patches {
 
                 try {
                     ReflectUtils.setField(this_.this$0, "query", this_.$query);
-                    this.passCommandData(this_.this$0, this_.$guildId, RequestSource.QUERY);
+                    this.passCommandData(this_.this$0, new ApplicationIndexSourceGuild(this_.$guildId), RequestSource.QUERY);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -115,7 +117,7 @@ final class Patches {
                 var channelId = selectedChannel.k();
                 var guildId = selectedChannel.i();
                 var applicationId = applicationCommand.getApplicationId();
-                var application = this.requestApplicationIndex(guildId)
+                var application = this.requestApplicationIndex(new ApplicationIndexSourceGuild(guildId))
                     .applications
                     .stream()
                     .filter(a -> {
@@ -135,10 +137,10 @@ final class Patches {
         );
     }
 
-    private void passCommandData(StoreApplicationCommands storeApplicationCommands, long guildId, RequestSource requestSource) throws Exception {
+    private void passCommandData(StoreApplicationCommands storeApplicationCommands, ApplicationIndexSource applicationIndexSource, RequestSource requestSource) throws Exception {
         // TODO: Cache the fields as they are requested every time this runs
 
-        var applicationIndex = this.requestApplicationIndex(guildId);
+        var applicationIndex = this.requestApplicationIndex(applicationIndexSource);
 
         switch (requestSource) {
             case GUILD:
@@ -169,13 +171,13 @@ final class Patches {
         }
     }
 
-    private ApplicationIndex requestApplicationIndex(long guildId) {
+    private ApplicationIndex requestApplicationIndex(ApplicationIndexSource source) {
         // Reuse application index from cache
-        var applicationIndex = this.guildApplicationIndexes.get(guildId);
+        var applicationIndex = source.getIndex(this.guildApplicationIndexes, this.dmApplicationIndexes);
         if (applicationIndex == null) {
             try {
                 // Request application index from API
-                applicationIndex = Http.Request.newDiscordRNRequest(String.format("/guilds/%d/application-command-index", guildId))
+                applicationIndex = Http.Request.newDiscordRNRequest(source.getEndpoint())
                     .execute()
                     .json(GsonUtils.getGsonRestApi(), ApiApplicationIndex.class)
                     .toModel();
@@ -183,7 +185,7 @@ final class Patches {
                 throw new RuntimeException(e);
             }
 
-            this.guildApplicationIndexes.put(guildId, applicationIndex);
+            source.putIndex(this.guildApplicationIndexes, this.dmApplicationIndexes, applicationIndex);
         }
         return applicationIndex;
     }
