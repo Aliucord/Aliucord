@@ -20,6 +20,7 @@ import com.discord.stores.BuiltInCommandsProvider;
 import com.discord.stores.StoreApplicationCommands;
 import com.discord.stores.StoreApplicationCommands$requestApplicationCommands$1;
 import com.discord.stores.StoreApplicationCommands$requestApplicationCommandsQuery$1;
+import com.discord.stores.StoreApplicationCommands$handleDmUserApplication$1;
 import com.discord.stores.StoreApplicationCommands$requestApplications$1;
 import com.discord.stores.StoreStream;
 import java.util.ArrayList;
@@ -48,25 +49,6 @@ final class Patches {
         var storePermissions = StoreStream.getPermissions();
         var storeGuilds = StoreStream.getGuilds();
 
-        // Browsing commands (when just a '/' is typed)
-        Patcher.addPatch(
-            StoreApplicationCommands$requestApplicationCommands$1.class.getDeclaredMethod("invoke"),
-            new PreHook(param -> {
-                var this_ = (StoreApplicationCommands$requestApplicationCommands$1) param.thisObject;
-
-                if (this_.$guildId == null) {
-                    return;
-                }
-
-                try {
-                    this.passCommandData(this_.this$0, new ApplicationIndexSourceGuild(this_.$guildId), RequestSource.BROWSE);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-                param.setResult(null);
-            })
-        );
-
         // Requesting applications present in the guild
         Patcher.addPatch(
             StoreApplicationCommands$requestApplications$1.class.getDeclaredMethod("invoke"),
@@ -79,6 +61,53 @@ final class Patches {
 
                 try {
                     this.passCommandData(this_.this$0, new ApplicationIndexSourceGuild(this_.$guildId), RequestSource.GUILD);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                param.setResult(null);
+            })
+        );
+
+        // Requesting applications present in the DM
+        Patcher.addPatch(
+            StoreApplicationCommands$handleDmUserApplication$1.class.getDeclaredMethod("invoke"),
+            new InsteadHook(param -> {
+                var this_ = (StoreApplicationCommands$handleDmUserApplication$1) param.thisObject;
+
+                var channelId = storeChannelsSelected
+                    .getSelectedChannel()
+                    .k();
+
+                try {
+                    this.passCommandData(this_.this$0, new ApplicationIndexSourceDm(channelId), RequestSource.GUILD);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            })
+        );
+
+        // Browsing commands (when just a '/' is typed)
+        Patcher.addPatch(
+            StoreApplicationCommands$requestApplicationCommands$1.class.getDeclaredMethod("invoke"),
+            new PreHook(param -> {
+                var this_ = (StoreApplicationCommands$requestApplicationCommands$1) param.thisObject;
+
+                if (this_.$guildId == null) {
+                    return;
+                }
+
+                ApplicationIndexSource applicationIndexSource = null;
+                if (this_.$guildId != 0) {
+                    applicationIndexSource = new ApplicationIndexSourceGuild(this_.$guildId);
+                } else {
+                    var channelId = storeChannelsSelected
+                        .getSelectedChannel()
+                        .k();
+                    applicationIndexSource = new ApplicationIndexSourceDm(channelId);
+                }
+
+                try {
+                    this.passCommandData(this_.this$0, applicationIndexSource, RequestSource.BROWSE);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -113,9 +142,14 @@ final class Patches {
                 var applicationCommand = (ApplicationCommand) param.args[0];
                 var roleIds = (List<Long>) param.args[2];
 
-                var selectedChannel = storeChannelsSelected.getSelectedChannel();
-                var channelId = selectedChannel.k();
-                var guildId = selectedChannel.i();
+                var channel = storeChannelsSelected.getSelectedChannel();
+                var guildId = channel.i();
+
+                if (guildId == 0) {
+                    return true;
+                }
+
+                var channelId = channel.k();
                 var applicationId = applicationCommand.getApplicationId();
                 var application = this.requestApplicationIndex(new ApplicationIndexSourceGuild(guildId))
                     .applications

@@ -9,24 +9,24 @@ package com.aliucord.coreplugins.slashcommandsfix;
 import java.util.Map;
 
 class ApplicationIndexSourceDm implements ApplicationIndexSource {
-    long userId;
+    long channelId;
 
-    public ApplicationIndexSourceDm(long userId) {
-        this.userId = userId;
+    public ApplicationIndexSourceDm(long channelId) {
+        this.channelId = channelId;
     }
 
     @Override
     public String getEndpoint() {
-        return String.format("/channels/%d/application-command-index", this.userId);
+        return String.format("/channels/%d/application-command-index", this.channelId);
     }
 
     @Override
     public ApplicationIndex getIndex(Map<Long, ApplicationIndex> guildApplicationIndexes, Map<Long, ApplicationIndex> dmApplicationIndexes) {
-        return dmApplicationIndexes.get(this.userId);
+        return dmApplicationIndexes.get(this.channelId);
     }
 
     @Override
     public void putIndex(Map<Long, ApplicationIndex> guildApplicationIndexes, Map<Long, ApplicationIndex> dmApplicationIndexes, ApplicationIndex index) {
-        dmApplicationIndexes.put(this.userId, index);
+        dmApplicationIndexes.put(this.channelId, index);
     }
 }
