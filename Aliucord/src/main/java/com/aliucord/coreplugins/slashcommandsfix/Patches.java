@@ -83,6 +83,8 @@ final class Patches {
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
+
+                return null;
             })
         );
 
