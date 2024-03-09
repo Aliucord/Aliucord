@@ -64,6 +64,7 @@ final class Patches {
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
+
                 param.setResult(null);
             })
         );
@@ -113,6 +114,7 @@ final class Patches {
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
+
                 param.setResult(null);
             })
         );
@@ -133,6 +135,7 @@ final class Patches {
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
+
                 param.setResult(null);
             })
         );
