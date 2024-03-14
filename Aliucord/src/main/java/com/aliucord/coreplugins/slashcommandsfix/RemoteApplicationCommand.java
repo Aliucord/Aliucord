@@ -13,7 +13,7 @@ class RemoteApplicationCommand extends com.discord.models.commands.RemoteApplica
     public Permissions permissions_;
 
     public RemoteApplicationCommand(String id, long applicationId, String name, String description, List<ApplicationCommandOption> options, Permissions permissions, Long guildId, String version) {
-        super(id, applicationId, name, description, options, guildId, version, true, null, null); // TODO: defaultPermissions
+        super(id, applicationId, name, description, options, guildId, version, null, null, null);
         this.permissions_ = permissions;
     }
 }
