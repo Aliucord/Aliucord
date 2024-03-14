@@ -19,6 +19,7 @@ class ApiApplicationCommand {
     public final String description;
     public final List<com.discord.api.commands.ApplicationCommandOption> options;
     public final ApiPermissions permissions;
+    public final Long guildId;
     public final String version;
 
     public ApiApplicationCommand() {
@@ -28,6 +29,7 @@ class ApiApplicationCommand {
         this.description = null;
         this.options = null;
         this.permissions = null;
+        this.guildId = null;
         this.version = null;
     }
 
@@ -46,6 +48,6 @@ class ApiApplicationCommand {
         } else {
             permissions = new Permissions(null, null, null);
         }
-        return new RemoteApplicationCommand(String.valueOf(this.id), this.applicationId, this.name, this.description, options, permissions, this.version);
+        return new RemoteApplicationCommand(String.valueOf(this.id), this.applicationId, this.name, this.description, options, permissions, this.guildId, this.version);
     }
 }
