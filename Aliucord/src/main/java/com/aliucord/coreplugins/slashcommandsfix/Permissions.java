@@ -19,20 +19,13 @@ class Permissions {
     public Optional<Boolean> user;
     public Map<Long, Boolean> roles;
     public Map<Long, Boolean> channels;
+    public Optional<Long> defaultMemberPermissions;
 
-    public Permissions(Optional<Boolean> user, Map<Long, Boolean> roles, Map<Long, Boolean> channels) {
-        if (user == null) {
-            user = Optional.empty();
-        }
-        if (roles == null) {
-            roles = new HashMap<>();
-        }
-        if (channels == null) {
-            channels = new HashMap<>();
-        }
-        this.user = user;
-        this.roles = roles;
-        this.channels = channels;
+    public Permissions(Optional<Boolean> user, Map<Long, Boolean> roles, Map<Long, Boolean> channels, Optional<Long> defaultMemberPermissions) {
+        this.user = Optional.ofNullable(user).orElse(Optional.empty());
+        this.roles = Optional.ofNullable(roles).orElse(new HashMap<>());
+        this.channels = Optional.ofNullable(channels).orElse(new HashMap<>());
+        this.defaultMemberPermissions = Optional.ofNullable(defaultMemberPermissions).orElse(Optional.empty());
     }
 
     public boolean checkFor(List<Long> roleIds, long channelId, Guild guild, long memberPermissions, MeUser user) {
@@ -40,12 +33,28 @@ class Permissions {
         var defaultChannelPermission = this.channels.getOrDefault(guildId - 1, true);
         var channelPermission = Optional.ofNullable(this.channels.get(channelId))
             .orElse(defaultChannelPermission);
-        var defaultRolePermission = this.roles.getOrDefault(guildId, true);
+        var defaultMemberPermission = this.defaultMemberPermissions
+            .map(
+                defaultMemberPermissions -> defaultMemberPermissions != 0
+                    && PermissionUtils.canAndIsElevated(
+                        defaultMemberPermissions,
+                        memberPermissions,
+                        user.getMfaEnabled(),
+                        guild.getMfaLevel()
+                    )
+            )
+            .orElse(true);
+        var defaultRolePermission = this.roles.getOrDefault(guildId, defaultMemberPermission);
         var rolePermission = this.calculateRolePermission(roleIds, defaultRolePermission);
-        var userPermission = this.user.orElse(true);
-        var administratorPermissions = PermissionUtils.canAndIsElevated(Permission.ADMINISTRATOR, memberPermissions, user.getMfaEnabled(), guild.getMfaLevel());
+        var userPermission = this.user.orElse(defaultMemberPermission);
+        var administratorPermission = PermissionUtils.canAndIsElevated(
+            Permission.ADMINISTRATOR,
+            memberPermissions,
+            user.getMfaEnabled(),
+            guild.getMfaLevel()
+        );
 
-        return administratorPermissions || (channelPermission && (userPermission || rolePermission));
+        return administratorPermission || (channelPermission && (userPermission || rolePermission));
     }
 
     private boolean calculateRolePermission(List<Long> roleIds, boolean defaultPermission) {

@@ -18,11 +18,12 @@ import com.discord.models.commands.ApplicationCommand;
 import com.discord.models.commands.ApplicationCommandKt;
 import com.discord.stores.BuiltInCommandsProvider;
 import com.discord.stores.StoreApplicationCommands;
+import com.discord.stores.StoreApplicationCommands$handleDmUserApplication$1;
 import com.discord.stores.StoreApplicationCommands$requestApplicationCommands$1;
 import com.discord.stores.StoreApplicationCommands$requestApplicationCommandsQuery$1;
-import com.discord.stores.StoreApplicationCommands$handleDmUserApplication$1;
 import com.discord.stores.StoreApplicationCommands$requestApplications$1;
 import com.discord.stores.StoreStream;
+import com.discord.utilities.permissions.PermissionUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -150,6 +151,7 @@ final class Patches {
                 var channel = storeChannelsSelected.getSelectedChannel();
                 var guildId = channel.i();
 
+                // Allow all commands in DMs
                 if (guildId == 0) {
                     return true;
                 }

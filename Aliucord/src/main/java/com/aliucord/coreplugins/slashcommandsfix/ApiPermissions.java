@@ -20,7 +20,7 @@ class ApiPermissions {
         this.channels = null;
     }
 
-    public Permissions toModel() {
-        return new Permissions(Optional.ofNullable(user), roles, channels);
+    public Permissions toModel(Optional<Long> defaultMemberPermissions) {
+        return new Permissions(Optional.ofNullable(user), roles, channels, defaultMemberPermissions);
     }
 }

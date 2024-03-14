@@ -10,6 +10,7 @@ import com.discord.models.commands.ApplicationCommand;
 import com.discord.stores.StoreApplicationCommandsKt;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 class ApiApplicationCommand {
@@ -19,6 +20,7 @@ class ApiApplicationCommand {
     public final String description;
     public final List<com.discord.api.commands.ApplicationCommandOption> options;
     public final ApiPermissions permissions;
+    public final Long defaultMemberPermissions;
     public final Long guildId;
     public final String version;
 
@@ -29,6 +31,7 @@ class ApiApplicationCommand {
         this.description = null;
         this.options = null;
         this.permissions = null;
+        this.defaultMemberPermissions = null;
         this.guildId = null;
         this.version = null;
     }
@@ -43,10 +46,11 @@ class ApiApplicationCommand {
             .map(option -> StoreApplicationCommandsKt.toSlashCommandOption(option))
             .collect(Collectors.toList());
         Permissions permissions = null;
+        var defaultMemberPermissions = Optional.ofNullable(this.defaultMemberPermissions);
         if (this.permissions != null) {
-            permissions = this.permissions.toModel();
+            permissions = this.permissions.toModel(defaultMemberPermissions);
         } else {
-            permissions = new Permissions(null, null, null);
+            permissions = new Permissions(null, null, null, defaultMemberPermissions);
         }
         return new RemoteApplicationCommand(String.valueOf(this.id), this.applicationId, this.name, this.description, options, permissions, this.guildId, this.version);
     }
