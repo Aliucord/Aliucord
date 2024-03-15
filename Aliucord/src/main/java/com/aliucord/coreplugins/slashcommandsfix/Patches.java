@@ -7,6 +7,7 @@
 package com.aliucord.coreplugins.slashcommandsfix;
 
 import android.content.Context;
+import com.aliucord.api.GatewayAPI;
 import com.aliucord.Http;
 import com.aliucord.Logger;
 import com.aliucord.patcher.InsteadHook;
@@ -176,6 +177,11 @@ final class Patches {
                         && ((RemoteApplicationCommand) applicationCommand).permissions_.checkFor(roleIds, channelId, guild, memberPermissions, user));
             })
         );
+
+        GatewayAPI.onEvent("GUILD_APPLICATION_COMMAND_INDEX_UPDATE", ApiGuildApplicationCommandIndexUpdate.class, guildApplicationCommandIndexUpdate -> {
+            this.guildApplicationIndexes.remove(guildApplicationCommandIndexUpdate.guildId);
+            return null;
+        });
     }
 
     private void passCommandData(StoreApplicationCommands storeApplicationCommands, ApplicationIndexSource applicationIndexSource, RequestSource requestSource) throws Exception {
