@@ -7,7 +7,7 @@
 package com.aliucord.coreplugins.slashcommandsfix;
 
 enum RequestSource {
-    GUILD,
+    INITIAL,
     BROWSE,
     QUERY;
 }

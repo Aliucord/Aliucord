@@ -62,7 +62,7 @@ final class Patches {
                 }
 
                 try {
-                    this.passCommandData(this_.this$0, new ApplicationIndexSourceGuild(this_.$guildId), RequestSource.GUILD);
+                    this.passCommandData(this_.this$0, new ApplicationIndexSourceGuild(this_.$guildId), RequestSource.INITIAL);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -82,7 +82,7 @@ final class Patches {
                     .k();
 
                 try {
-                    this.passCommandData(this_.this$0, new ApplicationIndexSourceDm(channelId), RequestSource.GUILD);
+                    this.passCommandData(this_.this$0, new ApplicationIndexSourceDm(channelId), RequestSource.INITIAL);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -190,7 +190,7 @@ final class Patches {
         var applicationIndex = this.requestApplicationIndex(applicationIndexSource);
 
         switch (requestSource) {
-            case GUILD:
+            case INITIAL:
                 var applications = new ArrayList<com.discord.models.commands.Application>(applicationIndex.applications);
                 Collections.sort(applications, new Comparator<com.discord.models.commands.Application>() {
                     @Override
