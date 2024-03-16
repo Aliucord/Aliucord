@@ -17,13 +17,16 @@ import com.aliucord.utils.GsonUtils;
 import com.aliucord.utils.ReflectUtils;
 import com.discord.models.commands.ApplicationCommand;
 import com.discord.models.commands.ApplicationCommandKt;
+import com.discord.models.commands.ApplicationCommandLocalSendData;
 import com.discord.stores.BuiltInCommandsProvider;
 import com.discord.stores.StoreApplicationCommands;
 import com.discord.stores.StoreApplicationCommands$handleDmUserApplication$1;
 import com.discord.stores.StoreApplicationCommands$requestApplicationCommands$1;
 import com.discord.stores.StoreApplicationCommands$requestApplicationCommandsQuery$1;
 import com.discord.stores.StoreApplicationCommands$requestApplications$1;
+import com.discord.stores.StoreApplicationInteractions;
 import com.discord.stores.StoreStream;
+import com.discord.utilities.messagesend.MessageResult;
 import com.discord.utilities.permissions.PermissionUtils;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,11 +34,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.discord.utilities.messagesend.MessageResult;
-import com.discord.models.commands.ApplicationCommandLocalSendData;
 import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
-import com.discord.stores.StoreApplicationInteractions;
 
 final class Patches {
     private static final int INTERACTION_APPLICATION_COMMAND_INVALID_VERSION_ERROR_CODE = 50035;
