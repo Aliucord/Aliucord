@@ -13,6 +13,7 @@ import com.aliucord.Logger;
 import com.aliucord.patcher.InsteadHook;
 import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.PreHook;
+import com.aliucord.Utils;
 import com.aliucord.utils.GsonUtils;
 import com.aliucord.utils.ReflectUtils;
 import com.discord.models.commands.ApplicationCommand;
@@ -203,6 +204,8 @@ final class Patches {
                             applicationIndexSource = new ApplicationIndexSourceDm(channelId);
                         }
                         this.cleanApplicationIndexCache(applicationIndexSource);
+
+                        Utils.showToast("This command is outdated, please try again");
                     }
                 }
             })
