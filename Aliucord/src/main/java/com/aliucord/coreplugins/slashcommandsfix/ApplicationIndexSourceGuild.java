@@ -29,4 +29,9 @@ class ApplicationIndexSourceGuild implements ApplicationIndexSource {
     public void putIndex(Map<Long, ApplicationIndex> guildApplicationIndexes, Map<Long, ApplicationIndex> dmApplicationIndexes, ApplicationIndex index) {
         guildApplicationIndexes.put(this.guildId, index);
     }
+
+    @Override
+    public void cleanCache(Map<Long, ApplicationIndex> guildApplicationIndexes, Map<Long, ApplicationIndex> dmApplicationIndexes) {
+        guildApplicationIndexes.remove(this.guildId);
+    }
 }

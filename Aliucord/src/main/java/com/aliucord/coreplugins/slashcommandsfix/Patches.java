@@ -31,8 +31,15 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.discord.utilities.messagesend.MessageResult;
+import com.discord.models.commands.ApplicationCommandLocalSendData;
+import kotlin.jvm.functions.Function0;
+import kotlin.jvm.functions.Function1;
+import com.discord.stores.StoreApplicationInteractions;
 
 final class Patches {
+    private static final int INTERACTION_APPLICATION_COMMAND_INVALID_VERSION_ERROR_CODE = 50035;
+
     private Map<Long, ApplicationIndex> guildApplicationIndexes;
     private Map<Long, ApplicationIndex> dmApplicationIndexes;
     private Logger logger;
@@ -178,8 +185,31 @@ final class Patches {
             })
         );
 
+        Patcher.addPatch(
+            StoreApplicationInteractions.class.getDeclaredMethod("handleApplicationCommandResult", MessageResult.class, ApplicationCommandLocalSendData.class, Function0.class, Function1.class),
+            new PreHook(param -> {
+                var result = (MessageResult) param.args[0];
+                var localSendData = (ApplicationCommandLocalSendData) param.args[1];
+
+                if (result instanceof MessageResult.UnknownFailure) {
+                    var errorCode = ((MessageResult.UnknownFailure) result).getError().getResponse().getCode();
+                    if (errorCode == Patches.INTERACTION_APPLICATION_COMMAND_INVALID_VERSION_ERROR_CODE) {
+                        ApplicationIndexSource applicationIndexSource = null;
+                        var guildId = localSendData.component3();
+                        if (guildId != null) {
+                            applicationIndexSource = new ApplicationIndexSourceGuild(guildId);
+                        } else {
+                            var channelId = localSendData.component2();
+                            applicationIndexSource = new ApplicationIndexSourceDm(channelId);
+                        }
+                        this.cleanApplicationIndexCache(applicationIndexSource);
+                    }
+                }
+            })
+        );
+
         GatewayAPI.onEvent("GUILD_APPLICATION_COMMAND_INDEX_UPDATE", ApiGuildApplicationCommandIndexUpdate.class, guildApplicationCommandIndexUpdate -> {
-            this.guildApplicationIndexes.remove(guildApplicationCommandIndexUpdate.guildId);
+            this.cleanApplicationIndexCache(new ApplicationIndexSourceGuild(guildApplicationCommandIndexUpdate.guildId));
             return null;
         });
     }
@@ -235,5 +265,9 @@ final class Patches {
             source.putIndex(this.guildApplicationIndexes, this.dmApplicationIndexes, applicationIndex);
         }
         return applicationIndex;
+    }
+
+    private void cleanApplicationIndexCache(ApplicationIndexSource source) {
+        source.cleanCache(this.guildApplicationIndexes, this.dmApplicationIndexes);
     }
 }
