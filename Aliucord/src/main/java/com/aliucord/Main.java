@@ -253,6 +253,9 @@ public final class Main {
         var experiments = StoreStream.getExperiments();
         var overrides = StoreExperiments.access$getExperimentOverrides$p(experiments);
         for (var key : new String[]{
+            "2020-09_threads",
+            "2021-02_view_threads",
+            "2021-08_threads_permissions",
             "2021-10_android_attachment_bottom_sheet",
             "2021-11_guild_communication_disabled_users",
             "2021-11_guild_communication_disabled_guilds"
