@@ -27,6 +27,7 @@ import com.discord.stores.StoreApplicationCommands$requestApplicationCommandsQue
 import com.discord.stores.StoreApplicationCommands$requestApplications$1;
 import com.discord.stores.StoreApplicationInteractions;
 import com.discord.stores.StoreStream;
+import com.discord.utilities.error.Error;
 import com.discord.utilities.messagesend.MessageResult;
 import com.discord.utilities.permissions.PermissionUtils;
 import java.util.ArrayList;
@@ -39,8 +40,6 @@ import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
 
 final class Patches {
-    private static final int INTERACTION_APPLICATION_COMMAND_INVALID_VERSION_ERROR_CODE = 50035;
-
     private Map<Long, ApplicationIndex> guildApplicationIndexes;
     private Map<Long, ApplicationIndex> dmApplicationIndexes;
     private Logger logger;
@@ -193,8 +192,34 @@ final class Patches {
                 var localSendData = (ApplicationCommandLocalSendData) param.args[1];
 
                 if (result instanceof MessageResult.UnknownFailure) {
-                    var errorCode = ((MessageResult.UnknownFailure) result).getError().getResponse().getCode();
-                    if (errorCode == Patches.INTERACTION_APPLICATION_COMMAND_INVALID_VERSION_ERROR_CODE) {
+                    boolean invalidCommandVersion = false;
+
+                    try {
+                        var errorResponse = ((MessageResult.UnknownFailure) result)
+                            .getError()
+                            .getResponse();
+                        var error = ReflectUtils.getField(errorResponse, "skemaError");
+                        var dataErrors = (List<Error.SkemaErrorItem>) ReflectUtils.getField(
+                            ((Map<String, Error.SkemaError>) ReflectUtils.getField(
+                                error,
+                                "subErrors"
+                            ))
+                                .get("data"),
+                            "errors"
+                        );
+
+                        for (var dataError: dataErrors) {
+                            var errorCode = (String) ReflectUtils.getField(dataError, "code");
+                            if (errorCode == "INTERACTION_APPLICATION_COMMAND_INVALID_VERSION") {
+                                invalidCommandVersion = true;
+                                break;
+                            }
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    if (invalidCommandVersion) {
                         ApplicationIndexSource applicationIndexSource = null;
                         var guildId = localSendData.component3();
                         if (guildId != null) {
