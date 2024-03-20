@@ -166,6 +166,7 @@ final class Patches {
 
                 var channelId = channel.k();
                 var applicationId = applicationCommand.getApplicationId();
+                // TODO: This would benefit from ApplicationIndex.applications being a Map instead of a List
                 var application = this.requestApplicationIndex(new ApplicationIndexSourceGuild(guildId))
                     .applications
                     .stream()
@@ -243,8 +244,6 @@ final class Patches {
     }
 
     private void passCommandData(StoreApplicationCommands storeApplicationCommands, ApplicationIndexSource applicationIndexSource, RequestSource requestSource) throws Exception {
-        // TODO: Cache the fields as they are requested every time this runs
-
         var applicationIndex = this.requestApplicationIndex(applicationIndexSource);
 
         switch (requestSource) {
@@ -256,6 +255,7 @@ final class Patches {
                         return left.getName().compareTo(right.getName());
                     }
                 });
+                // TODO: Cache the fields as they are requested every time this runs
                 applications.add(((BuiltInCommandsProvider) ReflectUtils.getField(storeApplicationCommands, "builtInCommandsProvider")).getBuiltInApplication());
                 var handleGuildApplicationsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleGuildApplicationsUpdate", List.class);
                 handleGuildApplicationsUpdateMethod.setAccessible(true);
