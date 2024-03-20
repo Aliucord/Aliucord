@@ -15,6 +15,7 @@ import androidx.annotation.Nullable;
 import com.aliucord.Logger;
 import com.aliucord.annotations.AliucordPlugin;
 import com.aliucord.api.*;
+import com.aliucord.entities.settings.SettingsBuilder;
 import com.discord.app.AppBottomSheet;
 import com.discord.app.AppFragment;
 
@@ -128,6 +129,14 @@ public abstract class Plugin {
             this.args = args;
             return this;
         }
+    }
+
+    /**
+     * Build a custom {@link com.aliucord.fragments.SettingsPage} with little effort
+     * @return SettingsBuilder instance. Add inputs, then call build and use this as {@link #settingsTab}
+     */
+    public SettingsBuilder buildSettings(SettingsTab.Type type) {
+        return new SettingsBuilder(this, type);
     }
 
     private Manifest manifest;
