@@ -6,7 +6,6 @@
 
 package com.aliucord.coreplugins.slashcommandsfix;
 
-import java.util.Map;
 import java.util.Optional;
 
 class ApplicationIndexSourceDm implements ApplicationIndexSource {
