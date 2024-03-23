@@ -22,17 +22,19 @@ class ApplicationIndexSourceDm implements ApplicationIndexSource {
     }
 
     @Override
-    public Optional<ApplicationIndex> getIndex(Map<Long, ApplicationIndex> guildApplicationIndexes, Map<Long, ApplicationIndex> dmApplicationIndexes) {
-        return Optional.ofNullable(dmApplicationIndexes.get(this.channelId));
+    public Optional<ApplicationIndex> getFromCache(ApplicationIndexCache cache) {
+        return Optional.ofNullable(
+            cache.dm.get(this.channelId)
+        );
     }
 
     @Override
-    public void putIndex(Map<Long, ApplicationIndex> guildApplicationIndexes, Map<Long, ApplicationIndex> dmApplicationIndexes, ApplicationIndex index) {
-        dmApplicationIndexes.put(this.channelId, index);
+    public void insertIntoCache(ApplicationIndexCache cache, ApplicationIndex index) {
+        cache.dm.put(this.channelId, index);
     }
 
     @Override
-    public void cleanCache(Map<Long, ApplicationIndex> guildApplicationIndexes, Map<Long, ApplicationIndex> dmApplicationIndexes) {
-        dmApplicationIndexes.remove(this.channelId);
+    public void removeFromCache(ApplicationIndexCache cache) {
+        cache.dm.remove(this.channelId);
     }
 }

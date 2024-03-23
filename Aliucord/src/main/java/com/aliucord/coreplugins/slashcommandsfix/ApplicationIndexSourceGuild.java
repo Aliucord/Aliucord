@@ -22,17 +22,19 @@ class ApplicationIndexSourceGuild implements ApplicationIndexSource {
     }
 
     @Override
-    public Optional<ApplicationIndex> getIndex(Map<Long, ApplicationIndex> guildApplicationIndexes, Map<Long, ApplicationIndex> dmApplicationIndexes) {
-        return Optional.ofNullable(guildApplicationIndexes.get(this.guildId));
+    public Optional<ApplicationIndex> getFromCache(ApplicationIndexCache cache) {
+        return Optional.ofNullable(
+            cache.guild.get(this.guildId)
+        );
     }
 
     @Override
-    public void putIndex(Map<Long, ApplicationIndex> guildApplicationIndexes, Map<Long, ApplicationIndex> dmApplicationIndexes, ApplicationIndex index) {
-        guildApplicationIndexes.put(this.guildId, index);
+    public void insertIntoCache(ApplicationIndexCache cache, ApplicationIndex index) {
+        cache.guild.put(this.guildId, index);
     }
 
     @Override
-    public void cleanCache(Map<Long, ApplicationIndex> guildApplicationIndexes, Map<Long, ApplicationIndex> dmApplicationIndexes) {
-        guildApplicationIndexes.remove(this.guildId);
+    public void removeFromCache(ApplicationIndexCache cache) {
+        cache.guild.remove(this.guildId);
     }
 }

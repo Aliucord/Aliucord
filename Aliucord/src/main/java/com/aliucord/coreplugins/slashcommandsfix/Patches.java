@@ -33,7 +33,6 @@ import com.discord.utilities.permissions.PermissionUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,14 +40,12 @@ import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
 
 final class Patches {
-    private Map<Long, ApplicationIndex> guildApplicationIndexes;
-    private Map<Long, ApplicationIndex> dmApplicationIndexes;
+    private ApplicationIndexCache applicationIndexCache;
     private Logger logger;
 
     Patches(Logger logger) {
-        this.guildApplicationIndexes = new HashMap<>();
-        this.dmApplicationIndexes = new HashMap<>();
         this.logger = logger;
+        this.applicationIndexCache = new ApplicationIndexCache();
     }
 
     @SuppressWarnings("unchecked")
@@ -279,7 +276,7 @@ final class Patches {
 
     private ApplicationIndex requestApplicationIndex(ApplicationIndexSource source) {
         // Reuse application index from cache
-        var applicationIndex = source.getIndex(this.guildApplicationIndexes, this.dmApplicationIndexes);
+        var applicationIndex = source.getFromCache(applicationIndexCache);
         if (!applicationIndex.isPresent()) {
             try {
                 // Request application index from API
@@ -293,12 +290,12 @@ final class Patches {
                 throw new RuntimeException(e);
             }
 
-            source.putIndex(this.guildApplicationIndexes, this.dmApplicationIndexes, applicationIndex.get());
+            source.insertIntoCache(applicationIndexCache, applicationIndex.get());
         }
         return applicationIndex.get();
     }
 
     private void cleanApplicationIndexCache(ApplicationIndexSource source) {
-        source.cleanCache(this.guildApplicationIndexes, this.dmApplicationIndexes);
+        source.removeFromCache(applicationIndexCache);
     }
 }

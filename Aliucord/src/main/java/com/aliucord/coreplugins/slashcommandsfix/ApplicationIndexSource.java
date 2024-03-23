@@ -11,7 +11,7 @@ import java.util.Optional;
 
 interface ApplicationIndexSource {
     String getEndpoint();
-    Optional<ApplicationIndex> getIndex(Map<Long, ApplicationIndex> guildApplicationIndexes, Map<Long, ApplicationIndex> dmApplicationIndexes);
-    void putIndex(Map<Long, ApplicationIndex> guildApplicationIndexes, Map<Long, ApplicationIndex> dmApplicationIndexes, ApplicationIndex index);
-    void cleanCache(Map<Long, ApplicationIndex> guildApplicationIndexes, Map<Long, ApplicationIndex> dmApplicationIndexes);
+    Optional<ApplicationIndex> getFromCache(ApplicationIndexCache cache);
+    void insertIntoCache(ApplicationIndexCache cache, ApplicationIndex index);
+    void removeFromCache(ApplicationIndexCache cache);
 }
