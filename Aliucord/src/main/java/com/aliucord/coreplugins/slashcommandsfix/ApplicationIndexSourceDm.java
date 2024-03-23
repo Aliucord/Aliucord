@@ -7,6 +7,7 @@
 package com.aliucord.coreplugins.slashcommandsfix;
 
 import java.util.Map;
+import java.util.Optional;
 
 class ApplicationIndexSourceDm implements ApplicationIndexSource {
     long channelId;
@@ -21,8 +22,8 @@ class ApplicationIndexSourceDm implements ApplicationIndexSource {
     }
 
     @Override
-    public ApplicationIndex getIndex(Map<Long, ApplicationIndex> guildApplicationIndexes, Map<Long, ApplicationIndex> dmApplicationIndexes) {
-        return dmApplicationIndexes.get(this.channelId);
+    public Optional<ApplicationIndex> getIndex(Map<Long, ApplicationIndex> guildApplicationIndexes, Map<Long, ApplicationIndex> dmApplicationIndexes) {
+        return Optional.ofNullable(dmApplicationIndexes.get(this.channelId));
     }
 
     @Override

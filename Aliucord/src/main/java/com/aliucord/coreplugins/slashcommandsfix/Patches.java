@@ -36,6 +36,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
 
@@ -279,20 +280,22 @@ final class Patches {
     private ApplicationIndex requestApplicationIndex(ApplicationIndexSource source) {
         // Reuse application index from cache
         var applicationIndex = source.getIndex(this.guildApplicationIndexes, this.dmApplicationIndexes);
-        if (applicationIndex == null) {
+        if (!applicationIndex.isPresent()) {
             try {
                 // Request application index from API
-                applicationIndex = Http.Request.newDiscordRNRequest(source.getEndpoint())
-                    .execute()
-                    .json(GsonUtils.getGsonRestApi(), ApiApplicationIndex.class)
-                    .toModel();
+                applicationIndex = Optional.of(
+                    Http.Request.newDiscordRNRequest(source.getEndpoint())
+                        .execute()
+                        .json(GsonUtils.getGsonRestApi(), ApiApplicationIndex.class)
+                        .toModel()
+                );
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
-            source.putIndex(this.guildApplicationIndexes, this.dmApplicationIndexes, applicationIndex);
+            source.putIndex(this.guildApplicationIndexes, this.dmApplicationIndexes, applicationIndex.get());
         }
-        return applicationIndex;
+        return applicationIndex.get();
     }
 
     private void cleanApplicationIndexCache(ApplicationIndexSource source) {
