@@ -179,7 +179,8 @@ final class Patches {
                 var guild = storeGuilds.getGuild(guildId);
 
                 return !(applicationCommand instanceof RemoteApplicationCommand)
-                    || (application.get().permissions_.checkFor(roleIds, channelId, guild, memberPermissions, user)
+                    || (application.isPresent()
+                        && application.get().permissions_.checkFor(roleIds, channelId, guild, memberPermissions, user)
                         && ((RemoteApplicationCommand) applicationCommand).permissions_.checkFor(roleIds, channelId, guild, memberPermissions, user));
             })
         );
