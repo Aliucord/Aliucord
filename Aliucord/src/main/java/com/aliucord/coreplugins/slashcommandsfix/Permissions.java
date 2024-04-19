@@ -30,7 +30,8 @@ class Permissions {
 
     public boolean checkFor(List<Long> roleIds, long channelId, Guild guild, long memberPermissions, MeUser user) {
         var guildId = guild.component7();
-        var defaultChannelPermission = this.channels.getOrDefault(guildId - 1, true);
+        var defaultChannelPermissionId = guildId - 1;
+        var defaultChannelPermission = this.channels.getOrDefault(defaultChannelPermissionId, true);
         var channelPermission = Optional.ofNullable(this.channels.get(channelId))
             .orElse(defaultChannelPermission);
         var defaultMemberPermission = this.defaultMemberPermissions
@@ -44,7 +45,8 @@ class Permissions {
                     )
             )
             .orElse(true);
-        var defaultRolePermission = this.roles.getOrDefault(guildId, defaultMemberPermission);
+        var everyoneRoleId = guildId;
+        var defaultRolePermission = this.roles.getOrDefault(everyoneRoleId, defaultMemberPermission);
         var rolePermission = this.calculateRolePermission(roleIds, defaultRolePermission);
         var userPermission = this.user.orElse(defaultMemberPermission);
         var administratorPermission = PermissionUtils.canAndIsElevated(
