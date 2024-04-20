@@ -180,8 +180,8 @@ final class Patches {
 
                 return !(applicationCommand instanceof RemoteApplicationCommand)
                     || (application.isPresent()
-                        && application.get().permissions_.checkFor(roleIds, channelId, guild, memberPermissions, user)
-                        && ((RemoteApplicationCommand) applicationCommand).permissions_.checkFor(roleIds, channelId, guild, memberPermissions, user));
+                        && (application.get().permissions_.checkFor(roleIds, channelId, guild, memberPermissions, user, true)
+                            || ((RemoteApplicationCommand) applicationCommand).permissions_.checkFor(roleIds, channelId, guild, memberPermissions, user, false)));
             })
         );
 

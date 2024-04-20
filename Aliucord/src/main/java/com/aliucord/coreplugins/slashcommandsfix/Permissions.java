@@ -28,10 +28,10 @@ class Permissions {
         this.defaultMemberPermissions = Optional.ofNullable(defaultMemberPermissions).orElse(Optional.empty());
     }
 
-    public boolean checkFor(List<Long> roleIds, long channelId, Guild guild, long memberPermissions, MeUser user) {
+    public boolean checkFor(List<Long> roleIds, long channelId, Guild guild, long memberPermissions, MeUser user, boolean defaultPermission) {
         var guildId = guild.component7();
         var defaultChannelPermissionId = guildId - 1;
-        var defaultChannelPermission = this.channels.getOrDefault(defaultChannelPermissionId, true);
+        var defaultChannelPermission = this.channels.getOrDefault(defaultChannelPermissionId, defaultPermission);
         var channelPermission = Optional.ofNullable(this.channels.get(channelId))
             .orElse(defaultChannelPermission);
         var defaultMemberPermission = this.defaultMemberPermissions
@@ -44,7 +44,7 @@ class Permissions {
                         guild.getMfaLevel()
                     )
             )
-            .orElse(true);
+            .orElse(defaultPermission);
         var everyoneRoleId = guildId;
         var defaultRolePermission = this.roles.getOrDefault(everyoneRoleId, defaultMemberPermission);
         var rolePermission = this.calculateRolePermission(roleIds, defaultRolePermission);
