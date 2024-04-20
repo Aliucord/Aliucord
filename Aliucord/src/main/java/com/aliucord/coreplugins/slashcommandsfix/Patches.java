@@ -248,12 +248,7 @@ final class Patches {
         switch (requestSource) {
             case INITIAL:
                 var applications = new ArrayList<com.discord.models.commands.Application>(applicationIndex.applications);
-                Collections.sort(applications, new Comparator<com.discord.models.commands.Application>() {
-                    @Override
-                    public int compare(com.discord.models.commands.Application left, com.discord.models.commands.Application right) {
-                        return left.getName().compareTo(right.getName());
-                    }
-                });
+                Collections.sort(applications, (left, right) -> left.getName().compareTo(right.getName()));
                 // TODO: Cache the fields as they are requested every time this runs
                 applications.add(((BuiltInCommandsProvider) ReflectUtils.getField(storeApplicationCommands, "builtInCommandsProvider")).getBuiltInApplication());
                 var handleGuildApplicationsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleGuildApplicationsUpdate", List.class);
