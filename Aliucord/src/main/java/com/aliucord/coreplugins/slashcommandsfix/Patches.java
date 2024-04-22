@@ -190,9 +190,9 @@ final class Patches {
                 var guild = storeGuilds.getGuild(guildId);
 
                 var applicationPermission = application.permissions_.checkFor(roleIds, channelId, guild, memberPermissions, user, true);
-                var commandPermission = remoteApplicationCommand.permissions_.checkFor(roleIds, channelId, guild, memberPermissions, user, false);
+                var commandPermission = remoteApplicationCommand.permissions_.checkFor(roleIds, channelId, guild, memberPermissions, user, applicationPermission);
 
-                return applicationPermission || commandPermission;
+                return commandPermission;
             })
         );
 
