@@ -154,6 +154,12 @@ final class Patches {
                 var applicationCommand = (ApplicationCommand) param.args[0];
                 var roleIds = (List<Long>) param.args[2];
 
+                if (!(applicationCommand instanceof RemoteApplicationCommand)) {
+                    // Allow all builtin commands
+                    return true;
+                }
+                var remoteApplicationCommand = (RemoteApplicationCommand) applicationCommand;
+
                 var channel = storeChannelsSelected.getSelectedChannel();
                 var guildId = channel.i();
 
@@ -163,9 +169,9 @@ final class Patches {
                 }
 
                 var channelId = channel.k();
-                var applicationId = applicationCommand.getApplicationId();
+                var applicationId = remoteApplicationCommand.getApplicationId();
                 // TODO: This would benefit from ApplicationIndex.applications being a Map instead of a List
-                var application = this.requestApplicationIndex(new ApplicationIndexSourceGuild(guildId))
+                var applicationOption = this.requestApplicationIndex(new ApplicationIndexSourceGuild(guildId))
                     .applications
                     .stream()
                     .filter(a -> {
@@ -173,15 +179,20 @@ final class Patches {
                         return id == applicationId;
                     })
                     .findFirst();
+                if (!applicationOption.isPresent()) {
+                    // Discord requested checking a command from the previous guild - ignore
+                    return false;
+                }
+                var application = applicationOption.get();
                 var user = storeUsers.getMe();
                 var memberPermissions = storePermissions.getGuildPermissions()
                     .get(guildId);
                 var guild = storeGuilds.getGuild(guildId);
 
-                return !(applicationCommand instanceof RemoteApplicationCommand)
-                    || (application.isPresent()
-                        && (application.get().permissions_.checkFor(roleIds, channelId, guild, memberPermissions, user, true)
-                            || ((RemoteApplicationCommand) applicationCommand).permissions_.checkFor(roleIds, channelId, guild, memberPermissions, user, false)));
+                var applicationPermission = application.permissions_.checkFor(roleIds, channelId, guild, memberPermissions, user, true);
+                var commandPermission = remoteApplicationCommand.permissions_.checkFor(roleIds, channelId, guild, memberPermissions, user, false);
+
+                return applicationPermission || commandPermission;
             })
         );
 
