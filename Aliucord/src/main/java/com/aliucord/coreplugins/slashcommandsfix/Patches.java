@@ -222,26 +222,24 @@ final class Patches {
                         for (var dataError: dataErrors) {
                             var errorCode = (String) ReflectUtils.getField(dataError, "code");
                             if (errorCode.equals("INTERACTION_APPLICATION_COMMAND_INVALID_VERSION")) {
-                                invalidCommandVersion = true;
+                                ApplicationIndexSource applicationIndexSource = null;
+                                var guildId = localSendData.component3();
+                                if (guildId != null) {
+                                    applicationIndexSource = new ApplicationIndexSourceGuild(guildId);
+                                } else {
+                                    var channelId = localSendData.component2();
+                                    applicationIndexSource = new ApplicationIndexSourceDm(channelId);
+                                }
+                                this.cleanApplicationIndexCache(applicationIndexSource);
+
+                                var errorMessage = (String) ReflectUtils.getField(dataError, "message");
+                                Utils.showToast(errorMessage);
+
                                 break;
                             }
                         }
                     } catch (Exception e) {
                         throw new RuntimeException(e);
-                    }
-
-                    if (invalidCommandVersion) {
-                        ApplicationIndexSource applicationIndexSource = null;
-                        var guildId = localSendData.component3();
-                        if (guildId != null) {
-                            applicationIndexSource = new ApplicationIndexSourceGuild(guildId);
-                        } else {
-                            var channelId = localSendData.component2();
-                            applicationIndexSource = new ApplicationIndexSourceDm(channelId);
-                        }
-                        this.cleanApplicationIndexCache(applicationIndexSource);
-
-                        Utils.showToast("This command is outdated, please try again");
                     }
                 }
             })
