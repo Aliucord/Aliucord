@@ -221,7 +221,7 @@ final class Patches {
 
                         for (var dataError: dataErrors) {
                             var errorCode = (String) ReflectUtils.getField(dataError, "code");
-                            if (errorCode == "INTERACTION_APPLICATION_COMMAND_INVALID_VERSION") {
+                            if (errorCode.equals("INTERACTION_APPLICATION_COMMAND_INVALID_VERSION")) {
                                 invalidCommandVersion = true;
                                 break;
                             }
