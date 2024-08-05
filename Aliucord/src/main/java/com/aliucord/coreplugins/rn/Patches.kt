@@ -150,10 +150,10 @@ fun patchDefaultAvatars() {
                 "https://cdn.discordapp.com/avatars/$id/$avatar.$ext" +
                     (size?.let { "?size=${IconUtils.getMediaProxySize(size)}" } ?: "")
             } else {
-                val discrim = it.args[2] as Int
+                val discrim = it.args[2] as Int?
 
                 "asset://asset/images/default_avatar_" +
-                    (discrim.takeUnless { it == 0 }?.mod(5) ?: (id!! shr 22).mod(6)) +
+                    (discrim?.takeUnless { it == 0 }?.mod(5) ?: ((id ?: 0) shr 22).mod(6)) +
                     ".png"
             }
         }
@@ -202,4 +202,9 @@ fun patchStickers() {
     }
     Patcher.addPatch(Sticker::class.java.getDeclaredMethod("a"), hook)
     Patcher.addPatch(StickerPartial::class.java.getDeclaredMethod("a"), hook)
+}
+
+fun patchVoice() {
+    // don't send heartbeat ("op": 3) on connect
+    Patcher.addPatch(b.a.q.n0.a::class.java.getDeclaredMethod("k"), InsteadHook.DO_NOTHING)
 }
