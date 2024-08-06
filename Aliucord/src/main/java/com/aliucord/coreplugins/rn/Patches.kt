@@ -1,6 +1,6 @@
 /*
  * This file is part of Aliucord, an Android Discord client mod.
- * Copyright (c) 2023 Juby210 & Vendicated
+ * Copyright (c) 2024 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
 
@@ -8,6 +8,8 @@ package com.aliucord.coreplugins.rn
 
 import android.content.Context
 import android.view.View
+import com.aliucord.api.rn.channel.RNChannel
+import com.aliucord.api.rn.models.message.RNMessage
 import com.aliucord.api.rn.user.RNUser
 import com.aliucord.api.rn.user.RNUserProfile
 import com.aliucord.patcher.*
@@ -24,9 +26,10 @@ import com.discord.models.deserialization.gson.InboundGatewayGsonParser
 import com.discord.models.member.GuildMember
 import com.discord.models.user.CoreUser
 import com.discord.models.user.MeUser
-import com.discord.stores.StoreStream
+import com.discord.stores.*
 import com.discord.utilities.auth.`AuthUtils$createDiscriminatorInputValidator$1`
 import com.discord.utilities.icon.IconUtils
+import com.discord.utilities.persister.Persister
 import com.discord.utilities.user.UserUtils
 import com.discord.widgets.settings.account.WidgetSettingsAccountUsernameEdit
 import com.discord.widgets.user.UserNameFormatterKt
@@ -207,4 +210,19 @@ fun patchStickers() {
 fun patchVoice() {
     // don't send heartbeat ("op": 3) on connect
     Patcher.addPatch(b.a.q.n0.a::class.java.getDeclaredMethod("k"), InsteadHook.DO_NOTHING)
+}
+
+fun fixPersisters() {
+    StoreChannels::class.java.getDeclaredField("channelsCache").apply { isAccessible = true }.let {
+        val store = StoreStream.getChannels()
+        it[store] = Persister<List<RNChannel>>("STORE_CHANNELS_ALIUCORD", ArrayList())
+        StoreStream.getDispatcherYesThisIsIntentional().schedule { store.init() }
+    }
+    StoreMessagesHolder::class.java.getDeclaredField("cache").apply { isAccessible = true }.let {
+        StoreMessages::class.java.getDeclaredField("holder").apply { isAccessible = true }.let { holder ->
+            val holderIns = holder[StoreStream.getMessages()] as StoreMessagesHolder
+            it[holderIns] = Persister<Map<Long, List<RNMessage>>>("STORE_MESSAGES_ALIUCORD", HashMap())
+            holderIns.init(true)
+        }
+    }
 }

@@ -1,6 +1,6 @@
 /*
  * This file is part of Aliucord, an Android Discord client mod.
- * Copyright (c) 2023 Juby210 & Vendicated
+ * Copyright (c) 2024 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
 
@@ -8,12 +8,16 @@ package com.aliucord.coreplugins.rn
 
 import android.content.Context
 import com.aliucord.entities.Plugin
+import com.discord.api.channel.Channel
 import com.discord.api.user.User
 import com.discord.api.user.UserProfile
+import com.discord.models.message.Message
 import de.robv.android.xposed.XposedBridge
 
 class RNAPI : Plugin(Manifest("RNAPI")) {
     override fun load(context: Context?) {
+        XposedBridge.makeClassInheritable(Channel::class.java)
+        XposedBridge.makeClassInheritable(Message::class.java)
         XposedBridge.makeClassInheritable(User::class.java)
         XposedBridge.makeClassInheritable(UserProfile::class.java)
 
@@ -24,6 +28,7 @@ class RNAPI : Plugin(Manifest("RNAPI")) {
         patchUsername()
         patchStickers()
         patchVoice()
+        fixPersisters()
     }
 
     override fun start(context: Context?) {}
