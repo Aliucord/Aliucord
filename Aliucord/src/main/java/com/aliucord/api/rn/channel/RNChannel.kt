@@ -22,7 +22,7 @@ class RNChannel(
     id: Long,
     ownerId: Long,
     recipientIds: List<Long>?,
-    val recipients: List<RNUser>?,
+    @JvmField val recipients: List<RNUser>?,
     position: Int,
     permissionOverwrites: List<PermissionOverwrite>?,
     userLimit: Int,

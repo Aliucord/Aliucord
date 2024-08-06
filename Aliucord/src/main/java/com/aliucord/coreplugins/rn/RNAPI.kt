@@ -9,19 +9,24 @@ package com.aliucord.coreplugins.rn
 import android.content.Context
 import com.aliucord.entities.Plugin
 import com.discord.api.channel.Channel
-import com.discord.api.user.User
-import com.discord.api.user.UserProfile
+import com.discord.api.guildmember.GuildMember
+import com.discord.api.guildmember.GuildMembersChunk
+import com.discord.api.user.*
 import com.discord.models.message.Message
 import de.robv.android.xposed.XposedBridge
 
 class RNAPI : Plugin(Manifest("RNAPI")) {
     override fun load(context: Context?) {
         XposedBridge.makeClassInheritable(Channel::class.java)
+        XposedBridge.makeClassInheritable(GuildMember::class.java)
+        XposedBridge.makeClassInheritable(GuildMembersChunk::class.java)
+        XposedBridge.makeClassInheritable(com.discord.api.message.Message::class.java)
         XposedBridge.makeClassInheritable(Message::class.java)
+        XposedBridge.makeClassInheritable(TypingUser::class.java)
         XposedBridge.makeClassInheritable(User::class.java)
         XposedBridge.makeClassInheritable(UserProfile::class.java)
 
-        patchNextCallAdapter()
+        patchJsonAdapters()
         patchUser()
         patchUserProfile()
         patchDefaultAvatars()
