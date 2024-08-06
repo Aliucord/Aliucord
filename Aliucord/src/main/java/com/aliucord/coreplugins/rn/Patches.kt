@@ -9,19 +9,16 @@ package com.aliucord.coreplugins.rn
 import android.content.Context
 import android.view.View
 import com.aliucord.api.rn.channel.RNChannel
-import com.aliucord.api.rn.guildmember.RNGuildMember
-import com.aliucord.api.rn.guildmember.RNGuildMembersChunk
-import com.aliucord.api.rn.message.RNMessage
-import com.aliucord.api.rn.user.*
+import com.aliucord.api.rn.models.message.RNMessage
+import com.aliucord.api.rn.user.RNUser
+import com.aliucord.api.rn.user.RNUserProfile
 import com.aliucord.patcher.*
 import com.aliucord.utils.RNSuperProperties
 import com.discord.api.channel.Channel
 import com.discord.api.channel.`ChannelUtils$getDisplayName$1`
-import com.discord.api.guildmember.GuildMembersChunk
 import com.discord.api.sticker.Sticker
 import com.discord.api.sticker.StickerFormatType
 import com.discord.api.sticker.StickerPartial
-import com.discord.api.user.TypingUser
 import com.discord.api.user.User
 import com.discord.api.user.UserProfile
 import com.discord.app.AppFragment
@@ -43,7 +40,6 @@ import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
 import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge
 import okhttp3.*
 import rx.Observable
 import java.lang.reflect.Type
@@ -64,148 +60,29 @@ class RNHeadersInterceptor : Interceptor {
     }
 }
 
-fun patchJsonAdapters() {
-    val observable = Observable::class.java
-    val list = List::class.java
-
-    val message = com.discord.api.message.Message::class.java
-    val rnMessage = RNMessage::class.java
-
-    val oldMessage = TypeToken.getParameterized(observable, message).type
-    val newMessage = TypeToken.getParameterized(observable, rnMessage).type
-    val oldMessageList = TypeToken.getParameterized(observable, TypeToken.getParameterized(list, message).type).type
-    val newMessageList = TypeToken.getParameterized(observable, TypeToken.getParameterized(list, rnMessage).type).type
-
-    val apiUser = User::class.java
-    val rnUser = RNUser::class.java
-
-    val oldUser = TypeToken.getParameterized(observable, apiUser).type
-    val newUser = TypeToken.getParameterized(observable, rnUser).type
-    val oldUserList = TypeToken.getParameterized(observable, TypeToken.getParameterized(list, apiUser).type).type
-    val newUserList = TypeToken.getParameterized(observable, TypeToken.getParameterized(list, rnUser).type).type
-    val oldUserProfile = TypeToken.getParameterized(observable, UserProfile::class.java).type
-    val newUserProfile = TypeToken.getParameterized(observable, RNUserProfile::class.java).type
+fun patchNextCallAdapter() {
+    val oldUser = TypeToken.getParameterized(Observable::class.java, User::class.java).type
+    val newUser = TypeToken.getParameterized(Observable::class.java, RNUser::class.java).type
+    val oldUserProfile = TypeToken.getParameterized(Observable::class.java, UserProfile::class.java).type
+    val newUserProfile = TypeToken.getParameterized(Observable::class.java, RNUserProfile::class.java).type
 
     // nextCallAdapter https://github.com/square/retrofit/blob/c0fd64b5d3ddcc6665a16a4814c5b1596762305d/retrofit/src/main/java/retrofit2/Retrofit.java#L252
     Patcher.addPatch(i0.y::class.java.getDeclaredMethod("a", Type::class.java, Array<Annotation>::class.java), PreHook {
         when (it.args[0]) {
-            oldMessage -> it.args[0] = newMessage
-            oldMessageList -> it.args[0] = newMessageList
             oldUser -> it.args[0] = newUser
-            oldUserList -> it.args[0] = newUserList
             oldUserProfile -> it.args[0] = newUserProfile
-        }
-    })
-
-    val oldGuildMember = com.discord.api.guildmember.GuildMember::class.java
-    val newGuildMember = RNGuildMember::class.java
-    val oldGuildMembersChunk = GuildMembersChunk::class.java
-    val newGuildMembersChunk = RNGuildMembersChunk::class.java
-    val oldTypingUser = TypingUser::class.java
-    val newTypingUser = RNTypingUser::class.java
-
-    Patcher.addPatch(InboundGatewayGsonParser::class.java.getDeclaredMethod("fromJson", JsonReader::class.java, Class::class.java), PreHook {
-        when (it.args[1]) {
-            oldGuildMember -> it.args[1] = newGuildMember
-            oldGuildMembersChunk -> it.args[1] = newGuildMembersChunk
-            oldMessage -> it.args[1] = newMessage
-            oldTypingUser -> it.args[1] = newTypingUser
-            oldUser -> it.args[1] = newUser
-        }
-    })
-
-    // fix duplicate fields not being parsed
-    val channel = Channel::class.java
-    val recipientsField = channel.getDeclaredField("recipients").apply { isAccessible = true }
-    Patcher.addPatch(Channel::class.java.getDeclaredMethod("z"), Hook {
-        if (it.result == null) it.thisObject.run {
-            if (this is RNChannel) {
-                recipientsField[this] = recipients
-                it.result = recipients
-            }
-        }
-    })
-
-    val userField = oldGuildMember.getDeclaredField("user").apply { isAccessible = true }
-    Patcher.addPatch(oldGuildMember.getDeclaredMethod("m"), Hook {
-        if (it.result == null) it.thisObject.run {
-            if (this is RNGuildMember) {
-                userField[this] = user
-                it.result = user
-            }
-        }
-    })
-
-    val membersField = oldGuildMembersChunk.getDeclaredField("members").apply { isAccessible = true }
-    Patcher.addPatch(oldGuildMembersChunk.getDeclaredMethod("b"), Hook {
-        if (it.result == null) it.thisObject.run {
-            if (this is RNGuildMembersChunk) {
-                membersField[this] = members
-                it.result = members
-            }
-        }
-    })
-
-    val memberField = oldTypingUser.getDeclaredField("member").apply { isAccessible = true }
-    Patcher.addPatch(oldTypingUser.getDeclaredMethod("c"), Hook {
-        if (it.result == null) it.thisObject.run {
-            if (this is RNTypingUser) {
-                memberField[this] = member
-                it.result = member
-            }
-        }
-    })
-
-    val authorField = message.getDeclaredField("author").apply { isAccessible = true }
-    Patcher.addPatch(message.getDeclaredMethod("e"), Hook {
-        if (it.result == null) it.thisObject.run {
-            if (this is RNMessage) {
-                authorField[this] = author
-                it.result = author
-            }
-        }
-    })
-    val mentionsField = message.getDeclaredField("mentions").apply { isAccessible = true }
-    Patcher.addPatch(message.getDeclaredMethod("t"), Hook {
-        if (it.result == null) it.thisObject.run {
-            if (this is RNMessage) {
-                mentionsField[this] = mentions
-                it.result = mentions
-            }
-        }
-    })
-    val threadField = message.getDeclaredField("thread").apply { isAccessible = true }
-    Patcher.addPatch(message.getDeclaredMethod("C"), Hook {
-        if (it.result == null) it.thisObject.run {
-            if (this is RNMessage) {
-                threadField[this] = thread
-                it.result = thread
-            }
-        }
-    })
-
-    val duplicateFields = arrayOf(
-        RNChannel::class.java.getDeclaredField("recipients"),
-        newGuildMember.getDeclaredField("user"),
-        newGuildMembersChunk.getDeclaredField("members"),
-        newTypingUser.getDeclaredField("member"),
-        rnMessage.getDeclaredField("author"),
-        rnMessage.getDeclaredField("mentions"),
-        rnMessage.getDeclaredField("thread")
-    )
-
-    val m = HashMap::class.java.getDeclaredMethod("put", Any::class.java, Any::class.java)
-    Patcher.addPatch(m, Hook {
-        val res = it.result
-        if (res is b.i.d.q.x.c && duplicateFields.contains(res.d)) {
-            XposedBridge.invokeOriginalMethod(m, it.thisObject, arrayOf(it.args[0], res))
-            it.result = null
         }
     })
 }
 
 val globalNames = mutableMapOf<Long, String>()
 fun patchUser() {
+    val original = User::class.java
+    val new = RNUser::class.java
+    Patcher.addPatch(InboundGatewayGsonParser::class.java.getDeclaredMethod("fromJson", JsonReader::class.java, Class::class.java), PreHook {
+        if (it.args[1] == original) it.args[1] = new
+    })
+
     Patcher.addPatch(UserUtils::class.java.getDeclaredMethod("padDiscriminator", Int::class.java), PreHook {
         if (it.args[0] == 0) it.result = ""
     })
@@ -344,7 +221,7 @@ fun fixPersisters() {
     StoreMessagesHolder::class.java.getDeclaredField("cache").apply { isAccessible = true }.let {
         StoreMessages::class.java.getDeclaredField("holder").apply { isAccessible = true }.let { holder ->
             val holderIns = holder[StoreStream.getMessages()] as StoreMessagesHolder
-            it[holderIns] = Persister<Map<Long, List<com.aliucord.api.rn.models.message.RNMessage>>>("STORE_MESSAGES_ALIUCORD", HashMap())
+            it[holderIns] = Persister<Map<Long, List<RNMessage>>>("STORE_MESSAGES_ALIUCORD", HashMap())
             holderIns.init(true)
         }
     }
