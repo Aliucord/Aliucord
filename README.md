@@ -21,8 +21,8 @@ PLEASE NOTE THAT this is a MODIFICATION of the Discord APP and this is AGAINST T
 
 ### Supported Android Versions
 
-- Android 7 (SDK 24) - 14 (SDK 34)
-- arm64, armeabi-v7, x86_64
+- Android 7 (SDK 24) - Android 14 QPR2 (SDK 34)
+- arm64, armeabi-v7, x86_64, x86
 
 ### Supported Discord version
 
