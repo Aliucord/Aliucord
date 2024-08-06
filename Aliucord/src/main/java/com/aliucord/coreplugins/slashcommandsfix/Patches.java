@@ -170,20 +170,14 @@ final class Patches {
 
                 var channelId = channel.k();
                 var applicationId = remoteApplicationCommand.getApplicationId();
-                // TODO: This would benefit from ApplicationIndex.applications being a Map instead of a List
-                var applicationOption = this.requestApplicationIndex(new ApplicationIndexSourceGuild(guildId))
+                var application = this.requestApplicationIndex(new ApplicationIndexSourceGuild(guildId))
                     .applications
-                    .stream()
-                    .filter(a -> {
-                        var id = a.component1();
-                        return id == applicationId;
-                    })
-                    .findFirst();
-                if (!applicationOption.isPresent()) {
+                    .get(applicationId);
+                if (application == null) {
                     // Discord requested checking a command from the previous guild - ignore
+                    // Some such requests are still processed (if the command exists in both guilds), but it's not an issue as the result doesn't matter for them anyways.
                     return false;
                 }
-                var application = applicationOption.get();
                 var user = storeUsers.getMe();
                 var memberPermissions = storePermissions.getGuildPermissions()
                     .get(guildId);
@@ -256,7 +250,7 @@ final class Patches {
 
         switch (requestSource) {
             case INITIAL:
-                var applications = new ArrayList<com.discord.models.commands.Application>(applicationIndex.applications);
+                var applications = new ArrayList<com.discord.models.commands.Application>(applicationIndex.applications.values());
                 Collections.sort(applications, (left, right) -> left.getName().compareTo(right.getName()));
                 // TODO: Cache the fields as they are requested every time this runs
                 applications.add(((BuiltInCommandsProvider) ReflectUtils.getField(storeApplicationCommands, "builtInCommandsProvider")).getBuiltInApplication());

@@ -8,12 +8,13 @@ package com.aliucord.coreplugins.slashcommandsfix;
 
 import com.discord.models.commands.ApplicationCommand;
 import java.util.List;
+import java.util.Map;
 
 class ApplicationIndex {
-    public List<Application> applications;
+    public Map<Long, Application> applications;
     public List<ApplicationCommand> applicationCommands;
 
-    public ApplicationIndex(List<Application> applications, List<ApplicationCommand> applicationCommands) {
+    public ApplicationIndex(Map<Long, Application> applications, List<ApplicationCommand> applicationCommands) {
         this.applications = applications;
         this.applicationCommands = applicationCommands;
     }
