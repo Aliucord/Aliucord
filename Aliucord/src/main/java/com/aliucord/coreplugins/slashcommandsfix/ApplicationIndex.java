@@ -12,9 +12,9 @@ import java.util.Map;
 
 class ApplicationIndex {
     public Map<Long, Application> applications;
-    public List<ApplicationCommand> applicationCommands;
+    public Map<Long, ApplicationCommand> applicationCommands;
 
-    public ApplicationIndex(Map<Long, Application> applications, List<ApplicationCommand> applicationCommands) {
+    public ApplicationIndex(Map<Long, Application> applications, Map<Long, ApplicationCommand> applicationCommands) {
         this.applications = applications;
         this.applicationCommands = applicationCommands;
     }

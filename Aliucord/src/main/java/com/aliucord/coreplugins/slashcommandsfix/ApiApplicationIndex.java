@@ -33,9 +33,9 @@ class ApiApplicationIndex {
         for (var application: this.applications) {
             applications.put(application.id, application.toModel(applicationCommandCounts.getOrDefault(application.id, 0)));
         }
-        var applicationCommands = new ArrayList<ApplicationCommand>();
+        var applicationCommands = new HashMap<Long, ApplicationCommand>();
         for (var applicationCommand: this.applicationCommands) {
-            applicationCommands.add(applicationCommand.toModel());
+            applicationCommands.put(applicationCommand.id, applicationCommand.toModel());
         }
 
         return new ApplicationIndex(applications, applicationCommands);
