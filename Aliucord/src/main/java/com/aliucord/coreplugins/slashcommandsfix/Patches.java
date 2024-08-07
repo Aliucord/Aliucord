@@ -39,18 +39,29 @@ import java.util.Optional;
 import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
 import java.util.HashMap;
+import java.lang.reflect.Method;
 
 final class Patches {
     private ApplicationIndexCache applicationIndexCache;
     private Logger logger;
+    private Method handleGuildApplicationsUpdateMethod;
+    private Method handleDiscoverCommandsUpdateMethod;
+    private Method handleQueryCommandsUpdateMethod;
 
-    Patches(Logger logger) {
+    Patches(Logger logger) throws Throwable {
         this.logger = logger;
         this.applicationIndexCache = new ApplicationIndexCache();
     }
 
     @SuppressWarnings("unchecked")
     public void loadPatches(Context context) throws Throwable {
+        this.handleGuildApplicationsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleGuildApplicationsUpdate", List.class);
+        this.handleGuildApplicationsUpdateMethod.setAccessible(true);
+        this.handleDiscoverCommandsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleDiscoverCommandsUpdate", List.class);
+        this.handleDiscoverCommandsUpdateMethod.setAccessible(true);
+        this.handleQueryCommandsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleQueryCommandsUpdate", List.class);
+        this.handleQueryCommandsUpdateMethod.setAccessible(true);
+
         var storeApplicationCommands = StoreStream.getApplicationCommands();
         var storeChannelsSelected = StoreStream.getChannelsSelected();
         var storeUsers = StoreStream.getUsers();
@@ -266,23 +277,15 @@ final class Patches {
             case INITIAL:
                 var initialApplications = new ArrayList<com.discord.models.commands.Application>(applications.values());
                 Collections.sort(initialApplications, (left, right) -> left.getName().compareTo(right.getName()));
-                // TODO: Cache the fields as they are requested every time this runs
-                initialApplications.add(((BuiltInCommandsProvider) ReflectUtils.getField(storeApplicationCommands, "builtInCommandsProvider")).getBuiltInApplication());
-                var handleGuildApplicationsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleGuildApplicationsUpdate", List.class);
-                handleGuildApplicationsUpdateMethod.setAccessible(true);
-                handleGuildApplicationsUpdateMethod.invoke(storeApplicationCommands, initialApplications);
+                this.handleGuildApplicationsUpdateMethod.invoke(storeApplicationCommands, initialApplications);
                 break;
 
             case BROWSE:
-                var handleDiscoverCommandsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleDiscoverCommandsUpdate", List.class);
-                handleDiscoverCommandsUpdateMethod.setAccessible(true);
-                handleDiscoverCommandsUpdateMethod.invoke(storeApplicationCommands, new ArrayList(applicationCommands.values()));
+                this.handleDiscoverCommandsUpdateMethod.invoke(storeApplicationCommands, new ArrayList(applicationCommands.values()));
                 break;
 
             case QUERY:
-                var handleQueryCommandsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleQueryCommandsUpdate", List.class);
-                handleQueryCommandsUpdateMethod.setAccessible(true);
-                handleQueryCommandsUpdateMethod.invoke(storeApplicationCommands, new ArrayList(applicationCommands.values()));
+                this.handleQueryCommandsUpdateMethod.invoke(storeApplicationCommands, new ArrayList(applicationCommands.values()));
                 break;
         }
     }
