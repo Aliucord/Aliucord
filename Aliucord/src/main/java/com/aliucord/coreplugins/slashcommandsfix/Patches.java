@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Optional;
 import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
+import java.util.HashMap;
 
 final class Patches {
     private ApplicationIndexCache applicationIndexCache;
@@ -163,13 +164,20 @@ final class Patches {
                 var channel = storeChannelsSelected.getSelectedChannel();
                 var guildId = channel.i();
 
-                // Allow all commands in DMs
                 if (guildId == 0) {
+                    // Allow all commands in DMs
                     return true;
                 }
 
                 var channelId = channel.k();
                 var applicationId = remoteApplicationCommand.getApplicationId();
+                var isUser = this.requestApplicationIndex(new ApplicationIndexSourceUser())
+                    .applications
+                    .containsKey(applicationId);
+                if (isUser) {
+                    // Allow all user application commands
+                    return true;
+                }
                 var application = this.requestApplicationIndex(new ApplicationIndexSourceGuild(guildId))
                     .applications
                     .get(applicationId);
@@ -247,28 +255,34 @@ final class Patches {
 
     private void passCommandData(StoreApplicationCommands storeApplicationCommands, ApplicationIndexSource applicationIndexSource, RequestSource requestSource) throws Exception {
         var applicationIndex = this.requestApplicationIndex(applicationIndexSource);
+        var userApplicationIndex = this.requestApplicationIndex(new ApplicationIndexSourceUser());
+
+        var applications = new HashMap(applicationIndex.applications);
+        var applicationCommands = new HashMap(applicationIndex.applicationCommands);
+        applications.putAll(userApplicationIndex.applications);
+        applicationCommands.putAll(userApplicationIndex.applicationCommands);
 
         switch (requestSource) {
             case INITIAL:
-                var applications = new ArrayList<com.discord.models.commands.Application>(applicationIndex.applications.values());
-                Collections.sort(applications, (left, right) -> left.getName().compareTo(right.getName()));
+                var initialApplications = new ArrayList<com.discord.models.commands.Application>(applications.values());
+                Collections.sort(initialApplications, (left, right) -> left.getName().compareTo(right.getName()));
                 // TODO: Cache the fields as they are requested every time this runs
-                applications.add(((BuiltInCommandsProvider) ReflectUtils.getField(storeApplicationCommands, "builtInCommandsProvider")).getBuiltInApplication());
+                initialApplications.add(((BuiltInCommandsProvider) ReflectUtils.getField(storeApplicationCommands, "builtInCommandsProvider")).getBuiltInApplication());
                 var handleGuildApplicationsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleGuildApplicationsUpdate", List.class);
                 handleGuildApplicationsUpdateMethod.setAccessible(true);
-                handleGuildApplicationsUpdateMethod.invoke(storeApplicationCommands, applications);
+                handleGuildApplicationsUpdateMethod.invoke(storeApplicationCommands, initialApplications);
                 break;
 
             case BROWSE:
                 var handleDiscoverCommandsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleDiscoverCommandsUpdate", List.class);
                 handleDiscoverCommandsUpdateMethod.setAccessible(true);
-                handleDiscoverCommandsUpdateMethod.invoke(storeApplicationCommands, new ArrayList(applicationIndex.applicationCommands.values()));
+                handleDiscoverCommandsUpdateMethod.invoke(storeApplicationCommands, new ArrayList(applicationCommands.values()));
                 break;
 
             case QUERY:
                 var handleQueryCommandsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleQueryCommandsUpdate", List.class);
                 handleQueryCommandsUpdateMethod.setAccessible(true);
-                handleQueryCommandsUpdateMethod.invoke(storeApplicationCommands, new ArrayList(applicationIndex.applicationCommands.values()));
+                handleQueryCommandsUpdateMethod.invoke(storeApplicationCommands, new ArrayList(applicationCommands.values()));
                 break;
         }
     }

@@ -8,13 +8,16 @@ package com.aliucord.coreplugins.slashcommandsfix;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 class ApplicationIndexCache {
     public Map<Long, ApplicationIndex> guild;
     public Map<Long, ApplicationIndex> dm;
+    public Optional<ApplicationIndex> user;
 
     public ApplicationIndexCache() {
         this.guild = new HashMap<>();
         this.dm = new HashMap<>();
+        this.user = Optional.empty();
     }
 }
