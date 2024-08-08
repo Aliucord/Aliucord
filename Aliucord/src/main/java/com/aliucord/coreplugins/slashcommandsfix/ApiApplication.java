@@ -25,7 +25,7 @@ class ApiApplication {
         this.botId = null;
     }
 
-    public Application toModel(int commandCount) {
+    public Application toModel() {
         Permissions permissions = null;
         if (this.permissions != null) {
             permissions = this.permissions.toModel(Optional.empty());
@@ -34,6 +34,6 @@ class ApiApplication {
         }
         var usersStore = StoreStream.getUsers();
         Optional<User> botUser = Optional.ofNullable(this.botId).map(userId -> usersStore.getUsers().get(userId));
-        return new Application(this.id, this.name, this.icon, permissions, commandCount, botUser);
+        return new Application(this.id, this.name, this.icon, permissions, botUser);
     }
 }

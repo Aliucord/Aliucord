@@ -16,6 +16,7 @@ import com.aliucord.patcher.PreHook;
 import com.aliucord.Utils;
 import com.aliucord.utils.GsonUtils;
 import com.aliucord.utils.ReflectUtils;
+import com.discord.models.commands.Application;
 import com.discord.models.commands.ApplicationCommand;
 import com.discord.models.commands.ApplicationCommandKt;
 import com.discord.models.commands.ApplicationCommandLocalSendData;
@@ -30,16 +31,18 @@ import com.discord.stores.StoreStream;
 import com.discord.utilities.error.Error;
 import com.discord.utilities.messagesend.MessageResult;
 import com.discord.utilities.permissions.PermissionUtils;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
-import java.util.HashMap;
-import java.lang.reflect.Method;
 
 final class Patches {
     private ApplicationIndexCache applicationIndexCache;
@@ -47,6 +50,7 @@ final class Patches {
     private Method handleGuildApplicationsUpdateMethod;
     private Method handleDiscoverCommandsUpdateMethod;
     private Method handleQueryCommandsUpdateMethod;
+    private Field applicationCommandCountField;
 
     Patches(Logger logger) throws Throwable {
         this.logger = logger;
@@ -61,6 +65,8 @@ final class Patches {
         this.handleDiscoverCommandsUpdateMethod.setAccessible(true);
         this.handleQueryCommandsUpdateMethod = StoreApplicationCommands.class.getDeclaredMethod("handleQueryCommandsUpdate", List.class);
         this.handleQueryCommandsUpdateMethod.setAccessible(true);
+        this.applicationCommandCountField = Application.class.getDeclaredField("commandCount");
+        this.applicationCommandCountField.setAccessible(true);
 
         var storeApplicationCommands = StoreStream.getApplicationCommands();
         var storeChannelsSelected = StoreStream.getChannelsSelected();
@@ -265,27 +271,25 @@ final class Patches {
     }
 
     private void passCommandData(StoreApplicationCommands storeApplicationCommands, ApplicationIndexSource applicationIndexSource, RequestSource requestSource) throws Exception {
-        var applicationIndex = this.requestApplicationIndex(applicationIndexSource);
-        var userApplicationIndex = this.requestApplicationIndex(new ApplicationIndexSourceUser());
-
-        var applications = new HashMap(applicationIndex.applications);
-        var applicationCommands = new HashMap(applicationIndex.applicationCommands);
-        applications.putAll(userApplicationIndex.applications);
-        applicationCommands.putAll(userApplicationIndex.applicationCommands);
+        var applicationIndex = new ApplicationIndex(Arrays.asList(
+            this.requestApplicationIndex(applicationIndexSource),
+            this.requestApplicationIndex(new ApplicationIndexSourceUser())
+        ));
+        applicationIndex.populateCommandCounts(this.applicationCommandCountField);
 
         switch (requestSource) {
             case INITIAL:
-                var initialApplications = new ArrayList<com.discord.models.commands.Application>(applications.values());
-                Collections.sort(initialApplications, (left, right) -> left.getName().compareTo(right.getName()));
-                this.handleGuildApplicationsUpdateMethod.invoke(storeApplicationCommands, initialApplications);
+                var applications = new ArrayList<Application>(applicationIndex.applications.values());
+                Collections.sort(applications, (left, right) -> left.getName().compareTo(right.getName()));
+                this.handleGuildApplicationsUpdateMethod.invoke(storeApplicationCommands, applications);
                 break;
 
             case BROWSE:
-                this.handleDiscoverCommandsUpdateMethod.invoke(storeApplicationCommands, new ArrayList(applicationCommands.values()));
+                this.handleDiscoverCommandsUpdateMethod.invoke(storeApplicationCommands, new ArrayList(applicationIndex.applicationCommands.values()));
                 break;
 
             case QUERY:
-                this.handleQueryCommandsUpdateMethod.invoke(storeApplicationCommands, new ArrayList(applicationCommands.values()));
+                this.handleQueryCommandsUpdateMethod.invoke(storeApplicationCommands, new ArrayList(applicationIndex.applicationCommands.values()));
                 break;
         }
     }

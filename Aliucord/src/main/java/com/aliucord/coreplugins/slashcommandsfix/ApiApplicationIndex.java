@@ -21,17 +21,9 @@ class ApiApplicationIndex {
     }
 
     public ApplicationIndex toModel() {
-        // TODO: Calculating this statically for merged indexes might not work correctly
-        var applicationCommandCounts = new HashMap<Long, Integer>();
-        for (var applicationCommand: this.applicationCommands) {
-            var count = applicationCommandCounts.getOrDefault(applicationCommand.applicationId, 0);
-            count += 1;
-            applicationCommandCounts.put(applicationCommand.applicationId, count);
-        }
-
         var applications = new HashMap<Long, Application>();
         for (var application: this.applications) {
-            applications.put(application.id, application.toModel(applicationCommandCounts.getOrDefault(application.id, 0)));
+            applications.put(application.id, application.toModel());
         }
         var applicationCommands = new HashMap<Long, ApplicationCommand>();
         for (var applicationCommand: this.applicationCommands) {
