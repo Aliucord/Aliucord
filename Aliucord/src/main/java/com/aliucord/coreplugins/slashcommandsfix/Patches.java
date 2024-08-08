@@ -85,7 +85,7 @@ final class Patches {
                 }
 
                 try {
-                    this.passCommandData(this_.this$0, new ApplicationIndexSourceGuild(this_.$guildId), RequestSource.INITIAL);
+                    this.passCommandData(this_.this$0, Optional.of(new ApplicationIndexSourceGuild(this_.$guildId)), RequestSource.INITIAL);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -94,7 +94,7 @@ final class Patches {
             })
         );
 
-        // Requesting applications present in the DM
+        // Requesting applications present in the DM (only gets called for bots)
         Patcher.addPatch(
             StoreApplicationCommands$handleDmUserApplication$1.class.getDeclaredMethod("invoke"),
             new InsteadHook(param -> {
@@ -105,7 +105,7 @@ final class Patches {
                     .k();
 
                 try {
-                    this.passCommandData(this_.this$0, new ApplicationIndexSourceDm(channelId), RequestSource.INITIAL);
+                    this.passCommandData(this_.this$0, Optional.of(new ApplicationIndexSourceDm(channelId)), RequestSource.INITIAL);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -124,14 +124,27 @@ final class Patches {
                     return;
                 }
 
-                ApplicationIndexSource applicationIndexSource = null;
+                Optional<ApplicationIndexSource> applicationIndexSource = Optional.empty();
+                // guildId being 0 means this is a DM or a DM group
                 if (this_.$guildId != 0) {
-                    applicationIndexSource = new ApplicationIndexSourceGuild(this_.$guildId);
+                    applicationIndexSource = Optional.of(new ApplicationIndexSourceGuild(this_.$guildId));
                 } else {
-                    var channelId = storeChannelsSelected
-                        .getSelectedChannel()
-                        .k();
-                    applicationIndexSource = new ApplicationIndexSourceDm(channelId);
+                    // Only create a DM index source for bots
+                    var channel = storeChannelsSelected.getSelectedChannel();
+                    var channelType = channel.D();
+                    // Channel type 1 is a DM
+                    if (channelType == 1) {
+                        var user = channel.z().get(0);
+                        var userIsBot = user.e();
+                        if (userIsBot) {
+                            var channelId = channel.k();
+                            applicationIndexSource = Optional.of(new ApplicationIndexSourceDm(channelId));
+                        }
+                    }
+
+                    if (!applicationIndexSource.isPresent()) {
+                        return;
+                    }
                 }
 
                 try {
@@ -156,7 +169,7 @@ final class Patches {
 
                 try {
                     ReflectUtils.setField(this_.this$0, "query", this_.$query);
-                    this.passCommandData(this_.this$0, new ApplicationIndexSourceGuild(this_.$guildId), RequestSource.QUERY);
+                    this.passCommandData(this_.this$0, Optional.of(new ApplicationIndexSourceGuild(this_.$guildId)), RequestSource.QUERY);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -270,15 +283,17 @@ final class Patches {
         });
     }
 
-    private void passCommandData(StoreApplicationCommands storeApplicationCommands, ApplicationIndexSource applicationIndexSource, RequestSource requestSource) throws Exception {
-        var applicationIndex = new ApplicationIndex(Arrays.asList(
-            this.requestApplicationIndex(applicationIndexSource),
-            this.requestApplicationIndex(new ApplicationIndexSourceUser())
-        ));
-        applicationIndex.populateCommandCounts(this.applicationCommandCountField);
+    private void passCommandData(StoreApplicationCommands storeApplicationCommands, Optional<ApplicationIndexSource> applicationIndexSource, RequestSource requestSource) throws Exception {
+        var applicationIndexes = new ArrayList();
+        if (applicationIndexSource.isPresent()) {
+            applicationIndexes.add(this.requestApplicationIndex(applicationIndexSource.get()));
+        }
+        applicationIndexes.add(this.requestApplicationIndex(new ApplicationIndexSourceUser()));
+        var applicationIndex = new ApplicationIndex(applicationIndexes);
 
         switch (requestSource) {
             case INITIAL:
+                applicationIndex.populateCommandCounts(this.applicationCommandCountField);
                 var applications = new ArrayList<Application>(applicationIndex.applications.values());
                 Collections.sort(applications, (left, right) -> left.getName().compareTo(right.getName()));
                 applications.add(((BuiltInCommandsProvider) ReflectUtils.getField(storeApplicationCommands, "builtInCommandsProvider")).getBuiltInApplication());
