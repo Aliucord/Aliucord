@@ -281,6 +281,7 @@ final class Patches {
             case INITIAL:
                 var applications = new ArrayList<Application>(applicationIndex.applications.values());
                 Collections.sort(applications, (left, right) -> left.getName().compareTo(right.getName()));
+                applications.add(((BuiltInCommandsProvider) ReflectUtils.getField(storeApplicationCommands, "builtInCommandsProvider")).getBuiltInApplication());
                 this.handleGuildApplicationsUpdateMethod.invoke(storeApplicationCommands, applications);
                 break;
 
