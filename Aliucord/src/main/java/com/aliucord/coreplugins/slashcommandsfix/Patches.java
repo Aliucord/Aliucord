@@ -22,10 +22,8 @@ import com.discord.models.commands.ApplicationCommandKt;
 import com.discord.models.commands.ApplicationCommandLocalSendData;
 import com.discord.stores.BuiltInCommandsProvider;
 import com.discord.stores.StoreApplicationCommands;
-import com.discord.stores.StoreApplicationCommands$handleDmUserApplication$1;
 import com.discord.stores.StoreApplicationCommands$requestApplicationCommands$1;
 import com.discord.stores.StoreApplicationCommands$requestApplicationCommandsQuery$1;
-import com.discord.stores.StoreApplicationCommands$requestApplications$1;
 import com.discord.stores.StoreApplicationInteractions;
 import com.discord.stores.StoreStream;
 import com.discord.utilities.error.Error;
@@ -73,47 +71,6 @@ final class Patches {
         var storeUsers = StoreStream.getUsers();
         var storePermissions = StoreStream.getPermissions();
         var storeGuilds = StoreStream.getGuilds();
-
-        // Requesting applications present in the guild
-        Patcher.addPatch(
-            StoreApplicationCommands$requestApplications$1.class.getDeclaredMethod("invoke"),
-            new PreHook(param -> {
-                var this_ = (StoreApplicationCommands$requestApplications$1) param.thisObject;
-
-                if (this_.$guildId == null) {
-                    return;
-                }
-
-                try {
-                    this.passCommandData(this_.this$0, Optional.of(new ApplicationIndexSourceGuild(this_.$guildId)), RequestSource.INITIAL);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-
-                param.setResult(null);
-            })
-        );
-
-        // Requesting applications present in the DM (only gets called for bots)
-        Patcher.addPatch(
-            StoreApplicationCommands$handleDmUserApplication$1.class.getDeclaredMethod("invoke"),
-            new InsteadHook(param -> {
-                var this_ = (StoreApplicationCommands$handleDmUserApplication$1) param.thisObject;
-
-                var channelId = storeChannelsSelected
-                    .getSelectedChannel()
-                    .k();
-
-                try {
-                    this.passCommandData(this_.this$0, Optional.of(new ApplicationIndexSourceDm(channelId)), RequestSource.INITIAL);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-
-                return null;
-            })
-        );
-
         // Browsing commands (when just a '/' is typed)
         Patcher.addPatch(
             StoreApplicationCommands$requestApplicationCommands$1.class.getDeclaredMethod("invoke"),
@@ -140,10 +97,6 @@ final class Patches {
                             var channelId = channel.k();
                             applicationIndexSource = Optional.of(new ApplicationIndexSourceDm(channelId));
                         }
-                    }
-
-                    if (!applicationIndexSource.isPresent()) {
-                        return;
                     }
                 }
 
@@ -290,16 +243,14 @@ final class Patches {
         }
         applicationIndexes.add(this.requestApplicationIndex(new ApplicationIndexSourceUser()));
         var applicationIndex = new ApplicationIndex(applicationIndexes);
+        applicationIndex.populateCommandCounts(this.applicationCommandCountField);
+
+        var applications = new ArrayList<Application>(applicationIndex.applications.values());
+        Collections.sort(applications, (left, right) -> left.getName().compareTo(right.getName()));
+        applications.add(((BuiltInCommandsProvider) ReflectUtils.getField(storeApplicationCommands, "builtInCommandsProvider")).getBuiltInApplication());
+        this.handleGuildApplicationsUpdateMethod.invoke(storeApplicationCommands, applications);
 
         switch (requestSource) {
-            case INITIAL:
-                applicationIndex.populateCommandCounts(this.applicationCommandCountField);
-                var applications = new ArrayList<Application>(applicationIndex.applications.values());
-                Collections.sort(applications, (left, right) -> left.getName().compareTo(right.getName()));
-                applications.add(((BuiltInCommandsProvider) ReflectUtils.getField(storeApplicationCommands, "builtInCommandsProvider")).getBuiltInApplication());
-                this.handleGuildApplicationsUpdateMethod.invoke(storeApplicationCommands, applications);
-                break;
-
             case BROWSE:
                 this.handleDiscoverCommandsUpdateMethod.invoke(storeApplicationCommands, new ArrayList(applicationIndex.applicationCommands.values()));
                 break;
