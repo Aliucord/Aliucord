@@ -6,7 +6,6 @@
 
 package com.aliucord.coreplugins.slashcommandsfix;
 
-import com.discord.models.commands.ApplicationCommand;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +24,7 @@ class ApiApplicationIndex {
         for (var application: this.applications) {
             applications.put(application.id, application.toModel());
         }
-        var applicationCommands = new HashMap<Long, ApplicationCommand>();
+        var applicationCommands = new HashMap<Long, RemoteApplicationCommand>();
         for (var applicationCommand: this.applicationCommands) {
             applicationCommands.put(applicationCommand.id, applicationCommand.toModel());
         }

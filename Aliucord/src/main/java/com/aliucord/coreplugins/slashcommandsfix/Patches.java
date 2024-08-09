@@ -71,6 +71,7 @@ final class Patches {
         var storeUsers = StoreStream.getUsers();
         var storePermissions = StoreStream.getPermissions();
         var storeGuilds = StoreStream.getGuilds();
+
         // Browsing commands (when just a '/' is typed)
         Patcher.addPatch(
             StoreApplicationCommands$requestApplicationCommands$1.class.getDeclaredMethod("invoke"),
@@ -243,6 +244,11 @@ final class Patches {
         }
         applicationIndexes.add(this.requestApplicationIndex(new ApplicationIndexSourceUser()));
         var applicationIndex = new ApplicationIndex(applicationIndexes);
+        // Remove all commands that aren't slash commands (type 1)
+        applicationIndex
+            .applicationCommands
+            .entrySet()
+            .removeIf(applicationCommand -> applicationCommand.getValue().type != 1);
         applicationIndex.populateCommandCounts(this.applicationCommandCountField);
 
         var applications = new ArrayList<Application>(applicationIndex.applications.values());

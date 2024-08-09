@@ -11,9 +11,11 @@ import java.util.List;
 
 class RemoteApplicationCommand extends com.discord.models.commands.RemoteApplicationCommand {
     public Permissions permissions_;
+    public int type;
 
-    public RemoteApplicationCommand(String id, long applicationId, String name, String description, List<ApplicationCommandOption> options, Permissions permissions, Long guildId, String version) {
+    public RemoteApplicationCommand(String id, long applicationId, String name, String description, List<ApplicationCommandOption> options, Permissions permissions, Long guildId, String version, int type) {
         super(id, applicationId, name, description, options, guildId, version, null, null, null);
         this.permissions_ = permissions;
+        this.type = type;
     }
 }

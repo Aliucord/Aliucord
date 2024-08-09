@@ -23,6 +23,7 @@ class ApiApplicationCommand {
     public final Long defaultMemberPermissions;
     public final Long guildId;
     public final String version;
+    public final int type;
 
     public ApiApplicationCommand() {
         this.id = 0;
@@ -34,9 +35,10 @@ class ApiApplicationCommand {
         this.defaultMemberPermissions = null;
         this.guildId = null;
         this.version = null;
+        this.type = 0;
     }
 
-    public ApplicationCommand toModel() {
+    public RemoteApplicationCommand toModel() {
         var apiOptions = this.options;
         if (apiOptions == null) {
             apiOptions = new ArrayList<>();
@@ -52,6 +54,6 @@ class ApiApplicationCommand {
         } else {
             permissions = new Permissions(null, null, null, defaultMemberPermissions);
         }
-        return new RemoteApplicationCommand(String.valueOf(this.id), this.applicationId, this.name, this.description, options, permissions, this.guildId, this.version);
+        return new RemoteApplicationCommand(String.valueOf(this.id), this.applicationId, this.name, this.description, options, permissions, this.guildId, this.version, this.type);
     }
 }
