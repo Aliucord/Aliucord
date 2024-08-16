@@ -15,18 +15,26 @@ class Themes {
   static const primaryColorDark = Color(0xff009624);
 
   static final lightTheme = ThemeData(
-    appBarTheme: const AppBarTheme(systemOverlayStyle: SystemUiOverlayStyle.dark, iconTheme: IconThemeData(color: Colors.black)),
+    appBarTheme: const AppBarTheme(
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        iconTheme: IconThemeData(color: Colors.black)),
     primaryColor: primaryColor,
     primaryColorLight: primaryColorLight,
     primaryColorDark: primaryColorDark,
     primaryTextTheme: const TextTheme(
       titleLarge: TextStyle(color: Colors.white),
     ),
-    colorScheme: const ColorScheme.light(primary: primaryColor, primaryContainer: primaryColorDark, secondary: primaryColor, onPrimary: Colors.white),
+    colorScheme: const ColorScheme.light(
+        primary: primaryColor,
+        primaryContainer: primaryColorDark,
+        secondary: primaryColor,
+        onPrimary: Colors.white),
     useMaterial3: true,
   );
   static final darkTheme = ThemeData(
-    appBarTheme: const AppBarTheme(systemOverlayStyle: SystemUiOverlayStyle.light, iconTheme: IconThemeData(color: Colors.white)),
+    appBarTheme: const AppBarTheme(
+        systemOverlayStyle: SystemUiOverlayStyle.light,
+        iconTheme: IconThemeData(color: Colors.white)),
     brightness: Brightness.dark,
     primaryColor: primaryColor,
     primaryColorLight: primaryColorLight,
@@ -34,7 +42,11 @@ class Themes {
     primaryTextTheme: const TextTheme(
       titleLarge: TextStyle(color: Colors.white),
     ),
-    colorScheme: const ColorScheme.dark(primary: primaryColor, primaryContainer: primaryColorDark, secondary: primaryColor, onPrimary: Colors.white),
+    colorScheme: const ColorScheme.dark(
+        primary: primaryColor,
+        primaryContainer: primaryColorDark,
+        secondary: primaryColor,
+        onPrimary: Colors.white),
     useMaterial3: true,
   );
 }
@@ -51,16 +63,18 @@ class ThemeManager with ChangeNotifier {
   }
 
   ThemeData applyMonet(ThemeData theme, ColorScheme? dynamic) {
-    return dynamic != null ? theme.copyWith(
-      appBarTheme: theme.appBarTheme.copyWith(
-        iconTheme: IconThemeData(color: dynamic.secondary),
-      ),
-      colorScheme: dynamic,
-      primaryColor: null,
-      primaryColorLight: null,
-      primaryColorDark: null,
-      scaffoldBackgroundColor: dynamic.background,
-    ) : theme;
+    return dynamic != null
+        ? theme.copyWith(
+            appBarTheme: theme.appBarTheme.copyWith(
+              iconTheme: IconThemeData(color: dynamic.secondary),
+            ),
+            colorScheme: dynamic,
+            primaryColor: null,
+            primaryColorLight: null,
+            primaryColorDark: null,
+            scaffoldBackgroundColor: dynamic.surface,
+          )
+        : theme;
   }
 }
 
