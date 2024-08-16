@@ -8,6 +8,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 import 'utils/main.dart';
+import 'widgets/manager_dialog.dart';
 import 'widgets/update_dialog.dart';
 
 class Commit {
@@ -16,13 +17,19 @@ class Commit {
   final CommitCommit commit;
   final String author;
 
-  Commit({ required this.htmlUrl, required this.sha, required this.commit, required this.author });
+  Commit(
+      {required this.htmlUrl,
+      required this.sha,
+      required this.commit,
+      required this.author});
 
   Commit.fromJson(Map<String, dynamic> json)
-    : htmlUrl = json['html_url'],
-      sha = json['sha'],
-      commit = CommitCommit(json['commit']['message']),
-      author = json['author'] == null ? json['commit']['author']['name'] : json['author']['login'];
+      : htmlUrl = json['html_url'],
+        sha = json['sha'],
+        commit = CommitCommit(json['commit']['message']),
+        author = json['author'] == null
+            ? json['commit']['author']['name']
+            : json['author']['login'];
 }
 
 class CommitCommit {
@@ -40,11 +47,11 @@ class Release {
   const Release(this.tag, this.name, this.body, this.assets);
 
   Release.fromJson(Map<String, dynamic> json)
-    : tag = json['tag_name'],
-      name = json['name'],
-      body = json['body'],
-      assets = (json['assets'] as Iterable<dynamic>)
-        .map((e) => Asset(e['name'], e['browser_download_url']));
+      : tag = json['tag_name'],
+        name = json['name'],
+        body = json['body'],
+        assets = (json['assets'] as Iterable<dynamic>)
+            .map((e) => Asset(e['name'], e['browser_download_url']));
 }
 
 class Asset {
@@ -69,25 +76,39 @@ class GithubAPI with ChangeNotifier {
   void checkForUpdates() async {
     final release = await getLatestRelease();
     if (release == null) return;
+    if (release.body.contains('Aliucord/Manager')) {
+      managerReleased = true;
+      return showDialog(
+          context: navigatorKey.currentContext!,
+          barrierDismissible: false,
+          builder: (context) => const ManagerDialog());
+    }
     final currentVersion = await getVersionCode();
     if (int.parse(release.tag.replaceAll('.', '')) <= currentVersion) return;
     final currentVersionName = await getVersionName();
-    showDialog(context: navigatorKey.currentContext!, barrierDismissible: false, builder: (context) => UpdateDialog(
-      newVersion: release.tag,
-      currentVersion: currentVersionName,
-      message: release.body != '' ? release.body : release.name,
-      downloadUrl: release.assets.firstWhere((e) => e.name == 'Installer-release.apk').downloadUrl,
-    ));
+    showDialog(
+        context: navigatorKey.currentContext!,
+        barrierDismissible: false,
+        builder: (context) => UpdateDialog(
+              newVersion: release.tag,
+              currentVersion: currentVersionName,
+              message: release.body != '' ? release.body : release.name,
+              downloadUrl: release.assets
+                  .firstWhere((e) => e.name == 'Installer-release.apk')
+                  .downloadUrl,
+            ));
   }
 
   final Map<Uri, Iterable<Commit>> _commitsCache = {};
-  Future<Iterable<Commit>> getCommits({ Map<String, dynamic>? params }) async {
+  Future<Iterable<Commit>> getCommits({Map<String, dynamic>? params}) async {
     final commitsUri = Uri.https(_apiHost, _commitsEndpoint, params);
-    if (_commitsCache.containsKey(commitsUri)) return _commitsCache[commitsUri]!;
+    if (_commitsCache.containsKey(commitsUri))
+      return _commitsCache[commitsUri]!;
     try {
       final res = await dio.getUri(commitsUri);
       if (res.data is List) {
-        final commits = List<Map<String, dynamic>>.from(res.data).map((e) => Commit.fromJson(e));
+        final commits = List<Map<String, dynamic>>.from(res.data)
+            .map((e) => Commit.fromJson(e));
         _commitsCache[commitsUri] = commits;
         return commits;
       }
@@ -99,7 +120,8 @@ class GithubAPI with ChangeNotifier {
 
   Future<Commit?> getCommit(String commit) async {
     try {
-      final res = await dio.getUri(Uri.https(_apiHost, '$_commitsEndpoint/$commit'));
+      final res =
+          await dio.getUri(Uri.https(_apiHost, '$_commitsEndpoint/$commit'));
       if (res.data is Map<String, dynamic>) return Commit.fromJson(res.data);
     } on DioException {
       // nop
@@ -117,5 +139,6 @@ class GithubAPI with ChangeNotifier {
     return null;
   }
 
-  String getDownloadUrl(String ref, String file) => 'https://raw.githubusercontent.com/$_org/$_repo/$ref/$file';
+  String getDownloadUrl(String ref, String file) =>
+      'https://raw.githubusercontent.com/$_org/$_repo/$ref/$file';
 }
