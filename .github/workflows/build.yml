@@ -1,0 +1,134 @@
+name: Build
+
+on:
+  push:
+    paths-ignore:
+      - "**.md"
+  pull_request:
+    paths-ignore:
+      - "**.md"
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    # Prevent duplicate workflow run for PRs from same repo
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout src
+        uses: actions/checkout@v4
+        with:
+          path: src
+          persist-credentials: false
+
+      - name: Setup JDK 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "11"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: 9862592 # 10.0 is the last version working with JDK 11
+
+      - name: Build project
+        run: |
+          cd $GITHUB_WORKSPACE/src
+          chmod +x gradlew
+          ./gradlew :Aliucord:make :Injector:make --stacktrace
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          if-no-files-found: error
+          path: |
+            ${{ github.workspace }}/src/Aliucord/build/Aliucord.zip
+            ${{ github.workspace }}/src/Injector/build/Injector.dex
+
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: [ build ]
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout src
+        uses: actions/checkout@v4
+        with:
+          path: src
+
+      - name: Checkout builds
+        uses: actions/checkout@v4
+        with:
+          ref: builds
+          path: builds
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: artifacts
+
+      - name: Deploy builds
+        if: github.ref == 'refs/heads/main'
+        run: |
+          # Flatten downloaded artifacts into builds
+          find $GITHUB_WORKSPACE/artifacts -type f -exec mv -t $GITHUB_WORKSPACE/builds '{}' +
+
+          cd $GITHUB_WORKSPACE/builds
+
+          # Legacy Installer support for now
+          cp ../src/.assets/AndroidManifest.xml .
+          if git diff --exit-code Aliucord.zip >/dev/null; then
+            # No changes to Aliucord.zip, simply merge builds data.json and Aliucord data.json to keep the old aliucordHash
+            jq -s '.[0] * .[1]' data.json ../src/.assets/data.json | sponge data.json
+          else
+            # Changes to Aliucord.zip, update aliucordHash
+            jq ". + { aliucordHash: \"$(git --git-dir=../src/.git rev-parse --short HEAD)\" }" < ../src/.assets/data.json > data.json
+          fi
+
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add .
+          git commit -m "Build $GITHUB_SHA"
+          git push
+
+  # Publish core to maven if not originating from a PR
+  maven:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    if: github.event_name != 'pull_request'
+    needs: [ build ]
+    permissions:
+      contents: read
+    env:
+      MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+    steps:
+      - name: Checkout src
+        if: ${{ env.MAVEN_USERNAME != '' }}
+        uses: actions/checkout@v4
+        with:
+          path: src
+          persist-credentials: false
+
+      - name: Setup JDK 11
+        if: ${{ env.MAVEN_USERNAME != '' }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "11"
+
+      - name: Build & Publish to Maven
+        if: ${{ env.MAVEN_USERNAME != '' }}
+        run: |
+          cd $GITHUB_WORKSPACE/src
+          chmod +x gradlew
+          ./gradlew :Aliucord:publish --stacktrace -Pversion=${GITHUB_REF##*/}-SNAPSHOT
+          ./gradlew :Aliucord:publish --stacktrace -Pversion=$(git rev-parse --short "$GITHUB_SHA") | exit 0
+        env:
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
