@@ -12,3 +12,4 @@ local.properties
 *.project
 *org.eclipse.buildship.core.prefs
 .vscode
+/patches/smali/

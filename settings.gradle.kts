@@ -9,4 +9,5 @@ pluginManagement {
 
 include(":Aliucord")
 include(":Injector")
+include(":patches")
 rootProject.name = "Aliucord"

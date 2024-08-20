@@ -38,7 +38,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/src
           chmod +x gradlew
-          ./gradlew :Aliucord:make :Injector:make --stacktrace
+          ./gradlew --stacktrace :Aliucord:make :Injector:make :patches:package :patches:disassembleWithPatches :patches:test
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -48,6 +48,7 @@ jobs:
           path: |
             ${{ github.workspace }}/src/Aliucord/build/Aliucord.zip
             ${{ github.workspace }}/src/Injector/build/Injector.dex
+            ${{ github.workspace }}/src/patches/build/patches.zip
 
   deploy:
     runs-on: ubuntu-24.04
@@ -77,10 +78,11 @@ jobs:
       - name: Deploy builds
         if: github.ref == 'refs/heads/main'
         run: |
+          cd $GITHUB_WORKSPACE/builds
+          sudo apt-get install moreutils
+
           # Flatten downloaded artifacts into builds
           find $GITHUB_WORKSPACE/artifacts -type f -exec mv -t $GITHUB_WORKSPACE/builds '{}' +
-
-          cd $GITHUB_WORKSPACE/builds
 
           # Legacy Installer support for now
           cp ../src/.assets/AndroidManifest.xml .
@@ -91,6 +93,10 @@ jobs:
             # Changes to Aliucord.zip, update aliucordHash
             jq ". + { aliucordHash: \"$(git --git-dir=../src/.git rev-parse --short HEAD)\" }" < ../src/.assets/data.json > data.json
           fi
+
+          # Add patches' version to data.json
+          patchesVersion=$(cat $GITHUB_WORKSPACE/src/patches/build.gradle.kts | grep -E 'version = "' | cut -d \" -f 2)
+          jq --arg version $patchesVersion '. + { patchesVersion: $version }' data.json | sponge data.json
 
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
