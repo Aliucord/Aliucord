@@ -28,6 +28,8 @@ task<Zip>("package") {
     group = "aliucord"
     archiveFileName.set("patches.zip")
     destinationDirectory.set(buildDir)
+    isReproducibleFileOrder = true
+    isPreserveFileTimestamps = false
 
     from(patchesDir)
     include(".gitkeep")
