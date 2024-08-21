@@ -79,24 +79,23 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           cd $GITHUB_WORKSPACE/builds
-          sudo apt-get install moreutils
 
           # Flatten downloaded artifacts into builds
           find $GITHUB_WORKSPACE/artifacts -type f -exec mv -t $GITHUB_WORKSPACE/builds '{}' +
 
           # Legacy Installer support for now
           cp ../src/.assets/AndroidManifest.xml .
-          if git diff --exit-code Aliucord.zip >/dev/null; then
-            # No changes to Aliucord.zip, simply merge builds data.json and Aliucord data.json to keep the old aliucordHash
-            jq -s '.[0] * .[1]' data.json ../src/.assets/data.json | sponge data.json
-          else
-            # Changes to Aliucord.zip, update aliucordHash
-            jq ". + { aliucordHash: \"$(git --git-dir=../src/.git rev-parse --short HEAD)\" }" < ../src/.assets/data.json > data.json
-          fi
 
-          # Add patches' version to data.json
+          # Update versions in data.json
+          # `aliucordHash` is kept to update old builds to new versioned builds
+          coreVersion=$(cat $GITHUB_WORKSPACE/src/Aliucord/build.gradle.kts | grep -E 'version = "' | cut -d \" -f 2)
           patchesVersion=$(cat $GITHUB_WORKSPACE/src/patches/build.gradle.kts | grep -E 'version = "' | cut -d \" -f 2)
-          jq --arg version $patchesVersion '. + { patchesVersion: $version }' data.json | sponge data.json
+          injectorVersion=$(cat $GITHUB_WORKSPACE/src/Injector/build.gradle.kts | grep -E 'version = "' | cut -d \" -f 2)
+          jq '. + { coreVersion: $cv, injectorVersion: $iv, patchesVersion: $pv, aliucordHash: "0000000" }' \
+             --arg cv $coreVersion \
+             --arg iv $injectorVersion \
+             --arg pv $patchesVersion \
+             ../src/.assets/data.json > data.json
 
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
@@ -134,7 +133,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/src
           chmod +x gradlew
-          ./gradlew :Aliucord:publish --stacktrace -Pversion=${GITHUB_REF##*/}-SNAPSHOT
+          ./gradlew :Aliucord:publish --stacktrace -Pversion=$GITHUB_REF_NAME-SNAPSHOT
           ./gradlew :Aliucord:publish --stacktrace -Pversion=$(git rev-parse --short "$GITHUB_SHA") | exit 0
         env:
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}

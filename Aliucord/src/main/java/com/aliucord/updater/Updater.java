@@ -16,14 +16,14 @@ import java.io.IOException;
 
 public class Updater {
     /**
-     * Compares two versions of a plugin to determine whether it is outdated
+     * Compares two SemVer-style versions to determine whether a component is outdated
      *
-     * @param plugin     The name of the plugin
+     * @param component     The name of the plugin
      * @param version    The local version of the plugin
      * @param newVersion The latest version of the plugin
      * @return Whether newVersion is newer than version
      */
-    public static boolean isOutdated(String plugin, String version, String newVersion) {
+    public static boolean isOutdated(String component, String version, String newVersion) {
         try {
             String[] versions = version.split("\\.");
             String[] newVersions = newVersion.split("\\.");
@@ -36,14 +36,14 @@ public class Updater {
                 if (newInt < oldInt) return false;
             }
         } catch (NullPointerException | NumberFormatException th) {
-            PluginUpdater.logger.error(String.format("Failed to check updates for plugin %s due to an invalid updater/manifest version", plugin), th);
+            PluginUpdater.logger.error(String.format("Failed to check updates for %s due to an invalid updater/manifest version", component), th);
         }
 
         return false;
     }
 
     private static class AliucordData {
-        public String aliucordHash;
+        public String coreVersion;
         public int versionCode;
     }
 
@@ -54,7 +54,7 @@ public class Updater {
     private static boolean fetchAliucordData() {
         try (var req = new Http.Request("https://raw.githubusercontent.com/Aliucord/Aliucord/builds/data.json")) {
             var res = req.execute().json(AliucordData.class);
-            isAliucordOutdated = !BuildConfig.GIT_REVISION.equals(res.aliucordHash);
+            isAliucordOutdated = isOutdated("Aliucord", BuildConfig.VERSION, res.coreVersion);
             isDiscordOutdated = Constants.DISCORD_VERSION < res.versionCode;
             return true;
         } catch (IOException ex) {

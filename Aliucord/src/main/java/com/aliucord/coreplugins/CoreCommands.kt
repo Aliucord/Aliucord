@@ -77,7 +77,7 @@ ${if (disabled.isEmpty()) "None" else "> $disabledStr"}
             val str = """
 **Debug Info:**
 > Discord: ${Constants.DISCORD_VERSION}
-> Aliucord: ${BuildConfig.GIT_REVISION} (${PluginManager.plugins.size} plugins)
+> Aliucord: ${BuildConfig.VERSION} (${PluginManager.plugins.size} plugins)
 > System: Android ${Build.VERSION.RELEASE} (SDK v${Build.VERSION.SDK_INT}) - ${getArchitecture()}
 > Rooted: ${getIsRooted() ?: "Unknown"}
             """

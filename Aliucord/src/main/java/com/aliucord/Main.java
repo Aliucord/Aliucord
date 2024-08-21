@@ -146,7 +146,7 @@ public final class Main {
             );
 
             TextView versionView = layout.findViewById(Utils.getResId("app_info_header", "id"));
-            var text = versionView.getText() + " | Aliucord " + BuildConfig.GIT_REVISION;
+            var text = versionView.getText() + " | Aliucord " + BuildConfig.VERSION;
             if (Utils.isDebuggable()) text += " [DEBUGGABLE]";
             versionView.setText(text);
 
