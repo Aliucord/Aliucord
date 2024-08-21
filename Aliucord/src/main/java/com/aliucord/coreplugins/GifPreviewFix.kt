@@ -18,7 +18,8 @@ internal class GifPreviewFix : Plugin(Manifest("GifPreviewFix")) {
             // it.args[3] is a boolean that indicates
             // if the gif should be animated (for example no autoplay setting)
             if (!(it.args[3] as Boolean)) return@after
-            var result = (it.result as List<String>).toMutableList()
+            @Suppress("UNCHECKED_CAST")
+            val result = (it.result as List<String>).toMutableList()
 
             val uri = Uri.parse(result[0])
             if (uri.path?.endsWith(".gif") == true) {

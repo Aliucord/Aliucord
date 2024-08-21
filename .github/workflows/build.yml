@@ -37,6 +37,10 @@ jobs:
       - name: Build project
         run: |
           cd $GITHUB_WORKSPACE/src
+
+          # Check if this should be marked as a release build
+          export RELEASE=${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+
           chmod +x gradlew
           ./gradlew --stacktrace :Aliucord:make :Injector:make :patches:package :patches:disassembleWithPatches :patches:test
 

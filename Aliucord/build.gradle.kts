@@ -15,6 +15,7 @@ aliucord {
 android {
     defaultConfig {
         buildConfigField("String", "VERSION", "\"$version\"")
+        buildConfigField("boolean", "RELEASE", System.getenv("RELEASE") ?: "false")
         buildConfigField("int", "DISCORD_VERSION", libs.versions.discord.get())
     }
 
