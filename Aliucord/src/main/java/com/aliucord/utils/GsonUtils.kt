@@ -21,6 +21,7 @@ import b.i.d.e as GsonBuilder
  * [Original source](https://github.com/google/gson/blob/main/gson/src/main/java/com/google/gson/annotations/SerializedName.java)
  */
 typealias SerializedName = b.i.d.p.b
+typealias JsonAdapter = b.i.d.p.a
 
 object GsonUtils {
 
