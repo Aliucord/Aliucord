@@ -82,19 +82,25 @@ jobs:
       - name: Deploy builds
         if: github.ref == 'refs/heads/main'
         run: |
-          cd $GITHUB_WORKSPACE/builds
-
-          # Flatten downloaded artifacts into builds
-          find $GITHUB_WORKSPACE/artifacts -type f -exec mv -t $GITHUB_WORKSPACE/builds '{}' +
+          # Flatten downloaded artifacts
+          find $GITHUB_WORKSPACE/artifacts -type f -exec mv -t $GITHUB_WORKSPACE/artifacts '{}' +
 
           # Legacy Installer support for now
-          cp ../src/.assets/AndroidManifest.xml .
+          cp $GITHUB_WORKSPACE/src/.assets/AndroidManifest.xml $GITHUB_WORKSPACE/builds
 
-          # Update versions in data.json
-          # `aliucordHash` is kept to update old builds to new versioned builds
+          # Extract component versions
           coreVersion=$(cat $GITHUB_WORKSPACE/src/Aliucord/build.gradle.kts | grep -E 'version = "' | cut -d \" -f 2)
           patchesVersion=$(cat $GITHUB_WORKSPACE/src/patches/build.gradle.kts | grep -E 'version = "' | cut -d \" -f 2)
           injectorVersion=$(cat $GITHUB_WORKSPACE/src/Injector/build.gradle.kts | grep -E 'version = "' | cut -d \" -f 2)
+
+          # Copy over builds if version changed
+          cd $GITHUB_WORKSPACE/builds
+          [ "$(jq -r '.coreVersion' data.json)" != "$coreVersion" ] && cp $GITHUB_WORKSPACE/artifacts/Aliucord.zip .
+          [ "$(jq -r '.injectorVersion' data.json)" != "$injectorVersion" ] && cp $GITHUB_WORKSPACE/artifacts/Injector.dex .
+          [ "$(jq -r '.patchesVersion' data.json)" != "$patchesVersion" ] && cp $GITHUB_WORKSPACE/artifacts/patches.zip .
+
+          # Write versions to data.json
+          # `aliucordHash` is kept to force old builds to update
           jq '. + { coreVersion: $cv, injectorVersion: $iv, patchesVersion: $pv, aliucordHash: "0000000" }' \
              --arg cv $coreVersion \
              --arg iv $injectorVersion \
@@ -104,8 +110,10 @@ jobs:
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
           git add .
-          git commit -m "Build $GITHUB_SHA"
-          git push
+          if [[ `git status --porcelain` ]]; then
+            git commit -m "Build $GITHUB_SHA"
+            git push
+          fi
 
   # Publish core to maven if not originating from a PR
   maven:
