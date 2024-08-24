@@ -22,6 +22,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.*;
 
 import com.aliucord.*;
+import com.aliucord.entities.CorePlugin;
 import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.ConfirmDialog;
 import com.aliucord.fragments.SettingsPage;
@@ -36,6 +37,8 @@ import com.lytefast.flexinput.R;
 
 import java.io.File;
 import java.util.*;
+
+import kotlin.comparisons.ComparisonsKt;
 
 public class Plugins extends SettingsPage {
     public static class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> implements Filterable {
@@ -93,7 +96,11 @@ public class Plugins extends SettingsPage {
             ctx = fragment.requireContext();
 
             this.originalData = new ArrayList<>(plugins);
-            originalData.sort(Comparator.comparing(Plugin::getName));
+            originalData.removeIf(p -> p instanceof CorePlugin && ((CorePlugin)p).isHidden());
+            originalData.sort(ComparisonsKt.compareBy(
+                p -> p instanceof CorePlugin, // coreplugins last
+                Plugin::getName // Natural order by title
+            ));
 
             data = originalData;
         }
@@ -116,12 +123,17 @@ public class Plugins extends SettingsPage {
 
             boolean enabled = PluginManager.isPluginEnabled(p.getName());
             holder.card.switchHeader.setChecked(enabled);
+            holder.card.switchHeader.setButtonVisibility(!(p instanceof CorePlugin) || !((CorePlugin) p).isRequired());
             holder.card.descriptionView.setText(p.getManifest().description);
             holder.card.settingsButton.setVisibility(p.settingsTab != null ? View.VISIBLE : View.GONE);
             holder.card.settingsButton.setEnabled(enabled);
+            holder.card.uninstallButton.setVisibility(p.__filename != null ? View.VISIBLE : View.GONE);
+            holder.card.repoButton.setVisibility(p.getManifest().updateUrl != null ? View.VISIBLE : View.GONE);
             holder.card.changeLogButton.setVisibility(p.getManifest().changelog != null ? View.VISIBLE : View.GONE);
 
-            String title = String.format("%s v%s by %s", p.getName(), manifest.version, TextUtils.join(", ", manifest.authors));
+            String title = p instanceof CorePlugin
+                ? String.format("%s [BUILT-IN]", p.getName())
+                : String.format("%s v%s by %s", p.getName(), manifest.version, TextUtils.join(", ", manifest.authors));
             SpannableString spannableTitle = new SpannableString(title);
             for (Plugin.Manifest.Author author : manifest.authors) {
                 if (author.id < 1) continue;
