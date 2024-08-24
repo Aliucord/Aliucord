@@ -8,15 +8,18 @@ package com.aliucord.coreplugins
 
 import android.content.Context
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.aliucord.entities.Plugin
+import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.Hook
 import com.aliucord.patcher.Patcher
 import com.discord.widgets.channels.list.WidgetChannelListModel
 import com.discord.widgets.channels.list.WidgetChannelsList
 import de.robv.android.xposed.XC_MethodHook
 
-internal class PrivateChannelsListScroll : Plugin(Manifest("PrivateChannelsListScroll")) {
-    var unhook: XC_MethodHook.Unhook? = null
+internal class PrivateChannelsListScroll : CorePlugin(Manifest("PrivateChannelsListScroll")) {
+    override val isHidden = true
+    override val isRequired = true
+
+    private var unhook: XC_MethodHook.Unhook? = null
 
     override fun load(context: Context?) {
         unhook = Patcher.addPatch(WidgetChannelsList::class.java.getDeclaredMethod("configureUI", WidgetChannelListModel::class.java), Hook {

@@ -10,14 +10,17 @@ import android.content.Context
 import android.view.View
 import android.widget.TextView
 import com.aliucord.Utils
-import com.aliucord.entities.Plugin
+import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.after
 import com.aliucord.patcher.instead
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemThreadDraftForm
 import com.discord.widgets.chat.list.entries.ChatListEntry
 import com.discord.widgets.chat.list.entries.ThreadDraftFormEntry
 
-internal class PrivateThreads : Plugin(Manifest("PrivateThreads")) {
+internal class PrivateThreads : CorePlugin(Manifest("PrivateThreads")) {
+    override val isHidden = true
+    override val isRequired = true
+
     override fun load(context: Context) {
         patcher.instead<ThreadDraftFormEntry>("getCanCreatePrivateThread") { true }
 

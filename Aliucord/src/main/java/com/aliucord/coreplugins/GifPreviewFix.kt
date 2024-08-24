@@ -8,11 +8,14 @@ package com.aliucord.coreplugins
 
 import android.content.Context
 import android.net.Uri
-import com.aliucord.entities.Plugin
+import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.after
 import com.discord.utilities.embed.EmbedResourceUtils
 
-internal class GifPreviewFix : Plugin(Manifest("GifPreviewFix")) {
+internal class GifPreviewFix : CorePlugin(Manifest("GifPreviewFix")) {
+    override val isHidden = true
+    override val isRequired = true
+
     override fun load(context: Context) {
         patcher.after<EmbedResourceUtils>("getPreviewUrls", String::class.java, Int::class.java, Int::class.java, Boolean::class.java) {
             // it.args[3] is a boolean that indicates
@@ -32,6 +35,5 @@ internal class GifPreviewFix : Plugin(Manifest("GifPreviewFix")) {
     }
 
     override fun start(context: Context?) {}
-
     override fun stop(context: Context?) {}
 }

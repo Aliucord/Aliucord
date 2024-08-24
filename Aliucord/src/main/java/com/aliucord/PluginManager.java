@@ -10,11 +10,14 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 
+import com.aliucord.coreplugins.plugindownloader.PluginDownloader;
+import com.aliucord.coreplugins.rn.RNAPI;
+import com.aliucord.entities.CorePlugin;
 import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.PreHook;
-import com.aliucord.utils.GsonUtils;
-import com.aliucord.utils.MapUtils;
+import com.aliucord.coreplugins.*;
+import com.aliucord.utils.*;
 
 import java.io.File;
 import java.io.InputStreamReader;
@@ -116,6 +119,11 @@ public class PluginManager {
     public static void unloadPlugin(String name) {
         logger.info("Unloading plugin: " + name);
         var plugin = plugins.get(name);
+
+        if (plugin instanceof CorePlugin) {
+            throw new IllegalArgumentException("Cannot unload coreplugin " + name);
+        }
+
         if (plugin != null) try {
             plugin.unload(Utils.getAppContext());
             plugins.remove(name);
@@ -183,7 +191,13 @@ public class PluginManager {
     public static void stopPlugin(String name) {
         logger.info("Stopping plugin: " + name);
         try {
-            Objects.requireNonNull(plugins.get(name)).stop(Utils.getAppContext());
+            Plugin p = plugins.get(name);
+
+            if (p instanceof CorePlugin && ((CorePlugin) p).isRequired()) {
+                throw new IllegalArgumentException("Cannot stop required coreplugin " + name);
+            }
+
+            Objects.requireNonNull(p).stop(Utils.getAppContext());
         } catch (Throwable e) { logger.error("Exception while stopping plugin " + name, e); }
     }
 
@@ -218,6 +232,9 @@ public class PluginManager {
      * @return Whether the plugin is enabled
      */
     public static boolean isPluginEnabled(String name) {
+        Plugin p = plugins.get(name);
+        if (p instanceof CorePlugin && ((CorePlugin) p).isRequired()) return true;
+
         return Main.settings.getBool(getPluginPrefKey(name), true);
     }
 
@@ -230,5 +247,46 @@ public class PluginManager {
     @SuppressWarnings("unused")
     public static boolean isPluginEnabled(Plugin plugin) {
         return isPluginEnabled(MapUtils.getMapKey(plugins, plugin));
+    }
+
+    static void loadCorePlugins(Context context) {
+        CorePlugin[] corePlugins = {
+            new ButtonsAPI(),
+            new CommandHandler(),
+            new CoreCommands(),
+            new DefaultStickers(),
+            new GifPreviewFix(),
+            new MembersListFix(),
+            new NoTrack(),
+            new PluginDownloader(),
+            new PrivateChannelsListScroll(),
+            new PrivateThreads(),
+            new RNAPI(),
+            new Pronouns(),
+            new SupportWarn(),
+            new SupporterBadges(),
+            new TokenLogin(),
+            new UploadSize(),
+        };
+
+        for (Plugin p : corePlugins) {
+            logger.info("Loading coreplugin: " + p.getName());
+            try {
+                plugins.put(p.getName(), p);
+                p.load(context);
+            } catch (Throwable e) {
+                logger.errorToast("Failed to load coreplugin " + p.getName(), e);
+            }
+        }
+    }
+
+    static void startCorePlugins() {
+        for (Plugin p : plugins.values()) {
+            if (!(p instanceof CorePlugin)) continue;
+            if (!isPluginEnabled(p.getName())) continue;
+
+            logger.info("Starting coreplugin: " + p.getName());
+            startPlugin(p.getName());
+        }
     }
 }

@@ -7,13 +7,16 @@
 package com.aliucord.coreplugins
 
 import android.content.Context
-import com.aliucord.entities.Plugin
+import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.Hook
 import com.aliucord.patcher.Patcher
 import com.discord.utilities.lazy.memberlist.ChannelMemberList
 import com.discord.utilities.lazy.memberlist.MemberListRow
 
-internal class MembersListFix : Plugin(Manifest("MembersListFix")) {
+internal class MembersListFix : CorePlugin(Manifest("MembersListFix")) {
+    override val isHidden = true
+    override val isRequired = true
+
     @Suppress("UNCHECKED_CAST")
     override fun load(context: Context?) {
         val groups = ChannelMemberList::class.java.getDeclaredField("groups").apply { isAccessible = true }

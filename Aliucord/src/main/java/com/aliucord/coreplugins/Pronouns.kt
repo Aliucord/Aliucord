@@ -9,7 +9,7 @@ import androidx.core.content.res.ResourcesCompat
 import com.aliucord.Constants
 import com.aliucord.Utils
 import com.aliucord.api.rn.user.RNUserProfile
-import com.aliucord.entities.Plugin
+import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.after
 import com.discord.utilities.view.text.SimpleDraweeSpanTextView
 import com.discord.widgets.user.profile.UserProfileHeaderView
@@ -21,7 +21,10 @@ val userProfileHeaderSecondaryNameViewId = Utils.getResId("user_profile_header_s
 
 val pronounsViewId = View.generateViewId()
 
-internal class Pronouns : Plugin(Manifest("Pronouns")) {
+internal class Pronouns : CorePlugin(MANIFEST) {
+    override val isHidden = true
+    override val isRequired = true
+
     override fun load(context: Context) {
         patcher.after<UserProfileHeaderView>("configureSecondaryName", UserProfileHeaderViewModel.ViewState.Loaded::class.java) {
             if (id != sheetProfileHeaderViewId) return@after
@@ -48,6 +51,12 @@ internal class Pronouns : Plugin(Manifest("Pronouns")) {
     }
 
     override fun start(context: Context?) {}
-
     override fun stop(context: Context?) {}
+
+    companion object {
+        private val MANIFEST = Manifest().apply {
+            name = "Pronouns"
+            description = "Display the new pronouns feature on user profiles"
+        }
+    }
 }

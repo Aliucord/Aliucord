@@ -7,14 +7,17 @@
 package com.aliucord.coreplugins.rn
 
 import android.content.Context
-import com.aliucord.entities.Plugin
+import com.aliucord.entities.CorePlugin
 import com.discord.api.channel.Channel
 import com.discord.api.user.User
 import com.discord.api.user.UserProfile
 import com.discord.models.message.Message
 import de.robv.android.xposed.XposedBridge
 
-class RNAPI : Plugin(Manifest("RNAPI")) {
+internal class RNAPI : CorePlugin(Manifest("RNAPI")) {
+    override val isHidden = true
+    override val isRequired = true
+
     override fun load(context: Context?) {
         XposedBridge.makeClassInheritable(Channel::class.java)
         XposedBridge.makeClassInheritable(Message::class.java)

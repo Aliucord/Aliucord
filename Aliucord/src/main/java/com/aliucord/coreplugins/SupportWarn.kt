@@ -8,7 +8,7 @@ import android.widget.*
 import com.aliucord.Constants.PLUGIN_REQUESTS_CHANNEL_ID
 import com.aliucord.Utils
 import com.aliucord.api.SettingsAPI
-import com.aliucord.entities.Plugin
+import com.aliucord.entities.CorePlugin
 import com.aliucord.fragments.InputDialog
 import com.aliucord.patcher.*
 import com.aliucord.settings.delegate
@@ -17,9 +17,12 @@ import com.discord.widgets.chat.input.WidgetChatInput
 import com.lytefast.flexinput.R
 
 @SuppressLint("SetTextI18n")
-internal class SupportWarn : Plugin(Manifest("SupportWarn")) {
+internal class SupportWarn : CorePlugin(MANIFEST) {
     private val SettingsAPI.acceptedPrdNotRequests: Boolean by settings.delegate(false)
     private val SettingsAPI.acceptedDevNotSupport: Boolean by settings.delegate(false)
+
+    // Allow this to be disabled once warning has been acknowledged
+    override val isRequired get() = !settings.acceptedDevNotSupport
 
     override fun load(context: Context) {
         if (settings.acceptedPrdNotRequests && settings.acceptedDevNotSupport) return
@@ -90,4 +93,11 @@ internal class SupportWarn : Plugin(Manifest("SupportWarn")) {
 
     override fun start(context: Context) {}
     override fun stop(context: Context) {}
+
+    companion object {
+        private val MANIFEST = Manifest().apply {
+            name = "SupportWarn"
+            description = "Show a warning prior to interacting with the Aliucord server"
+        }
+    }
 }

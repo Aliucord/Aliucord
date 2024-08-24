@@ -15,7 +15,7 @@ import androidx.core.content.ContextCompat
 import com.aliucord.Constants.*
 import com.aliucord.Logger
 import com.aliucord.Utils
-import com.aliucord.entities.Plugin
+import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.Hook
 import com.aliucord.patcher.component1
 import com.aliucord.patcher.component2
@@ -33,7 +33,9 @@ private val repoPattern = Pattern.compile("https?://github\\.com/([A-Za-z0-9\\-_
 private val zipPattern =
     Pattern.compile("https?://(?:github|raw\\.githubusercontent)\\.com/([A-Za-z0-9\\-_.]+)/([A-Za-z0-9\\-_.]+)/(?:raw|blob)?/?\\w+/(\\w+).zip")
 
-internal class PluginDownloader : Plugin(Manifest("PluginDownloader")) {
+internal class PluginDownloader : CorePlugin(MANIFEST) {
+    override val isRequired = true
+
     init {
         PluginFile("PluginDownloader").takeIf { it.exists() }?.let {
             if (it.delete())
@@ -118,6 +120,13 @@ internal class PluginDownloader : Plugin(Manifest("PluginDownloader")) {
             }
 
             layout.addView(this, idx)
+        }
+    }
+
+    companion object {
+        private val MANIFEST = Manifest().apply {
+            name = "PluginDownloader"
+            description = "Utility for installing plugins directly from the Aliucord server's plugins channels"
         }
     }
 }

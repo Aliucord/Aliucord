@@ -25,7 +25,6 @@ import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
-import com.aliucord.coreplugins.CorePlugins;
 import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.*;
 import com.aliucord.settings.*;
@@ -96,7 +95,7 @@ public final class Main {
 
     private static void preInitWithPermissions(AppCompatActivity activity) {
         settings = new SettingsUtilsJSON("Aliucord");
-        CorePlugins.loadAll(activity);
+        PluginManager.loadCorePlugins(activity);
         loadAllPlugins(activity);
     }
 
@@ -279,7 +278,7 @@ public final class Main {
         } catch (Throwable e) { logger.error(e); }
 
         if (loadedPlugins) {
-            CorePlugins.startAll(activity);
+            PluginManager.startCorePlugins();
             startAllPlugins();
         }
     }
@@ -431,7 +430,7 @@ public final class Main {
         activity.registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
             if (granted == Boolean.TRUE) {
                 preInitWithPermissions(activity);
-                CorePlugins.startAll(activity);
+                PluginManager.startCorePlugins();
                 startAllPlugins();
             } else Toast.makeText(activity, "You have to grant storage permission to use Aliucord", Toast.LENGTH_LONG).show();
         }).launch(perm);
