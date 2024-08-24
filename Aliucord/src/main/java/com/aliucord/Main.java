@@ -62,6 +62,7 @@ import java.sql.Timestamp;
 import java.util.*;
 
 import dalvik.system.PathClassLoader;
+import kotlin.io.FilesKt;
 
 public final class Main {
     /** Whether Aliucord has been preInitialized */
@@ -391,7 +392,7 @@ public final class Main {
                             true
                         );
                     }
-                    rmrf(f);
+                    FilesKt.deleteRecursively(f);
                 }
             }
 
@@ -399,15 +400,6 @@ public final class Main {
                 Utils.showToast("Some plugins failed to load. Check the plugins page for more info.");
         }
         loadedPlugins = true;
-    }
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private static void rmrf(File file) {
-        if (file.isDirectory()) {
-            for (var child : file.listFiles())
-                rmrf(child);
-        }
-        file.delete();
     }
 
     private static void startAllPlugins() {

@@ -21,7 +21,6 @@ import com.aliucord.utils.*;
 
 import java.io.File;
 import java.io.InputStreamReader;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -35,17 +34,6 @@ public class PluginManager {
     public static final Logger logger = new Logger("PluginManager");
     /** Plugins that failed to load for various reasons. Map of file to String or Exception */
     public static final Map<File, Object> failedToLoad = new LinkedHashMap<>();
-
-    private static final Field manifestField;
-
-    static {
-        try {
-            manifestField = Plugin.class.getDeclaredField("manifest");
-            manifestField.setAccessible(true);
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     /**
      * Loads a plugin
@@ -81,10 +69,10 @@ public class PluginManager {
             Patcher.addPatch(pluginClass.getDeclaredConstructor(), new PreHook(param -> {
                 var plugin = (Plugin) param.thisObject;
                 try {
-                    manifestField.set(plugin, manifest);
-                } catch (IllegalAccessException e) {
+                    ReflectUtils.setField(Plugin.class, plugin, "manifest", manifest);
+                } catch (Exception e) {
                     logger.errorToast("Failed to set manifest for " + manifest.name);
-                    logger.error(e);
+                    logger.error("Failed to set manifest for " + manifest.name, e);
                 }
             }));
 
