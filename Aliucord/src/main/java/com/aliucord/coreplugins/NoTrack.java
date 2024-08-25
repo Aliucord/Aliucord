@@ -10,6 +10,8 @@ package com.aliucord.coreplugins;
 
 import android.content.Context;
 
+import com.aliucord.PluginManager;
+import com.aliucord.annotations.AliucordPlugin;
 import com.aliucord.entities.CorePlugin;
 import com.aliucord.patcher.InsteadHook;
 import com.aliucord.patcher.Patcher;
@@ -20,20 +22,18 @@ import java.util.*;
 
 import de.robv.android.xposed.XposedBridge;
 
+@AliucordPlugin(requiresRestart = true)
 public final class NoTrack extends CorePlugin {
     public NoTrack() {
         super(new Manifest("NoTrack") {{
-            description = "Disables certain various app analytics and tracking";
+            description = "Disables various Discord/Google analytics and tracking. Disabling this is **strongly** not recommended.";
         }});
     }
 
     @Override
-    public boolean isRequired() {
-        return true;
-    }
-
-    @Override
     public void load(Context context) throws Throwable {
+        if (!PluginManager.isPluginEnabled("NoTrack")) return;
+
         FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false);
 
         Map<String, String[]> map = new HashMap<>();
