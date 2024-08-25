@@ -124,7 +124,7 @@ public class Plugins extends SettingsPage {
             boolean enabled = PluginManager.isPluginEnabled(p.getName());
             holder.card.switchHeader.setChecked(enabled);
             holder.card.switchHeader.setButtonVisibility(!(p instanceof CorePlugin) || !((CorePlugin) p).isRequired());
-            holder.card.descriptionView.setText(p.getManifest().description);
+            holder.card.descriptionView.setText(MDUtils.render(p.getManifest().description));
             holder.card.settingsButton.setVisibility(p.settingsTab != null ? View.VISIBLE : View.GONE);
             holder.card.settingsButton.setEnabled(enabled);
             holder.card.uninstallButton.setVisibility(p.__filename != null ? View.VISIBLE : View.GONE);
