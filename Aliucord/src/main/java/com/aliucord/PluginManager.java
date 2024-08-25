@@ -272,8 +272,6 @@ public class PluginManager {
         for (Plugin p : plugins.values()) {
             if (!(p instanceof CorePlugin)) continue;
             if (!isPluginEnabled(p.getName())) continue;
-
-            logger.info("Starting coreplugin: " + p.getName());
             startPlugin(p.getName());
         }
     }

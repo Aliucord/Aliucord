@@ -25,6 +25,7 @@ import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
+import com.aliucord.entities.CorePlugin;
 import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.*;
 import com.aliucord.settings.*;
@@ -403,7 +404,11 @@ public final class Main {
     }
 
     private static void startAllPlugins() {
-        for (String name : PluginManager.plugins.keySet()) {
+        for (Map.Entry<String, Plugin> entry : PluginManager.plugins.entrySet()) {
+            // coreplugins are started separately
+            if (entry.getValue() instanceof CorePlugin) continue;
+
+            var name = entry.getKey();
             try {
                 if (PluginManager.isPluginEnabled(name))
                     PluginManager.startPlugin(name);
