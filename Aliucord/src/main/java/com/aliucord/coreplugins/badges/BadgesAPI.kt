@@ -3,8 +3,8 @@ package com.aliucord.coreplugins.badges
 import com.aliucord.*
 import com.aliucord.api.SettingsAPI
 import com.aliucord.settings.delegate
-import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
+import kotlin.time.days
 
 internal class BadgesAPI(private val settings: SettingsAPI) {
     private var SettingsAPI.cacheExpiration by settings.delegate(0L)
@@ -13,6 +13,7 @@ internal class BadgesAPI(private val settings: SettingsAPI) {
     /**
      * Get cached badge data or re-fetch from the API if expired.
      */
+    @Suppress("DEPRECATION")
     @OptIn(ExperimentalTime::class)
     fun getBadges(): BadgesInfo {
         if (!isCacheExpired()) return settings.cachedBadges
@@ -20,12 +21,12 @@ internal class BadgesAPI(private val settings: SettingsAPI) {
         val data = fetchBadges()
 
         return if (data != null) {
-            settings.cacheExpiration = System.currentTimeMillis() + Duration.days(1).inWholeMilliseconds
+            settings.cacheExpiration = System.currentTimeMillis() + 1.days.inWholeMilliseconds
             settings.cachedBadges = data
             data
         } else {
             // Failed to fetch; keep cache and try later
-            settings.cacheExpiration = System.currentTimeMillis() + Duration.hours(6).inWholeMilliseconds
+            settings.cacheExpiration = System.currentTimeMillis() + 1.days.inWholeMilliseconds
             settings.cachedBadges
         }
     }
