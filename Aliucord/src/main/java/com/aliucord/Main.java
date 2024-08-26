@@ -9,9 +9,12 @@ package com.aliucord;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.*;
+import android.provider.Settings;
 import android.text.*;
 import android.text.style.AbsoluteSizeSpan;
 import android.view.View;
@@ -421,16 +424,38 @@ public final class Main {
         Utils.threadPool.execute(() -> PluginUpdater.checkUpdates(true));
     }
 
+    private static void permissionGrantedCallback(AppCompatActivity activity, boolean granted) {
+        if (granted) {
+            preInitWithPermissions(activity);
+            PluginManager.startCorePlugins();
+            startAllPlugins();
+        } else Toast.makeText(activity, "You have to grant storage permission to use Aliucord", Toast.LENGTH_LONG).show();
+    }
+
     private static boolean checkPermissions(AppCompatActivity activity) {
-        String perm = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageLegacy()) {
+            if (Environment.isExternalStorageManager()) return true;
+            Toast.makeText(
+                activity,
+                "Please grant all files permission, so Aliucord can access its folder in Internal Storage",
+                Toast.LENGTH_LONG
+            ).show();
+            activity.registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> permissionGrantedCallback(activity, Environment.isExternalStorageManager())
+            ).launch(
+                new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                    .setData(Uri.parse("package:" + activity.getPackageName()))
+            );
+            return false;
+        }
+
+        var perm = Manifest.permission.WRITE_EXTERNAL_STORAGE;
         if (activity.checkSelfPermission(perm) == PackageManager.PERMISSION_GRANTED) return true;
-        activity.registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
-            if (granted == Boolean.TRUE) {
-                preInitWithPermissions(activity);
-                PluginManager.startCorePlugins();
-                startAllPlugins();
-            } else Toast.makeText(activity, "You have to grant storage permission to use Aliucord", Toast.LENGTH_LONG).show();
-        }).launch(perm);
+        activity.registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(),
+            granted -> permissionGrantedCallback(activity, granted)
+        ).launch(perm);
         return false;
     }
 }

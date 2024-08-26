@@ -14,7 +14,11 @@ import com.aliucord.entities.Plugin
 import com.discord.api.commands.ApplicationCommandType
 import java.io.File
 
-internal class CoreCommands : CorePlugin(MANIFEST) {
+internal class CoreCommands : CorePlugin(Manifest("CoreCommands")) {
+    init {
+        manifest.description = "Adds basic slash commands to Aliucord for debugging purposes"
+    }
+
     private fun visiblePlugins(): Sequence<Plugin> {
         return PluginManager.plugins
             .values.asSequence()
@@ -99,18 +103,12 @@ ${if (disabled.isEmpty()) "None" else "> ${formatPlugins(disabled)}"}
                 "x86" -> return "i686"
             }
         }
-        return System.getProperty("os.arch") ?: System.getProperty("ro.product.cpu.abi")
-        ?: "Unknown Architecture"
+        return System.getProperty("os.arch")
+            ?: System.getProperty("ro.product.cpu.abi")
+            ?: "Unknown Architecture"
     }
 
     override fun stop(context: Context) {
         commands.unregisterAll()
-    }
-
-    companion object {
-        private val MANIFEST = Manifest().apply {
-            name = "CoreCommands"
-            description = "Adds basic slash commands to Aliucord for debugging purposes"
-        }
     }
 }
