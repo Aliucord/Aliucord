@@ -30,6 +30,7 @@ internal class ExperimentDefaults : CorePlugin(Manifest("ExperimentDefaults")) {
             "2021-06_reg_bailout_to_email_android" to 1, // Doesn't really matter
             "2021-08_hub_multi_domain_mobile" to 1,
             "2021-08_threads_permissions" to 1,
+            "2021-09_android_app_commands_frecency" to 1,
             "2021-09_android_sms_autofill" to 1,
             "2021-10_android_attachment_bottom_sheet" to 1,
             "2021-10_study_group" to 1,
