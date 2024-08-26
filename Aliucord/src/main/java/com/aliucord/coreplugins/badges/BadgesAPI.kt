@@ -3,8 +3,7 @@ package com.aliucord.coreplugins.badges
 import com.aliucord.*
 import com.aliucord.api.SettingsAPI
 import com.aliucord.settings.delegate
-import kotlin.time.ExperimentalTime
-import kotlin.time.days
+import kotlin.time.*
 
 internal class BadgesAPI(private val settings: SettingsAPI) {
     private var SettingsAPI.cacheExpiration by settings.delegate(0L)
@@ -26,7 +25,7 @@ internal class BadgesAPI(private val settings: SettingsAPI) {
             data
         } else {
             // Failed to fetch; keep cache and try later
-            settings.cacheExpiration = System.currentTimeMillis() + 1.days.inWholeMilliseconds
+            settings.cacheExpiration = System.currentTimeMillis() + 6.hours.inWholeMilliseconds
             settings.cachedBadges
         }
     }
