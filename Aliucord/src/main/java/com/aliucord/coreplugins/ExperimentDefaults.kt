@@ -24,7 +24,7 @@ internal class ExperimentDefaults : CorePlugin(Manifest("ExperimentDefaults")) {
             "2021-03_android_extend_invite_expiration" to 1, // This matches with desktop
             "2021-03_android_media_sink_wants" to 1, // This might break video streaming if it doesn't work, but is useful if it does
             "2021-03_stop_offscreen_video_streams" to 1,
-            "2021-04_contact_sync_android_main" to 1, // This system is i think deprecated but still functional?
+            "2021-04_contact_sync_android_main" to 1, // This system is deprecated I think but still functional?
             "2021-06_desktop_school_hubs" to 1,
             "2021-06_hub_email_connection" to 1,
             "2021-06_reg_bailout_to_email_android" to 1, // Doesn't really matter
@@ -42,10 +42,7 @@ internal class ExperimentDefaults : CorePlugin(Manifest("ExperimentDefaults")) {
             "2022-03_highlights_settings" to 1,
             "2022-03_text_in_voice" to 1,
 
-            // 2021-10_premium_guild_member_profiles // you guys have special handling for this iirc
-            // 2021-08_android_speakerphone_default: // no clue
-            // 2021-07_network_action_logging_android // no clue
-            // 2021-05_opensl_default_enable_android // no clue, needs testing
+            // 2021-10_premium_guild_member_profiles // We handle this manually
         )
 
         val experiments = StoreStream.getExperiments()
