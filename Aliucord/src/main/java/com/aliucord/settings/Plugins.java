@@ -13,8 +13,7 @@ import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
 import android.text.*;
 import android.text.style.ClickableSpan;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.*;
 
 import androidx.annotation.NonNull;
@@ -88,6 +87,7 @@ public class Plugins extends SettingsPage {
         private final Context ctx;
         private final List<Plugin> originalData;
         private List<Plugin> data;
+        public boolean showBuiltIn = false;
 
         public Adapter(AppFragment fragment, Collection<Plugin> plugins) {
             super();
@@ -102,7 +102,7 @@ public class Plugins extends SettingsPage {
                 Plugin::getName // Natural order by title
             ));
 
-            data = originalData;
+            data = CollectionUtils.filter(originalData, Adapter::filterCorePlugins);
         }
 
         @Override
@@ -153,19 +153,20 @@ public class Plugins extends SettingsPage {
             @Override
             protected FilterResults performFiltering(CharSequence constraint) {
                 List<Plugin> resultsList;
-                if (constraint == null || constraint.equals(""))
-                    resultsList = originalData;
-                else {
+                if (constraint == null || constraint.equals("")) {
+                    if (showBuiltIn) resultsList = originalData;
+                    else resultsList = CollectionUtils.filter(originalData, Adapter::filterCorePlugins);
+                } else {
                     String search = constraint.toString().toLowerCase().trim();
                     resultsList = CollectionUtils.filter(originalData, p -> {
-                            if (p.getName().toLowerCase().contains(search)) return true;
-                            Plugin.Manifest manifest = p.getManifest();
-                            if (manifest.description.toLowerCase().contains(search)) return true;
-                            for (Plugin.Manifest.Author author : manifest.authors)
-                                if (author.name.toLowerCase().contains(search)) return true;
-                            return false;
-                        }
-                    );
+                        if (!showBuiltIn && p instanceof CorePlugin) return false;
+                        if (p.getName().toLowerCase().contains(search)) return true;
+                        Plugin.Manifest manifest = p.getManifest();
+                        if (manifest.description.toLowerCase().contains(search)) return true;
+                        for (Plugin.Manifest.Author author : manifest.authors)
+                            if (author.name.toLowerCase().contains(search)) return true;
+                        return false;
+                    });
                 }
                 FilterResults results = new FilterResults();
                 results.values = resultsList;
@@ -274,6 +275,10 @@ public class Plugins extends SettingsPage {
 
             dialog.show(fragment.getParentFragmentManager(), "Confirm Plugin Uninstall");
         }
+
+        public static boolean filterCorePlugins(Plugin p) {
+            return !(p instanceof CorePlugin);
+        }
     }
 
     @Override
@@ -332,5 +337,17 @@ public class Plugins extends SettingsPage {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
             public void onTextChanged(CharSequence s, int start, int before, int count) { }
         });
+
+        getHeaderBar().getMenu()
+            .add("Show built-in")
+            .setShowAsActionFlags(MenuItem.SHOW_AS_ACTION_NEVER)
+            .setCheckable(true)
+            .setOnMenuItemClickListener(item -> {
+                var show = !adapter.showBuiltIn;
+                adapter.showBuiltIn = show;
+                adapter.getFilter().filter(editText.getText());
+                item.setChecked(show);
+                return true;
+            });
     }
 }
