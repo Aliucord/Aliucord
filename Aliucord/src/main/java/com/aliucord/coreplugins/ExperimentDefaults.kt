@@ -22,7 +22,7 @@ internal class ExperimentDefaults : CorePlugin(Manifest("ExperimentDefaults")) {
             "2020-12_guild_delete_feedback" to 0, // Analytics are not sent anyway, this is useless
             "2021-02_view_threads" to 1,
             "2021-03_android_extend_invite_expiration" to 1, // This matches with desktop
-            "2021-03_android_media_sink_wants" to 1, // This might break video streaming if it doesn't work, but is useful if it does
+            "2021-03_android_media_sink_wants" to 1,
             "2021-03_stop_offscreen_video_streams" to 1,
             "2021-04_contact_sync_android_main" to 1, // This system is deprecated I think but still functional?
             "2021-06_desktop_school_hubs" to 1,
