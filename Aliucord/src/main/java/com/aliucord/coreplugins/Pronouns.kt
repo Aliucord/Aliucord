@@ -21,9 +21,13 @@ val userProfileHeaderSecondaryNameViewId = Utils.getResId("user_profile_header_s
 
 val pronounsViewId = View.generateViewId()
 
-internal class Pronouns : CorePlugin(MANIFEST) {
+internal class Pronouns : CorePlugin(Manifest("Display the new pronouns feature on user profiles")) {
     override val isHidden = true
     override val isRequired = true
+
+    init {
+        manifest.description = "Display the new pronouns feature on user profiles"
+    }
 
     override fun load(context: Context) {
         patcher.after<UserProfileHeaderView>("configureSecondaryName", UserProfileHeaderViewModel.ViewState.Loaded::class.java) {
@@ -52,11 +56,4 @@ internal class Pronouns : CorePlugin(MANIFEST) {
 
     override fun start(context: Context?) {}
     override fun stop(context: Context?) {}
-
-    companion object {
-        private val MANIFEST = Manifest().apply {
-            name = "Pronouns"
-            description = "Display the new pronouns feature on user profiles"
-        }
-    }
 }

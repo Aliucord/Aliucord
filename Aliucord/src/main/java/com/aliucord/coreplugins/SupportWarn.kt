@@ -17,9 +17,13 @@ import com.discord.widgets.chat.input.WidgetChatInput
 import com.lytefast.flexinput.R
 
 @SuppressLint("SetTextI18n")
-internal class SupportWarn : CorePlugin(MANIFEST) {
+internal class SupportWarn : CorePlugin(Manifest("SupportWarn")) {
     private val SettingsAPI.acceptedPrdNotRequests: Boolean by settings.delegate(false)
     private val SettingsAPI.acceptedDevNotSupport: Boolean by settings.delegate(false)
+
+    init {
+        manifest.description = "Show a warning prior to interacting with the Aliucord server"
+    }
 
     // Allow this to be disabled once warning has been acknowledged
     override val isRequired get() = !settings.acceptedDevNotSupport
@@ -93,11 +97,4 @@ internal class SupportWarn : CorePlugin(MANIFEST) {
 
     override fun start(context: Context) {}
     override fun stop(context: Context) {}
-
-    companion object {
-        private val MANIFEST = Manifest().apply {
-            name = "SupportWarn"
-            description = "Show a warning prior to interacting with the Aliucord server"
-        }
-    }
 }

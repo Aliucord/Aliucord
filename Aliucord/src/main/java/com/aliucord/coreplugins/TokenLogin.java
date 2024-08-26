@@ -35,9 +35,8 @@ import kotlin.Unit;
 
 public final class TokenLogin extends CorePlugin {
     public TokenLogin() {
-        super(new Manifest("TokenLogin") {{
-            description = "Provide functionality to log in with a token directly from the login screen";
-        }});
+        super(new Manifest("TokenLogin"));
+        getManifest().description = "Provide functionality to log in with a token directly from the login screen";
     }
 
     public static class Page extends AppFragment {

@@ -33,10 +33,12 @@ private val repoPattern = Pattern.compile("https?://github\\.com/([A-Za-z0-9\\-_
 private val zipPattern =
     Pattern.compile("https?://(?:github|raw\\.githubusercontent)\\.com/([A-Za-z0-9\\-_.]+)/([A-Za-z0-9\\-_.]+)/(?:raw|blob)?/?\\w+/(\\w+).zip")
 
-internal class PluginDownloader : CorePlugin(MANIFEST) {
+internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
     override val isRequired = true
 
     init {
+        manifest.description = "Utility for installing plugins directly from the Aliucord server's plugins channels"
+
         PluginFile("PluginDownloader").takeIf { it.exists() }?.let {
             if (it.delete())
                 Utils.showToast("PluginDownloader has been merged into Aliucord, so I deleted the plugin for you.", true)
@@ -120,13 +122,6 @@ internal class PluginDownloader : CorePlugin(MANIFEST) {
             }
 
             layout.addView(this, idx)
-        }
-    }
-
-    companion object {
-        private val MANIFEST = Manifest().apply {
-            name = "PluginDownloader"
-            description = "Utility for installing plugins directly from the Aliucord server's plugins channels"
         }
     }
 }

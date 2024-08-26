@@ -26,7 +26,11 @@ import com.discord.widgets.user.profile.UserProfileHeaderViewModel
 import com.lytefast.flexinput.R
 import java.util.concurrent.atomic.AtomicBoolean
 
-internal class SupporterBadges : CorePlugin(MANIFEST) {
+internal class SupporterBadges : CorePlugin(Manifest("SupporterBadges")) {
+    init {
+        manifest.description = "Show badges in the profiles of contributors and donors ♡"
+    }
+
     class CustomBadge(val id: String?, val url: String?, val text: String) {
         fun getDrawableId() = if (id == null) 0 else try {
             R.e::class.java.getDeclaredField(id).getInt(null)
@@ -156,11 +160,4 @@ internal class SupporterBadges : CorePlugin(MANIFEST) {
 
     override fun start(context: Context) {}
     override fun stop(context: Context) {}
-
-    companion object {
-        private val MANIFEST = Manifest().apply {
-            name = "SupporterBadges"
-            description = "Show badges in the profiles of contributors and donors ♡"
-        }
-    }
 }

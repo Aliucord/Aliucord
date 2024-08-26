@@ -22,9 +22,8 @@ import de.robv.android.xposed.XposedBridge;
 
 public final class NoTrack extends CorePlugin {
     public NoTrack() {
-        super(new Manifest("NoTrack") {{
-            description = "Disables certain various app analytics and tracking";
-        }});
+        super(new Manifest("NoTrack"));
+        getManifest().description = "Disables certain various app analytics and tracking";
     }
 
     @Override
