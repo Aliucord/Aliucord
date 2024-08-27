@@ -244,6 +244,7 @@ public class PluginManager {
             new CommandHandler(),
             new CoreCommands(),
             new DefaultStickers(),
+            new ExperimentDefaults(),
             new GifPreviewFix(),
             new MembersListFix(),
             new NoTrack(),
