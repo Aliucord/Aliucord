@@ -32,7 +32,7 @@ internal class DefaultStickers : CorePlugin(Manifest("DefaultStickers")) {
     override val isRequired = true
 
     @Suppress("UNCHECKED_CAST")
-    override fun load(context: Context) {
+    override fun start(context: Context) {
         val stickerPickerViewModel = StickerPickerViewModel::class.java
         val localeField = stickerPickerViewModel.getDeclaredField("locale").apply { isAccessible = true }
         Patcher.addPatch(stickerPickerViewModel.getDeclaredMethod("createCategoryItems", StickerPickerViewModel.StoreState.Loaded::class.java, List::class.java, List::class.java), object : XC_MethodHook() {
@@ -81,6 +81,5 @@ internal class DefaultStickers : CorePlugin(Manifest("DefaultStickers")) {
         }
     }
 
-    override fun start(context: Context) {}
     override fun stop(context: Context) {}
 }

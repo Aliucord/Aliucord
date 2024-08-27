@@ -28,7 +28,7 @@ internal class SupportWarn : CorePlugin(Manifest("SupportWarn")) {
     // Allow this to be disabled once warning has been acknowledged
     override val isRequired get() = !settings.acceptedDevNotSupport
 
-    override fun load(context: Context) {
+    override fun start(context: Context) {
         if (settings.acceptedPrdNotRequests && settings.acceptedDevNotSupport) return
 
         val channelList = listOf(
@@ -46,18 +46,19 @@ internal class SupportWarn : CorePlugin(Manifest("SupportWarn")) {
         val gateButtonArrowId = Utils.getResId("chat_input_member_verification_guard_action", "id")
         val gateButtonLayoutId = Utils.getResId("guard_member_verification", "id")
 
-        Patcher.addPatch(WidgetChatInput::class.java.getDeclaredMethod("configureChatGuard", ChatInputViewModel.ViewState.Loaded::class.java), Hook { (it, loaded: ChatInputViewModel.ViewState.Loaded) ->
-            if (loaded.channelId !in channelList || loaded.shouldShowVerificationGate) return@Hook
+        patcher.after<WidgetChatInput>("configureChatGuard", ChatInputViewModel.ViewState.Loaded::class.java)
+        { (_, loaded: ChatInputViewModel.ViewState.Loaded) ->
+            if (loaded.channelId !in channelList || loaded.shouldShowVerificationGate) return@after
 
             val (text, desc, key) = if (loaded.channelId == PLUGIN_REQUESTS_CHANNEL_ID) {
-                if (settings.acceptedPrdNotRequests) return@Hook
+                if (settings.acceptedPrdNotRequests) return@after
                 Triple(
                     "PLEASE READ: This is not a request channel, do not request plugins!",
                     "This is NOT A REQUESTING CHANNEL. For information on how to request a plugin, check the pins in this channel. If you have read this, type \"I understand\" into the box.",
                     "acceptedPrdNotRequests"
                 )
             } else {
-                if (settings.acceptedDevNotSupport) return@Hook
+                if (settings.acceptedDevNotSupport) return@after
                 Triple(
                     "PLEASE READ: This is not a support channel, do not ask for help!",
                     "This is NOT A SUPPORT CHANNEL. Do NOT ask for help about using or installing a plugin or theme here or you will be muted. If you have read this, type \"I understand\" into the box.",
@@ -65,8 +66,7 @@ internal class SupportWarn : CorePlugin(Manifest("SupportWarn")) {
                 )
             }
 
-            val thisObject = it.thisObject as WidgetChatInput
-            val root = WidgetChatInput.`access$getBinding$p`(thisObject).root
+            val root = WidgetChatInput.`access$getBinding$p`(this).root
             val gateButtonLayout = root.findViewById<ViewGroup>(gateButtonLayoutId)
             val chatWrap = root.findViewById<LinearLayout>(chatWrapId)
 
@@ -90,11 +90,10 @@ internal class SupportWarn : CorePlugin(Manifest("SupportWarn")) {
                     dialog.dismiss()
                 }
 
-                dialog.show(thisObject.parentFragmentManager, "Warning")
+                dialog.show(this.parentFragmentManager, "Warning")
             }
-        })
+        }
     }
 
-    override fun start(context: Context) {}
-    override fun stop(context: Context) {}
+    override fun stop(context: Context) = patcher.unpatchAll()
 }

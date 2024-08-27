@@ -73,7 +73,6 @@ public class PluginManager {
                     ReflectUtils.setField(Plugin.class, plugin, "manifest", manifest);
                 } catch (Exception e) {
                     logger.errorToast("Failed to set manifest for " + manifest.name);
-                    logger.error("Failed to set manifest for " + manifest.name, e);
                 }
             }));
 

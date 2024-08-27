@@ -34,6 +34,6 @@ internal class GifPreviewFix : CorePlugin(Manifest("GifPreviewFix")) {
         }
     }
 
-    override fun start(context: Context?) {}
-    override fun stop(context: Context?) {}
+    override fun start(context: Context) {}
+    override fun stop(context: Context) {}
 }

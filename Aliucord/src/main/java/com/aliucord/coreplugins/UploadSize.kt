@@ -60,7 +60,7 @@ internal class UploadSize : CorePlugin(Manifest("UploadSize")) {
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun load(context: Context?) {
+    override fun start(context: Context) {
         patcher.instead<PremiumUtils>("getGuildMaxFileSizeMB", Int::class.java) { (_, tier: Int) ->
             when (tier) {
                 2 -> 50
@@ -170,6 +170,5 @@ internal class UploadSize : CorePlugin(Manifest("UploadSize")) {
         }
     }
 
-    override fun start(context: Context?) {}
-    override fun stop(context: Context?) {}
+    override fun stop(context: Context) {}
 }

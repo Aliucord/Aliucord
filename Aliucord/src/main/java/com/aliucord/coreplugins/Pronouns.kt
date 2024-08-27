@@ -16,20 +16,16 @@ import com.discord.widgets.user.profile.UserProfileHeaderView
 import com.discord.widgets.user.profile.UserProfileHeaderViewModel
 import com.lytefast.flexinput.R
 
-val sheetProfileHeaderViewId = Utils.getResId("user_sheet_profile_header_view", "id")
-val userProfileHeaderSecondaryNameViewId = Utils.getResId("user_profile_header_secondary_name", "id")
-
-val pronounsViewId = View.generateViewId()
-
-internal class Pronouns : CorePlugin(Manifest("Display the new pronouns feature on user profiles")) {
-    override val isHidden = true
-    override val isRequired = true
+internal class Pronouns : CorePlugin(Manifest("Pronouns")) {
+    private val sheetProfileHeaderViewId = Utils.getResId("user_sheet_profile_header_view", "id")
+    private val userProfileHeaderSecondaryNameViewId = Utils.getResId("user_profile_header_secondary_name", "id")
+    private val pronounsViewId = View.generateViewId()
 
     init {
         manifest.description = "Display the new pronouns feature on user profiles"
     }
 
-    override fun load(context: Context) {
+    override fun start(context: Context) {
         patcher.after<UserProfileHeaderView>("configureSecondaryName", UserProfileHeaderViewModel.ViewState.Loaded::class.java) {
             if (id != sheetProfileHeaderViewId) return@after
             val state = it.args[0] as? UserProfileHeaderViewModel.ViewState.Loaded ?: return@after
@@ -54,6 +50,5 @@ internal class Pronouns : CorePlugin(Manifest("Display the new pronouns feature 
         }
     }
 
-    override fun start(context: Context?) {}
-    override fun stop(context: Context?) {}
+    override fun stop(context: Context) = patcher.unpatchAll()
 }

@@ -21,7 +21,7 @@ internal class PrivateThreads : CorePlugin(Manifest("PrivateThreads")) {
     override val isHidden = true
     override val isRequired = true
 
-    override fun load(context: Context) {
+    override fun start(context: Context) {
         patcher.instead<ThreadDraftFormEntry>("getCanCreatePrivateThread") { true }
 
         patcher.after<WidgetChatListAdapterItemThreadDraftForm>("onConfigure", Int::class.javaPrimitiveType!!, ChatListEntry::class.java) {
@@ -29,7 +29,5 @@ internal class PrivateThreads : CorePlugin(Manifest("PrivateThreads")) {
         }
     }
 
-    override fun start(context: Context?) {}
-
-    override fun stop(context: Context?) {}
+    override fun stop(context: Context) {}
 }
