@@ -44,7 +44,6 @@ import com.discord.databinding.WidgetChangeLogBinding;
 import com.discord.databinding.WidgetDebuggingAdapterItemBinding;
 import com.discord.models.domain.emoji.ModelEmojiUnicode;
 import com.discord.stores.StoreStream;
-import com.discord.stores.StoreExperiments;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.utilities.guildautomod.AutoModUtils;
 import com.discord.utilities.user.UserUtils;
@@ -151,6 +150,7 @@ public final class Main {
 
             TextView versionView = layout.findViewById(Utils.getResId("app_info_header", "id"));
             var text = versionView.getText() + " | Aliucord " + BuildConfig.VERSION;
+            if (!BuildConfig.RELEASE) text += " (Custom)";
             if (Utils.isDebuggable()) text += " [DEBUGGABLE]";
             versionView.setText(text);
 
