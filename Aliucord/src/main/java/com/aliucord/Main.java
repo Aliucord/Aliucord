@@ -17,8 +17,7 @@ import android.os.*;
 import android.provider.Settings;
 import android.text.*;
 import android.text.style.AbsoluteSizeSpan;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.*;
 
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -48,6 +47,7 @@ import com.discord.utilities.color.ColorCompat;
 import com.discord.utilities.guildautomod.AutoModUtils;
 import com.discord.utilities.user.UserUtils;
 import com.discord.widgets.changelog.WidgetChangeLog;
+import com.discord.widgets.chat.input.SmoothKeyboardReactionHelper;
 import com.discord.widgets.chat.list.WidgetChatList;
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemAutoModSystemMessageEmbed;
 import com.discord.widgets.chat.list.entries.AutoModSystemMessageEmbedEntry;
@@ -268,6 +268,25 @@ public final class Main {
                 })
             );
         } catch (Throwable e) { logger.error(e); }
+
+        // not sure why this happens, reported on Android 15 Beta 4
+        // java.lang.IllegalArgumentException: Animators cannot have negative duration: -1
+        //   at android.view.ViewPropertyAnimator.setDuration(ViewPropertyAnimator.java:266)
+        //   at com.discord.widgets.chat.input.SmoothKeyboardReactionHelper$Callback.onStart(SmoothKeyboardReactionHelper.kt:5)
+        //   at android.view.View.dispatchWindowInsetsAnimationStart(View.java:12671)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            try {
+                Patcher.addPatch(
+                    SmoothKeyboardReactionHelper.Callback.class.getDeclaredMethod("onStart", WindowInsetsAnimation.class, WindowInsetsAnimation.Bounds.class),
+                    new PreHook(param -> {
+                        var animation = (WindowInsetsAnimation) param.args[0];
+                        if (animation.getDurationMillis() < 0) param.setResult(param.args[1]);
+                    })
+                );
+            } catch (Throwable e) {
+                logger.error("Couldn't patch possible Android 15 (?) crash", e);
+            }
+        }
 
         if (loadedPlugins) {
             PluginManager.startCorePlugins();
