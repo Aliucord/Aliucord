@@ -1,3 +1,4 @@
+import com.android.build.gradle.LibraryExtension
 import java.io.ByteArrayOutputStream
 
 version = "1.0.0"
@@ -34,6 +35,22 @@ task<Zip>("package") {
     from(patchesDir)
     include(".gitkeep")
     include("**/*.patch")
+}
+
+task("deployWithAdb") {
+    group = "aliucord"
+    dependsOn("package")
+
+    val patchesPath = buildDir.resolve("patches.zip").absolutePath
+    val remotePatchesDir = "/storage/emulated/0/Android/data/com.aliucord.manager/cache/patches"
+
+    doLast {
+        val android = project(":Aliucord").extensions
+            .getByName<LibraryExtension>("android")
+
+        exec { commandLine(android.adbExecutable, "shell", "mkdir", "-p", remotePatchesDir) }
+        exec { commandLine(android.adbExecutable, "push", patchesPath, "$remotePatchesDir/$version.custom.zip") }
+    }
 }
 
 task("disassembleWithPatches") {
@@ -83,6 +100,7 @@ task("writePatches") {
 
         patchesDir.deleteRecursively()
         patchesDir.mkdirs()
+        patchesDir.resolve(".gitkeep").createNewFile()
 
         val classNameRegex = """^\+\+\+ \.?[\/]?smali[\/](.+?)\.smali\t""".toRegex(RegexOption.MULTILINE)
         for (diff in diffs) {
@@ -174,7 +192,7 @@ task<JavaExec>("assemble") {
         "assemble",
         "--verbose",
         "--output", outputDex,
-        smaliOriginalDir.absolutePath,
+        smaliDir.absolutePath,
     )
 
     mustRunAfter("applyPatches")
