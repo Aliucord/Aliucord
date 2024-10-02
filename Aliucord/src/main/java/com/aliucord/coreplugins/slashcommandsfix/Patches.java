@@ -95,7 +95,7 @@ final class Patches {
             })
         );
 
-        // Autocompleting commands
+        // Completing commands
         Patcher.addPatch(
             StoreApplicationCommands$requestApplicationCommandsQuery$1.class.getDeclaredMethod("invoke"),
             new PreHook(param -> {
