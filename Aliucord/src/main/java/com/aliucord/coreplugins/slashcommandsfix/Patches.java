@@ -93,7 +93,8 @@ final class Patches {
                     var channelType = channel.D();
                     if (channelType == Channel.DM) {
                         var user = channel.z().get(0);
-                        var userIsBot = user.e();
+                        var userIsBot = Optional.ofNullable(user.e())
+                            .orElse(false);
                         if (userIsBot) {
                             var channelId = channel.k();
                             applicationIndexSource = Optional.of(new ApplicationIndexSourceDm(channelId));
