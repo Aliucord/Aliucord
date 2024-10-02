@@ -153,7 +153,6 @@ final class Patches {
                     return true;
                 }
 
-                //var channelId = channel.k();
                 var applicationId = remoteApplicationCommand.getApplicationId();
                 var isUser = this.requestApplicationIndex(new ApplicationIndexSourceUser())
                     .applications
