@@ -15,7 +15,6 @@ import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.PreHook;
 import com.aliucord.Utils;
 import com.aliucord.utils.GsonUtils;
-import com.aliucord.utils.ReflectUtils;
 import com.discord.api.channel.Channel;
 import com.discord.models.commands.Application;
 import com.discord.models.commands.ApplicationCommand;
@@ -51,6 +50,13 @@ final class Patches {
     private Method handleDiscoverCommandsUpdateMethod;
     private Method handleQueryCommandsUpdateMethod;
     private Field applicationCommandCountField;
+    private Field storeApplicationCommandsQueryField;
+    private Field errorResponseErrorField;
+    private Field skemaErrorSubErrorsField;
+    private Field skemaErrorErrorsField;
+    private Field skemaErrorItemCodeField;
+    private Field skemaErrorItemMessageField;
+    private Field storeApplicationCommandsBuiltInCommandsProviderField;
 
     Patches(Logger logger) throws Throwable {
         this.logger = logger;
@@ -67,6 +73,20 @@ final class Patches {
         this.handleQueryCommandsUpdateMethod.setAccessible(true);
         this.applicationCommandCountField = Application.class.getDeclaredField("commandCount");
         this.applicationCommandCountField.setAccessible(true);
+        this.storeApplicationCommandsQueryField = StoreApplicationCommands.class.getDeclaredField("query");
+        this.storeApplicationCommandsQueryField.setAccessible(true);
+        this.errorResponseErrorField = Error.Response.class.getDeclaredField("skemaError");
+        this.errorResponseErrorField.setAccessible(true);
+        this.skemaErrorSubErrorsField = Error.SkemaError.class.getDeclaredField("subErrors");
+        this.skemaErrorSubErrorsField.setAccessible(true);
+        this.skemaErrorErrorsField = Error.SkemaError.class.getDeclaredField("errors");
+        this.skemaErrorErrorsField.setAccessible(true);
+        this.skemaErrorItemCodeField = Error.SkemaErrorItem.class.getDeclaredField("code");
+        this.skemaErrorItemCodeField.setAccessible(true);
+        this.skemaErrorItemMessageField = Error.SkemaErrorItem.class.getDeclaredField("message");
+        this.skemaErrorItemMessageField.setAccessible(true);
+        this.storeApplicationCommandsBuiltInCommandsProviderField = StoreApplicationCommands.class.getDeclaredField("builtInCommandsProvider");
+        this.storeApplicationCommandsBuiltInCommandsProviderField.setAccessible(true);
 
         var storeApplicationCommands = StoreStream.getApplicationCommands();
         var storeChannelsSelected = StoreStream.getChannelsSelected();
@@ -107,7 +127,7 @@ final class Patches {
 
                 var applicationIndexSource = Patches.applicationIndexSourceFromContext(this_.$guildId, storeChannelsSelected);
                 try {
-                    ReflectUtils.setField(this_.this$0, "query", this_.$query);
+                    storeApplicationCommandsQueryField.set(this_.this$0, this_.$query);
                     this.passCommandData(this_.this$0, applicationIndexSource, RequestSource.QUERY);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
@@ -180,18 +200,12 @@ final class Patches {
                         var errorResponse = ((MessageResult.UnknownFailure) result)
                             .getError()
                             .getResponse();
-                        var error = ReflectUtils.getField(errorResponse, "skemaError");
-                        var dataErrors = (List<Error.SkemaErrorItem>) ReflectUtils.getField(
-                            ((Map<String, Error.SkemaError>) ReflectUtils.getField(
-                                error,
-                                "subErrors"
-                            ))
-                                .get("data"),
-                            "errors"
-                        );
+                        var error = this.errorResponseErrorField.get(errorResponse);
+                        var subErrors = ((Map<String, Error.SkemaError>) skemaErrorSubErrorsField.get(error));
+                        var dataErrors = (List<Error.SkemaErrorItem>) skemaErrorErrorsField.get(subErrors.get("data"));
 
                         for (var dataError: dataErrors) {
-                            var errorCode = (String) ReflectUtils.getField(dataError, "code");
+                            var errorCode = (String) this.skemaErrorItemCodeField.get(dataError);
                             if (errorCode.equals("INTERACTION_APPLICATION_COMMAND_INVALID_VERSION")) {
                                 ApplicationIndexSource applicationIndexSource = null;
                                 var guildId = localSendData.component3();
@@ -203,7 +217,7 @@ final class Patches {
                                 }
                                 this.cleanApplicationIndexCache(applicationIndexSource);
 
-                                var errorMessage = (String) ReflectUtils.getField(dataError, "message");
+                                var errorMessage = (String) this.skemaErrorItemMessageField.get(dataError);
                                 Utils.showToast(errorMessage);
 
                                 break;
@@ -237,7 +251,7 @@ final class Patches {
 
         var applications = new ArrayList<Application>(applicationIndex.applications.values());
         Collections.sort(applications, (left, right) -> left.getName().compareTo(right.getName()));
-        applications.add(((BuiltInCommandsProvider) ReflectUtils.getField(storeApplicationCommands, "builtInCommandsProvider")).getBuiltInApplication());
+        applications.add(((BuiltInCommandsProvider) this.storeApplicationCommandsBuiltInCommandsProviderField.get(storeApplicationCommands)).getBuiltInApplication());
         this.handleGuildApplicationsUpdateMethod.invoke(storeApplicationCommands, applications);
 
         switch (requestSource) {
