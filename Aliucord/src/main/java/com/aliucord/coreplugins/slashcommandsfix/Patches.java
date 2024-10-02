@@ -26,6 +26,7 @@ import com.discord.stores.StoreApplicationCommands;
 import com.discord.stores.StoreApplicationCommands$requestApplicationCommands$1;
 import com.discord.stores.StoreApplicationCommands$requestApplicationCommandsQuery$1;
 import com.discord.stores.StoreApplicationInteractions;
+import com.discord.stores.StoreChannelsSelected;
 import com.discord.stores.StoreStream;
 import com.discord.utilities.error.Error;
 import com.discord.utilities.messagesend.MessageResult;
@@ -83,25 +84,7 @@ final class Patches {
                     return;
                 }
 
-                Optional<ApplicationIndexSource> applicationIndexSource = Optional.empty();
-                // guildId being 0 means this is a DM or a DM group
-                if (this_.$guildId != 0) {
-                    applicationIndexSource = Optional.of(new ApplicationIndexSourceGuild(this_.$guildId));
-                } else {
-                    // Only create a DM index source for bots
-                    var channel = storeChannelsSelected.getSelectedChannel();
-                    var channelType = channel.D();
-                    if (channelType == Channel.DM) {
-                        var user = channel.z().get(0);
-                        var userIsBot = Optional.ofNullable(user.e())
-                            .orElse(false);
-                        if (userIsBot) {
-                            var channelId = channel.k();
-                            applicationIndexSource = Optional.of(new ApplicationIndexSourceDm(channelId));
-                        }
-                    }
-                }
-
+                var applicationIndexSource = Patches.applicationIndexSourceFromContext(this_.$guildId, storeChannelsSelected);
                 try {
                     this.passCommandData(this_.this$0, applicationIndexSource, RequestSource.BROWSE);
                 } catch (Exception e) {
@@ -122,9 +105,10 @@ final class Patches {
                     return;
                 }
 
+                var applicationIndexSource = Patches.applicationIndexSourceFromContext(this_.$guildId, storeChannelsSelected);
                 try {
                     ReflectUtils.setField(this_.this$0, "query", this_.$query);
-                    this.passCommandData(this_.this$0, Optional.of(new ApplicationIndexSourceGuild(this_.$guildId)), RequestSource.QUERY);
+                    this.passCommandData(this_.this$0, applicationIndexSource, RequestSource.QUERY);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -290,5 +274,28 @@ final class Patches {
 
     private void cleanApplicationIndexCache(ApplicationIndexSource source) {
         source.removeFromCache(applicationIndexCache);
+    }
+
+    private static Optional<ApplicationIndexSource> applicationIndexSourceFromContext(long guildId, StoreChannelsSelected storeChannelsSelected) {
+        Optional<ApplicationIndexSource> applicationIndexSource = Optional.empty();
+        // guildId being 0 means this is a DM or a DM group
+        if (guildId != 0) {
+            applicationIndexSource = Optional.of(new ApplicationIndexSourceGuild(guildId));
+        } else {
+            // Only create a DM index source for bots
+            var channel = storeChannelsSelected.getSelectedChannel();
+            var channelType = channel.D();
+            if (channelType == Channel.DM) {
+                var user = channel.z().get(0);
+                var userIsBot = Optional.ofNullable(user.e())
+                    .orElse(false);
+                if (userIsBot) {
+                    var channelId = channel.k();
+                    applicationIndexSource = Optional.of(new ApplicationIndexSourceDm(channelId));
+                }
+            }
+        }
+
+        return applicationIndexSource;
     }
 }
