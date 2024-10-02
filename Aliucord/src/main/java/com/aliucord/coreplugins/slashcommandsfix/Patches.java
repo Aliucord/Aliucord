@@ -153,7 +153,7 @@ final class Patches {
                     return true;
                 }
 
-                var channelId = channel.k();
+                //var channelId = channel.k();
                 var applicationId = remoteApplicationCommand.getApplicationId();
                 var isUser = this.requestApplicationIndex(new ApplicationIndexSourceUser())
                     .applications
@@ -175,8 +175,8 @@ final class Patches {
                     .get(guildId);
                 var guild = storeGuilds.getGuild(guildId);
 
-                var applicationPermission = application.permissions_.checkFor(roleIds, channelId, guild, memberPermissions, user, true);
-                var commandPermission = remoteApplicationCommand.permissions_.checkFor(roleIds, channelId, guild, memberPermissions, user, applicationPermission);
+                var applicationPermission = application.permissions_.checkFor(roleIds, channel, guild, memberPermissions, user, true);
+                var commandPermission = remoteApplicationCommand.permissions_.checkFor(roleIds, channel, guild, memberPermissions, user, applicationPermission);
 
                 return commandPermission;
             })

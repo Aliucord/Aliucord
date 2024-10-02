@@ -6,6 +6,7 @@
 
 package com.aliucord.coreplugins.slashcommandsfix;
 
+import com.discord.api.channel.Channel;
 import com.discord.api.permission.Permission;
 import com.discord.models.guild.Guild;
 import com.discord.models.user.MeUser;
@@ -28,11 +29,19 @@ class Permissions {
         this.defaultMemberPermissions = Optional.ofNullable(defaultMemberPermissions).orElse(Optional.empty());
     }
 
-    public boolean checkFor(List<Long> roleIds, long channelId, Guild guild, long memberPermissions, MeUser user, boolean defaultPermission) {
+    public boolean checkFor(List<Long> roleIds, Channel channel, Guild guild, long memberPermissions, MeUser user, boolean defaultPermission) {
         var guildId = guild.component7();
         var defaultChannelPermissionId = guildId - 1;
         var defaultChannelPermission = this.channels.getOrDefault(defaultChannelPermissionId, defaultPermission);
-        var channelPermission = Optional.ofNullable(this.channels.get(channelId))
+        var channelType = channel.D();
+        var channelId = channel.k();
+        var permissionChannelId = channelId;
+        // Threads inherit permissions from their parent channels
+        if (channelType == Channel.ANNOUNCEMENT_THREAD || channelType == Channel.PUBLIC_THREAD || channelType == Channel.PRIVATE_THREAD) {
+            var channelParentId = channel.u();
+            permissionChannelId = channelParentId;
+        }
+        var channelPermission = Optional.ofNullable(this.channels.get(permissionChannelId))
             .orElse(defaultChannelPermission);
         var defaultMemberPermission = this.defaultMemberPermissions
             .map(
