@@ -16,6 +16,7 @@ import com.aliucord.patcher.PreHook;
 import com.aliucord.Utils;
 import com.aliucord.utils.GsonUtils;
 import com.aliucord.utils.ReflectUtils;
+import com.discord.api.channel.Channel;
 import com.discord.models.commands.Application;
 import com.discord.models.commands.ApplicationCommand;
 import com.discord.models.commands.ApplicationCommandKt;
@@ -90,8 +91,7 @@ final class Patches {
                     // Only create a DM index source for bots
                     var channel = storeChannelsSelected.getSelectedChannel();
                     var channelType = channel.D();
-                    // Channel type 1 is a DM
-                    if (channelType == 1) {
+                    if (channelType == Channel.DM) {
                         var user = channel.z().get(0);
                         var userIsBot = user.e();
                         if (userIsBot) {
@@ -244,11 +244,10 @@ final class Patches {
         }
         applicationIndexes.add(this.requestApplicationIndex(new ApplicationIndexSourceUser()));
         var applicationIndex = new ApplicationIndex(applicationIndexes);
-        // Remove all commands that aren't slash commands (type 1)
         applicationIndex
             .applicationCommands
             .entrySet()
-            .removeIf(applicationCommand -> applicationCommand.getValue().type != 1);
+            .removeIf(applicationCommand -> applicationCommand.getValue().type != RemoteApplicationCommand.TYPE_CHAT_INPUT);
         applicationIndex.populateCommandCounts(this.applicationCommandCountField);
 
         var applications = new ArrayList<Application>(applicationIndex.applications.values());
