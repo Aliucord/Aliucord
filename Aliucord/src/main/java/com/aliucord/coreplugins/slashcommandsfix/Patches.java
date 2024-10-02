@@ -182,6 +182,7 @@ final class Patches {
             })
         );
 
+        // Command error handling
         Patcher.addPatch(
             StoreApplicationInteractions.class.getDeclaredMethod("handleApplicationCommandResult", MessageResult.class, ApplicationCommandLocalSendData.class, Function0.class, Function1.class),
             new PreHook(param -> {
