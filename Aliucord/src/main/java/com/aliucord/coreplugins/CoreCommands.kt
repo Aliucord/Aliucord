@@ -9,11 +9,22 @@ import android.os.Build
 import com.aliucord.*
 import com.aliucord.api.CommandsAPI
 import com.aliucord.api.CommandsAPI.CommandResult
+import com.aliucord.entities.CorePlugin
 import com.aliucord.entities.Plugin
 import com.discord.api.commands.ApplicationCommandType
 import java.io.File
 
-internal class CoreCommands : Plugin(Manifest("CoreCommands")) {
+internal class CoreCommands : CorePlugin(Manifest("CoreCommands")) {
+    init {
+        manifest.description = "Adds basic slash commands to Aliucord for debugging purposes"
+    }
+
+    private fun visiblePlugins(): Sequence<Plugin> {
+        return PluginManager.plugins
+            .values.asSequence()
+            .filter { it !is CorePlugin || !it.isHidden }
+    }
+
     override fun start(context: Context) {
         commands.registerCommand(
             "echo",
@@ -22,17 +33,6 @@ internal class CoreCommands : Plugin(Manifest("CoreCommands")) {
         ) {
             CommandResult(it.getRequiredString("message"), null, false)
         }
-
-        commands.registerCommand(
-            "say",
-            "Sends message",
-            CommandsAPI.requiredMessageOption
-        ) {
-            CommandResult(it.getRequiredString("message"))
-        }
-
-        fun formatPlugins(plugins: List<Plugin>, showVersions: Boolean): String =
-            plugins.joinToString(transform = { p -> p.getName() + if (showVersions) " (${p.manifest.version})" else "" })
 
         commands.registerCommand(
             "plugins",
@@ -51,21 +51,20 @@ internal class CoreCommands : Plugin(Manifest("CoreCommands")) {
             )
         ) {
             val showVersions = it.getBoolOrDefault("versions", false)
+            val (enabled, disabled) = visiblePlugins().partition(PluginManager::isPluginEnabled)
 
-            val plugins = PluginManager.plugins
-            val (enabled, disabled) = plugins.values.partition(PluginManager::isPluginEnabled)
-            val enabledStr = formatPlugins(enabled, showVersions)
-            val disabledStr = formatPlugins(disabled, showVersions)
+            fun formatPlugins(plugins: List<Plugin>): String =
+                plugins.joinToString { p -> if (showVersions && p !is CorePlugin) "${p.name} (${p.manifest.version})" else p.name }
 
-            if (plugins.isEmpty())
+            if (enabled.isEmpty() && disabled.isEmpty())
                 CommandResult("No plugins installed", null, false)
             else
                 CommandResult(
                     """
 **Enabled Plugins (${enabled.size}):**
-${if (enabled.isEmpty()) "None" else "> $enabledStr"}
+${if (enabled.isEmpty()) "None" else "> ${formatPlugins(enabled)}"}
 **Disabled Plugins (${disabled.size}):**
-${if (disabled.isEmpty()) "None" else "> $disabledStr"}
+${if (disabled.isEmpty()) "None" else "> ${formatPlugins(disabled)}"}
                 """,
                     null,
                     it.getBoolOrDefault("send", false)
@@ -73,11 +72,15 @@ ${if (disabled.isEmpty()) "None" else "> $disabledStr"}
         }
 
         commands.registerCommand("debug", "Posts debug info") {
+            val customPluginCount = PluginManager.plugins.values.count { it !is CorePlugin }
+            val enabledPluginCount = visiblePlugins().count(PluginManager::isPluginEnabled)
+
             // .trimIndent() is broken sadly due to collision with Discord's Kotlin
             val str = """
 **Debug Info:**
 > Discord: ${Constants.DISCORD_VERSION}
-> Aliucord: ${BuildConfig.GIT_REVISION} (${PluginManager.plugins.size} plugins)
+> Aliucord: ${BuildConfig.VERSION} ${if (BuildConfig.RELEASE) "" else "(Custom)"}
+> Plugins: $customPluginCount installed, $enabledPluginCount total enabled
 > System: Android ${Build.VERSION.RELEASE} (SDK v${Build.VERSION.SDK_INT}) - ${getArchitecture()}
 > Rooted: ${getIsRooted() ?: "Unknown"}
             """
@@ -100,9 +103,12 @@ ${if (disabled.isEmpty()) "None" else "> $disabledStr"}
                 "x86" -> return "i686"
             }
         }
-        return System.getProperty("os.arch") ?: System.getProperty("ro.product.cpu.abi")
-        ?: "Unknown Architecture"
+        return System.getProperty("os.arch")
+            ?: System.getProperty("ro.product.cpu.abi")
+            ?: "Unknown Architecture"
     }
 
-    override fun stop(context: Context) {}
+    override fun stop(context: Context) {
+        commands.unregisterAll()
+    }
 }

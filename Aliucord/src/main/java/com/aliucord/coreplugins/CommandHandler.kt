@@ -9,7 +9,7 @@ package com.aliucord.coreplugins
 import android.content.Context
 import android.widget.TextView
 import com.aliucord.api.CommandsAPI
-import com.aliucord.entities.Plugin
+import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.discord.api.message.MessageTypes
 import com.discord.databinding.WidgetChatInputAutocompleteItemBinding
@@ -28,7 +28,10 @@ import com.discord.widgets.chat.list.entries.MessageEntry
 import com.discord.widgets.chat.list.sheet.WidgetApplicationCommandBottomSheetViewModel
 
 @Suppress("UNCHECKED_CAST")
-internal class CommandHandler : Plugin(Manifest("CommandHandler")) {
+internal class CommandHandler : CorePlugin(Manifest("CommandHandler")) {
+  override val isHidden = true
+  override val isRequired = true
+
   override fun load(context: Context) {
     Patcher.addPatch(BuiltInCommands::class.java, "getBuiltInCommands", emptyArray(), Hook {
       val list = it.result.run { if (this == null) return@Hook else this as MutableList<ApplicationCommand?> }

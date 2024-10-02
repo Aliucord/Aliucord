@@ -8,7 +8,7 @@ import android.widget.*
 import com.aliucord.Constants.PLUGIN_REQUESTS_CHANNEL_ID
 import com.aliucord.Utils
 import com.aliucord.api.SettingsAPI
-import com.aliucord.entities.Plugin
+import com.aliucord.entities.CorePlugin
 import com.aliucord.fragments.InputDialog
 import com.aliucord.patcher.*
 import com.aliucord.settings.delegate
@@ -17,11 +17,18 @@ import com.discord.widgets.chat.input.WidgetChatInput
 import com.lytefast.flexinput.R
 
 @SuppressLint("SetTextI18n")
-internal class SupportWarn : Plugin(Manifest("SupportWarn")) {
+internal class SupportWarn : CorePlugin(Manifest("SupportWarn")) {
     private val SettingsAPI.acceptedPrdNotRequests: Boolean by settings.delegate(false)
     private val SettingsAPI.acceptedDevNotSupport: Boolean by settings.delegate(false)
 
-    override fun load(context: Context) {
+    init {
+        manifest.description = "Show a warning prior to interacting with the Aliucord server"
+    }
+
+    // Allow this to be disabled once warning has been acknowledged
+    override val isRequired get() = !settings.acceptedDevNotSupport
+
+    override fun start(context: Context) {
         if (settings.acceptedPrdNotRequests && settings.acceptedDevNotSupport) return
 
         val channelList = listOf(
@@ -39,18 +46,19 @@ internal class SupportWarn : Plugin(Manifest("SupportWarn")) {
         val gateButtonArrowId = Utils.getResId("chat_input_member_verification_guard_action", "id")
         val gateButtonLayoutId = Utils.getResId("guard_member_verification", "id")
 
-        Patcher.addPatch(WidgetChatInput::class.java.getDeclaredMethod("configureChatGuard", ChatInputViewModel.ViewState.Loaded::class.java), Hook { (it, loaded: ChatInputViewModel.ViewState.Loaded) ->
-            if (loaded.channelId !in channelList || loaded.shouldShowVerificationGate) return@Hook
+        patcher.after<WidgetChatInput>("configureChatGuard", ChatInputViewModel.ViewState.Loaded::class.java)
+        { (_, loaded: ChatInputViewModel.ViewState.Loaded) ->
+            if (loaded.channelId !in channelList || loaded.shouldShowVerificationGate) return@after
 
             val (text, desc, key) = if (loaded.channelId == PLUGIN_REQUESTS_CHANNEL_ID) {
-                if (settings.acceptedPrdNotRequests) return@Hook
+                if (settings.acceptedPrdNotRequests) return@after
                 Triple(
                     "PLEASE READ: This is not a request channel, do not request plugins!",
                     "This is NOT A REQUESTING CHANNEL. For information on how to request a plugin, check the pins in this channel. If you have read this, type \"I understand\" into the box.",
                     "acceptedPrdNotRequests"
                 )
             } else {
-                if (settings.acceptedDevNotSupport) return@Hook
+                if (settings.acceptedDevNotSupport) return@after
                 Triple(
                     "PLEASE READ: This is not a support channel, do not ask for help!",
                     "This is NOT A SUPPORT CHANNEL. Do NOT ask for help about using or installing a plugin or theme here or you will be muted. If you have read this, type \"I understand\" into the box.",
@@ -58,8 +66,7 @@ internal class SupportWarn : Plugin(Manifest("SupportWarn")) {
                 )
             }
 
-            val thisObject = it.thisObject as WidgetChatInput
-            val root = WidgetChatInput.`access$getBinding$p`(thisObject).root
+            val root = WidgetChatInput.`access$getBinding$p`(this).root
             val gateButtonLayout = root.findViewById<ViewGroup>(gateButtonLayoutId)
             val chatWrap = root.findViewById<LinearLayout>(chatWrapId)
 
@@ -83,11 +90,10 @@ internal class SupportWarn : Plugin(Manifest("SupportWarn")) {
                     dialog.dismiss()
                 }
 
-                dialog.show(thisObject.parentFragmentManager, "Warning")
+                dialog.show(this.parentFragmentManager, "Warning")
             }
-        })
+        }
     }
 
-    override fun start(context: Context) {}
-    override fun stop(context: Context) {}
+    override fun stop(context: Context) = patcher.unpatchAll()
 }

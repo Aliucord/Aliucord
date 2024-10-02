@@ -14,16 +14,16 @@ dependencies:
   flutter:
     sdk: flutter
 
-  android_intent_plus: ^4.0.1
-  collection: ^1.17.1
-  dio: ^5.3.1
-  filesystem_picker: ^3.1.0
-  path_provider: ^2.0.15
-  shared_preferences: ^2.2.0
-  dynamic_color: ^1.6.6
+  android_intent_plus: ^5.1.0
+  collection: ^1.18.0
+  dio: ^5.6.0
+  filesystem_picker: ^4.1.0
+  path_provider: 2.1.1
+  shared_preferences: 2.2.2
+  dynamic_color: ^1.7.0
 
 dev_dependencies:
-  flutter_lints: ^2.0.2
+  flutter_lints: ^2.0.3
 
 # The following section is specific to Flutter.
 flutter:

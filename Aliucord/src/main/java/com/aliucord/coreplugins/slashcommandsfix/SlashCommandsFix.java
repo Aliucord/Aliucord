@@ -7,12 +7,13 @@
 package com.aliucord.coreplugins.slashcommandsfix;
 
 import android.content.Context;
-import com.aliucord.entities.Plugin;
+import com.aliucord.entities.CorePlugin;
 import de.robv.android.xposed.XposedBridge;
 
-final public class SlashCommandsFix extends Plugin {
+final public class SlashCommandsFix extends CorePlugin {
     public SlashCommandsFix() {
         super(new Manifest("SlashCommandsFix"));
+        this.getManifest().description = "Fixes slash commands by switching to the new API";
     }
 
     @Override

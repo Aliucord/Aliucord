@@ -13,6 +13,8 @@ plugins {
 }
 
 subprojects {
+    if (project.name !in arrayOf("Aliucord", "Injector")) return@subprojects
+
     apply {
         plugin("com.android.library")
         plugin("kotlin-android")

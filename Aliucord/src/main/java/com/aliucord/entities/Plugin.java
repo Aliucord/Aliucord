@@ -32,6 +32,8 @@ public abstract class Plugin {
             public String name;
             /** The id of the plugin author */
             public long id;
+            /** Whether to hyperlink the profile specified by {@link id} */
+            public boolean hyperlink;
 
             /**
              * Constructs an Author with the specified name and an ID of 0
@@ -46,8 +48,16 @@ public abstract class Plugin {
              * @param id The id of the author
              */
             public Author(String name, long id) {
+                this(name, id, true);
+            }
+
+            /**
+             * Constructs an Author with the specified name, ID, and whether to hyperlink the profile.
+             */
+            public Author(String name, long id, boolean hyperlink) {
                 this.name = name;
                 this.id = id;
+                this.hyperlink = hyperlink;
             }
 
             @NonNull

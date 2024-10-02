@@ -7,24 +7,33 @@
 package com.aliucord.coreplugins
 
 import android.content.Context
-import com.aliucord.entities.Plugin
-import com.aliucord.patcher.Hook
-import com.aliucord.patcher.Patcher
+import com.aliucord.entities.CorePlugin
+import com.aliucord.patcher.after
+import com.aliucord.utils.lazyField
 import com.discord.utilities.lazy.memberlist.ChannelMemberList
 import com.discord.utilities.lazy.memberlist.MemberListRow
+import kotlin.collections.List
+import kotlin.collections.Map
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.forEach
 
-internal class MembersListFix : Plugin(Manifest("MembersListFix")) {
+@Suppress("PrivatePropertyName")
+internal class MembersListFix : CorePlugin(Manifest("MembersListFix")) {
+    private val f_memberListGroups by lazyField<ChannelMemberList>("groups")
+
+    override val isHidden = true
+    override val isRequired = true
+
     @Suppress("UNCHECKED_CAST")
-    override fun load(context: Context?) {
-        val groups = ChannelMemberList::class.java.getDeclaredField("groups").apply { isAccessible = true }
-        Patcher.addPatch(ChannelMemberList::class.java.getDeclaredMethod("setGroups", List::class.java, Function1::class.java), Hook {
-            val list = it.thisObject as ChannelMemberList
-            val rows = list.rows
-            val groupsMap = groups[list] as Map<String, MemberListRow>
-            list.groupIndices.forEach { (idx, id) -> rows[idx] = groupsMap[id] }
-        })
+    override fun load(context: Context) {
+        patcher.after<ChannelMemberList>("setGroups", List::class.java, Function1::class.java) {
+            val rows = this.rows
+            val groupsMap = f_memberListGroups[this] as Map<String, MemberListRow>
+            this.groupIndices.forEach { (idx, id) -> rows[idx] = groupsMap[id] }
+        }
     }
 
-    override fun start(context: Context?) {}
-    override fun stop(context: Context?) {}
+    override fun start(context: Context) {}
+    override fun stop(context: Context) {}
 }

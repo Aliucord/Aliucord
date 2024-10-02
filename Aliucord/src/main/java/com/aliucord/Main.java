@@ -9,13 +9,15 @@ package com.aliucord;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.*;
+import android.provider.Settings;
 import android.text.*;
 import android.text.style.AbsoluteSizeSpan;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.*;
 
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -25,7 +27,7 @@ import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
-import com.aliucord.coreplugins.CorePlugins;
+import com.aliucord.entities.CorePlugin;
 import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.*;
 import com.aliucord.settings.*;
@@ -41,11 +43,11 @@ import com.discord.databinding.WidgetChangeLogBinding;
 import com.discord.databinding.WidgetDebuggingAdapterItemBinding;
 import com.discord.models.domain.emoji.ModelEmojiUnicode;
 import com.discord.stores.StoreStream;
-import com.discord.stores.StoreExperiments;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.utilities.guildautomod.AutoModUtils;
 import com.discord.utilities.user.UserUtils;
 import com.discord.widgets.changelog.WidgetChangeLog;
+import com.discord.widgets.chat.input.SmoothKeyboardReactionHelper;
 import com.discord.widgets.chat.list.WidgetChatList;
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemAutoModSystemMessageEmbed;
 import com.discord.widgets.chat.list.entries.AutoModSystemMessageEmbedEntry;
@@ -63,6 +65,7 @@ import java.sql.Timestamp;
 import java.util.*;
 
 import dalvik.system.PathClassLoader;
+import kotlin.io.FilesKt;
 
 public final class Main {
     /** Whether Aliucord has been preInitialized */
@@ -96,7 +99,7 @@ public final class Main {
 
     private static void preInitWithPermissions(AppCompatActivity activity) {
         settings = new SettingsUtilsJSON("Aliucord");
-        CorePlugins.loadAll(activity);
+        PluginManager.loadCorePlugins(activity);
         loadAllPlugins(activity);
     }
 
@@ -146,7 +149,8 @@ public final class Main {
             );
 
             TextView versionView = layout.findViewById(Utils.getResId("app_info_header", "id"));
-            var text = versionView.getText() + " | Aliucord " + BuildConfig.GIT_REVISION;
+            var text = versionView.getText() + " | Aliucord " + BuildConfig.VERSION;
+            if (!BuildConfig.RELEASE) text += " (Custom)";
             if (Utils.isDebuggable()) text += " [DEBUGGABLE]";
             versionView.setText(text);
 
@@ -249,19 +253,6 @@ public final class Main {
 
         Thread.setDefaultUncaughtExceptionHandler(Main::crashHandler);
 
-        // set default overrides for experiments
-        var experiments = StoreStream.getExperiments();
-        var overrides = StoreExperiments.access$getExperimentOverrides$p(experiments);
-        for (var key : new String[]{
-            "2020-09_threads",
-            "2021-02_view_threads",
-            "2021-08_threads_permissions",
-            "2021-10_android_attachment_bottom_sheet",
-            "2021-11_guild_communication_disabled_users",
-            "2021-11_guild_communication_disabled_guilds",
-            "2022-03_text_in_voice"
-        }) if (!overrides.containsKey(key)) experiments.setOverride(key, 1);
-
         // use new member profile editor for nitro users
         try {
             Patcher.addPatch(
@@ -278,8 +269,27 @@ public final class Main {
             );
         } catch (Throwable e) { logger.error(e); }
 
+        // not sure why this happens, reported on Android 15 Beta 4
+        // java.lang.IllegalArgumentException: Animators cannot have negative duration: -1
+        //   at android.view.ViewPropertyAnimator.setDuration(ViewPropertyAnimator.java:266)
+        //   at com.discord.widgets.chat.input.SmoothKeyboardReactionHelper$Callback.onStart(SmoothKeyboardReactionHelper.kt:5)
+        //   at android.view.View.dispatchWindowInsetsAnimationStart(View.java:12671)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            try {
+                Patcher.addPatch(
+                    SmoothKeyboardReactionHelper.Callback.class.getDeclaredMethod("onStart", WindowInsetsAnimation.class, WindowInsetsAnimation.Bounds.class),
+                    new PreHook(param -> {
+                        var animation = (WindowInsetsAnimation) param.args[0];
+                        if (animation.getDurationMillis() < 0) param.setResult(param.args[1]);
+                    })
+                );
+            } catch (Throwable e) {
+                logger.error("Couldn't patch possible Android 15 (?) crash", e);
+            }
+        }
+
         if (loadedPlugins) {
-            CorePlugins.startAll(activity);
+            PluginManager.startCorePlugins();
             startAllPlugins();
         }
     }
@@ -392,7 +402,7 @@ public final class Main {
                             true
                         );
                     }
-                    rmrf(f);
+                    FilesKt.deleteRecursively(f);
                 }
             }
 
@@ -402,17 +412,12 @@ public final class Main {
         loadedPlugins = true;
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private static void rmrf(File file) {
-        if (file.isDirectory()) {
-            for (var child : file.listFiles())
-                rmrf(child);
-        }
-        file.delete();
-    }
-
     private static void startAllPlugins() {
-        for (String name : PluginManager.plugins.keySet()) {
+        for (Map.Entry<String, Plugin> entry : PluginManager.plugins.entrySet()) {
+            // coreplugins are started separately
+            if (entry.getValue() instanceof CorePlugin) continue;
+
+            var name = entry.getKey();
             try {
                 if (PluginManager.isPluginEnabled(name))
                     PluginManager.startPlugin(name);
@@ -425,16 +430,38 @@ public final class Main {
         Utils.threadPool.execute(() -> PluginUpdater.checkUpdates(true));
     }
 
+    private static void permissionGrantedCallback(AppCompatActivity activity, boolean granted) {
+        if (granted) {
+            preInitWithPermissions(activity);
+            PluginManager.startCorePlugins();
+            startAllPlugins();
+        } else Toast.makeText(activity, "You have to grant storage permission to use Aliucord", Toast.LENGTH_LONG).show();
+    }
+
     private static boolean checkPermissions(AppCompatActivity activity) {
-        String perm = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageLegacy()) {
+            if (Environment.isExternalStorageManager()) return true;
+            Toast.makeText(
+                activity,
+                "Please grant all files permission, so Aliucord can access its folder in Internal Storage",
+                Toast.LENGTH_LONG
+            ).show();
+            activity.registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> permissionGrantedCallback(activity, Environment.isExternalStorageManager())
+            ).launch(
+                new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                    .setData(Uri.parse("package:" + activity.getPackageName()))
+            );
+            return false;
+        }
+
+        var perm = Manifest.permission.WRITE_EXTERNAL_STORAGE;
         if (activity.checkSelfPermission(perm) == PackageManager.PERMISSION_GRANTED) return true;
-        activity.registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
-            if (granted == Boolean.TRUE) {
-                preInitWithPermissions(activity);
-                CorePlugins.startAll(activity);
-                startAllPlugins();
-            } else Toast.makeText(activity, "You have to grant storage permission to use Aliucord", Toast.LENGTH_LONG).show();
-        }).launch(perm);
+        activity.registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(),
+            granted -> permissionGrantedCallback(activity, granted)
+        ).launch(perm);
         return false;
     }
 }

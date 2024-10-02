@@ -10,7 +10,7 @@ package com.aliucord.coreplugins;
 
 import android.content.Context;
 
-import com.aliucord.entities.Plugin;
+import com.aliucord.entities.CorePlugin;
 import com.aliucord.patcher.InsteadHook;
 import com.aliucord.patcher.Patcher;
 import com.discord.utilities.surveys.SurveyUtils;
@@ -20,9 +20,15 @@ import java.util.*;
 
 import de.robv.android.xposed.XposedBridge;
 
-final class NoTrack extends Plugin {
-    NoTrack() {
+public final class NoTrack extends CorePlugin {
+    public NoTrack() {
         super(new Manifest("NoTrack"));
+        getManifest().description = "Disables certain various app analytics and tracking";
+    }
+
+    @Override
+    public boolean isRequired() {
+        return true;
     }
 
     @Override

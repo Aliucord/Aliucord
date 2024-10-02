@@ -5,17 +5,8 @@ plugins {
     id("org.jetbrains.dokka")
 }
 
-fun getGitHash(): String {
-    val stdout = org.apache.commons.io.output.ByteArrayOutputStream()
-    exec {
-        commandLine = listOf("git", "rev-parse", "--short", "HEAD")
-        standardOutput = stdout
-        isIgnoreExitValue = true
-    }
-    return stdout.toString().trim()
-}
-
 group = "com.aliucord"
+version = "2.0.1"
 
 aliucord {
     projectType.set(com.aliucord.gradle.ProjectType.CORE)
@@ -23,7 +14,8 @@ aliucord {
 
 android {
     defaultConfig {
-        buildConfigField("String", "GIT_REVISION", "\"${getGitHash()}\"")
+        buildConfigField("String", "VERSION", "\"$version\"")
+        buildConfigField("boolean", "RELEASE", System.getenv("RELEASE") ?: "false")
         buildConfigField("int", "DISCORD_VERSION", libs.versions.discord.get())
     }
 

@@ -21,19 +21,23 @@ GithubAPI? githubAPI;
 final storageRoot = Directory('/storage/emulated/0');
 late SharedPreferences prefs;
 final navigatorKey = GlobalKey<NavigatorState>();
+bool managerReleased = false;
 
-Future<String?> pickFile(BuildContext context, String title, String ext) async => FilesystemPicker.open(
-  allowedExtensions: [ ext ],
-  context: context,
-  fileTileSelectMode: FileTileSelectMode.wholeTile,
-  fsType: FilesystemType.file,
-  rootDirectory: storageRoot,
-  title: title,
-);
+Future<String?> pickFile(
+        BuildContext context, String title, String ext) async =>
+    FilesystemPicker.open(
+      allowedExtensions: [ext],
+      context: context,
+      fileTileSelectMode: FileTileSelectMode.wholeTile,
+      fsType: FilesystemType.file,
+      rootDirectory: storageRoot,
+      title: title,
+    );
 
 void openUrl(String url) async => await AndroidIntent(
-  action: 'action_view',
-  data: url,
-).launch();
+      action: 'action_view',
+      data: url,
+    ).launch();
 
-bool isVersionSupported(int version, String supported) => version.toString().startsWith(supported);
+bool isVersionSupported(int version, String supported) =>
+    version.toString().startsWith(supported);

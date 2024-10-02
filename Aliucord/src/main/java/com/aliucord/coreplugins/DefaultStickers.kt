@@ -8,7 +8,7 @@ package com.aliucord.coreplugins
 
 import android.content.Context
 import com.aliucord.Http
-import com.aliucord.entities.Plugin
+import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.utils.GsonUtils
 import com.discord.api.channel.Channel
@@ -27,9 +27,12 @@ import de.robv.android.xposed.XC_MethodHook
 import rx.subjects.BehaviorSubject
 import java.util.Locale
 
-internal class DefaultStickers : Plugin(Manifest("DefaultStickers")) {
+internal class DefaultStickers : CorePlugin(Manifest("DefaultStickers")) {
+    override val isHidden = true
+    override val isRequired = true
+
     @Suppress("UNCHECKED_CAST")
-    override fun load(context: Context) {
+    override fun start(context: Context) {
         val stickerPickerViewModel = StickerPickerViewModel::class.java
         val localeField = stickerPickerViewModel.getDeclaredField("locale").apply { isAccessible = true }
         Patcher.addPatch(stickerPickerViewModel.getDeclaredMethod("createCategoryItems", StickerPickerViewModel.StoreState.Loaded::class.java, List::class.java, List::class.java), object : XC_MethodHook() {
@@ -78,6 +81,5 @@ internal class DefaultStickers : Plugin(Manifest("DefaultStickers")) {
         }
     }
 
-    override fun start(context: Context) {}
     override fun stop(context: Context) {}
 }

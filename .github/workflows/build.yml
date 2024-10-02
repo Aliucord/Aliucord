@@ -1,0 +1,151 @@
+name: Build
+
+on:
+  push:
+    paths-ignore:
+      - "**.md"
+  pull_request:
+    paths-ignore:
+      - "**.md"
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    # Prevent duplicate workflow run for PRs from same repo
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout src
+        uses: actions/checkout@v4
+        with:
+          path: src
+          persist-credentials: false
+
+      - name: Setup JDK 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "11"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: 9862592 # 10.0 is the last version working with JDK 11
+
+      - name: Build project
+        run: |
+          cd $GITHUB_WORKSPACE/src
+
+          # Check if this should be marked as a release build
+          export RELEASE=${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+
+          chmod +x gradlew
+          ./gradlew --stacktrace :Aliucord:make :Injector:make :patches:package :patches:disassembleWithPatches :patches:test
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          if-no-files-found: error
+          path: |
+            ${{ github.workspace }}/src/Aliucord/build/Aliucord.zip
+            ${{ github.workspace }}/src/Injector/build/Injector.dex
+            ${{ github.workspace }}/src/patches/build/patches.zip
+
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: [ build ]
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout src
+        uses: actions/checkout@v4
+        with:
+          path: src
+
+      - name: Checkout builds
+        uses: actions/checkout@v4
+        with:
+          ref: builds
+          path: builds
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: artifacts
+
+      - name: Deploy builds
+        if: github.ref == 'refs/heads/main'
+        run: |
+          # Flatten downloaded artifacts
+          find $GITHUB_WORKSPACE/artifacts -type f -exec mv -t $GITHUB_WORKSPACE/artifacts '{}' +
+
+          # Legacy Installer support for now
+          cp $GITHUB_WORKSPACE/src/.assets/AndroidManifest.xml $GITHUB_WORKSPACE/builds
+
+          # Extract component versions
+          coreVersion=$(cat $GITHUB_WORKSPACE/src/Aliucord/build.gradle.kts | grep -E 'version = "' | cut -d \" -f 2)
+          patchesVersion=$(cat $GITHUB_WORKSPACE/src/patches/build.gradle.kts | grep -E 'version = "' | cut -d \" -f 2)
+          injectorVersion=$(cat $GITHUB_WORKSPACE/src/Injector/build.gradle.kts | grep -E 'version = "' | cut -d \" -f 2)
+
+          # Copy over builds if version changed
+          cd $GITHUB_WORKSPACE/builds
+          [ "$(jq -r '.coreVersion' data.json)" != "$coreVersion" ] && cp $GITHUB_WORKSPACE/artifacts/Aliucord.zip .
+          [ "$(jq -r '.injectorVersion' data.json)" != "$injectorVersion" ] && cp $GITHUB_WORKSPACE/artifacts/Injector.dex .
+          [ "$(jq -r '.patchesVersion' data.json)" != "$patchesVersion" ] && cp $GITHUB_WORKSPACE/artifacts/patches.zip .
+
+          # Write versions to data.json
+          # `aliucordHash` is kept to force old builds to update
+          jq '. + { coreVersion: $cv, injectorVersion: $iv, patchesVersion: $pv, aliucordHash: "0000000" }' \
+             --arg cv $coreVersion \
+             --arg iv $injectorVersion \
+             --arg pv $patchesVersion \
+             ../src/.assets/data.json > data.json
+
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add .
+          if [[ `git status --porcelain` ]]; then
+            git commit -m "Build $GITHUB_SHA"
+            git push
+          fi
+
+  # Publish core to maven if not originating from a PR
+  maven:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    if: github.event_name != 'pull_request'
+    needs: [ build ]
+    permissions:
+      contents: read
+    env:
+      MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+    steps:
+      - name: Checkout src
+        if: ${{ env.MAVEN_USERNAME != '' }}
+        uses: actions/checkout@v4
+        with:
+          path: src
+          persist-credentials: false
+
+      - name: Setup JDK 11
+        if: ${{ env.MAVEN_USERNAME != '' }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "11"
+
+      - name: Build & Publish to Maven
+        if: ${{ env.MAVEN_USERNAME != '' }}
+        run: |
+          cd $GITHUB_WORKSPACE/src
+          chmod +x gradlew
+          ./gradlew :Aliucord:publish --stacktrace -Pversion=$GITHUB_REF_NAME-SNAPSHOT
+          ./gradlew :Aliucord:publish --stacktrace -Pversion=$(git rev-parse --short "$GITHUB_SHA") | exit 0
+        env:
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}

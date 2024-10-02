@@ -13,7 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.aliucord.Utils;
-import com.aliucord.entities.Plugin;
+import com.aliucord.entities.CorePlugin;
 import com.aliucord.patcher.Patcher;
 import com.aliucord.patcher.Hook;
 import com.aliucord.utils.DimenUtils;
@@ -33,9 +33,10 @@ import java.util.*;
 
 import kotlin.Unit;
 
-final class TokenLogin extends Plugin {
-    TokenLogin() {
+public final class TokenLogin extends CorePlugin {
+    public TokenLogin() {
         super(new Manifest("TokenLogin"));
+        getManifest().description = "Provide functionality to log in with a token directly from the login screen";
     }
 
     public static class Page extends AppFragment {

@@ -10,7 +10,7 @@ import android.content.ContentResolver
 import android.content.Context
 import android.view.View
 import com.aliucord.Http
-import com.aliucord.entities.Plugin
+import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.utils.GsonUtils
 import com.aliucord.utils.RNSuperProperties
@@ -29,7 +29,10 @@ import de.robv.android.xposed.XposedBridge
 import rx.subjects.BehaviorSubject
 import b.a.a.c as ImageUploadFailedDialog
 
-internal class UploadSize : Plugin(Manifest("UploadSize")) {
+internal class UploadSize : CorePlugin(Manifest("UploadSize")) {
+    override val isHidden = true
+    override val isRequired = true
+
     @Suppress("PropertyName", "unused")
     private companion object {
         const val DEFAULT_MAX_FILE_SIZE = 25
@@ -57,7 +60,7 @@ internal class UploadSize : Plugin(Manifest("UploadSize")) {
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun load(context: Context?) {
+    override fun start(context: Context) {
         patcher.instead<PremiumUtils>("getGuildMaxFileSizeMB", Int::class.java) { (_, tier: Int) ->
             when (tier) {
                 2 -> 50
@@ -167,6 +170,5 @@ internal class UploadSize : Plugin(Manifest("UploadSize")) {
         }
     }
 
-    override fun start(context: Context?) {}
-    override fun stop(context: Context?) {}
+    override fun stop(context: Context) {}
 }

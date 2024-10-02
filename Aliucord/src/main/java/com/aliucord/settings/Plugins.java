@@ -13,8 +13,7 @@ import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
 import android.text.*;
 import android.text.style.ClickableSpan;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.*;
 
 import androidx.annotation.NonNull;
@@ -22,6 +21,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.*;
 
 import com.aliucord.*;
+import com.aliucord.entities.CorePlugin;
 import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.ConfirmDialog;
 import com.aliucord.fragments.SettingsPage;
@@ -36,6 +36,8 @@ import com.lytefast.flexinput.R;
 
 import java.io.File;
 import java.util.*;
+
+import kotlin.comparisons.ComparisonsKt;
 
 public class Plugins extends SettingsPage {
     public static class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> implements Filterable {
@@ -85,6 +87,7 @@ public class Plugins extends SettingsPage {
         private final Context ctx;
         private final List<Plugin> originalData;
         private List<Plugin> data;
+        public boolean showBuiltIn = false;
 
         public Adapter(AppFragment fragment, Collection<Plugin> plugins) {
             super();
@@ -93,9 +96,13 @@ public class Plugins extends SettingsPage {
             ctx = fragment.requireContext();
 
             this.originalData = new ArrayList<>(plugins);
-            originalData.sort(Comparator.comparing(Plugin::getName));
+            originalData.removeIf(p -> p instanceof CorePlugin && ((CorePlugin)p).isHidden());
+            originalData.sort(ComparisonsKt.compareBy(
+                p -> p instanceof CorePlugin, // coreplugins last
+                Plugin::getName // Natural order by title
+            ));
 
-            data = originalData;
+            data = CollectionUtils.filter(originalData, Adapter::filterCorePlugins);
         }
 
         @Override
@@ -116,15 +123,20 @@ public class Plugins extends SettingsPage {
 
             boolean enabled = PluginManager.isPluginEnabled(p.getName());
             holder.card.switchHeader.setChecked(enabled);
-            holder.card.descriptionView.setText(p.getManifest().description);
+            holder.card.switchHeader.setButtonVisibility(!(p instanceof CorePlugin) || !((CorePlugin) p).isRequired());
+            holder.card.descriptionView.setText(MDUtils.render(p.getManifest().description));
             holder.card.settingsButton.setVisibility(p.settingsTab != null ? View.VISIBLE : View.GONE);
             holder.card.settingsButton.setEnabled(enabled);
+            holder.card.uninstallButton.setVisibility(p.__filename != null ? View.VISIBLE : View.GONE);
+            holder.card.repoButton.setVisibility(p.getManifest().updateUrl != null ? View.VISIBLE : View.GONE);
             holder.card.changeLogButton.setVisibility(p.getManifest().changelog != null ? View.VISIBLE : View.GONE);
 
-            String title = String.format("%s v%s by %s", p.getName(), manifest.version, TextUtils.join(", ", manifest.authors));
+            String title = p instanceof CorePlugin
+                ? String.format("%s [BUILT-IN]", p.getName())
+                : String.format("%s v%s by %s", p.getName(), manifest.version, TextUtils.join(", ", manifest.authors));
             SpannableString spannableTitle = new SpannableString(title);
             for (Plugin.Manifest.Author author : manifest.authors) {
-                if (author.id < 1) continue;
+                if (author.id < 1 || !author.hyperlink) continue;
                 int i = title.indexOf(author.name, p.getName().length() + 2 + manifest.version.length() + 3);
                 spannableTitle.setSpan(new ClickableSpan() {
                     @Override
@@ -141,19 +153,20 @@ public class Plugins extends SettingsPage {
             @Override
             protected FilterResults performFiltering(CharSequence constraint) {
                 List<Plugin> resultsList;
-                if (constraint == null || constraint.equals(""))
-                    resultsList = originalData;
-                else {
+                if (constraint == null || constraint.equals("")) {
+                    if (showBuiltIn) resultsList = originalData;
+                    else resultsList = CollectionUtils.filter(originalData, Adapter::filterCorePlugins);
+                } else {
                     String search = constraint.toString().toLowerCase().trim();
                     resultsList = CollectionUtils.filter(originalData, p -> {
-                            if (p.getName().toLowerCase().contains(search)) return true;
-                            Plugin.Manifest manifest = p.getManifest();
-                            if (manifest.description.toLowerCase().contains(search)) return true;
-                            for (Plugin.Manifest.Author author : manifest.authors)
-                                if (author.name.toLowerCase().contains(search)) return true;
-                            return false;
-                        }
-                    );
+                        if (!showBuiltIn && p instanceof CorePlugin) return false;
+                        if (p.getName().toLowerCase().contains(search)) return true;
+                        Plugin.Manifest manifest = p.getManifest();
+                        if (manifest.description.toLowerCase().contains(search)) return true;
+                        for (Plugin.Manifest.Author author : manifest.authors)
+                            if (author.name.toLowerCase().contains(search)) return true;
+                        return false;
+                    });
                 }
                 FilterResults results = new FilterResults();
                 results.values = resultsList;
@@ -262,6 +275,10 @@ public class Plugins extends SettingsPage {
 
             dialog.show(fragment.getParentFragmentManager(), "Confirm Plugin Uninstall");
         }
+
+        public static boolean filterCorePlugins(Plugin p) {
+            return !(p instanceof CorePlugin);
+        }
     }
 
     @Override
@@ -320,5 +337,17 @@ public class Plugins extends SettingsPage {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
             public void onTextChanged(CharSequence s, int start, int before, int count) { }
         });
+
+        getHeaderBar().getMenu()
+            .add("Show built-in")
+            .setShowAsActionFlags(MenuItem.SHOW_AS_ACTION_NEVER)
+            .setCheckable(true)
+            .setOnMenuItemClickListener(item -> {
+                var show = !adapter.showBuiltIn;
+                adapter.showBuiltIn = show;
+                adapter.getFilter().filter(editText.getText());
+                item.setChecked(show);
+                return true;
+            });
     }
 }

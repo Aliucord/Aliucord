@@ -72,7 +72,7 @@ public class PluginCard extends MaterialCardView {
         buttonLayout.setRowCount(1);
         buttonLayout.setColumnCount(5);
         buttonLayout.setUseDefaultMargins(true);
-        buttonLayout.setPadding(p2, 0, p2, 0);
+        buttonLayout.setPadding(p, p2, p, 0);
 
         settingsButton = new Button(ctx);
         settingsButton.setText("Settings");
