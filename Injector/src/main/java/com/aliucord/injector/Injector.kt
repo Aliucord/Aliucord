@@ -129,22 +129,23 @@ private fun init(appActivity: AppActivity) {
  * Checks if app has permission for storage and if so checks settings and copies local dex to code cache
  */
 private fun useLocalDex(appActivity: AppActivity, dexFile: File): Boolean {
-    if (appActivity.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-        val settingsFile = File(BASE_DIRECTORY, "settings/Aliucord.json")
-        if (settingsFile.exists()) {
-            val useLocalDex = settingsFile.readText().let {
-                it.isNotEmpty() && JSONObject(it).let { json -> json.has(ALIUCORD_FROM_STORAGE_KEY) && json.getBoolean(ALIUCORD_FROM_STORAGE_KEY) }
-            }
-            if (useLocalDex) File(BASE_DIRECTORY, "Aliucord.zip").run {
-                if (exists()) {
-                    Logger.d("Loading dex from $absolutePath")
-                    copyTo(dexFile, true)
-                    return true
-                }
-            }
-        }
+    if (appActivity.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED &&
+        appActivity.checkSelfPermission(Manifest.permission.MANAGE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+    ) {
+        return false
     }
-    return false
+
+    val settingsFile = File(BASE_DIRECTORY, "settings/Aliucord.json")
+    val localDexFile = File(BASE_DIRECTORY, "Aliucord.zip")
+    if (!settingsFile.exists() || !localDexFile.exists()) return false
+
+    val useLocalDex = settingsFile.readText()
+        .let { it.isNotEmpty() && JSONObject(it).optBoolean(ALIUCORD_FROM_STORAGE_KEY, false) }
+    if (!useLocalDex) return false
+
+    Logger.d("Loading dex from ${localDexFile.absolutePath}")
+    localDexFile.copyTo(dexFile, true)
+    return true
 }
 
 /**
