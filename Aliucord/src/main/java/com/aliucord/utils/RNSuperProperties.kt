@@ -42,7 +42,7 @@ object RNSuperProperties {
     val superPropertiesBase64: String = Base64.encodeToString(superProperties.toString().toByteArray(), 2)
 
     // update to latest Beta branch sometimes
-    const val versionCode = 183109
-    const val versionString = "183.9 - rn"
+    const val versionCode = 218111
+    const val versionString = "218.11 - rn"
     const val userAgent = "Discord-Android/$versionCode;RNA"
 }
