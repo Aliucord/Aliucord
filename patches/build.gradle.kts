@@ -58,9 +58,41 @@ task("disassembleWithPatches") {
     dependsOn("disassembleInternal", "copyDisassembled", "applyPatches")
 }
 
-task("test") {
+task("testPatches", JavaExec::class) {
     group = "aliucord"
-    dependsOn("assemble")
+    mustRunAfter("applyPatches")
+
+    val outputDex = buildDir.resolve("patched.dex").absolutePath
+    val patchFiles = fileTree(patchesDir) { include("**/*.patch") }.files
+    val smaliFiles = patchFiles.map { path ->
+        path.toRelativeString(patchesDir)
+            .replace(".patch", ".smali")
+            .let(smaliDir::resolve)
+            .absolutePath
+    }
+
+    standardOutput = System.out
+    errorOutput = System.err
+    classpath = buildTools
+    jvmArgs = listOf("-Xmx2G")
+    mainClass.set("com.android.tools.smali.smali.Main")
+    args = listOf(
+        "assemble",
+        "--verbose",
+        "--output", outputDex,
+    ) + smaliFiles
+
+    doFirst {
+        delete(outputDex)
+
+        if (!smaliDir.exists()) {
+            error("Smali directory does not exist! Run the disassembleWithPatches task")
+        }
+    }
+
+    doLast {
+        logger.lifecycle("Successfully reassembled dex: {}", outputDex)
+    }
 }
 
 task("writePatches") {
@@ -177,34 +209,5 @@ task("applyPatches") {
                 )
             }
         }
-    }
-}
-
-task<JavaExec>("assemble") {
-    val outputDex = buildDir.resolve("patched.dex").absolutePath
-
-    standardOutput = System.out
-    errorOutput = System.err
-    classpath = buildTools
-    jvmArgs = listOf("-Xmx2G")
-    mainClass.set("com.android.tools.smali.smali.Main")
-    args = listOf(
-        "assemble",
-        "--verbose",
-        "--output", outputDex,
-        smaliDir.absolutePath,
-    )
-
-    mustRunAfter("applyPatches")
-    doFirst {
-        delete(outputDex)
-
-        if (!smaliDir.exists()) {
-            error("Smali directory does not exist! Run the disassembleWithPatches task")
-        }
-    }
-
-    doLast {
-        logger.lifecycle("Successfully reassembled dex: {}", outputDex)
     }
 }
