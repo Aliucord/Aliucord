@@ -256,6 +256,7 @@ public class PluginManager {
             new SupporterBadges(),
             new TokenLogin(),
             new UploadSize(),
+            new ForwardedMessages(),
         };
 
         for (Plugin p : corePlugins) {
