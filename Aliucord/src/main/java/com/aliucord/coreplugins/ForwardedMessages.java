@@ -86,8 +86,7 @@ public class ForwardedMessages extends CorePlugin {
                             return;
                         }
                     }
-                    var scrollView = (NestedScrollView) actions.getView();
-                    var lay = (LinearLayout) scrollView.getChildAt(0);
+                    var lay = (LinearLayout) ((NestedScrollView)actions.getView()).getChildAt(0);
                     if (lay.findViewById(viewId) == null) {
                         TextView tw = new TextView(lay.getContext(), null, 0, com.lytefast.flexinput.R.i.UiKit_Settings_Item_Icon);
                         tw.setId(viewId);
