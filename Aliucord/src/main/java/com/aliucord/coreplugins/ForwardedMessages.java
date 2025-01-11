@@ -31,6 +31,16 @@ public class ForwardedMessages extends CorePlugin {
         super(new Manifest("ForwardedMessages"));
     }
 
+    @Override
+    public boolean isRequired() {
+        return true;
+    }
+
+    @Override
+    public boolean isHidden() {
+        return true;
+    }
+
     @SuppressLint("SetTextI18n")
     @Override
     public void start(Context context) throws Throwable {
