@@ -24,9 +24,13 @@ import com.discord.utilities.color.ColorCompat;
 import com.discord.widgets.chat.list.actions.WidgetChatListActions;
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemMessage;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 public class ForwardedMessages extends CorePlugin {
+    private static Field f_apiMessage_messageSnapshots;
+    private static Field f_modelMessage_messageSnapshots;
+
     public ForwardedMessages() {
         super(new Manifest("ForwardedMessages"));
     }
@@ -42,6 +46,7 @@ public class ForwardedMessages extends CorePlugin {
     }
 
     @SuppressLint("SetTextI18n")
+    @SuppressWarnings("unchecked")
     @Override
     public void start(Context context) throws Throwable {
         if (!ManagerBuild.hasInjector("2.1.0") || !ManagerBuild.hasPatches("1.1.0")) {
@@ -49,10 +54,13 @@ public class ForwardedMessages extends CorePlugin {
             return;
         }
 
+        // Cache reflection since this is used in a performance-sensitive areas
+        f_apiMessage_messageSnapshots = Message.class.getDeclaredField("messageSnapshots");
+        f_modelMessage_messageSnapshots = com.discord.models.message.Message.class.getDeclaredField("messageSnapshots");
 
         patcher.patch(com.discord.models.message.Message.class.getDeclaredConstructor(Message.class), new Hook(callFrame -> {
             try {
-                var snapshots = (ArrayList) ReflectUtils.getField(callFrame.args[0], "messageSnapshots");
+                var snapshots = (ArrayList<Object>) f_apiMessage_messageSnapshots.get(callFrame.args[0]);
 
                 if (snapshots == null || snapshots.isEmpty()) return;
 
@@ -69,12 +77,15 @@ public class ForwardedMessages extends CorePlugin {
 
         patcher.patch(WidgetChatListAdapterItemMessage.class.getDeclaredMethod("configureItemTag", com.discord.models.message.Message.class, boolean.class), new PreHook((cf) -> {
             try {
-                var snapshots = (ArrayList<Object>) ReflectUtils.getField(cf.args[0], "messageSnapshots");
+                var snapshots = (ArrayList<Object>) f_modelMessage_messageSnapshots.get(cf.args[0]);
                 if (snapshots == null || snapshots.isEmpty()) return;
+
                 var tw = (TextView) ReflectUtils.getField(cf.thisObject, "itemTag");
                 if (tw == null) return;
+
                 tw.setVisibility(View.VISIBLE);
                 tw.setText("FORWARDED");
+
                 cf.setResult(null);
             } catch (NoSuchFieldException | IllegalAccessException e) {
                 logger.error(e);
@@ -92,8 +103,9 @@ public class ForwardedMessages extends CorePlugin {
                 var message = ((WidgetChatListActions.Model) cf.args[0]).getMessage();
 
                 try {
-                    ArrayList<Object> snapshots = (ArrayList<Object>) ReflectUtils.getField(message, "messageSnapshots");
+                    ArrayList<Object> snapshots = (ArrayList<Object>) f_modelMessage_messageSnapshots.get(message);
                     if (snapshots == null || snapshots.isEmpty()) return;
+
                     var reference = message.getMessageReference();
                     var permissionOverwrites = StoreStream.getChannels().getChannel(reference.a()).v();
 
@@ -102,7 +114,7 @@ public class ForwardedMessages extends CorePlugin {
                             return;
                         }
                     }
-                    var lay = (LinearLayout) ((NestedScrollView)actions.getView()).getChildAt(0);
+                    var lay = (LinearLayout) ((NestedScrollView) actions.getView()).getChildAt(0);
                     if (lay.findViewById(viewId) == null) {
                         TextView tw = new TextView(lay.getContext(), null, 0, com.lytefast.flexinput.R.i.UiKit_Settings_Item_Icon);
                         tw.setId(viewId);
@@ -114,7 +126,7 @@ public class ForwardedMessages extends CorePlugin {
                             actions.dismiss();
                         });
                     }
-                } catch (NoSuchFieldException | IllegalAccessException e) {
+                } catch (IllegalAccessException e) {
                     logger.error(e);
                 }
             }));
