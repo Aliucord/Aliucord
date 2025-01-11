@@ -14,6 +14,7 @@ import com.aliucord.Utils;
 import com.aliucord.entities.CorePlugin;
 import com.aliucord.patcher.Hook;
 import com.aliucord.patcher.PreHook;
+import com.aliucord.updater.ManagerBuild;
 import com.aliucord.utils.ReflectUtils;
 import com.discord.api.message.Message;
 import com.discord.api.permission.Permission;
@@ -33,6 +34,11 @@ public class ForwardedMessages extends CorePlugin {
     @SuppressLint("SetTextI18n")
     @Override
     public void start(Context context) throws Throwable {
+        if (!ManagerBuild.hasInjector("2.1.0") || !ManagerBuild.hasPatches("1.1.0")) {
+            logger.warn("Base app outdated, cannot enable ForwardedMessages");
+            return;
+        }
+
 
         patcher.patch(com.discord.models.message.Message.class.getDeclaredConstructor(Message.class), new Hook(callFrame -> {
             try {
