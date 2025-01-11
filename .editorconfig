@@ -36,3 +36,6 @@ ij_kotlin_line_comment_at_first_column = false
 
 [*.{xml,yml}]
 indent_size = 2
+
+[patches/src/**/*.patch]
+insert_final_newline = false

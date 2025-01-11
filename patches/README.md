@@ -19,8 +19,8 @@ installing Aliucord.
 1. Ensure you have diffutils (`diff`/`patch`) installed (on windows: [via chocolatey](https://community.chocolatey.org/packages/diffutils))
 2. Run the `:patches:disassembleWithPatches` task in order to disassemble and apply any existing patches in `./src`
 3. Perform any additional modifications necessary to the `./smali` directory
-5. Run the `:patches:writePatches` task in order to generate and write the patches back to `./src`
-4. Run the `:patches:testPatches` task in order to check that the `./smali` dir still successfully reassembles
+4. Run the `:patches:writePatches` task in order to generate and write the patches back to `./src`
+5. Run the `:patches:testPatches` task in order to check that the `./smali` dir still successfully reassembles
    Note that this will only reassemble smali files with patches existing for them,
    which is why running `:patches:writePatches` beforehand is necessary.
 6. Update the patches version in `build.gradle.kts` if necessary
