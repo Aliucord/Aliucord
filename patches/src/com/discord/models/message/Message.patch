@@ -1,5 +1,5 @@
---- build\smali_original/com/discord/models/message/Message.smali	2024-12-23 11:57:07.274066300 +0300
-+++ smali/com/discord/models/message/Message.smali	2025-01-02 18:57:43.378610100 +0300
+--- ./build/smali_original/com/discord/models/message/Message.smali	2025-01-11 12:56:14.143210100 -0800
++++ ./smali/com/discord/models/message/Message.smali	2025-01-11 12:58:52.845843100 -0800
 @@ -394,6 +394,16 @@
  
  .field private final messageReference:Lcom/discord/api/message/MessageReference;
