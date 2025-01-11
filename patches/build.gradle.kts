@@ -109,6 +109,7 @@ task("writePatches") {
             isIgnoreExitValue = true
             standardOutput = stdout
             errorOutput = System.err
+            workingDir = projectDir
             executable = "diff"
             args = listOf(
                 "--unified",
@@ -117,8 +118,8 @@ task("writePatches") {
                 "--recursive",
                 "--strip-trailing-cr",
                 "--show-function-line=.method",
-                smaliOriginalDir.toRelativeString(projectDir),
-                smaliDir.toRelativeString(projectDir),
+                "./" + smaliOriginalDir.toRelativeString(projectDir).replace('\\', '/'),
+                "./" + smaliDir.toRelativeString(projectDir).replace('\\', '/'),
             )
         }
 
@@ -127,6 +128,7 @@ task("writePatches") {
 
         val diffs = stdout
             .toString() // Convert bytes to string
+            .replace("\r\n", "\n") // Replace CRLF endings with LF
             .split("^diff --unified.+?\\R".toRegex(RegexOption.MULTILINE)) // Split by file diff header
             .filter(String::isNotBlank)
 
