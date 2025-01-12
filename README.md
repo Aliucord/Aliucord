@@ -17,7 +17,7 @@ Aliucord is a modification for the Android Discord app
 </p>
 
 ## ⚠️ Important Information
-PLEASE NOTE THAT this is a MODIFICATION of the Discord APP and this is AGAINST THE DISCORD TOS. Use it at your own risk. 
+PLEASE NOTE THAT this is a MODIFICATION of the Discord APP and this is AGAINST THE DISCORD Terms of Services. Use it at your own risk. 
 
 ### Supported Android Versions
 
@@ -66,27 +66,27 @@ PLEASE NOTE THAT this is a MODIFICATION of the Discord APP and this is AGAINST T
 
 ## 🔌 Plugin Installation
 
-1. Join our [support server](https://discord.gg/EsNDvBaHVU) and visit the `#plugins-list` channel for a list of available plugins
-2. Hold down the message (NOT the link, the entire message) with the desired plugin and click "Open PluginDownloader"
+1. Join our [support server](https://discord.gg/EsNDvBaHVU) and visit the `#plugins-list` channel for a list of available plugins.
+2. Hold down the message (NOT the link, the entire message) with the desired plugin and click "Open PluginDownloader".
 3. Find the desired plugin in the list and click install. It should immediately start working, however some plugins may require you to restart to make
-   them fully work
+   them fully work.
 
 ⚠️ IF YOU CAME HERE FROM A YOUTUBE TUTORIAL:
 
-> - PluginDownloader now comes preinstalled with Aliucord so you don't need to install it
-> - If you were promised free nitro, you were clickbaited. The most that is possible is free emotes (sends emote image links instead)
+> - PluginDownloader now comes preinstalled with Aliucord so you don't need to install it.
+> - If you were promised free nitro, you were clickbaited. The most that is possible is free emotes (sends emote image links instead) and also animated emojis.
 
 ## 🚬🐛 Troubleshooting
 
-- Try closing and then reopening Aliucord
-- Double check that Aliucord has permission to access files
-- Reinstall Aliucord using the installer
+- Try closing and then re-opening Aliucord.
+- Double check that Aliucord has permission to access files.
+- Reinstall Aliucord using the installer.
 
 ...and if none of these work, please visit our [support server](https://discord.gg/EsNDvBaHVU) and go to `#support` for help!
 
 ## 🧱 Building from source
 
-See `.github/workflows/build.yml` for all build steps.
+See `.github/workflows/build.yml` for all building steps.
 
 ## Credits
 
