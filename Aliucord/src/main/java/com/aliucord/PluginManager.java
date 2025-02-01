@@ -244,6 +244,7 @@ public class PluginManager {
             new CoreCommands(),
             new DefaultStickers(),
             new ExperimentDefaults(),
+            new ForwardedMessages(),
             new GifPreviewFix(),
             new MembersListFix(),
             new NoTrack(),
@@ -256,7 +257,6 @@ public class PluginManager {
             new SupporterBadges(),
             new TokenLogin(),
             new UploadSize(),
-            new ForwardedMessages(),
         };
 
         for (Plugin p : corePlugins) {

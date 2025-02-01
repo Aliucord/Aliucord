@@ -70,6 +70,7 @@ public class ForwardedMessages extends CorePlugin {
                 ReflectUtils.setField(callFrame.thisObject, "attachments", messageSnapshot.d());
                 ReflectUtils.setField(callFrame.thisObject, "embeds", messageSnapshot.k());
                 ReflectUtils.setField(callFrame.thisObject, "content", messageSnapshot.i());
+                ReflectUtils.setField(callFrame.thisObject, "stickerItems", messageSnapshot.A());
             } catch (NoSuchFieldException | IllegalAccessException e) {
                 logger.error(e);
             }
