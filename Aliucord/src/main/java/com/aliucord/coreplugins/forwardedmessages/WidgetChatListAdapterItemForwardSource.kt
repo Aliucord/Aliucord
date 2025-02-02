@@ -91,11 +91,13 @@ class WidgetChatListAdapterItemForwardSource(
                     IconUtils.setIcon(draweeView, it)
                     MGImages.setRoundingParams(draweeView, 32f, false, null, null, null)
                     source = "@${it.username}"
+                    draweeView.setTag(R.f.uikit_icon_url, IconUtils.getForUser(it))
                 }
             } else {
                 val guild = StoreStream.getGuilds().getGuild(data.reference.b())
                 source = if (guild.id != adapter.data.guildId) guild.name else "#${channel.name}"
                 SimpleDraweeViewExtensionsKt.setGuildIcon(draweeView, true, guild, 32f, null, null, null, null, false, null)
+                draweeView.setTag(R.f.uikit_icon_url, IconUtils.getForGuild(guild))
             }
 
             content.apply {
