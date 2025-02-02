@@ -13,6 +13,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.aliucord.Utils
+import com.aliucord.utils.ChannelUtils
 import com.aliucord.utils.DimenUtils.dp
 import com.aliucord.wrappers.ChannelWrapper.Companion.id
 import com.aliucord.wrappers.ChannelWrapper.Companion.name
@@ -20,11 +21,15 @@ import com.discord.stores.StoreStream
 import com.discord.utilities.SnowflakeUtils
 import com.discord.utilities.color.ColorCompat
 import com.discord.utilities.drawable.DrawableCompat
+import com.discord.utilities.extensions.SimpleDraweeViewExtensionsKt
+import com.discord.utilities.icon.IconUtils
+import com.discord.utilities.images.MGImages
 import com.discord.utilities.time.ClockFactory
 import com.discord.utilities.time.TimeUtils
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapter
 import com.discord.widgets.chat.list.adapter.WidgetChatListItem
 import com.discord.widgets.chat.list.entries.ChatListEntry
+import com.facebook.drawee.view.SimpleDraweeView
 import com.lytefast.flexinput.R
 
 class WidgetChatListAdapterItemForwardSource(
@@ -33,9 +38,23 @@ class WidgetChatListAdapterItemForwardSource(
     /* layoutId = */ Utils.getResId("widget_chat_list_adapter_item_minimal", "layout"), // This layout is the one used by merged messages, it only contains a TextView - making it optimal for what we need,
     /* adapter = */ adapter
 ) {
+    private companion object
 
-    private val content: TextView = itemView.findViewById(Utils.getResId("chat_list_adapter_item_text", "id"))
+    val draweeViewId = View.generateViewId()
+    private val content: TextView = itemView.findViewById<TextView?>(Utils.getResId("chat_list_adapter_item_text", "id")).apply {
+        // 56 + 16 + 4 = 76
+        (layoutParams as ConstraintLayout.LayoutParams).marginStart = 76.dp
+    }
     private val gutter: View = itemView.findViewById(Utils.getResId("chat_list_adapter_item_gutter_bg", "id")) // Just used to style mentions, we hide it
+    private val draweeView = SimpleDraweeView(itemView.context).apply {
+        layoutParams = ConstraintLayout.LayoutParams(16.dp, 16.dp).apply {
+            startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+            topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+            bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+            marginStart = 56.dp
+        }
+        id = draweeViewId
+    }
 
     private val arrowIcon = DrawableCompat.getDrawable(
         /* context = */ adapter.context,
@@ -49,12 +68,34 @@ class WidgetChatListAdapterItemForwardSource(
         gutter.visibility = View.GONE // This is visible by default for some reason
 
         if (data is ForwardSourceChatEntry) {
+            // if I dont do this and add view on constructor, it crashes the app for some reason
+            if ((content.parent as ConstraintLayout).findViewById<SimpleDraweeView>(draweeViewId) == null) {
+                (content.parent as ConstraintLayout).addView(draweeView, 0)
+            }
+
             val channel = StoreStream.getChannels().getChannel(data.reference.a())
-            val guild = StoreStream.getGuilds().getGuild(data.reference.b())
             val timestamp = SnowflakeUtils.toTimestamp(data.reference.c())
 
-            (content.parent as ConstraintLayout).setOnClickListener {
-                StoreStream.getMessagesLoader().jumpToMessage(channel.id, data.reference.c())
+            (content.parent as ConstraintLayout).apply {
+                setOnClickListener {
+                    StoreStream.getMessagesLoader().jumpToMessage(channel.id, data.reference.c())
+                }
+            }
+
+            var source: String
+
+            if (data.reference.b() == null) {
+                // if the reference doesn't have a guild, it's a DM
+                // so we just show username
+                ChannelUtils.getDMRecipient(channel).let {
+                    IconUtils.setIcon(draweeView, it)
+                    MGImages.setRoundingParams(draweeView, 32f, false, null, null, null)
+                    source = "@${it.username}"
+                }
+            } else {
+                val guild = StoreStream.getGuilds().getGuild(data.reference.b())
+                source = if (guild.id != adapter.data.guildId) guild.name else "#${channel.name}"
+                SimpleDraweeViewExtensionsKt.setGuildIcon(draweeView, true, guild, 32f, null, null, null, null, false, null)
             }
 
             content.apply {
@@ -65,7 +106,6 @@ class WidgetChatListAdapterItemForwardSource(
                 arrowIcon.setTint(ColorCompat.getThemedColor(context, R.b.colorTextMuted)) // This is duplicated
 
                 text = SpannableStringBuilder().apply {
-                    val source = if (guild.id != adapter.data.guildId) guild.name else "#${channel.name}"
                     append("$source  •  ")
                     append("${TimeUtils.toReadableTimeString(context, timestamp, ClockFactory.get())} ")
 
