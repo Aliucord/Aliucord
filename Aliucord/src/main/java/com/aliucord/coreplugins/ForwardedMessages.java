@@ -55,11 +55,12 @@ public class ForwardedMessages extends CorePlugin {
     }
 
     public Object writeSnapshotFields(Object source, Object destination, boolean isApiMessage) throws NoSuchFieldException, IllegalAccessException {
-        var snapshots = (ArrayList<Object>) (isApiMessage ? f_apiMessage_messageSnapshots : f_modelMessage_messageSnapshots).get(source);
+        // noinspection unchecked - we only ever call this method on objects that have this field
+        var snapshots = (ArrayList<MessageSnapshot>) (isApiMessage ? f_apiMessage_messageSnapshots : f_modelMessage_messageSnapshots).get(source);
 
         if (snapshots == null || snapshots.isEmpty()) return destination;
 
-        Message messageSnapshot = (Message) ReflectUtils.getField(snapshots.get(0), "message");
+        Message messageSnapshot = snapshots.get(0).message;
         assert messageSnapshot != null; // We can assume that if we're given a snapshot that its message field is present
 
         ReflectUtils.setField(destination, "messageSnapshots", snapshots);
@@ -92,7 +93,7 @@ public class ForwardedMessages extends CorePlugin {
             }
         }));
 
-
+        // Keeps forward information when the message is updated (i.e. reacting)
         patcher.patch(com.discord.models.message.Message.class.getDeclaredMethod("copy", long.class, long.class, Long.class, User.class, String.class, UtcDateTime.class, UtcDateTime.class, Boolean.class, Boolean.class, List.class, List.class, List.class, List.class, List.class, String.class, Boolean.class, Long.class, Integer.class, MessageActivity.class, Application.class, Long.class, MessageReference.class, Long.class, List.class, List.class, Message.class, Interaction.class, Channel.class, List.class, MessageCall.class, Boolean.class, RoleSubscriptionData.class, boolean.class, MessageAllowedMentions.class, Integer.class, Long.class, Long.class, List.class, CaptchaHelper.CaptchaPayload.class), new Hook((callFrame) -> {
             try {
                 callFrame.setResult(writeSnapshotFields(callFrame.thisObject, callFrame.getResult(), false));
