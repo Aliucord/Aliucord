@@ -13,10 +13,18 @@ import com.aliucord.patcher.Hook;
 import com.aliucord.patcher.PreHook;
 import com.aliucord.updater.ManagerBuild;
 import com.aliucord.utils.ReflectUtils;
+import com.discord.api.application.Application;
 import com.discord.api.channel.Channel;
-import com.discord.api.message.Message;
-import com.discord.api.message.MessageSnapshot;
+import com.discord.api.interaction.Interaction;
+import com.discord.api.message.*;
+import com.discord.api.message.activity.MessageActivity;
+import com.discord.api.message.allowedmentions.MessageAllowedMentions;
+import com.discord.api.message.call.MessageCall;
+import com.discord.api.message.role_subscription.RoleSubscriptionData;
+import com.discord.api.user.User;
+import com.discord.api.utcdatetime.UtcDateTime;
 import com.discord.stores.*;
+import com.discord.utilities.captcha.CaptchaHelper;
 import com.discord.utilities.embed.InviteEmbedModel;
 import com.discord.utilities.permissions.PermissionUtils;
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapter;
@@ -27,7 +35,6 @@ import com.discord.widgets.chat.list.model.WidgetChatListModelMessages;
 
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.function.Predicate;
 
 public class ForwardedMessages extends CorePlugin {
     private static Field f_apiMessage_messageSnapshots;
@@ -47,6 +54,22 @@ public class ForwardedMessages extends CorePlugin {
         return true;
     }
 
+    public Object writeSnapshotFields(Object source, Object destination, boolean isApiMessage) throws NoSuchFieldException, IllegalAccessException {
+        var snapshots = (ArrayList<Object>) (isApiMessage ? f_apiMessage_messageSnapshots : f_modelMessage_messageSnapshots).get(source);
+
+        if (snapshots == null || snapshots.isEmpty()) return destination;
+
+        Message messageSnapshot = (Message) ReflectUtils.getField(snapshots.get(0), "message");
+        assert messageSnapshot != null; // We can assume that if we're given a snapshot that its message field is present
+
+        ReflectUtils.setField(destination, "messageSnapshots", snapshots);
+        ReflectUtils.setField(destination, "embeds", messageSnapshot.k());
+        ReflectUtils.setField(destination, "content", messageSnapshot.i());
+        ReflectUtils.setField(destination, "attachments", messageSnapshot.d());
+        ReflectUtils.setField(destination, "stickerItems", messageSnapshot.A());
+        return destination;
+    }
+
     @Override
     @SuppressLint("SetTextI18n")
     @SuppressWarnings("unchecked")
@@ -61,21 +84,18 @@ public class ForwardedMessages extends CorePlugin {
         f_modelMessage_messageSnapshots = com.discord.models.message.Message.class.getDeclaredField("messageSnapshots");
 
         // Overrides message content if the message is actually a forward
-        // FIXME: Forwards get the messageSnapshots field removed when reacted to
         patcher.patch(com.discord.models.message.Message.class.getDeclaredConstructor(Message.class), new Hook(callFrame -> {
             try {
-                var snapshots = (ArrayList<MessageSnapshot>) f_apiMessage_messageSnapshots.get(callFrame.args[0]);
+                writeSnapshotFields(callFrame.args[0], callFrame.thisObject, true);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                logger.error(e);
+            }
+        }));
 
-                if (snapshots == null || snapshots.isEmpty()) return;
 
-                Message messageSnapshot = snapshots.get(0).message;
-                assert messageSnapshot != null; // We can assume that if we're given a snapshot that its message field is present
-
-                ReflectUtils.setField(callFrame.thisObject, "messageSnapshots", snapshots);
-                ReflectUtils.setField(callFrame.thisObject, "embeds", messageSnapshot.k());
-                ReflectUtils.setField(callFrame.thisObject, "content", messageSnapshot.i());
-                ReflectUtils.setField(callFrame.thisObject, "attachments", messageSnapshot.d());
-                ReflectUtils.setField(callFrame.thisObject, "stickerItems", messageSnapshot.A());
+        patcher.patch(com.discord.models.message.Message.class.getDeclaredMethod("copy", long.class, long.class, Long.class, User.class, String.class, UtcDateTime.class, UtcDateTime.class, Boolean.class, Boolean.class, List.class, List.class, List.class, List.class, List.class, String.class, Boolean.class, Long.class, Integer.class, MessageActivity.class, Application.class, Long.class, MessageReference.class, Long.class, List.class, List.class, Message.class, Interaction.class, Channel.class, List.class, MessageCall.class, Boolean.class, RoleSubscriptionData.class, boolean.class, MessageAllowedMentions.class, Integer.class, Long.class, Long.class, List.class, CaptchaHelper.CaptchaPayload.class), new Hook((callFrame) -> {
+            try {
+                callFrame.setResult(writeSnapshotFields(callFrame.thisObject, callFrame.getResult(), false));
             } catch (NoSuchFieldException | IllegalAccessException e) {
                 logger.error(e);
             }
