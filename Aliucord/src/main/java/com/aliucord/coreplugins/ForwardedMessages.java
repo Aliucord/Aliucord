@@ -15,16 +15,19 @@ import com.aliucord.updater.ManagerBuild;
 import com.aliucord.utils.ReflectUtils;
 import com.discord.api.channel.Channel;
 import com.discord.api.message.Message;
+import com.discord.api.message.MessageSnapshot;
 import com.discord.stores.*;
 import com.discord.utilities.embed.InviteEmbedModel;
 import com.discord.utilities.permissions.PermissionUtils;
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapter;
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemMessage;
 import com.discord.widgets.chat.list.entries.ChatListEntry;
+import com.discord.widgets.chat.list.entries.ReactionsEntry;
 import com.discord.widgets.chat.list.model.WidgetChatListModelMessages;
 
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.function.Predicate;
 
 public class ForwardedMessages extends CorePlugin {
     private static Field f_apiMessage_messageSnapshots;
@@ -58,13 +61,14 @@ public class ForwardedMessages extends CorePlugin {
         f_modelMessage_messageSnapshots = com.discord.models.message.Message.class.getDeclaredField("messageSnapshots");
 
         // Overrides message content if the message is actually a forward
+        // FIXME: Forwards get the messageSnapshots field removed when reacted to
         patcher.patch(com.discord.models.message.Message.class.getDeclaredConstructor(Message.class), new Hook(callFrame -> {
             try {
-                var snapshots = (ArrayList<Object>) f_apiMessage_messageSnapshots.get(callFrame.args[0]);
+                var snapshots = (ArrayList<MessageSnapshot>) f_apiMessage_messageSnapshots.get(callFrame.args[0]);
 
                 if (snapshots == null || snapshots.isEmpty()) return;
 
-                Message messageSnapshot = (Message) ReflectUtils.getField(snapshots.get(0), "message");
+                Message messageSnapshot = snapshots.get(0).message;
                 assert messageSnapshot != null; // We can assume that if we're given a snapshot that its message field is present
 
                 ReflectUtils.setField(callFrame.thisObject, "messageSnapshots", snapshots);
@@ -80,7 +84,7 @@ public class ForwardedMessages extends CorePlugin {
         // Sets the bot tag to a FORWARDED tag, as it's the most convenient indication method
         patcher.patch(WidgetChatListAdapterItemMessage.class.getDeclaredMethod("configureItemTag", com.discord.models.message.Message.class, boolean.class), new PreHook((cf) -> {
             try {
-                var snapshots = (ArrayList<Object>) f_modelMessage_messageSnapshots.get(cf.args[0]);
+                var snapshots = (ArrayList<MessageSnapshot>) f_modelMessage_messageSnapshots.get(cf.args[0]);
                 if (snapshots == null || snapshots.isEmpty()) return;
 
                 var tw = (TextView) ReflectUtils.getField(cf.thisObject, "itemTag");
@@ -115,7 +119,7 @@ public class ForwardedMessages extends CorePlugin {
                 var msg = (com.discord.models.message.Message) cf.args[6];
 
                 try {
-                    var snapshots = (ArrayList<Object>) f_modelMessage_messageSnapshots.get(msg);
+                    var snapshots = (ArrayList<MessageSnapshot>) f_modelMessage_messageSnapshots.get(msg);
                     var reference = msg.getMessageReference();
                     if (reference == null) return;
 
@@ -128,7 +132,9 @@ public class ForwardedMessages extends CorePlugin {
                     if (!PermissionUtils.INSTANCE.hasAccess(originalChannel, StoreStream.getPermissions().getPermissionsByChannel().get(reference.a()))) return;
 
                     if (snapshots != null && !snapshots.isEmpty()) {
-                        items.add(new ForwardSourceChatEntry(reference, msg.getId()));
+                        var reactionsEntry = items.stream().filter(chatListEntry -> chatListEntry instanceof ReactionsEntry).findFirst();
+                        var reactionsIdx = items.indexOf(reactionsEntry.orElse(null));
+                        items.add(reactionsIdx != -1 ? reactionsIdx : items.size(), new ForwardSourceChatEntry(reference, msg.getId()));
                     }
                 } catch (Throwable e) {
                     logger.error(e);
