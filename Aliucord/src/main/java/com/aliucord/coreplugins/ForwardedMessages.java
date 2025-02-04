@@ -143,6 +143,7 @@ public class ForwardedMessages extends CorePlugin {
                     var snapshots = (ArrayList<MessageSnapshot>) f_modelMessage_messageSnapshots.get(msg);
                     var reference = msg.getMessageReference();
                     if (reference == null) return;
+                    if (reference.b() == null) return; // Don't show source if its a DM/GDM
 
                     var originalChannel = StoreStream.getChannels().getChannel(reference.a());
                     if (originalChannel == null) return; // This also implicitly checks if the user is in the source guild
@@ -152,7 +153,7 @@ public class ForwardedMessages extends CorePlugin {
                     // unable to access the source channel.
                     if (!PermissionUtils.INSTANCE.hasAccess(originalChannel, StoreStream.getPermissions().getPermissionsByChannel().get(reference.a()))) return;
 
-                    if (snapshots != null && !snapshots.isEmpty()) {
+                    if (snapshots != null && !snapshots.isEmpty()) { // Adds the source right before the list of reactions, if present
                         var reactionsEntry = items.stream().filter(chatListEntry -> chatListEntry instanceof ReactionsEntry).findFirst();
                         var reactionsIdx = items.indexOf(reactionsEntry.orElse(null));
                         items.add(reactionsIdx != -1 ? reactionsIdx : items.size(), new ForwardSourceChatEntry(reference, msg.getId()));

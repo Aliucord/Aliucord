@@ -12,6 +12,7 @@ import android.view.Gravity
 import android.view.View
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.recyclerview.widget.RecyclerView
 import com.aliucord.Utils
 import com.aliucord.utils.ChannelUtils
 import com.aliucord.utils.DimenUtils.dp
@@ -68,41 +69,39 @@ internal class WidgetChatListAdapterItemForwardSource(
                 (content.parent as ConstraintLayout).addView(sourceIcon, 0)
             }
 
-            val isDm = data.reference.b() == null // No guild means the message is from a DM or GDM
             val channel = StoreStream.getChannels().getChannel(data.reference.a())
-            val guild = if (!isDm) StoreStream.getGuilds().getGuild(data.reference.b()) else null
+            val guild = StoreStream.getGuilds().getGuild(data.reference.b())
             val timestamp = SnowflakeUtils.toTimestamp(data.reference.c())
-            val shouldShowIcon = isDm || (guild!!.id != adapter.data.guildId && guild.icon != null)
+
+            val shouldShowIcon = guild.id != adapter.data.guildId && guild.icon != null
             val source = when {
-                !isDm && guild!!.id != adapter.data.guildId -> guild.name
+                guild.id != adapter.data.guildId -> guild.name
                 else -> ChannelUtils.getDisplayNameOrDefault(channel, adapter.context, true)
             }
 
             (content.parent as ConstraintLayout).apply {
+                (layoutParams as RecyclerView.LayoutParams).topMargin = if (shouldShowIcon) 2.dp else 0; // Increases the space a bit when the icon is shown, less ugly imo - Wing (wingio)
                 setOnClickListener {
                     StoreStream.getMessagesLoader().jumpToMessage(channel.id, data.reference.c())
                 }
             }
 
             sourceIcon.apply {
-                val iconUrl = when {
-                    isDm -> IconUtils.getForChannel(channel, 64 /* Icon size */)
-                    else -> IconUtils.getForGuild(guild)
-                }
-
                 visibility = if (shouldShowIcon) View.VISIBLE else View.GONE
-                IconUtils.setIcon(this, iconUrl)
-                MGImages.setRoundingParams(/* imageView = */ this, /* borderRadius = */ ICON_SIZE * (if (isDm) 0.5f else 0.3f), false, null, null, null)
-                setTag(R.f.uikit_icon_url, iconUrl)
+                IconUtils.setIcon(this, IconUtils.getForGuild(guild))
+                MGImages.setRoundingParams(/* imageView = */ this, /* borderRadius = */ ICON_SIZE * 0.3f, false, null, null, null)
+                setTag(R.f.uikit_icon_url, IconUtils.getForGuild(guild))
             }
 
             content.apply {
-                setTextColor(ColorCompat.getThemedColor(context, R.b.colorTextMuted))
+                val color = ColorCompat.getThemedColor(context, R.b.colorTextMuted)
+
+                setTextColor(color)
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
                 (layoutParams as ConstraintLayout.LayoutParams).marginStart = if (shouldShowIcon) MARGIN + ICON_SIZE + ICON_PADDING else MARGIN
                 gravity = Gravity.TOP
 
-                arrowIcon.setTint(ColorCompat.getThemedColor(context, R.b.colorTextMuted)) // This is duplicated
+                arrowIcon.setTint(color)
 
                 text = SpannableStringBuilder().apply {
                     append("$source  •  ")
@@ -123,7 +122,7 @@ internal class WidgetChatListAdapterItemForwardSource(
     }
 
     private companion object {
-        val MARGIN = 56.dp // 38dp avatar + 9dp horizontal space
+        val MARGIN = 58.dp // 38dp avatar + 10dp horizontal space
         val ICON_SIZE = 16.dp
         val ICON_PADDING = 5.dp
     }
