@@ -143,7 +143,6 @@ public class ForwardedMessages extends CorePlugin {
                     var snapshots = (ArrayList<MessageSnapshot>) f_modelMessage_messageSnapshots.get(msg);
                     var reference = msg.getMessageReference();
                     if (reference == null) return;
-                    if (reference.b() == null) return; // Don't show source if its a DM/GDM
 
                     var originalChannel = StoreStream.getChannels().getChannel(reference.a());
                     if (originalChannel == null) return; // This also implicitly checks if the user is in the source guild

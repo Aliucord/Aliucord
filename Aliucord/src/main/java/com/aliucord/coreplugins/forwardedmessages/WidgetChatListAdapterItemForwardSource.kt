@@ -69,13 +69,14 @@ internal class WidgetChatListAdapterItemForwardSource(
                 (content.parent as ConstraintLayout).addView(sourceIcon, 0)
             }
 
+            val isDm = data.reference.b() == null // No guild means the message is from a DM or GDM
             val channel = StoreStream.getChannels().getChannel(data.reference.a())
-            val guild = StoreStream.getGuilds().getGuild(data.reference.b())
+            val guild = if (!isDm) StoreStream.getGuilds().getGuild(data.reference.b()) else null
             val timestamp = SnowflakeUtils.toTimestamp(data.reference.c())
 
-            val shouldShowIcon = guild.id != adapter.data.guildId && guild.icon != null
+            val shouldShowIcon = isDm || (guild!!.id != adapter.data.guildId && guild.icon != null)
             val source = when {
-                guild.id != adapter.data.guildId -> guild.name
+                !isDm && guild!!.id != adapter.data.guildId -> guild.name
                 else -> ChannelUtils.getDisplayNameOrDefault(channel, adapter.context, true)
             }
 
@@ -87,10 +88,15 @@ internal class WidgetChatListAdapterItemForwardSource(
             }
 
             sourceIcon.apply {
+                val iconUrl = when {
+                    isDm -> IconUtils.getForChannel(channel, 64 /* Icon size */)
+                    else -> IconUtils.getForGuild(guild)
+                }
+
                 visibility = if (shouldShowIcon) View.VISIBLE else View.GONE
-                IconUtils.setIcon(this, IconUtils.getForGuild(guild))
-                MGImages.setRoundingParams(/* imageView = */ this, /* borderRadius = */ ICON_SIZE * 0.3f, false, null, null, null)
-                setTag(R.f.uikit_icon_url, IconUtils.getForGuild(guild))
+                IconUtils.setIcon(this, iconUrl)
+                MGImages.setRoundingParams(/* imageView = */ this, /* borderRadius = */ ICON_SIZE * (if (isDm) 0.5f else 0.3f), false, null, null, null)
+                setTag(R.f.uikit_icon_url, iconUrl)
             }
 
             content.apply {
