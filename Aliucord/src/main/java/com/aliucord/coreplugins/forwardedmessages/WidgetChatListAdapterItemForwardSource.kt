@@ -39,7 +39,7 @@ internal class WidgetChatListAdapterItemForwardSource(
 ) {
     private val sourceIconId = View.generateViewId()
 
-    private val content: TextView = itemView.findViewById<TextView?>(Utils.getResId("chat_list_adapter_item_text", "id"))
+    private val content: TextView = itemView.findViewById(Utils.getResId("chat_list_adapter_item_text", "id"))
     private val gutter: View = itemView.findViewById(Utils.getResId("chat_list_adapter_item_gutter_bg", "id")) // Just used to style mentions, we hide it
     private val sourceIcon = SimpleDraweeView(itemView.context).apply {
         layoutParams = ConstraintLayout.LayoutParams(ICON_SIZE, ICON_SIZE).apply {
@@ -59,70 +59,69 @@ internal class WidgetChatListAdapterItemForwardSource(
     ).mutate().also { it.setBounds(0, 0, 16.dp, 16.dp) }
 
     @SuppressLint("SetTextI18n")
-    override fun onConfigure(i: Int, data: ChatListEntry?) {
+    override fun onConfigure(i: Int, data: ChatListEntry) {
         super.onConfigure(i, data)
+        if (data !is ForwardSourceChatEntry) return
         gutter.visibility = View.GONE // This is visible by default for some reason
 
-        if (data is ForwardSourceChatEntry) {
-            // If I don't do this and add view on constructor, it crashes the app for some reason
-            if ((content.parent as ConstraintLayout).findViewById<SimpleDraweeView>(sourceIconId) == null) {
-                (content.parent as ConstraintLayout).addView(sourceIcon, 0)
+        // If I don't do this and add view on constructor, it crashes the app for some reason
+        if ((content.parent as ConstraintLayout).findViewById<SimpleDraweeView>(sourceIconId) == null) {
+            (content.parent as ConstraintLayout).addView(sourceIcon, 0)
+        }
+
+        val isDm = data.reference.b() == null // No guild means the message is from a DM or GDM
+        val channel = StoreStream.getChannels().getChannel(data.reference.a())
+        val guild = if (!isDm) StoreStream.getGuilds().getGuild(data.reference.b()) else null
+        val timestamp = SnowflakeUtils.toTimestamp(data.reference.c())
+
+        val shouldShowIcon = isDm || (guild!!.id != adapter.data.guildId && guild.icon != null)
+        val source = when {
+            !isDm && guild!!.id != adapter.data.guildId -> guild.name
+            else -> ChannelUtils.getDisplayNameOrDefault(channel, adapter.context, true)
+        }
+
+        (content.parent as ConstraintLayout).apply {
+            (layoutParams as RecyclerView.LayoutParams).topMargin = if (shouldShowIcon) 2.dp else 0 // Increases the space a bit when the icon is shown, less ugly imo - Wing (wingio)
+            setOnClickListener {
+                StoreStream.getMessagesLoader().jumpToMessage(channel.id, data.reference.c())
+            }
+        }
+
+        sourceIcon.apply {
+            val iconUrl = when {
+                isDm -> IconUtils.getForChannel(channel, 64 /* Icon size */)
+                else -> IconUtils.getForGuild(guild)
             }
 
-            val isDm = data.reference.b() == null // No guild means the message is from a DM or GDM
-            val channel = StoreStream.getChannels().getChannel(data.reference.a())
-            val guild = if (!isDm) StoreStream.getGuilds().getGuild(data.reference.b()) else null
-            val timestamp = SnowflakeUtils.toTimestamp(data.reference.c())
+            visibility = if (shouldShowIcon) View.VISIBLE else View.GONE
+            IconUtils.setIcon(this, iconUrl)
+            MGImages.setRoundingParams(/* imageView = */ this, /* borderRadius = */ ICON_SIZE * (if (isDm) 0.5f else 0.3f), false, null, null, null)
+            setTag(R.f.uikit_icon_url, iconUrl)
+        }
 
-            val shouldShowIcon = isDm || (guild!!.id != adapter.data.guildId && guild.icon != null)
-            val source = when {
-                !isDm && guild!!.id != adapter.data.guildId -> guild.name
-                else -> ChannelUtils.getDisplayNameOrDefault(channel, adapter.context, true)
-            }
+        content.apply {
+            val color = ColorCompat.getThemedColor(context, R.b.colorTextMuted)
 
-            (content.parent as ConstraintLayout).apply {
-                (layoutParams as RecyclerView.LayoutParams).topMargin = if (shouldShowIcon) 2.dp else 0; // Increases the space a bit when the icon is shown, less ugly imo - Wing (wingio)
-                setOnClickListener {
-                    StoreStream.getMessagesLoader().jumpToMessage(channel.id, data.reference.c())
-                }
-            }
+            setTextColor(color)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+            (layoutParams as ConstraintLayout.LayoutParams).marginStart = if (shouldShowIcon) MARGIN + ICON_SIZE + ICON_PADDING else MARGIN
+            gravity = Gravity.TOP
 
-            sourceIcon.apply {
-                val iconUrl = when {
-                    isDm -> IconUtils.getForChannel(channel, 64 /* Icon size */)
-                    else -> IconUtils.getForGuild(guild)
-                }
+            arrowIcon.setTint(color)
 
-                visibility = if (shouldShowIcon) View.VISIBLE else View.GONE
-                IconUtils.setIcon(this, iconUrl)
-                MGImages.setRoundingParams(/* imageView = */ this, /* borderRadius = */ ICON_SIZE * (if (isDm) 0.5f else 0.3f), false, null, null, null)
-                setTag(R.f.uikit_icon_url, iconUrl)
-            }
+            text = SpannableStringBuilder().apply {
+                append("$source  •  ")
+                append("${TimeUtils.toReadableTimeString(context, timestamp, ClockFactory.get())} ")
 
-            content.apply {
-                val color = ColorCompat.getThemedColor(context, R.b.colorTextMuted)
-
-                setTextColor(color)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
-                (layoutParams as ConstraintLayout.LayoutParams).marginStart = if (shouldShowIcon) MARGIN + ICON_SIZE + ICON_PADDING else MARGIN
-                gravity = Gravity.TOP
-
-                arrowIcon.setTint(color)
-
-                text = SpannableStringBuilder().apply {
-                    append("$source  •  ")
-                    append("${TimeUtils.toReadableTimeString(context, timestamp, ClockFactory.get())} ")
-
-                    // Adds the arrow that indicates we can jump to the source
-                    // ================================================================
-                    // We're using this over a compound drawable because the TextView
-                    // takes up all available space. Wrapping also introduces a problem
-                    // that would be a lot more annoying to solve.
-                    val l = length
-                    append(">")
-                    val iconSpan = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ImageSpan(arrowIcon, ImageSpan.ALIGN_BOTTOM) else ImageSpan(arrowIcon)
-                    setSpan(iconSpan, l, length, Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
-                }
+                // Adds the arrow that indicates we can jump to the source
+                // ================================================================
+                // We're using this over a compound drawable because the TextView
+                // takes up all available space. Wrapping also introduces a problem
+                // that would be a lot more annoying to solve.
+                val l = length
+                append(">")
+                val iconSpan = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ImageSpan(arrowIcon, ImageSpan.ALIGN_BOTTOM) else ImageSpan(arrowIcon)
+                setSpan(iconSpan, l, length, Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
             }
         }
     }
