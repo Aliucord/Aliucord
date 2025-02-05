@@ -29,6 +29,7 @@ dependencies {
     api(libs.material)
     api(libs.constraintlayout)
     api(libs.aliuhook)
+    compileOnly(project(":Injector")) // Needed to access certain stubs
 }
 
 tasks {
