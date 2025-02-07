@@ -4,7 +4,7 @@ android-gradle = "7.0.4"
 #noinspection GradleDependency causes errors
 appcompat = "1.4.1"
 dokka = "1.8.10"
-aliuhook = "fb7bf41"
+aliuhook = "09c718c"
 aliucord-gradle = "753ad25"
 discord = "126021"
 #noinspection GradleDependency causes errors
