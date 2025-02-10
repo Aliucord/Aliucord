@@ -167,6 +167,7 @@ task<JavaExec>("disassembleInternal") {
         smaliOriginalDir.exists()
     }
 
+    systemProperty("line.separator", "\n") // Ensure smali output uses LF endings
     mainClass.set("com.android.tools.smali.baksmali.Main")
     args = listOf(
         "disassemble",
