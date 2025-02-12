@@ -76,7 +76,7 @@ ${if (disabled.isEmpty()) "None" else "> ${formatPlugins(disabled)}"}
             val enabledPluginCount = visiblePlugins().count(PluginManager::isPluginEnabled)
 
             // .trimIndent() is broken sadly due to collision with Discord's Kotlin
-            val str = """
+            var str = """
 **Debug Info:**
 > Discord: ${Constants.DISCORD_VERSION}
 > Aliucord: ${BuildConfig.VERSION} ${if (BuildConfig.RELEASE) "" else "(Custom)"}
@@ -84,6 +84,13 @@ ${if (disabled.isEmpty()) "None" else "> ${formatPlugins(disabled)}"}
 > System: Android ${Build.VERSION.RELEASE} (SDK v${Build.VERSION.SDK_INT}) - ${getArchitecture()}
 > Rooted: ${getIsRooted() ?: "Unknown"}
             """
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                val manifest = File("/apex/com.android.art/apex_manifest.pb").takeIf { it.exists() }
+                    ?.readBytes()
+
+                str += "> ART manifest version: ${manifest?.let { ProtobufParser.getField2(it) } ?: "Unknown"}"
+            }
 
             CommandResult(str)
         }
@@ -110,5 +117,39 @@ ${if (disabled.isEmpty()) "None" else "> ${formatPlugins(disabled)}"}
 
     override fun stop(context: Context) {
         commands.unregisterAll()
+    }
+}
+
+private object ProtobufParser {
+    private fun parseVarInt(data: ByteArray, offset: Int): Pair<Long, Int> {
+        var result = 0L
+        var pos = offset
+        var shift = 0
+
+        while (true) {
+            val byte = data[pos++].toInt() and 0xFF
+            result = result or ((byte and 0x7F).toLong() shl shift)
+            if (byte and 0x80 == 0) break
+            shift += 7
+        }
+
+        return result to pos
+    }
+
+    fun getField2(data: ByteArray): Long? {
+        var offset = 0
+
+        while (offset < data.size) {
+            val tag = data[offset++].toInt() and 0xFF
+            if (tag shr 3 == 2) return parseVarInt(data, offset).first
+            offset = when (tag and 0x07) {
+                0 -> parseVarInt(data, offset).second
+                1 -> offset + 8
+                2 -> parseVarInt(data, offset).let { (len, off) -> off + len.toInt() }
+                else -> return null
+            }
+        }
+
+        return null
     }
 }
