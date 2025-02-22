@@ -1,7 +1,7 @@
 @file:Suppress("UnstableApiUsage")
 
 plugins {
-    id("maven-publish")
+    `maven-publish`
     id("org.jetbrains.dokka")
 }
 
@@ -9,7 +9,7 @@ group = "com.aliucord"
 version = "2.1.0"
 
 aliucord {
-    projectType.set(com.aliucord.gradle.ProjectType.CORE)
+    projectType = com.aliucord.gradle.ProjectType.CORE
 }
 
 android {
@@ -21,6 +21,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 
@@ -33,35 +34,17 @@ dependencies {
 }
 
 tasks {
-    dokkaHtml.configure {
-        dokkaSourceSets {
-            named("main") {
-                noAndroidSdkLink.set(false)
-                includeNonPublic.set(false)
-            }
-        }
-    }
-
-    dokkaJavadoc.configure {
-        dokkaSourceSets {
-            named("main") {
-                noAndroidSdkLink.set(false)
-                includeNonPublic.set(false)
-            }
-        }
-    }
-
-    create("pushDebuggable") {
+    register("pushDebuggable") {
         group = "aliucord"
 
         val aliucordPath = "/storage/emulated/0/Aliucord/"
 
         doLast {
-            exec {
+            providers.exec {
                 commandLine(android.adbExecutable, "shell", "touch", "$aliucordPath.debuggable")
             }
 
-            exec {
+            providers.exec {
                 commandLine(
                     android.adbExecutable,
                     "push",
