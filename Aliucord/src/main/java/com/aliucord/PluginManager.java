@@ -257,6 +257,7 @@ public class PluginManager {
             new SupporterBadges(),
             new TokenLogin(),
             new UploadSize(),
+            new AnimatedStatus (),
         };
 
         for (Plugin p : corePlugins) {
