@@ -14,8 +14,9 @@ internal class PluginFile(val plugin: String) : File("${Constants.PLUGINS_PATH}/
     val isInstalled
         get() = this.exists()
 
-    fun install(author: String, repo: String, callback: Runnable? = null) =
+    fun install(author: String, repo: String, callback: Runnable? = null) {
         install("https://github.com/$author/$repo/raw/builds/$plugin.zip", callback)
+    }
 
     fun install(url: String, callback: Runnable? = null) {
         Utils.threadPool.execute {
@@ -32,7 +33,7 @@ internal class PluginFile(val plugin: String) : File("${Constants.PLUGINS_PATH}/
                         PluginManager.unloadPlugin(plugin)
                     }
                     PluginManager.loadPlugin(Utils.appContext, this)
-                    PluginManager.startPlugin(plugin)
+                    PluginManager.enablePlugin(plugin)
                     Utils.showToast("Plugin $plugin successfully ${if (isReinstall) "re" else ""}installed!")
 
                     if (PluginManager.plugins[plugin]?.requiresRestart() == true)
