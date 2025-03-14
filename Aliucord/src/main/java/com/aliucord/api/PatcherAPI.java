@@ -28,6 +28,7 @@ public class PatcherAPI {
 
     private Runnable createUnpatch(Runnable _unpatch) {
         Runnable unpatch = new Runnable() {
+            @Override
             public void run() {
                 _unpatch.run();
                 unpatches.remove(this);
@@ -39,6 +40,7 @@ public class PatcherAPI {
 
     private Runnable createUnpatch(XC_MethodHook.Unhook unhook) {
         Runnable unpatch = new Runnable() {
+            @Override
             public void run() {
                 unhook.unhook();
                 unpatches.remove(this);

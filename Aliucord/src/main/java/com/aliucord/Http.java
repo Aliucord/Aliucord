@@ -104,6 +104,7 @@ public class Http {
          * Build the finished Url
          */
         @NonNull
+        @Override
         public String toString() {
             String str = sb.toString();
             return str.substring(0, str.length() - 1); // Remove last & or ? if no query specified
