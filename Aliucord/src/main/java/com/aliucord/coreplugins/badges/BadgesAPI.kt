@@ -3,7 +3,9 @@ package com.aliucord.coreplugins.badges
 import com.aliucord.*
 import com.aliucord.api.SettingsAPI
 import com.aliucord.settings.delegate
-import kotlin.time.*
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.ExperimentalTime
 
 internal class BadgesAPI(private val settings: SettingsAPI) {
     private var SettingsAPI.cacheExpiration by settings.delegate(0L)
