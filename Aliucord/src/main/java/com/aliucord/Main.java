@@ -41,6 +41,7 @@ import com.discord.api.message.embed.EmbedField;
 import com.discord.app.*;
 import com.discord.databinding.WidgetChangeLogBinding;
 import com.discord.databinding.WidgetDebuggingAdapterItemBinding;
+import com.discord.models.domain.*;
 import com.discord.models.domain.emoji.ModelEmojiUnicode;
 import com.discord.stores.StoreStream;
 import com.discord.utilities.color.ColorCompat;
@@ -95,6 +96,26 @@ public final class Main {
 
         Patcher.addPatch(WidgetChatList.class.getDeclaredConstructor(), new Hook(param ->
             Utils.widgetChatList = (WidgetChatList) param.thisObject));
+
+        // Fix 2025-04-03 gateway change that ported visual refresh theme names over the legacy user settings
+        // Theme entries like "darker" and "midnight" are unsupported
+        Patcher.addPatch(ModelPayload.class, "assignField", new Class<?>[]{ Model.JsonReader.class }, new Hook(param -> {
+            var $this = (ModelPayload) param.thisObject;
+
+            var userSettings = $this.getUserSettings();
+            if (userSettings == null) return;
+
+            var theme = userSettings.getTheme();
+            if (ModelUserSettings.THEME_DARK.equals(theme) ||
+                ModelUserSettings.THEME_LIGHT.equals(theme) ||
+                ModelUserSettings.THEME_PURE_EVIL.equals(theme)) return;
+
+            try {
+                ReflectUtils.setField(userSettings, "theme", "dark");
+            } catch (Exception e) {
+                logger.error("Failed to fix ModelUserSettings theme", e);
+            }
+        }));
     }
 
     private static void preInitWithPermissions(AppCompatActivity activity) {
