@@ -35,7 +35,7 @@ internal class UploadSize : CorePlugin(Manifest("UploadSize")) {
 
     @Suppress("PropertyName", "unused")
     private companion object {
-        const val DEFAULT_MAX_FILE_SIZE = 25
+        const val DEFAULT_MAX_FILE_SIZE = 10
         var id = 1
 
         class InitAttachmentUpload(val files: Array<File>) {
