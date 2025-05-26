@@ -24,6 +24,10 @@ import com.discord.utilities.messagesend.`MessageQueue$doSend$2`
 import com.discord.utilities.premium.PremiumUtils
 import com.discord.utilities.rest.AttachmentRequestBody
 import com.discord.utilities.rest.SendUtils
+import com.discord.utilities.rest.SendUtilsKt
+import com.discord.widgets.chat.MessageManager
+import com.discord.widgets.chat.MessageManager.AttachmentValidationResult
+import com.discord.widgets.chat.MessageManager.AttachmentsRequest
 import com.lytefast.flexinput.model.Attachment
 import de.robv.android.xposed.XposedBridge
 import rx.subjects.BehaviorSubject
@@ -35,7 +39,7 @@ internal class UploadSize : CorePlugin(Manifest("UploadSize")) {
 
     @Suppress("PropertyName", "unused")
     private companion object {
-        const val DEFAULT_MAX_FILE_SIZE = 25
+        const val DEFAULT_MAX_FILE_SIZE = 10
         var id = 1
 
         class InitAttachmentUpload(val files: Array<File>) {
@@ -75,6 +79,26 @@ internal class UploadSize : CorePlugin(Manifest("UploadSize")) {
                 PremiumTier.TIER_2 -> 500 // Nitro
                 else -> DEFAULT_MAX_FILE_SIZE
             }
+        }
+
+        // Perform validation per-attachment instead of per-message
+        patcher.instead<MessageManager>("validateAttachments", AttachmentsRequest::class.java) { (_, request: AttachmentsRequest?) ->
+            if (request == null) {
+                return@instead AttachmentValidationResult.EmptyAttachments.INSTANCE
+            }
+            val attachments: List<Attachment<*>>? = request.attachments
+            if (!attachments.isNullOrEmpty()) {
+                for (attachment in attachments) {
+                    val uri = attachment.uri
+                    val contentResolver = context.contentResolver
+                    val size = SendUtilsKt.computeFileSizeMegabytes(uri, contentResolver)
+                    if (size > request.maxFileSizeMB) {
+                        return@instead AttachmentValidationResult.FilesTooLarge(request)
+                    }
+                }
+                return@instead AttachmentValidationResult.Success.INSTANCE
+            }
+            AttachmentValidationResult.EmptyAttachments.INSTANCE
         }
 
         patcher.instead<ImageUploadFailedDialog>("onViewBound", View::class.java) {
