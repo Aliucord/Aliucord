@@ -13,7 +13,7 @@ indent_size = 4
 # these are Intellij specific so they will only work in Android Studio / IDEA
 ij_continuation_indent_size = 4
 
-[*.java]
+[*.java]sfdsfdfsd
 ij_java_names_count_to_use_import_on_demand = 3
 ij_java_class_count_to_use_import_on_demand = 3
 ij_java_blank_lines_around_method_in_interface = 0
