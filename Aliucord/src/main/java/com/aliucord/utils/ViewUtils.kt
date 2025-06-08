@@ -5,14 +5,6 @@ import android.view.ViewGroup
 
 object ViewUtils {
     /**
-     * Shorthand extension function to add a View into a ViewGroup
-     *
-     * @param group ViewGroup to add this View into
-     * @return The View
-     */
-    fun <T : View> T.addTo(group: ViewGroup): T = apply { group.addView(this) }
-
-    /**
      * Shorthand extension function to add a View into a ViewGroup, and then
      * run a scoped function
      *
@@ -20,7 +12,7 @@ object ViewUtils {
      * @param block A scoped function, with the View as its receiver
      * @return The View
      */
-    fun <T : View> T.addTo(group: ViewGroup, block: T.() -> Unit): T = apply { block(); group.addView(this) }
+    fun <T : View> T.addTo(group: ViewGroup, block: (T.() -> Unit)? = null): T = apply { block?.invoke(this); group.addView(this) }
 
     /**
      * Shorthand extension function to add a View into a ViewGroup at specified
@@ -31,5 +23,5 @@ object ViewUtils {
      * @param block A scoped function, with the View as its receiver
      * @return The View
      */
-    fun <T : View> T.addTo(group: ViewGroup, index: Int, block: T.() -> Unit): T = apply { block(); group.addView(this, index) }
+    fun <T : View> T.addTo(group: ViewGroup, index: Int, block: (T.() -> Unit)? = null): T = apply { block?.invoke(this); group.addView(this, index) }
 }
