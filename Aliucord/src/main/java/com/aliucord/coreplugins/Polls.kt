@@ -2,17 +2,41 @@ package com.aliucord.coreplugins
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Typeface
+import android.text.SpannableString
+import android.text.SpannableStringBuilder
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
+import android.view.View
 import android.view.ViewGroup
 import com.aliucord.api.GatewayAPI
-import com.aliucord.coreplugins.polls.*
+import com.aliucord.coreplugins.polls.MessagePollVoteEvent
+import com.aliucord.coreplugins.polls.PollChatEntry
+import com.aliucord.coreplugins.polls.PollViewHolder
 import com.aliucord.entities.CorePlugin
-import com.aliucord.patcher.*
-import com.discord.api.message.poll.*
+import com.aliucord.patcher.Hook
+import com.aliucord.patcher.after
+import com.aliucord.patcher.before
+import com.aliucord.wrappers.embeds.FieldWrapper.Companion.name
+import com.aliucord.wrappers.embeds.FieldWrapper.Companion.value
+import com.aliucord.wrappers.embeds.MessageEmbedWrapper.Companion.rawFields
+import com.discord.api.channel.Channel
+import com.discord.api.message.poll.MessagePoll
+import com.discord.api.message.poll.MessagePollAnswerCount
+import com.discord.api.message.poll.MessagePollResult
+import com.discord.models.member.GuildMember
+import com.discord.stores.StoreMessageState
 import com.discord.stores.StoreStream
 import com.discord.views.CheckedSetting
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapter
+import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemSystemMessage
+import com.discord.widgets.chat.list.adapter.`WidgetChatListAdapterItemSystemMessage$getSystemMessage$1`
+import com.discord.widgets.chat.list.adapter.`WidgetChatListAdapterItemSystemMessage$getSystemMessage$usernameRenderContext$1`
+import com.discord.widgets.chat.list.adapter.`WidgetChatListAdapterItemSystemMessage$onConfigure$1`
 import com.discord.widgets.chat.list.entries.ChatListEntry
+import com.lytefast.flexinput.R
 import de.robv.android.xposed.XposedBridge
+import kotlin.math.roundToInt
 import com.discord.api.message.Message as ApiMessage
 import com.discord.models.message.Message as ModelMessage
 
@@ -22,6 +46,10 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
 
     private val apiMsgPollField = ApiMessage::class.java.getDeclaredField("poll")
     private val modelMsgPollField = ModelMessage::class.java.getDeclaredField("poll")
+
+    companion object {
+        const val POLL_RESULT_MESSAGE_TYPE = 46
+    }
 
     @Synchronized
     fun handleVoteChange(event: MessagePollVoteEvent, isAdd: Boolean) {
@@ -84,11 +112,19 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
                 modelMsgPollField.set(callFrame.result, poll)
         })
 
-        // createEmbedEntries *might* be a better candidate to add our entries, but also this
-        // method has a far less complicated signature, so im using it - Lava (lavadesu)
         patcher.after<ChatListEntry.Companion>(
-            "createStickerEntries",
+            "createEmbedEntries",
             ModelMessage::class.java,
+            StoreMessageState.State::class.java,
+            Boolean::class.javaPrimitiveType!!,
+            Boolean::class.javaPrimitiveType!!,
+            Boolean::class.javaPrimitiveType!!,
+            Boolean::class.javaPrimitiveType!!,
+            Boolean::class.javaPrimitiveType!!,
+            Channel::class.java,
+            GuildMember::class.java,
+            Map::class.java,
+            Map::class.java,
         ) { call ->
             val message = call.args[0] as ModelMessage
             val poll = modelMsgPollField.get(message) as MessagePoll?
@@ -97,8 +133,74 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
 
             @Suppress("UNCHECKED_CAST")
             val res = (call.result as List<ChatListEntry>).toMutableList()
-            res.add(PollChatEntry(poll, message))
+            res.add(0, PollChatEntry(poll, message))
             call.result = res
+        }
+
+        // Patch poll result message icon
+        patcher.before<WidgetChatListAdapterItemSystemMessage>(
+            "getIcon",
+            ModelMessage::class.java
+        ) { call ->
+            val msg = call.args[0] as ModelMessage
+            if (msg.type == POLL_RESULT_MESSAGE_TYPE) // POLL_RESULT
+                call.result = R.e.ic_sort_white_24dp
+        }
+        // Patch poll result message content
+        patcher.before<`WidgetChatListAdapterItemSystemMessage$getSystemMessage$1`>(
+            "invoke",
+            Context::class.java
+        ) { call ->
+            val msg = `$this_getSystemMessage`
+            if (msg.type == POLL_RESULT_MESSAGE_TYPE) {
+                val renderCtx = `$usernameRenderContext` as `WidgetChatListAdapterItemSystemMessage$getSystemMessage$usernameRenderContext$1`
+                val color = renderCtx.`$authorRoleColor`
+
+                var pollQuestionText = ""
+                var victorAnswerVotes = 0
+                var totalVotes = 0
+                var victorAnswerId: Int? = null
+                var victorAnswerText: String? = null
+                msg.embeds.getOrNull(0)?.rawFields?.forEach {
+                    when (it.name) {
+                        "poll_question_text" -> pollQuestionText = it.value
+                        "victor_answer_votes" -> victorAnswerVotes = it.value.toInt()
+                        "total_votes" -> totalVotes = it.value.toInt()
+                        "victor_answer_id" -> victorAnswerId = it.value.toInt()
+                        "victor_answer_text" -> victorAnswerText = it.value
+                    }
+                } ?: return@before logger.error("Tried to render poll result, but there was no embed?", null)
+
+                val span = SpannableStringBuilder()
+                span.append(`$authorName`, ForegroundColorSpan(color), SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
+                span.append("'s poll ")
+                span.append(pollQuestionText, StyleSpan(Typeface.BOLD), SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
+                span.append(" has closed! ")
+
+                if (totalVotes == 0)
+                    totalVotes = 1 // Prevent division by 0
+                val percent = (victorAnswerVotes.toDouble() * 100 / totalVotes).roundToInt()
+                if (victorAnswerVotes == 0)
+                    span.append("There were no votes :(")
+                else if (victorAnswerText == null)
+                    span.append("The result was a draw (${percent}%).")
+                else {
+                    span.append("The winner was ")
+                    span.append(victorAnswerText, StyleSpan(Typeface.BOLD), SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    span.append(" (${percent}%).")
+                }
+
+                call.result = span
+            }
+        }
+        // Patch message onClick to jump to poll from poll result
+        patcher.before<`WidgetChatListAdapterItemSystemMessage$onConfigure$1`>("onClick", View::class.java) { call ->
+            @Suppress("MISSING_DEPENDENCY_CLASS", "MISSING_DEPENDENCY_SUPERCLASS")
+            val msg = `$message`
+            if (msg.type == POLL_RESULT_MESSAGE_TYPE) {
+                StoreStream.getMessagesLoader().jumpToMessage(msg.messageReference!!.a(), msg.messageReference!!.c());
+                call.result = null
+            }
         }
     }
 
