@@ -1,9 +1,9 @@
---- smali/com/discord/api/message/Message.smali	2024-12-23 11:57:06.390065000 +0300
-+++ smali/com/discord/api/message/Message.smali	2025-01-06 17:05:48.862649100 +0300
-@@ -237,6 +237,16 @@
-
+--- ./build/smali_original/com/discord/api/message/Message.smali	2025-06-05 18:09:53.207471297 +1000
++++ ./smali/com/discord/api/message/Message.smali	2025-06-05 18:55:34.396100762 +1000
+@@ -237,6 +237,18 @@
+ 
  .field private final messageReference:Lcom/discord/api/message/MessageReference;
-
+ 
 +.field public messageSnapshots:Ljava/util/List;
 +   .annotation system Ldalvik/annotation/Signature;
 +       value = {
@@ -14,6 +14,8 @@
 +   .end annotation
 +.end field
 +
++.field public poll:Lcom/discord/api/message/poll/MessagePoll;
++
  .field private final nonce:Ljava/lang/String;
-
+ 
  .field private final pinned:Ljava/lang/Boolean;
