@@ -9,7 +9,7 @@ aliucord-gradle = "753ad25"
 discord = "126021"
 #noinspection GradleDependency causes errors
 material = "1.5.0"
-constraintlayout = "2.1.4"
+constraintlayout = "2.1.4"sdfsdfdfs
 
 [libraries]
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
