@@ -11,7 +11,7 @@ android {
         buildConfig = false
         androidResources = false
     }
-}
+}fgddgfdgf
 
 dependencies {
     implementation(libs.appcompat)
