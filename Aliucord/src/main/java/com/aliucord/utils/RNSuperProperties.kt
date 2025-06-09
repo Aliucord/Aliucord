@@ -21,11 +21,8 @@ object RNSuperProperties {
         Main.settings.setString("rnVendorId", it)
     }
 
-    // FIXME: This might not be random
     @JvmStatic
-    val launchId = Main.settings.getString("rnLaunchId", null) ?: UUID.randomUUID().toString().also {
-        Main.settings.setString("rnLaunchId", it)
-    }
+    val launchId = UUID.randomUUID().toString()
 
     // FIXME: This might not be random
     @JvmStatic
