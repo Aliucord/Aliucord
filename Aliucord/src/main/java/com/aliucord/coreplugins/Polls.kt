@@ -112,6 +112,46 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
                 res.poll = apiMessage.poll?.copy()
         }
 
+        /**
+         * So apparently when a poll ends, in the message update payload, all of me_voted are
+         * cleared to false. Therefore, we need to patch the event handler to find the last model
+         * and then copy over the voted status here.
+         *
+         * BUT ALSO, when a poll ends, there is actually TWO events that get sent: the first one
+         * updates the expiry date to close the poll; however, this data is actually missing the
+         * results because they aren't finalised yet. It's only the second event (poll finalised)
+         * that the results data is included, but the me_voted is cleared with it.
+         *
+         * So we also have to copy the results over during the first event (which is recommended
+         * per Discord's doc), and then in the second event we use that to keep me_voted data.
+         *
+         * - Lava (lavadesu)
+         */
+        patcher.before<StoreStream>("handleMessageUpdate", ApiMessage::class.java) { callFrame ->
+            val msg = callFrame.args[0] as ApiMessage
+            val poll = msg.poll
+            if (poll == null)
+                return@before
+
+            val oldPoll = StoreStream.getMessages().getMessage(msg.g(), msg.o())?.poll
+
+            // If we don't have the message in cache, don't do anything.
+            // The REST API sends me_voted correctly.
+            if (oldPoll == null)
+                return@before
+
+            // First (unfinalised) event: Retain old results
+            if (poll.results == null) {
+                msg.poll = poll.copy(results = oldPoll.results)
+                return@before
+            }
+
+            // Second (finalised) event: Retain me_voted
+            for (count in oldPoll.results!!.answerCounts)
+                if (count.meVoted)
+                    poll.results!!.answerCounts.find { it.id == count.id }!!.meVoted = true
+        }
+
         patcher.after<ChatListEntry.Companion>(
             "createEmbedEntries",
             ModelMessage::class.java,
