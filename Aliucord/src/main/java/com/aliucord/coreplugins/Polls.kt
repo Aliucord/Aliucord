@@ -48,6 +48,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         const val POLL_RESULT_MESSAGE_TYPE = 46
     }
 
+    // Handle vote changes from the gateway
     @Synchronized
     fun handleVoteChange(event: MessagePollVoteEvent, isAdd: Boolean) {
         val store = StoreStream.getMessages()
@@ -96,6 +97,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             }
         }
 
+        // Watch for poll vote gateway events
         GatewayAPI.onEvent<MessagePollVoteEvent>("MESSAGE_POLL_VOTE_ADD") { handleVoteChange(it, true) }
         GatewayAPI.onEvent<MessagePollVoteEvent>("MESSAGE_POLL_VOTE_REMOVE") { handleVoteChange(it, false) }
 
@@ -103,13 +105,13 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         patcher.after<ModelMessage>(ApiMessage::class.java) { callFrame ->
             val apiMessage = callFrame.args[0] as ApiMessage
             if (apiMessage.poll != null)
-                poll = apiMessage.poll?.copy()
+                poll = apiMessage.poll
         }
         patcher.after<ModelMessage>("merge", ApiMessage::class.java) { callFrame ->
             val apiMessage = callFrame.args[0] as ApiMessage
             val res = callFrame.result as ModelMessage
             if (apiMessage.poll != null)
-                res.poll = apiMessage.poll?.copy()
+                res.poll = apiMessage.poll
         }
 
         /**
@@ -152,6 +154,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
                     poll.results!!.answerCounts.find { it.id == count.id }!!.meVoted = true
         }
 
+        // Patch to attach our poll entry into the chat; we do this before embeds like other clients
         patcher.after<ChatListEntry.Companion>(
             "createEmbedEntries",
             ModelMessage::class.java,
