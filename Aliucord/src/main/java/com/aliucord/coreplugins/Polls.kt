@@ -5,7 +5,6 @@ import android.content.Context
 import android.graphics.Typeface
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
-import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import android.view.View
 import android.view.ViewGroup
@@ -26,10 +25,12 @@ import com.discord.api.message.poll.MessagePollResult
 import com.discord.models.member.GuildMember
 import com.discord.stores.StoreMessageState
 import com.discord.stores.StoreStream
+import com.discord.utilities.spans.ClickableSpan
 import com.discord.views.CheckedSetting
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapter
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemSystemMessage
 import com.discord.widgets.chat.list.adapter.`WidgetChatListAdapterItemSystemMessage$getSystemMessage$1`
+import com.discord.widgets.chat.list.adapter.`WidgetChatListAdapterItemSystemMessage$getSystemMessage$roleSubscriptionPurchaseContext$1`
 import com.discord.widgets.chat.list.adapter.`WidgetChatListAdapterItemSystemMessage$getSystemMessage$usernameRenderContext$1`
 import com.discord.widgets.chat.list.adapter.`WidgetChatListAdapterItemSystemMessage$onConfigure$1`
 import com.discord.widgets.chat.list.entries.ChatListEntry
@@ -171,7 +172,12 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
                 } ?: return@before logger.error("Tried to render poll result, but there was no embed?", null)
 
                 val span = SpannableStringBuilder()
-                span.append(`$authorName`, ForegroundColorSpan(color), SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
+                val authorSpan = ClickableSpan(color, false, null) {
+                    val roleCtx = `$roleSubscriptionPurchaseContext` as `WidgetChatListAdapterItemSystemMessage$getSystemMessage$roleSubscriptionPurchaseContext$1`;
+                    @Suppress("MISSING_DEPENDENCY_CLASS", "MISSING_DEPENDENCY_SUPERCLASS")
+                    roleCtx.`this$0`.adapter.eventHandler.onMessageAuthorAvatarClicked(msg, StoreStream.getGuildSelected().selectedGuildId)
+                }
+                span.append(`$authorName`, authorSpan, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
                 span.append("'s poll ")
                 span.append(pollQuestionText, StyleSpan(Typeface.BOLD), SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
                 span.append(" has closed! ")
