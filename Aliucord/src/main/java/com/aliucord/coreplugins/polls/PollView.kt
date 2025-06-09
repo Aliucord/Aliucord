@@ -185,8 +185,10 @@ internal class PollView(private val ctx: Context) : MaterialCardView(ctx) {
             subtext.text = "Select one answer"
 
         val totalCount = data.results?.answerCounts?.sumOf { it.count } ?: 0
-        val expiryText = if (expired)
+        val expiryText = if (state == PollViewState.FINALISED)
             "Poll closed"
+        else if (state == PollViewState.CLOSED)
+            "Poll closing"
         else if (data.expiry != null)
             DateUtils.getRelativeTimeSpanString(data.expiry!!.g())
         else
