@@ -7,6 +7,7 @@ import android.view.ContextThemeWrapper
 import android.widget.TextView
 import com.aliucord.Http
 import com.aliucord.Logger
+import com.aliucord.Utils
 import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.views.Button
@@ -196,9 +197,8 @@ internal class PollView(private val ctx: Context) : MaterialCardView(ctx) {
         val append = expiryText?.let { "  •  $expiryText" } ?: ""
         infoText.text = "$totalCount vote${if (totalCount != 1) "s" else ""}$append"
 
-        // https://canary.discord.com/api/v9/channels/424566511412183052/polls/1381111656385482844/answers/@me
         voteHandler = { isVoting ->
-            Thread {
+            Utils.threadPool.execute {
                 val req = Http.Request.newDiscordRNRequest(
                     "/channels/${entry.message.channelId}/polls/${entry.message.id}/answers/@me",
                     "PUT"
@@ -217,7 +217,7 @@ internal class PollView(private val ctx: Context) : MaterialCardView(ctx) {
                     showResultsButton.isEnabled = true
                     removeVoteButton.isEnabled = true
                 }
-            }.start()
+            }
         }
     }
 }
