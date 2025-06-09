@@ -4,12 +4,15 @@ import android.content.Context
 import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.views.Divider
 import com.aliucord.widgets.LinearLayout
-import com.discord.api.message.poll.*
+import com.discord.api.message.poll.MessagePoll
+import com.discord.api.message.poll.MessagePollAnswerCount
+import com.discord.api.message.poll.MessagePollResult
 
 internal class PollAnswersContainerView(private val ctx: Context) : LinearLayout(ctx) {
     private val answerViews = HashMap<Int, PollAnswerView>()
 
-    val onHasClickedChange: ((Boolean) -> Unit)? = null
+    val hasClicked get() = getCheckedAnswers().count() > 0
+    var onHasClickedChange: ((Boolean) -> Unit)? = null
 
     fun configure(data: MessagePoll) {
         removeAllViews()

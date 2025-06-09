@@ -38,7 +38,7 @@ internal class PollView(private val ctx: Context) : MaterialCardView(ctx) {
             onStateChange(previous)
         }
 
-    data class PutPollPayload(@Suppress("PropertyName") val answer_ids: List<String>)
+    data class PutPollPayload(@Suppress("PropertyName") val answer_ids: List<Int>)
 
     private var voteHandler: ((Boolean) -> Unit)? = null
 
@@ -63,6 +63,9 @@ internal class PollView(private val ctx: Context) : MaterialCardView(ctx) {
             }
             answersContainer = PollAnswersContainerView(ctx).addTo(this) {
                 setPadding(0, p, 0, p / 2)
+                onHasClickedChange = {
+                    voteButton.isEnabled = it
+                }
             }
             LinearLayout(ctx).addTo(this) {
                 setPadding(p, 0, p, 0)
@@ -70,6 +73,7 @@ internal class PollView(private val ctx: Context) : MaterialCardView(ctx) {
 
                 voteButton = Button(ctx).addTo(this) {
                     text = "Vote"
+                    isEnabled = false
                     setOnClickListener {
                         isEnabled = false
                         showResultsButton.isEnabled = false
@@ -119,7 +123,7 @@ internal class PollView(private val ctx: Context) : MaterialCardView(ctx) {
 
     internal fun onStateChange(previousState: PollViewState) {
         if (state != previousState) {
-            voteButton.isEnabled = true
+            voteButton.isEnabled = answersContainer.hasClicked
             showResultsButton.isEnabled = true
             removeVoteButton.isEnabled = true
         }
@@ -180,10 +184,19 @@ internal class PollView(private val ctx: Context) : MaterialCardView(ctx) {
 
         title.text = data.question.text
 
-        if (data.allowMultiselect)
-            subtext.text = "Select one or more answers"
+        subtext.text = if (data.allowMultiselect)
+            "Select one or more answers"
         else
-            subtext.text = "Select one answer"
+            "Select one answer"
+        when (state) {
+            PollViewState.CLOSED,
+            PollViewState.FINALISED -> {
+                subtext.visibility = GONE
+            }
+            else -> {
+                subtext.visibility = VISIBLE
+            }
+        }
 
         val totalCount = data.results?.answerCounts?.sumOf { it.count } ?: 0
         val expiryText = if (state == PollViewState.FINALISED)
@@ -204,15 +217,14 @@ internal class PollView(private val ctx: Context) : MaterialCardView(ctx) {
                     "PUT"
                 ).setRequestTimeout(10000).executeWithJson(PutPollPayload(
                     if (isVoting)
-                        this.answersContainer.getCheckedAnswers()
-                            .map { it.toString() }
-                            .toList()
+                        this.answersContainer.getCheckedAnswers().toList()
                     else
                         listOf()
                 ))
 
                 if (!req.ok()) {
-                    Logger("Polls").errorToast("Failed to submit poll vote", null)
+                    Logger("Polls").errorToast("Failed to submit poll vote")
+                    Logger("Polls").error("${req.statusCode} ${req.statusMessage} ${req.text()}", null)
                     voteButton.isEnabled = true
                     showResultsButton.isEnabled = true
                     removeVoteButton.isEnabled = true
