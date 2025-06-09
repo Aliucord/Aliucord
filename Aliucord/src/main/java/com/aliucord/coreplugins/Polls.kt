@@ -14,14 +14,13 @@ import com.aliucord.coreplugins.polls.MessagePollVoteEvent
 import com.aliucord.coreplugins.polls.PollChatEntry
 import com.aliucord.coreplugins.polls.PollViewHolder
 import com.aliucord.entities.CorePlugin
-import com.aliucord.patcher.Hook
 import com.aliucord.patcher.after
 import com.aliucord.patcher.before
 import com.aliucord.wrappers.embeds.FieldWrapper.Companion.name
 import com.aliucord.wrappers.embeds.FieldWrapper.Companion.value
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper.Companion.rawFields
+import com.aliucord.wrappers.messages.MessageWrapper.Companion.poll
 import com.discord.api.channel.Channel
-import com.discord.api.message.poll.MessagePoll
 import com.discord.api.message.poll.MessagePollAnswerCount
 import com.discord.api.message.poll.MessagePollResult
 import com.discord.models.member.GuildMember
@@ -44,9 +43,6 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
     override val isHidden: Boolean = true
     override val isRequired: Boolean = true
 
-    private val apiMsgPollField = ApiMessage::class.java.getDeclaredField("poll")
-    private val modelMsgPollField = ModelMessage::class.java.getDeclaredField("poll")
-
     companion object {
         const val POLL_RESULT_MESSAGE_TYPE = 46
     }
@@ -61,7 +57,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         if (msg == null)
             return
 
-        val poll = modelMsgPollField.get(msg) as MessagePoll?
+        val poll = msg.poll
         if (poll == null) {
             logger.error("POLL_VOTE gateway event received for message that is not a poll", null)
             return
@@ -81,7 +77,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             targetCount.meVoted = isAdd
 
         val newMsg = msg.synthesizeApiMessage()
-        apiMsgPollField.set(newMsg, poll.copy(results = results.copy(answerCounts = counts)))
+        newMsg.poll = poll.copy(results = results.copy(answerCounts = counts))
 
         store.handleMessageUpdate(newMsg)
     }
@@ -102,15 +98,18 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         GatewayAPI.onEvent<MessagePollVoteEvent>("MESSAGE_POLL_VOTE_ADD") { handleVoteChange(it, true) }
         GatewayAPI.onEvent<MessagePollVoteEvent>("MESSAGE_POLL_VOTE_REMOVE") { handleVoteChange(it, false) }
 
-        patcher.patch(ModelMessage::class.java.getDeclaredConstructor(ApiMessage::class.java), Hook { callFrame ->
-            val poll = apiMsgPollField.get(callFrame.args[0]) as MessagePoll?
-            modelMsgPollField.set(callFrame.thisObject, poll)
-        })
-        patcher.patch(ModelMessage::class.java.getDeclaredMethod("merge", ApiMessage::class.java), Hook { callFrame ->
-            val poll = apiMsgPollField.get(callFrame.args[0]) as MessagePoll?
-            if (poll != null)
-                modelMsgPollField.set(callFrame.result, poll)
-        })
+        // Patch ModelMessage to copy our polls from ApiMessage
+        patcher.after<ModelMessage>(ApiMessage::class.java) { callFrame ->
+            val apiMessage = callFrame.args[0] as ApiMessage
+            if (apiMessage.poll != null)
+                poll = apiMessage.poll?.copy()
+        }
+        patcher.after<ModelMessage>("merge", ApiMessage::class.java) { callFrame ->
+            val apiMessage = callFrame.args[0] as ApiMessage
+            val res = callFrame.result as ModelMessage
+            if (apiMessage.poll != null)
+                res.poll = apiMessage.poll?.copy()
+        }
 
         patcher.after<ChatListEntry.Companion>(
             "createEmbedEntries",
@@ -127,7 +126,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             Map::class.java,
         ) { call ->
             val message = call.args[0] as ModelMessage
-            val poll = modelMsgPollField.get(message) as MessagePoll?
+            val poll = message.poll
             if (poll == null)
                 return@after
 
