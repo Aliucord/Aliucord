@@ -20,8 +20,6 @@ import androidx.lifecycle.ViewModelProvider
 import com.aliucord.*
 import com.aliucord.fragments.SettingsPage
 import com.aliucord.utils.DimenUtils
-import com.aliucord.utils.GsonUtils
-import com.aliucord.utils.GsonUtils.toJson
 import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.views.*
 import com.aliucord.views.Button
@@ -320,7 +318,7 @@ internal class CreatePollScreen : SettingsPage() {
             }.show(fragmentManager, DurationSelectorSheet::class.java.name)
         }
 
-        fun buildPayload(): Payload = Payload(MessagePoll(
+        private fun buildPayload(): Payload = Payload(MessagePoll(
             question = MessagePollMedia(state.question.toString(), null),
             answers = state.answers.map {
                 MessagePollAnswer(null, MessagePollMedia(it.answer.toString(), it.emoji?.asReactionEmoji()))
@@ -425,9 +423,7 @@ internal class CreatePollScreen : SettingsPage() {
                 }
             }
 
-            val debugTextView = TextView(ctx).addTo(this)
-
-            val createButton = Button(context).margin(top = true).addTo(this) {
+            val createButton = Button(ctx).margin(top = true).addTo(this) {
                 text = "Create Poll"
                 setOnClickListener {
                     viewModel.sendRequest(channelId)
@@ -471,7 +467,6 @@ internal class CreatePollScreen : SettingsPage() {
                         }
                     }
                 }
-                debugTextView.text = GsonUtils.gson.toJson(viewModel.buildPayload())
             }
         }
     }
