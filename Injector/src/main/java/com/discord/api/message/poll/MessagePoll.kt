@@ -7,6 +7,7 @@ data class MessagePoll (
     val answers: List<MessagePollAnswer>,
     val results: MessagePollResult?,
     val expiry: UtcDateTime?,
+    val duration: Int?,
     @b.i.d.p.b("allow_multiselect")
     val allowMultiselect: Boolean,
     @b.i.d.p.b("layout_type")

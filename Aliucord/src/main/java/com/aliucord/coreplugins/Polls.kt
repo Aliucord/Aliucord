@@ -1,20 +1,26 @@
+@file:Suppress("MISSING_DEPENDENCY_CLASS", "MISSING_DEPENDENCY_SUPERCLASS")
 package com.aliucord.coreplugins
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Typeface
+import android.content.Intent
+import android.graphics.*
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.style.StyleSpan
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
+import androidx.core.content.ContextCompat
+import com.aliucord.Http
+import com.aliucord.Utils
 import com.aliucord.api.GatewayAPI
-import com.aliucord.coreplugins.polls.MessagePollVoteEvent
-import com.aliucord.coreplugins.polls.PollChatEntry
-import com.aliucord.coreplugins.polls.PollViewHolder
+import com.aliucord.coreplugins.polls.*
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.after
 import com.aliucord.patcher.before
+import com.aliucord.wrappers.ChannelWrapper.Companion.id
+import com.aliucord.wrappers.ChannelWrapper.Companion.name
 import com.aliucord.wrappers.embeds.FieldWrapper.Companion.name
 import com.aliucord.wrappers.embeds.FieldWrapper.Companion.value
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper.Companion.rawFields
@@ -25,20 +31,21 @@ import com.discord.api.message.poll.MessagePollResult
 import com.discord.models.member.GuildMember
 import com.discord.stores.StoreMessageState
 import com.discord.stores.StoreStream
+import com.discord.utilities.color.ColorCompat
 import com.discord.utilities.spans.ClickableSpan
 import com.discord.views.CheckedSetting
-import com.discord.widgets.chat.list.adapter.WidgetChatListAdapter
-import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemSystemMessage
-import com.discord.widgets.chat.list.adapter.`WidgetChatListAdapterItemSystemMessage$getSystemMessage$1`
-import com.discord.widgets.chat.list.adapter.`WidgetChatListAdapterItemSystemMessage$getSystemMessage$roleSubscriptionPurchaseContext$1`
-import com.discord.widgets.chat.list.adapter.`WidgetChatListAdapterItemSystemMessage$getSystemMessage$usernameRenderContext$1`
-import com.discord.widgets.chat.list.adapter.`WidgetChatListAdapterItemSystemMessage$onConfigure$1`
+import com.discord.widgets.chat.input.*
+import com.discord.widgets.chat.list.actions.WidgetChatListActions
+import com.discord.widgets.chat.list.adapter.*
 import com.discord.widgets.chat.list.entries.ChatListEntry
+import com.google.android.material.tabs.TabLayout
 import com.lytefast.flexinput.R
+import com.lytefast.flexinput.fragment.FlexInputFragment
 import de.robv.android.xposed.XposedBridge
 import kotlin.math.roundToInt
 import com.discord.api.message.Message as ApiMessage
 import com.discord.models.message.Message as ModelMessage
+
 
 internal class Polls : CorePlugin(Manifest("Polls")) {
     override val isHidden: Boolean = true
@@ -52,7 +59,6 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
     @Synchronized
     fun handleVoteChange(event: MessagePollVoteEvent, isAdd: Boolean) {
         val store = StoreStream.getMessages()
-        @Suppress("MISSING_DEPENDENCY_CLASS", "MISSING_DEPENDENCY_SUPERCLASS")
         val meId = StoreStream.getUsers().me.id
 
         val msg = store.getMessage(event.channelId, event.messageId)
@@ -217,7 +223,6 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
                 val span = SpannableStringBuilder()
                 val authorSpan = ClickableSpan(color, false, null) {
                     val roleCtx = `$roleSubscriptionPurchaseContext` as `WidgetChatListAdapterItemSystemMessage$getSystemMessage$roleSubscriptionPurchaseContext$1`;
-                    @Suppress("MISSING_DEPENDENCY_CLASS", "MISSING_DEPENDENCY_SUPERCLASS")
                     roleCtx.`this$0`.adapter.eventHandler.onMessageAuthorAvatarClicked(msg, StoreStream.getGuildSelected().selectedGuildId)
                 }
                 span.append(`$authorName`, authorSpan, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
@@ -243,11 +248,94 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         }
         // Patch message onClick to jump to poll from poll result
         patcher.before<`WidgetChatListAdapterItemSystemMessage$onConfigure$1`>("onClick", View::class.java) { call ->
-            @Suppress("MISSING_DEPENDENCY_CLASS", "MISSING_DEPENDENCY_SUPERCLASS")
             val msg = `$message`
             if (msg.type == POLL_RESULT_MESSAGE_TYPE) {
                 StoreStream.getMessagesLoader().jumpToMessage(msg.messageReference!!.a(), msg.messageReference!!.c());
                 call.result = null
+            }
+        }
+
+        // Patch the input attachments to add a button to create polls
+        val pollStringId = View.generateViewId()
+        patcher.after<`WidgetChatInputAttachments$configureFlexInputContentPages$1`>("invoke") {
+            val flexInputFragment = WidgetChatInputAttachments.`access$getFlexInputFragment$p`(this.`this$0`)
+            val ctx = flexInputFragment.requireContext()
+            val pages = flexInputFragment.r.toMutableList()
+            val page = `WidgetChatInputAttachments$configureFlexInputContentPages$1$page$1`(ctx, R.e.ic_sort_white_24dp, pollStringId)
+            @Suppress("KotlinConstantConditions")
+            pages.add(page as b.b.a.d.d.a) // I don't know why but IntelliJ complains that page is not the right type
+            flexInputFragment.r = pages.toTypedArray()
+        }
+        patcher.before<TabLayout.Tab>("setContentDescription", Int::class.javaPrimitiveType!!) { call ->
+            val id = call.args[0] as Int
+            if (id == pollStringId) {
+                tag = "poll"
+                call.result = setContentDescription("Create Poll")
+            }
+        }
+        patcher.after<TabLayout.Tab>("setIcon", Int::class.javaPrimitiveType!!) { call ->
+            val id = call.args[0] as Int
+            if (id == R.e.ic_sort_white_24dp) {
+                val color = ColorCompat.getThemedColor(view.context, R.b.flexInputIconColor)
+                icon?.colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_ATOP)
+            }
+        }
+
+        patcher.before<b.b.a.a.b>("onTabSelected", TabLayout.Tab::class.java) { call ->
+            val tab = call.args[0] as TabLayout.Tab
+            val ctx = this.a.requireContext()
+            val parentFragment = this.a.parentFragment as FlexInputFragment
+            if (tab.tag == "poll") {
+                this.a.h(false);
+                parentFragment.s.onContentDialogDismissed(false)
+                call.result = null
+                val channel = StoreStream.getChannelsSelected().selectedChannel
+                val intent = Intent()
+                intent.putExtra("INTENT_CHANNEL_NAME", "#" + channel.name)
+                intent.putExtra("INTENT_CHANNEL_ID", channel.id)
+                Utils.openPage(ctx, CreatePollScreen::class.java, intent)
+            }
+        }
+
+        val endPollId = View.generateViewId()
+        patcher.after<WidgetChatListActions>("configureUI", WidgetChatListActions.Model::class.java) { call ->
+            val layout = (requireView() as ViewGroup).getChildAt(0) as ViewGroup
+            val model = call.args[0] as WidgetChatListActions.Model
+            val msg = model.message!!
+
+            if (msg.poll == null || msg.author.id != StoreStream.getUsers().me.id)
+                return@after
+
+            if (layout.findViewById<View>(endPollId) != null)
+                return@after
+
+            val replyView =
+                layout.findViewById<View>(Utils.getResId("dialog_chat_actions_edit", "id")) ?: return@after
+            val idx = layout.indexOfChild(replyView)
+
+            TextView(layout.context, null, 0, R.i.UiKit_Settings_Item_Icon).apply {
+                id = endPollId
+                text = "End poll now"
+                setOnClickListener {
+                    Utils.threadPool.execute {
+                        val req = Http.Request.newDiscordRNRequest(
+                            "/channels/${msg.channelId}/polls/${msg.id}/expire",
+                            "POST"
+                        ).setRequestTimeout(10000).execute()
+                        if (!req.ok()) {
+                            logger.errorToast("Failed to end poll")
+                            logger.error("${req.statusCode} ${req.statusMessage} ${req.text()}", null)
+                        }
+                    }
+                    dismiss()
+                }
+                ContextCompat.getDrawable(layout.context, R.e.ic_sort_white_24dp)?.run {
+                    mutate()
+                    setTint(ColorCompat.getThemedColor(layout.context, R.b.colorInteractiveNormal))
+                    setCompoundDrawablesRelativeWithIntrinsicBounds(this, null, null, null)
+                }
+
+                layout.addView(this, idx)
             }
         }
     }
