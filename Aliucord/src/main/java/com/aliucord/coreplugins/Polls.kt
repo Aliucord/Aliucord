@@ -285,7 +285,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         patcher.after<TabLayout.Tab>("setIcon", Int::class.javaPrimitiveType!!) { call ->
             val id = call.args[0] as Int
             if (id == R.e.ic_sort_white_24dp) {
-                val color = ColorCompat.getThemedColor(view.context, R.b.flexInputIconColor)
+                val color = ColorCompat.getThemedColor(view, R.b.flexInputIconColor)
                 icon?.colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_ATOP)
             }
         }

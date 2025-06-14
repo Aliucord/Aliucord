@@ -69,6 +69,18 @@ internal class CreatePollScreen : SettingsPage() {
             is ModelEmojiUnicode -> MessageReactionEmoji(null, surrogates, false)
             else -> throw IllegalStateException("Unknown emoji type ${this::class.java.name}")
         }
+
+        private fun createTextInput(ctx: Context, placeholder: String, onAfterTextChanged: (Editable) -> Unit) =
+            TextInput(ctx, placeholder).apply {
+                editText.maxLines = 1
+                editText.addTextChangedListener(object : TextWatcher {
+                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
+                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) { }
+                    override fun afterTextChanged(s: Editable) {
+                        onAfterTextChanged(s)
+                    }
+                })
+            }
     }
 
     @Suppress("unused", "PrivatePropertyName")
@@ -194,22 +206,17 @@ internal class CreatePollScreen : SettingsPage() {
             }
         }
 
-        private val textInput = TextInput(ctx, "Type your answer").addTo(this) {
-            id = textInputId
-            layoutParams = LayoutParams(0, LayoutParams.WRAP_CONTENT).apply {
-                topToTop = LayoutParams.PARENT_ID
-                bottomToBottom = LayoutParams.PARENT_ID
-                startToEnd = emojiButtonId
-                endToStart = deleteButtonId
-            }
-            editText.addTextChangedListener(object : TextWatcher {
-                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) { }
-                override fun afterTextChanged(s: Editable) {
-                    onTextChange?.invoke(s)
+        private val textInput =
+            createTextInput(ctx, "Type your answer") { onTextChange?.invoke(it) }
+                .addTo(this) {
+                    id = textInputId
+                    layoutParams = LayoutParams(0, LayoutParams.WRAP_CONTENT).apply {
+                        topToTop = LayoutParams.PARENT_ID
+                        bottomToBottom = LayoutParams.PARENT_ID
+                        startToEnd = emojiButtonId
+                        endToStart = deleteButtonId
+                    }
                 }
-            })
-        }
 
         private val removeButton = ImageView(ctx).addTo(this) {
             id = deleteButtonId
@@ -342,6 +349,11 @@ internal class CreatePollScreen : SettingsPage() {
         }
     }
 
+    private fun addHeader(text: String) =
+        TextView(requireContext(), null, 0, R.i.UiKit_Stage_SectionHeader).margin(top = true).addTo(linearLayout) {
+            this.text = text
+        }
+
     @SuppressLint("SetTextI18n")
     override fun onViewBound(view: View) {
         super.onViewBound(view)
@@ -360,25 +372,14 @@ internal class CreatePollScreen : SettingsPage() {
         setActionBarSubtitle(chName)
 
         linearLayout.run layout@{
-            fun addInput(placeholder: String, onChange: (Editable) -> Unit) = TextInput(ctx, placeholder).margin().addTo(this) {
-                editText.maxLines = 1
-                editText.addTextChangedListener(object : TextWatcher {
-                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
-                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) { }
-                    override fun afterTextChanged(s: Editable) {
-                        onChange(s)
-                    }
-                })
-            }
-            fun addHeader(text: String) = TextView(ctx, null, 0, R.i.UiKit_Stage_SectionHeader).margin(top = true).addTo(this) {
-                this.text = text
-            }
-
             setPadding(0, 0, 0, 0)
 
             addHeader("Question")
-            val questionInput = addInput("Type your question") { viewModel.updateQuestionText(it) }
-            questionInput.editText.setText(viewModel.state.question)
+            createTextInput(ctx, "Type your question") { viewModel.updateQuestionText(it) }
+                .margin()
+                .addTo(linearLayout) {
+                    editText.setText(viewModel.state.question)
+                }
 
             Divider(ctx).addTo(this)
 
