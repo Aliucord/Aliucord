@@ -38,6 +38,7 @@ import com.discord.widgets.chat.input.*
 import com.discord.widgets.chat.list.actions.WidgetChatListActions
 import com.discord.widgets.chat.list.adapter.*
 import com.discord.widgets.chat.list.entries.ChatListEntry
+import com.discord.widgets.chat.list.entries.MessageEntry
 import com.google.android.material.tabs.TabLayout
 import com.lytefast.flexinput.R
 import com.lytefast.flexinput.fragment.FlexInputFragment
@@ -187,13 +188,21 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         }
 
         // Patch poll result message icon
-        patcher.before<WidgetChatListAdapterItemSystemMessage>(
-            "getIcon",
-            ModelMessage::class.java
+        // this.binding.f.setImageResource(getIcon(component1));
+        patcher.after<WidgetChatListAdapterItemSystemMessage>(
+            "onConfigure",
+            Int::class.javaPrimitiveType!!,
+            ChatListEntry::class.java,
         ) { call ->
-            val msg = call.args[0] as ModelMessage
-            if (msg.type == POLL_RESULT_MESSAGE_TYPE) // POLL_RESULT
-                call.result = R.e.ic_sort_white_24dp
+            val entry = call.args[1] as MessageEntry
+            if (entry.message.type == POLL_RESULT_MESSAGE_TYPE) {
+                val imageView = WidgetChatListAdapterItemSystemMessage.`access$getBinding$p`(this).f
+                val drawable = ContextCompat.getDrawable(context, R.e.ic_sort_white_24dp)?.apply {
+                    mutate()
+                    Utils.tintToTheme(this)
+                }
+                drawable?.let { imageView.setImageDrawable(it) }
+            }
         }
         // Patch poll result message content
         patcher.before<`WidgetChatListAdapterItemSystemMessage$getSystemMessage$1`>(
