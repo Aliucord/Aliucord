@@ -33,7 +33,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
         set(value) {
             val previous = field
             field = value
-            onStateChange(previous)
+            updateState(previous)
         }
 
     data class PutPollPayload(@Suppress("PropertyName") val answer_ids: List<Int>)
@@ -61,7 +61,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
             }
             answersContainer = PollChatAnswersContainerView(ctx).addTo(this) {
                 setPadding(0, p, 0, p / 2)
-                onHasClickedChange = {
+                onHasCheckedChange = {
                     voteButton.isEnabled = it
                 }
             }
@@ -119,9 +119,9 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
         }
     }
 
-    internal fun onStateChange(previousState: State) {
+    internal fun updateState(previousState: State) {
         if (state != previousState) {
-            voteButton.isEnabled = answersContainer.hasClicked
+            voteButton.isEnabled = answersContainer.hasChecked
             showResultsButton.isEnabled = true
             removeVoteButton.isEnabled = true
         }
@@ -131,18 +131,21 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
                 showResultsButton.visibility = VISIBLE
                 goBackButton.visibility = GONE
                 removeVoteButton.visibility = GONE
+                subtext.visibility = VISIBLE
             }
             State.SHOW_RESULT -> {
                 voteButton.visibility = GONE
                 showResultsButton.visibility = GONE
                 goBackButton.visibility = VISIBLE
                 removeVoteButton.visibility = GONE
+                subtext.visibility = VISIBLE
             }
             State.VOTED -> {
                 voteButton.visibility = GONE
                 showResultsButton.visibility = GONE
                 goBackButton.visibility = GONE
                 removeVoteButton.visibility = VISIBLE
+                subtext.visibility = VISIBLE
             }
             State.CLOSED,
             State.FINALISED -> {
@@ -150,6 +153,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
                 showResultsButton.visibility = GONE
                 goBackButton.visibility = GONE
                 removeVoteButton.visibility = GONE
+                subtext.visibility = GONE
             }
         }
 
@@ -186,15 +190,6 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
             "Select one or more answers"
         else
             "Select one answer"
-        when (state) {
-            State.CLOSED,
-            State.FINALISED -> {
-                subtext.visibility = GONE
-            }
-            else -> {
-                subtext.visibility = VISIBLE
-            }
-        }
 
         val totalCount = data.results?.answerCounts?.sumOf { it.count } ?: 0
         val expiryText = if (state == State.FINALISED)

@@ -54,7 +54,7 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
             setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimension(R.d.uikit_textsize_small))
             setTextColor(ColorCompat.getThemedColor(ctx, R.b.primary_300))
             layoutParams = (layoutParams as ConstraintLayout.LayoutParams).apply {
-                topMargin = 2
+                topMargin = 0
             }
         }
 
@@ -106,6 +106,7 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
         checkmark = ImageView(ctx).addTo(layout) {
             visibility = GONE
             setImageResource(R.e.ic_check_circle_24dp)
+            drawable.mutate()
             setPadding(0, 0, p / 4, 0)
             layoutParams = ConstraintLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT).apply {
                 bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID

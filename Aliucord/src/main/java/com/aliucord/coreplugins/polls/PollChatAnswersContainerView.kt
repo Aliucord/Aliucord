@@ -9,25 +9,24 @@ import com.discord.api.message.poll.*
 internal class PollChatAnswersContainerView(private val ctx: Context) : LinearLayout(ctx) {
     private val answerViews = HashMap<Int, PollChatAnswerView>()
 
-    val hasClicked get() = getCheckedAnswers().count() > 0
-    var onHasClickedChange: ((Boolean) -> Unit)? = null
+    val hasChecked get() = getCheckedAnswers().count() > 0
+    var onHasCheckedChange: ((Boolean) -> Unit)? = null
 
     fun configure(data: MessagePoll) {
         removeAllViews()
         answerViews.clear()
-        updateChecked()
 
         Divider(ctx).addTo(this)
         for (answer in data.answers) {
             PollChatAnswerView.build(ctx, answer, data.allowMultiselect).addTo(this) {
                 answerViews[answer.answerId!!] = this
-                e {
+                e { // setOnClickedListener
                     for (answerView in answerViews.values)
                         if (answerView !== this && !data.allowMultiselect)
                             answerView.isChecked = false
                         else if (answerView === this)
                             answerView.isChecked = !answerView.isChecked
-                    updateChecked()
+                    onHasCheckedChange?.invoke(getCheckedAnswers().count() > 0)
                 }
             }
             Divider(ctx).addTo(this)
@@ -54,10 +53,6 @@ internal class PollChatAnswersContainerView(private val ctx: Context) : LinearLa
     fun updateState(state: PollChatView.State, isTransition: Boolean) {
         for (answer in answerViews.values)
             answer.updateState(state, isTransition)
-    }
-
-    private fun updateChecked() {
-        onHasClickedChange?.invoke(getCheckedAnswers().count() > 0)
     }
 
     fun getCheckedAnswers(): Iterable<Int> =
