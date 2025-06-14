@@ -23,7 +23,7 @@ import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.lytefast.flexinput.R
 import kotlin.math.roundToInt
 
-internal class PollAnswerView private constructor(private val ctx: Context) : CheckedSetting(ctx, null) {
+internal class PollChatAnswerView private constructor(private val ctx: Context) : CheckedSetting(ctx, null) {
     private lateinit var progressIndicator: LinearProgressIndicator
     private lateinit var gutter: View
     private lateinit var checkmark: ImageView
@@ -35,10 +35,10 @@ internal class PollAnswerView private constructor(private val ctx: Context) : Ch
 
     companion object {
         fun build(ctx: Context, answer: MessagePollAnswer, isMultiselect: Boolean)
-            = PollAnswerView(ctx).configure(answer, isMultiselect)
+            = PollChatAnswerView(ctx).configure(answer, isMultiselect)
     }
 
-    private fun configure(answer: MessagePollAnswer, isMultiselect: Boolean): PollAnswerView {
+    private fun configure(answer: MessagePollAnswer, isMultiselect: Boolean): PollChatAnswerView {
         removeAllViews()
         if (isMultiselect)
             f(ViewType.CHECK)
@@ -114,13 +114,13 @@ internal class PollAnswerView private constructor(private val ctx: Context) : Ch
             }
         }
 
-        updateState(PollView.PollViewState.VOTING, false)
-        updateCount(MessagePollAnswerCount(0, 0, false), 1, false, PollView.PollViewState.VOTING)
+        updateState(PollChatView.State.VOTING, false)
+        updateCount(MessagePollAnswerCount(0, 0, false), 1, false, PollChatView.State.VOTING)
 
         return this;
     }
 
-    fun updateCount(count: MessagePollAnswerCount, totalCount: Int, isWinner: Boolean, state: PollView.PollViewState) {
+    fun updateCount(count: MessagePollAnswerCount, totalCount: Int, isWinner: Boolean, state: PollChatView.State) {
         val progress = (count.count.toDouble() * 100 / totalCount).roundToInt()
 
         progressIndicator.setProgress(progress, true)
@@ -141,7 +141,7 @@ internal class PollAnswerView private constructor(private val ctx: Context) : Ch
 
         val color = if (isWinner)
             ColorCompat.getThemedColor(ctx, R.b.colorButtonPositiveBackground)
-        else if (count.meVoted && state == PollView.PollViewState.VOTED)
+        else if (count.meVoted && state == PollChatView.State.VOTED)
             ColorCompat.getThemedColor(ctx, R.b.color_brand)
         else
             ColorCompat.getThemedColor(ctx, R.b.colorButtonSecondaryBackgroundActive)
@@ -152,18 +152,18 @@ internal class PollAnswerView private constructor(private val ctx: Context) : Ch
         DrawableCompat.setTint(checkmark.drawable, color)
     }
 
-    fun updateState(state: PollView.PollViewState, isTransition: Boolean) {
+    fun updateState(state: PollChatView.State, isTransition: Boolean) {
         when (state) {
-            PollView.PollViewState.VOTING -> {
+            PollChatView.State.VOTING -> {
                 layout.isClickable = true
                 checkbox.visibility = VISIBLE
                 subtext.visibility = GONE
                 progressIndicator.visibility = GONE
             }
-            PollView.PollViewState.SHOW_RESULT,
-            PollView.PollViewState.CLOSED,
-            PollView.PollViewState.FINALISED,
-            PollView.PollViewState.VOTED -> {
+            PollChatView.State.SHOW_RESULT,
+            PollChatView.State.CLOSED,
+            PollChatView.State.FINALISED,
+            PollChatView.State.VOTED -> {
                 isChecked = false
                 layout.isClickable = false
                 checkbox.visibility = GONE

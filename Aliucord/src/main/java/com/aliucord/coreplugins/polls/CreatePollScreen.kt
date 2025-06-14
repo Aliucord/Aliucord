@@ -342,7 +342,6 @@ internal class CreatePollScreen : SettingsPage() {
         }
     }
 
-
     @SuppressLint("SetTextI18n")
     override fun onViewBound(view: View) {
         super.onViewBound(view)

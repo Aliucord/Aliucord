@@ -9,17 +9,17 @@ import com.discord.widgets.chat.list.adapter.WidgetChatListItem
 import com.discord.widgets.chat.list.entries.ChatListEntry
 import com.lytefast.flexinput.R
 
-internal class PollViewHolder(adapter: WidgetChatListAdapter)
+internal class WidgetChatListAdapterItemPoll(adapter: WidgetChatListAdapter)
     : WidgetChatListItem(Utils.getResId("widget_chat_list_adapter_item_minimal", "layout"), adapter) {
 
-    private val pollView: PollView
+    private val pollView: PollChatView
     private val root get() = this.itemView as ConstraintLayout
 
     init {
         val unusedTextView = root.getViewById(Utils.getResId("chat_list_adapter_item_text", "id"))
         root.removeView(unusedTextView)
 
-        pollView = PollView(adapter.context).addTo(root) {
+        pollView = PollChatView(adapter.context).addTo(root) {
             layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
                 val resources = adapter.context.resources
                 val bottom = resources.getDimension(R.d.chat_cell_vertical_spacing_padding).toInt()

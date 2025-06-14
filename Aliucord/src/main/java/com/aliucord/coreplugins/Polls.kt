@@ -99,7 +99,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             val entryType = call.args[1] as Int
 
             if (entryType == PollChatEntry.POLL_ENTRY_TYPE) {
-                call.result = PollViewHolder(this)
+                call.result = WidgetChatListAdapterItemPoll(this)
             }
         }
 

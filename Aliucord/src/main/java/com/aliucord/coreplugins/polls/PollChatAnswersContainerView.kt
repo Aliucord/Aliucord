@@ -4,12 +4,10 @@ import android.content.Context
 import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.views.Divider
 import com.aliucord.widgets.LinearLayout
-import com.discord.api.message.poll.MessagePoll
-import com.discord.api.message.poll.MessagePollAnswerCount
-import com.discord.api.message.poll.MessagePollResult
+import com.discord.api.message.poll.*
 
-internal class PollAnswersContainerView(private val ctx: Context) : LinearLayout(ctx) {
-    private val answerViews = HashMap<Int, PollAnswerView>()
+internal class PollChatAnswersContainerView(private val ctx: Context) : LinearLayout(ctx) {
+    private val answerViews = HashMap<Int, PollChatAnswerView>()
 
     val hasClicked get() = getCheckedAnswers().count() > 0
     var onHasClickedChange: ((Boolean) -> Unit)? = null
@@ -21,7 +19,7 @@ internal class PollAnswersContainerView(private val ctx: Context) : LinearLayout
 
         Divider(ctx).addTo(this)
         for (answer in data.answers) {
-            PollAnswerView.build(ctx, answer, data.allowMultiselect).addTo(this) {
+            PollChatAnswerView.build(ctx, answer, data.allowMultiselect).addTo(this) {
                 answerViews[answer.answerId!!] = this
                 e {
                     for (answerView in answerViews.values)
@@ -36,7 +34,7 @@ internal class PollAnswersContainerView(private val ctx: Context) : LinearLayout
         }
     }
 
-    fun updateCounts(results: MessagePollResult, state: PollView.PollViewState) {
+    fun updateCounts(results: MessagePollResult, state: PollChatView.State) {
         val counts = results.answerCounts
         val total = counts.sumOf { it.count }.coerceAtLeast(1) // Prevent division by 0
         var winner = counts.maxOfOrNull { it.count } ?: -1
@@ -47,13 +45,13 @@ internal class PollAnswersContainerView(private val ctx: Context) : LinearLayout
             answerView.updateCount(
                 count,
                 total,
-                count.count == winner && state == PollView.PollViewState.FINALISED,
+                count.count == winner && state == PollChatView.State.FINALISED,
                 state
             )
         }
     }
 
-    fun updateState(state: PollView.PollViewState, isTransition: Boolean) {
+    fun updateState(state: PollChatView.State, isTransition: Boolean) {
         for (answer in answerViews.values)
             answer.updateState(state, isTransition)
     }

@@ -5,9 +5,7 @@ import android.content.Context
 import android.text.format.DateUtils
 import android.view.ContextThemeWrapper
 import android.widget.TextView
-import com.aliucord.Http
-import com.aliucord.Logger
-import com.aliucord.Utils
+import com.aliucord.*
 import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.views.Button
@@ -20,18 +18,18 @@ import com.lytefast.flexinput.R
 import java.util.Calendar
 
 @SuppressLint("SetTextI18n")
-internal class PollView(private val ctx: Context) : MaterialCardView(ctx) {
+internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
     private lateinit var title: TextView
     private lateinit var subtext: TextView
     private lateinit var infoText: TextView
-    private lateinit var answersContainer: PollAnswersContainerView
+    private lateinit var answersContainer: PollChatAnswersContainerView
     private lateinit var voteButton: MaterialButton
     private lateinit var showResultsButton: MaterialButton
     private lateinit var goBackButton: MaterialButton
     private lateinit var removeVoteButton: MaterialButton
 
     private var answersKey: String? = null
-    private var state: PollViewState = PollViewState.VOTING
+    private var state: State = State.VOTING
         set(value) {
             val previous = field
             field = value
@@ -42,7 +40,7 @@ internal class PollView(private val ctx: Context) : MaterialCardView(ctx) {
 
     private var voteHandler: ((Boolean) -> Unit)? = null
 
-    internal enum class PollViewState {
+    internal enum class State {
         VOTING,
         SHOW_RESULT,
         VOTED,
@@ -61,7 +59,7 @@ internal class PollView(private val ctx: Context) : MaterialCardView(ctx) {
             subtext = TextView(ctx, null, 0, R.i.UiKit_Settings_Item_SubText).addTo(this) {
                 setPadding(p, p / 2, p, 0)
             }
-            answersContainer = PollAnswersContainerView(ctx).addTo(this) {
+            answersContainer = PollChatAnswersContainerView(ctx).addTo(this) {
                 setPadding(0, p, 0, p / 2)
                 onHasClickedChange = {
                     voteButton.isEnabled = it
@@ -88,7 +86,7 @@ internal class PollView(private val ctx: Context) : MaterialCardView(ctx) {
                         marginStart = p / 2
                     }
                     setOnClickListener {
-                        state = PollViewState.SHOW_RESULT
+                        state = State.SHOW_RESULT
                     }
                 }
             }
@@ -101,7 +99,7 @@ internal class PollView(private val ctx: Context) : MaterialCardView(ctx) {
                     marginStart = p
                 }
                 setOnClickListener {
-                    state = PollViewState.VOTING
+                    state = State.VOTING
                 }
             }
             removeVoteButton = DangerButton(ctx).addTo(this) {
@@ -121,33 +119,33 @@ internal class PollView(private val ctx: Context) : MaterialCardView(ctx) {
         }
     }
 
-    internal fun onStateChange(previousState: PollViewState) {
+    internal fun onStateChange(previousState: State) {
         if (state != previousState) {
             voteButton.isEnabled = answersContainer.hasClicked
             showResultsButton.isEnabled = true
             removeVoteButton.isEnabled = true
         }
         when (state) {
-            PollViewState.VOTING -> {
+            State.VOTING -> {
                 voteButton.visibility = VISIBLE
                 showResultsButton.visibility = VISIBLE
                 goBackButton.visibility = GONE
                 removeVoteButton.visibility = GONE
             }
-            PollViewState.SHOW_RESULT -> {
+            State.SHOW_RESULT -> {
                 voteButton.visibility = GONE
                 showResultsButton.visibility = GONE
                 goBackButton.visibility = VISIBLE
                 removeVoteButton.visibility = GONE
             }
-            PollViewState.VOTED -> {
+            State.VOTED -> {
                 voteButton.visibility = GONE
                 showResultsButton.visibility = GONE
                 goBackButton.visibility = GONE
                 removeVoteButton.visibility = VISIBLE
             }
-            PollViewState.CLOSED,
-            PollViewState.FINALISED -> {
+            State.CLOSED,
+            State.FINALISED -> {
                 voteButton.visibility = GONE
                 showResultsButton.visibility = GONE
                 goBackButton.visibility = GONE
@@ -155,7 +153,7 @@ internal class PollView(private val ctx: Context) : MaterialCardView(ctx) {
             }
         }
 
-        answersContainer.updateState(state, previousState == PollViewState.VOTING)
+        answersContainer.updateState(state, previousState == State.VOTING)
     }
 
     internal fun configure(entry: PollChatEntry) {
@@ -163,15 +161,15 @@ internal class PollView(private val ctx: Context) : MaterialCardView(ctx) {
         val expired = (data.expiry?.g() ?: Long.MAX_VALUE) < Calendar.getInstance().timeInMillis
 
         val newState = if (data.results?.isFinalized == true)
-            PollViewState.FINALISED
+            State.FINALISED
         else if (expired)
-            PollViewState.CLOSED
+            State.CLOSED
         else if (data.results?.answerCounts?.find { it.meVoted && it.count != 0 } != null)
-            PollViewState.VOTED
-        else if (state == PollViewState.SHOW_RESULT)
-            PollViewState.SHOW_RESULT
+            State.VOTED
+        else if (state == State.SHOW_RESULT)
+            State.SHOW_RESULT
         else
-            PollViewState.VOTING
+            State.VOTING
 
         if (answersKey != entry.key) {
             answersKey = entry.key
@@ -189,8 +187,8 @@ internal class PollView(private val ctx: Context) : MaterialCardView(ctx) {
         else
             "Select one answer"
         when (state) {
-            PollViewState.CLOSED,
-            PollViewState.FINALISED -> {
+            State.CLOSED,
+            State.FINALISED -> {
                 subtext.visibility = GONE
             }
             else -> {
@@ -199,9 +197,9 @@ internal class PollView(private val ctx: Context) : MaterialCardView(ctx) {
         }
 
         val totalCount = data.results?.answerCounts?.sumOf { it.count } ?: 0
-        val expiryText = if (state == PollViewState.FINALISED)
+        val expiryText = if (state == State.FINALISED)
             "Poll closed"
-        else if (state == PollViewState.CLOSED)
+        else if (state == State.CLOSED)
             "Poll closing"
         else if (data.expiry != null)
             DateUtils.getRelativeTimeSpanString(data.expiry!!.g())
