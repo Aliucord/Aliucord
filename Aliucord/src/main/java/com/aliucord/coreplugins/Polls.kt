@@ -17,8 +17,7 @@ import com.aliucord.Utils
 import com.aliucord.api.GatewayAPI
 import com.aliucord.coreplugins.polls.*
 import com.aliucord.entities.CorePlugin
-import com.aliucord.patcher.after
-import com.aliucord.patcher.before
+import com.aliucord.patcher.*
 import com.aliucord.updater.ManagerBuild
 import com.aliucord.wrappers.ChannelWrapper.Companion.id
 import com.aliucord.wrappers.ChannelWrapper.Companion.name
@@ -102,12 +101,10 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         // For PollAnswerView
         XposedBridge.makeClassInheritable(CheckedSetting::class.java)
 
-        patcher.before<WidgetChatListAdapter>("onCreateViewHolder", ViewGroup::class.java, Int::class.javaPrimitiveType!!) { call ->
-            val entryType = call.args[1] as Int
-
-            if (entryType == PollChatEntry.POLL_ENTRY_TYPE) {
-                call.result = WidgetChatListAdapterItemPoll(this)
-            }
+        patcher.before<WidgetChatListAdapter>("onCreateViewHolder", ViewGroup::class.java, Int::class.javaPrimitiveType!!)
+        { (param, _: ViewGroup, entryType: Int) ->
+            if (entryType == PollChatEntry.POLL_ENTRY_TYPE)
+                param.result = WidgetChatListAdapterItemPoll(this)
         }
 
         // Watch for poll vote gateway events
@@ -115,14 +112,14 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         GatewayAPI.onEvent<MessagePollVoteEvent>("MESSAGE_POLL_VOTE_REMOVE") { handleVoteChange(it, false) }
 
         // Patch ModelMessage to copy our polls from ApiMessage
-        patcher.after<ModelMessage>(ApiMessage::class.java) { callFrame ->
-            val apiMessage = callFrame.args[0] as ApiMessage
+        patcher.after<ModelMessage>(ApiMessage::class.java)
+        { (_, apiMessage: ApiMessage) ->
             if (apiMessage.poll != null)
                 poll = apiMessage.poll
         }
-        patcher.after<ModelMessage>("merge", ApiMessage::class.java) { callFrame ->
-            val apiMessage = callFrame.args[0] as ApiMessage
-            val res = callFrame.result as ModelMessage
+        patcher.after<ModelMessage>("merge", ApiMessage::class.java)
+        { (param, apiMessage: ApiMessage) ->
+            val res = param.result as ModelMessage
             if (apiMessage.poll != null)
                 res.poll = apiMessage.poll
         }
@@ -142,8 +139,8 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
          *
          * - Lava (lavadesu)
          */
-        patcher.before<StoreStream>("handleMessageUpdate", ApiMessage::class.java) { callFrame ->
-            val msg = callFrame.args[0] as ApiMessage
+        patcher.before<StoreStream>("handleMessageUpdate", ApiMessage::class.java)
+        { (_, msg: ApiMessage) ->
             val poll = msg.poll
             if (poll == null)
                 return@before
@@ -181,16 +178,15 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             GuildMember::class.java,
             Map::class.java,
             Map::class.java,
-        ) { call ->
-            val message = call.args[0] as ModelMessage
-            val poll = message.poll
+        ) { (param, msg: ModelMessage) ->
+            val poll = msg.poll
             if (poll == null)
                 return@after
 
             @Suppress("UNCHECKED_CAST")
-            val res = (call.result as List<ChatListEntry>).toMutableList()
-            res.add(0, PollChatEntry(poll, message))
-            call.result = res
+            val res = (param.result as List<ChatListEntry>).toMutableList()
+            res.add(0, PollChatEntry(poll, msg))
+            param.result = res
         }
 
         // Patch poll result message icon
@@ -199,8 +195,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             "onConfigure",
             Int::class.javaPrimitiveType!!,
             ChatListEntry::class.java,
-        ) { call ->
-            val entry = call.args[1] as MessageEntry
+        ) { (_, _: Int, entry: MessageEntry) ->
             if (entry.message.type == POLL_RESULT_MESSAGE_TYPE) {
                 val imageView = WidgetChatListAdapterItemSystemMessage.`access$getBinding$p`(this).f
                 val drawable = ContextCompat.getDrawable(context, R.e.ic_sort_white_24dp)?.apply {
@@ -214,7 +209,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         patcher.before<`WidgetChatListAdapterItemSystemMessage$getSystemMessage$1`>(
             "invoke",
             Context::class.java
-        ) { call ->
+        ) { param ->
             val msg = `$this_getSystemMessage`
             if (msg.type == POLL_RESULT_MESSAGE_TYPE) {
                 val renderCtx = `$usernameRenderContext` as `WidgetChatListAdapterItemSystemMessage$getSystemMessage$usernameRenderContext$1`
@@ -258,15 +253,16 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
                     span.append(" (${percent}%).")
                 }
 
-                call.result = span
+                param.result = span
             }
         }
         // Patch message onClick to jump to poll from poll result
-        patcher.before<`WidgetChatListAdapterItemSystemMessage$onConfigure$1`>("onClick", View::class.java) { call ->
+        patcher.before<`WidgetChatListAdapterItemSystemMessage$onConfigure$1`>("onClick", View::class.java)
+        { param ->
             val msg = `$message`
             if (msg.type == POLL_RESULT_MESSAGE_TYPE) {
                 StoreStream.getMessagesLoader().jumpToMessage(msg.messageReference!!.a(), msg.messageReference!!.c());
-                call.result = null
+                param.result = null
             }
         }
 
@@ -281,29 +277,29 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             pages.add(page as b.b.a.d.d.a) // I don't know why but IntelliJ complains that page is not the right type
             flexInputFragment.r = pages.toTypedArray()
         }
-        patcher.before<TabLayout.Tab>("setContentDescription", Int::class.javaPrimitiveType!!) { call ->
-            val id = call.args[0] as Int
+        patcher.before<TabLayout.Tab>("setContentDescription", Int::class.javaPrimitiveType!!)
+        { (param, id: Int) ->
             if (id == pollStringId) {
                 tag = "poll"
-                call.result = setContentDescription("Create Poll")
+                param.result = setContentDescription("Create Poll")
             }
         }
-        patcher.after<TabLayout.Tab>("setIcon", Int::class.javaPrimitiveType!!) { call ->
-            val id = call.args[0] as Int
+        patcher.after<TabLayout.Tab>("setIcon", Int::class.javaPrimitiveType!!)
+        { (_, id: Int) ->
             if (id == R.e.ic_sort_white_24dp) {
                 val color = ColorCompat.getThemedColor(view, R.b.flexInputIconColor)
                 icon?.colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_ATOP)
             }
         }
 
-        patcher.before<b.b.a.a.b>("onTabSelected", TabLayout.Tab::class.java) { call ->
-            val tab = call.args[0] as TabLayout.Tab
+        patcher.before<b.b.a.a.b>("onTabSelected", TabLayout.Tab::class.java)
+        { (param, tab: TabLayout.Tab) ->
             val ctx = this.a.requireContext()
             val parentFragment = this.a.parentFragment as FlexInputFragment
             if (tab.tag == "poll") {
                 this.a.h(false);
                 parentFragment.s.onContentDialogDismissed(false)
-                call.result = null
+                param.result = null
                 val channel = StoreStream.getChannelsSelected().selectedChannel
                 val intent = Intent()
                 intent.putExtra("INTENT_CHANNEL_NAME", "#" + channel.name)
@@ -313,9 +309,9 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         }
 
         val endPollId = View.generateViewId()
-        patcher.after<WidgetChatListActions>("configureUI", WidgetChatListActions.Model::class.java) { call ->
+        patcher.after<WidgetChatListActions>("configureUI", WidgetChatListActions.Model::class.java)
+        { (_, model: WidgetChatListActions.Model) ->
             val layout = (requireView() as ViewGroup).getChildAt(0) as ViewGroup
-            val model = call.args[0] as WidgetChatListActions.Model
             val msg = model.message!!
 
             if (msg.poll == null || msg.author.id != StoreStream.getUsers().me.id)
