@@ -19,6 +19,7 @@ import com.aliucord.coreplugins.polls.*
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.after
 import com.aliucord.patcher.before
+import com.aliucord.updater.ManagerBuild
 import com.aliucord.wrappers.ChannelWrapper.Companion.id
 import com.aliucord.wrappers.ChannelWrapper.Companion.name
 import com.aliucord.wrappers.embeds.FieldWrapper.Companion.name
@@ -93,6 +94,11 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
 
     @SuppressLint("SetTextI18n")
     override fun start(context: Context) {
+        if (!ManagerBuild.hasInjector("2.2.0") || !ManagerBuild.hasPatches("1.2.0")) {
+            logger.warn("Base app outdated, cannot enable Polls");
+            return;
+        }
+
         // For PollAnswerView
         XposedBridge.makeClassInheritable(CheckedSetting::class.java)
 
