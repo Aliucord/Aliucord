@@ -17,6 +17,7 @@ import com.aliucord.Utils
 import com.aliucord.api.GatewayAPI
 import com.aliucord.api.rn.user.RNUser
 import com.aliucord.coreplugins.polls.*
+import com.aliucord.coreplugins.polls.creation.PollCreateScreen
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.updater.ManagerBuild
@@ -229,7 +230,6 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         }
 
         // Patch poll result message icon
-        // this.binding.f.setImageResource(getIcon(component1));
         patcher.after<WidgetChatListAdapterItemSystemMessage>(
             "onConfigure",
             Int::class.javaPrimitiveType!!,
@@ -353,7 +353,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             } else {
                 "#" + channel.name
             }
-            CreatePollScreen.launch(ctx, name, channel.id)
+            PollCreateScreen.launch(ctx, name, channel.id)
         }
 
         // Adds an "End poll now" button in message actions

@@ -10,83 +10,14 @@ import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.views.Button
 import com.aliucord.views.DangerButton
 import com.aliucord.widgets.LinearLayout
-import com.discord.api.utcdatetime.UtcDateTime
 import com.discord.utilities.color.ColorCompat
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.lytefast.flexinput.R
 import java.util.Calendar
-import kotlin.random.Random
 
 @SuppressLint("SetTextI18n")
 internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
-    private class InfoTextAdapter(private val ctx: Context, private val infoText: TextView) {
-        private companion object {
-            const val MINUTE = 60
-            const val HOUR = MINUTE * 60
-            const val DAY = HOUR * 24
-        }
-        private var state: State = State.FINALISED
-        private var voteCount: Int = 0
-        private var expiry: UtcDateTime? = null
-
-        private var currentLoopId: Int? = null
-        private val shouldRun
-            get() = (state != State.FINALISED) && (state != State.CLOSED)
-
-        private fun getTimeString(): CharSequence? = expiry?.let {
-            val diffInSeconds = ((it.g() - System.currentTimeMillis()) / 1000).coerceAtLeast(0)
-            val formatted =
-                if (diffInSeconds >= DAY)
-                    "${diffInSeconds / DAY}d"
-                else if (diffInSeconds >= HOUR)
-                    "${diffInSeconds / HOUR}h"
-                else if (diffInSeconds >= MINUTE)
-                    "${diffInSeconds / MINUTE}m"
-                else
-                    "${diffInSeconds}s"
-
-            "$formatted left"
-        }
-
-        private fun refresh() {
-            val expiryText = if (state == State.FINALISED)
-                "Poll closed"
-            else if (state == State.CLOSED)
-                "Poll closing"
-            else
-                getTimeString()
-
-            val append = expiryText?.let { "  •  $expiryText" } ?: ""
-            infoText.text = "$voteCount vote${if (voteCount != 1) "s" else ""}$append"
-        }
-
-        fun updateData(state: State, voteCount: Int, expiry: UtcDateTime?) {
-            this.state = state
-            this.voteCount = voteCount
-            this.expiry = expiry
-
-            start()
-        }
-
-        fun start() {
-            val loopId = Random.nextInt()
-            currentLoopId = loopId
-            Utils.threadPool.execute {
-                do {
-                    refresh()
-                    Thread.sleep(1000)
-                } while (shouldRun && loopId == currentLoopId)
-            }
-        }
-
-        fun stop() {
-            currentLoopId = null
-        }
-    }
-
-    private data class PutPollPayload(@Suppress("PropertyName") val answer_ids: List<Int>)
-
     internal enum class State {
         VOTING,
         SHOW_RESULT,
@@ -94,6 +25,10 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
         CLOSED,
         FINALISED
     }
+
+    private data class PollVotePayload(@Suppress("PropertyName") val answer_ids: List<Int>)
+
+    private val logger = Logger("Polls")
 
     private lateinit var title: TextView
     private lateinit var subtext: TextView
@@ -111,7 +46,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
             field = value
             updateState(previous)
         }
-    private val infoTextAdapter: InfoTextAdapter
+    private val infoTextAdapter: PollChatInfoTextAdapter
     private var voteHandler: ((Boolean) -> Unit)? = null
 
     init {
@@ -184,7 +119,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
             }
         }
 
-        infoTextAdapter = InfoTextAdapter(ctx, this.infoText)
+        infoTextAdapter = PollChatInfoTextAdapter(ctx, this.infoText)
     }
 
     internal fun updateState(previousState: State) {
@@ -267,7 +202,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
                 val req = Http.Request.newDiscordRNRequest(
                     "/channels/${entry.message.channelId}/polls/${entry.message.id}/answers/@me",
                     "PUT"
-                ).setRequestTimeout(10000).executeWithJson(PutPollPayload(
+                ).setRequestTimeout(10000).executeWithJson(PollVotePayload(
                     if (isVoting)
                         this.answersContainer.getCheckedAnswers().toList()
                     else
@@ -275,8 +210,8 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
                 ))
 
                 if (!req.ok()) {
-                    Logger("Polls").errorToast("Failed to submit poll vote")
-                    Logger("Polls").error("${req.statusCode} ${req.statusMessage} ${req.text()}", null)
+                    logger.errorToast("Failed to submit poll vote")
+                    logger.error("${req.statusCode} ${req.statusMessage} ${req.text()}", null)
                     voteButton.isEnabled = true
                     showResultsButton.isEnabled = true
                     removeVoteButton.isEnabled = true
