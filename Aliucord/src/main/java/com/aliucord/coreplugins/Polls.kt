@@ -3,7 +3,6 @@ package com.aliucord.coreplugins
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.graphics.*
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
@@ -15,12 +14,16 @@ import androidx.core.content.ContextCompat
 import com.aliucord.Http
 import com.aliucord.Utils
 import com.aliucord.api.GatewayAPI
+import com.aliucord.api.rn.user.RNUser
 import com.aliucord.coreplugins.polls.*
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.updater.ManagerBuild
+import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.wrappers.ChannelWrapper.Companion.id
+import com.aliucord.wrappers.ChannelWrapper.Companion.isDM
 import com.aliucord.wrappers.ChannelWrapper.Companion.name
+import com.aliucord.wrappers.ChannelWrapper.Companion.recipients
 import com.aliucord.wrappers.embeds.FieldWrapper.Companion.name
 import com.aliucord.wrappers.embeds.FieldWrapper.Companion.value
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper.Companion.rawFields
@@ -196,14 +199,15 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             Int::class.javaPrimitiveType!!,
             ChatListEntry::class.java,
         ) { (_, _: Int, entry: MessageEntry) ->
-            if (entry.message.type == POLL_RESULT_MESSAGE_TYPE) {
-                val imageView = WidgetChatListAdapterItemSystemMessage.`access$getBinding$p`(this).f
-                val drawable = ContextCompat.getDrawable(context, R.e.ic_sort_white_24dp)?.apply {
-                    mutate()
-                    Utils.tintToTheme(this)
-                }
-                drawable?.let { imageView.setImageDrawable(it) }
+            if (entry.message.type != POLL_RESULT_MESSAGE_TYPE)
+                return@after
+
+            val imageView = WidgetChatListAdapterItemSystemMessage.`access$getBinding$p`(this).f
+            val drawable = ContextCompat.getDrawable(context, R.e.ic_sort_white_24dp)?.apply {
+                mutate()
+                Utils.tintToTheme(this)
             }
+            drawable?.let { imageView.setImageDrawable(it) }
         }
         // Patch poll result message content
         patcher.before<`WidgetChatListAdapterItemSystemMessage$getSystemMessage$1`>(
@@ -211,50 +215,51 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             Context::class.java
         ) { param ->
             val msg = `$this_getSystemMessage`
-            if (msg.type == POLL_RESULT_MESSAGE_TYPE) {
-                val renderCtx = `$usernameRenderContext` as `WidgetChatListAdapterItemSystemMessage$getSystemMessage$usernameRenderContext$1`
-                val color = renderCtx.`$authorRoleColor`
+            if (msg.type != POLL_RESULT_MESSAGE_TYPE)
+                return@before
 
-                var pollQuestionText = ""
-                var victorAnswerVotes = 0
-                var totalVotes = 0
-                var victorAnswerId: Int? = null
-                var victorAnswerText: String? = null
-                msg.embeds.getOrNull(0)?.rawFields?.forEach {
-                    when (it.name) {
-                        "poll_question_text" -> pollQuestionText = it.value
-                        "victor_answer_votes" -> victorAnswerVotes = it.value.toInt()
-                        "total_votes" -> totalVotes = it.value.toInt()
-                        "victor_answer_id" -> victorAnswerId = it.value.toInt()
-                        "victor_answer_text" -> victorAnswerText = it.value
-                    }
-                } ?: return@before logger.error("Tried to render poll result, but there was no embed?", null)
+            val renderCtx = `$usernameRenderContext` as `WidgetChatListAdapterItemSystemMessage$getSystemMessage$usernameRenderContext$1`
+            val color = renderCtx.`$authorRoleColor`
 
-                val span = SpannableStringBuilder()
-                val authorSpan = ClickableSpan(color, false, null) {
-                    val roleCtx = `$roleSubscriptionPurchaseContext` as `WidgetChatListAdapterItemSystemMessage$getSystemMessage$roleSubscriptionPurchaseContext$1`;
-                    roleCtx.`this$0`.adapter.eventHandler.onMessageAuthorAvatarClicked(msg, StoreStream.getGuildSelected().selectedGuildId)
+            var pollQuestionText = ""
+            var victorAnswerVotes = 0
+            var totalVotes = 0
+            var victorAnswerId: Int? = null
+            var victorAnswerText: String? = null
+            msg.embeds.getOrNull(0)?.rawFields?.forEach {
+                when (it.name) {
+                    "poll_question_text" -> pollQuestionText = it.value
+                    "victor_answer_votes" -> victorAnswerVotes = it.value.toInt()
+                    "total_votes" -> totalVotes = it.value.toInt()
+                    "victor_answer_id" -> victorAnswerId = it.value.toInt()
+                    "victor_answer_text" -> victorAnswerText = it.value
                 }
-                span.append(`$authorName`, authorSpan, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
-                span.append("'s poll ")
-                span.append(pollQuestionText, StyleSpan(Typeface.BOLD), SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
-                span.append(" has closed! ")
+            } ?: return@before logger.error("Tried to render poll result, but there was no embed?", null)
 
-                if (totalVotes == 0)
-                    totalVotes = 1 // Prevent division by 0
-                val percent = (victorAnswerVotes.toDouble() * 100 / totalVotes).roundToInt()
-                if (victorAnswerVotes == 0)
-                    span.append("There were no votes :(")
-                else if (victorAnswerText == null)
-                    span.append("The result was a draw (${percent}%).")
-                else {
-                    span.append("The winner was ")
-                    span.append(victorAnswerText, StyleSpan(Typeface.BOLD), SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    span.append(" (${percent}%).")
-                }
-
-                param.result = span
+            val span = SpannableStringBuilder()
+            val authorSpan = ClickableSpan(color, false, null) {
+                val roleCtx = `$roleSubscriptionPurchaseContext` as `WidgetChatListAdapterItemSystemMessage$getSystemMessage$roleSubscriptionPurchaseContext$1`;
+                roleCtx.`this$0`.adapter.eventHandler.onMessageAuthorAvatarClicked(msg, StoreStream.getGuildSelected().selectedGuildId)
             }
+            span.append(`$authorName`, authorSpan, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
+            span.append("'s poll ")
+            span.append(pollQuestionText, StyleSpan(Typeface.BOLD), SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
+            span.append(" has closed! ")
+
+            if (totalVotes == 0)
+                totalVotes = 1 // Prevent division by 0
+            val percent = (victorAnswerVotes.toDouble() * 100 / totalVotes).roundToInt()
+            if (victorAnswerVotes == 0)
+                span.append("There were no votes :(")
+            else if (victorAnswerText == null)
+                span.append("The result was a draw (${percent}%).")
+            else {
+                span.append("The winner was ")
+                span.append(victorAnswerText, StyleSpan(Typeface.BOLD), SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
+                span.append(" (${percent}%).")
+            }
+
+            param.result = span
         }
         // Patch message onClick to jump to poll from poll result
         patcher.before<`WidgetChatListAdapterItemSystemMessage$onConfigure$1`>("onClick", View::class.java)
@@ -273,7 +278,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             val ctx = flexInputFragment.requireContext()
             val pages = flexInputFragment.r.toMutableList()
             val page = `WidgetChatInputAttachments$configureFlexInputContentPages$1$page$1`(ctx, R.e.ic_sort_white_24dp, pollStringId)
-            @Suppress("KotlinConstantConditions")
+            @Suppress("CAST_NEVER_SUCCEEDS")
             pages.add(page as b.b.a.d.d.a) // I don't know why but IntelliJ complains that page is not the right type
             flexInputFragment.r = pages.toTypedArray()
         }
@@ -294,20 +299,28 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
 
         patcher.before<b.b.a.a.b>("onTabSelected", TabLayout.Tab::class.java)
         { (param, tab: TabLayout.Tab) ->
+            if (tab.tag != "poll")
+                return@before
+
             val ctx = this.a.requireContext()
             val parentFragment = this.a.parentFragment as FlexInputFragment
-            if (tab.tag == "poll") {
-                this.a.h(false);
-                parentFragment.s.onContentDialogDismissed(false)
-                param.result = null
-                val channel = StoreStream.getChannelsSelected().selectedChannel
-                val intent = Intent()
-                intent.putExtra("INTENT_CHANNEL_NAME", "#" + channel.name)
-                intent.putExtra("INTENT_CHANNEL_ID", channel.id)
-                Utils.openPage(ctx, CreatePollScreen::class.java, intent)
+            parentFragment.s.onContentDialogDismissed(false)
+            param.result = null
+            val channel = StoreStream.getChannelsSelected().selectedChannel
+            val name = if (channel.isDM()) {
+                channel.recipients?.firstOrNull()?.let {
+                    if (it is RNUser)
+                        it.globalName
+                    else
+                        it.username
+                } ?: "unknown user"
+            } else {
+                "#" + channel.name
             }
+            CreatePollScreen.launch(ctx, name, channel.id)
         }
 
+        // Adds an "End poll now" button in message actions
         val endPollId = View.generateViewId()
         patcher.after<WidgetChatListActions>("configureUI", WidgetChatListActions.Model::class.java)
         { (_, model: WidgetChatListActions.Model) ->
@@ -324,7 +337,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
                 layout.findViewById<View>(Utils.getResId("dialog_chat_actions_edit", "id")) ?: return@after
             val idx = layout.indexOfChild(replyView)
 
-            TextView(layout.context, null, 0, R.i.UiKit_Settings_Item_Icon).apply {
+            TextView(layout.context, null, 0, R.i.UiKit_Settings_Item_Icon).addTo(layout, idx) {
                 id = endPollId
                 text = "End poll now"
                 setOnClickListener {
@@ -345,8 +358,6 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
                     setTint(ColorCompat.getThemedColor(layout.context, R.b.colorInteractiveNormal))
                     setCompoundDrawablesRelativeWithIntrinsicBounds(this, null, null, null)
                 }
-
-                layout.addView(this, idx)
             }
         }
     }

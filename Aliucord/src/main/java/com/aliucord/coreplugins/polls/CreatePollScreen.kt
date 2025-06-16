@@ -3,6 +3,7 @@ package com.aliucord.coreplugins.polls
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
@@ -43,6 +44,13 @@ import java.util.concurrent.ThreadLocalRandom
 internal class CreatePollScreen : SettingsPage() {
     companion object {
         val p = DimenUtils.defaultPadding
+
+        fun launch(ctx: Context, channelName: String, channelId: Long) {
+            val intent = Intent()
+                .putExtra("com.discord.intent.extra.EXTRA_CHANNEL_NAME", channelName)
+                .putExtra("com.discord.intent.extra.EXTRA_CHANNEL_ID", channelId)
+            Utils.openPage(ctx, CreatePollScreen::class.java, intent)
+        }
 
         fun <T: View> T.margin(bottom: Boolean = true, top: Boolean = false, hori: Boolean = true): T {
             val params = if (layoutParams == null)
@@ -361,13 +369,13 @@ internal class CreatePollScreen : SettingsPage() {
         val ctx = requireContext()
         val viewModel = ViewModelProvider(this).get(CreatePollViewModel::class.java)
 
-        val chName = mostRecentIntent.getStringExtra("INTENT_CHANNEL_NAME")
-        val channelId = mostRecentIntent.getLongExtra("INTENT_CHANNEL_ID", -1L)
+        val channelName = mostRecentIntent.getStringExtra("com.discord.intent.extra.EXTRA_CHANNEL_NAME")
+        val channelId = mostRecentIntent.getLongExtra("com.discord.intent.extra.EXTRA_CHANNEL_ID", -1L)
         if (channelId == -1L)
             return this.appActivity.finish()
 
         setActionBarTitle("Create poll")
-        setActionBarSubtitle(chName)
+        setActionBarSubtitle(channelName)
 
         linearLayout.run layout@{
             setPadding(0, 0, 0, 0)
