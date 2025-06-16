@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentManager
 import com.aliucord.Http
 import com.aliucord.Utils
 import com.aliucord.api.GatewayAPI
@@ -42,6 +43,7 @@ import com.discord.widgets.chat.list.actions.WidgetChatListActions
 import com.discord.widgets.chat.list.adapter.*
 import com.discord.widgets.chat.list.entries.ChatListEntry
 import com.discord.widgets.chat.list.entries.MessageEntry
+import com.discord.widgets.notice.WidgetNoticeDialog
 import com.google.android.material.tabs.TabLayout
 import com.lytefast.flexinput.R
 import com.lytefast.flexinput.fragment.FlexInputFragment
@@ -92,6 +94,40 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         newMsg.poll = poll.copy(results = results.copy(answerCounts = counts))
 
         store.handleMessageUpdate(newMsg)
+    }
+
+    // Show a confirmation dialog when ending polls
+    fun showPollConfirmationDialog(fragmentManager: FragmentManager, ctx: Context, msg: ModelMessage, onSuccess: () -> Unit) {
+        WidgetNoticeDialog.show(
+            fragmentManager,
+            "End poll now?",
+            "This will close the poll immediately and reveal the results.",
+            ctx.getString(R.h.okay),
+            ctx.getString(R.h.cancel),
+            mapOf(
+                Utils.getResId("notice_ok", "id") to {
+                    Utils.threadPool.execute {
+                        val req = Http.Request.newDiscordRNRequest(
+                            "/channels/${msg.channelId}/polls/${msg.id}/expire",
+                            "POST"
+                        ).setRequestTimeout(10000).execute()
+                        if (!req.ok()) {
+                            logger.errorToast("Failed to end poll")
+                            logger.error("${req.statusCode} ${req.statusMessage} ${req.text()}", null)
+                        }
+                    }
+                    onSuccess()
+                }
+            ),
+            null,
+            null,
+            null,
+            R.b.notice_theme_positive_red,
+            false,
+            null,
+            0,
+            null
+        )
     }
 
     @SuppressLint("SetTextI18n")
@@ -341,17 +377,9 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
                 id = endPollId
                 text = "End poll now"
                 setOnClickListener {
-                    Utils.threadPool.execute {
-                        val req = Http.Request.newDiscordRNRequest(
-                            "/channels/${msg.channelId}/polls/${msg.id}/expire",
-                            "POST"
-                        ).setRequestTimeout(10000).execute()
-                        if (!req.ok()) {
-                            logger.errorToast("Failed to end poll")
-                            logger.error("${req.statusCode} ${req.statusMessage} ${req.text()}", null)
-                        }
+                    showPollConfirmationDialog(childFragmentManager, requireContext(), msg) {
+                        dismiss()
                     }
-                    dismiss()
                 }
                 ContextCompat.getDrawable(layout.context, R.e.ic_sort_white_24dp)?.run {
                     mutate()
