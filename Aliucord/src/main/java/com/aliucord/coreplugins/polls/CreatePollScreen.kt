@@ -39,7 +39,7 @@ import com.discord.views.CheckedSetting
 import com.discord.widgets.chat.input.emoji.EmojiPickerContextType
 import com.discord.widgets.chat.input.emoji.WidgetEmojiPickerSheet
 import com.lytefast.flexinput.R
-import java.util.concurrent.ThreadLocalRandom
+import kotlin.random.Random
 
 internal class CreatePollScreen : SettingsPage() {
     companion object {
@@ -92,11 +92,11 @@ internal class CreatePollScreen : SettingsPage() {
     @Suppress("unused", "PrivatePropertyName")
     internal class Payload(private val poll: MessagePoll) {
         private val mobile_network_type = "wifi"
-        private val signal_strength = ThreadLocalRandom.current().nextInt(1, 5) // TODO: Use real values maybe?
+        private val signal_strength = Random.nextInt(1, 4) // TODO: Use real values maybe?
         private val content = ""
         // For nonce, there is NonceGenerator, but it seems to use time in the future. RN and Desktop doesn't do this,
         // so it also wasn't used here. Instead we just generate a random long and add it with current time
-        private val nonce = SnowflakeUtils.fromTimestamp(System.currentTimeMillis()) + ThreadLocalRandom.current().nextLong((1 shl 23) - 1)
+        private val nonce = SnowflakeUtils.fromTimestamp(System.currentTimeMillis()) + Random.nextBits(23)
         private val tts = false
         private val flags = 0
     }
