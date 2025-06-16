@@ -95,16 +95,24 @@ internal class PollCreateViewModel() : ViewModel() {
     fun sendRequest(channelId: Long) {
         state = state.copy(requestState = RequestState.REQUESTING)
         Utils.threadPool.execute {
-            val req = Http.Request.newDiscordRNRequest(
-                "/channels/${channelId}/messages",
-                "POST"
-            ).setRequestTimeout(10000).executeWithJson(buildPayload())
-            if (!req.ok()) {
-                logger.errorToast("Failed to create poll")
-                logger.error("${req.statusCode} ${req.statusMessage} ${req.text()}", null)
-                state = state.copy(requestState = RequestState.IDLE)
+            val request = runCatching {
+                Http.Request.newDiscordRNRequest(
+                    "/channels/${channelId}/messages",
+                    "POST"
+                ).setRequestTimeout(10000).executeWithJson(buildPayload())
             }
-            state = state.copy(requestState = RequestState.SUCCESS)
+            val result = request.getOrNull()
+            val newState = if (result?.ok() != true) {
+                logger.errorToast("Failed to create poll")
+                if (result != null)
+                    logger.error("${result.statusCode} ${result.statusMessage} ${result.text()}", null)
+                else
+                    logger.error(request.exceptionOrNull())
+                RequestState.IDLE
+            } else {
+                RequestState.SUCCESS
+            }
+            Utils.mainThread.post { state = state.copy(requestState = newState) }
         }
     }
 }

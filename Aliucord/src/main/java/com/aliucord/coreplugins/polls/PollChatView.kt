@@ -122,7 +122,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
         infoTextAdapter = PollChatInfoTextAdapter(ctx, this.infoText)
     }
 
-    internal fun updateState(previousState: State) {
+    internal fun updateState(previousState: State?) {
         if (state != previousState) {
             voteButton.isEnabled = answersContainer.hasChecked
             showResultsButton.isEnabled = true
@@ -199,22 +199,25 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
 
         voteHandler = { isVoting ->
             Utils.threadPool.execute {
-                val req = Http.Request.newDiscordRNRequest(
-                    "/channels/${entry.message.channelId}/polls/${entry.message.id}/answers/@me",
-                    "PUT"
-                ).setRequestTimeout(10000).executeWithJson(PollVotePayload(
-                    if (isVoting)
-                        this.answersContainer.getCheckedAnswers().toList()
-                    else
-                        listOf()
-                ))
-
-                if (!req.ok()) {
+                val request = runCatching {
+                    Http.Request.newDiscordRNRequest(
+                        "/channels/${entry.message.channelId}/polls/${entry.message.id}/answers/@me",
+                        "PUT"
+                    ).setRequestTimeout(10000).executeWithJson(PollVotePayload(
+                        if (isVoting)
+                            this.answersContainer.getCheckedAnswers().toList()
+                        else
+                            listOf()
+                    ))
+                }
+                val result = request.getOrNull()
+                if (result?.ok() != true) {
                     logger.errorToast("Failed to submit poll vote")
-                    logger.error("${req.statusCode} ${req.statusMessage} ${req.text()}", null)
-                    voteButton.isEnabled = true
-                    showResultsButton.isEnabled = true
-                    removeVoteButton.isEnabled = true
+                    if (result != null)
+                        logger.error("${result.statusCode} ${result.statusMessage} ${result.text()}", null)
+                    else
+                        logger.error(request.exceptionOrNull())
+                    Utils.mainThread.post { updateState(null) }
                 }
             }
         }
