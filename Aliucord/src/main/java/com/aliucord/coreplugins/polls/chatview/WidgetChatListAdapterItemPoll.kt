@@ -19,14 +19,14 @@ internal class WidgetChatListAdapterItemPoll(adapter: WidgetChatListAdapter)
         val unusedTextView = root.getViewById(Utils.getResId("chat_list_adapter_item_text", "id"))
         root.removeView(unusedTextView)
 
+        val resources = adapter.context.resources
+        val bottom = resources.getDimension(R.d.chat_cell_vertical_spacing_padding).toInt()
+        val start = resources.getDimension(R.d.uikit_guideline_chat).toInt()
+        val end = resources.getDimension(R.d.chat_cell_horizontal_spacing_total).toInt()
+        root.setPadding(start, 0, end, bottom)
+
         pollView = PollChatView(adapter.context).addTo(root) {
-            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
-                val resources = adapter.context.resources
-                val bottom = resources.getDimension(R.d.chat_cell_vertical_spacing_padding).toInt()
-                val start = resources.getDimension(R.d.uikit_guideline_chat).toInt()
-                val end = resources.getDimension(R.d.chat_cell_horizontal_spacing_total).toInt()
-                setMargins(start, 0, end, bottom)
-            }
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
         }
     }
 
