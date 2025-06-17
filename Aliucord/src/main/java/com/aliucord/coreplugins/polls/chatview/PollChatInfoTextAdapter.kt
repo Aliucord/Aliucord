@@ -1,10 +1,10 @@
-package com.aliucord.coreplugins.polls
+package com.aliucord.coreplugins.polls.chatview
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.widget.TextView
 import com.aliucord.Utils
-import com.aliucord.coreplugins.polls.PollChatView.State
+import com.aliucord.coreplugins.polls.chatview.PollChatView.State
 import com.discord.api.utcdatetime.UtcDateTime
 import kotlin.random.Random
 

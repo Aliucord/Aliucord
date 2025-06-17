@@ -1,4 +1,5 @@
 @file:Suppress("MISSING_DEPENDENCY_CLASS", "MISSING_DEPENDENCY_SUPERCLASS")
+
 package com.aliucord.coreplugins
 
 import android.annotation.SuppressLint
@@ -16,7 +17,9 @@ import com.aliucord.Http
 import com.aliucord.Utils
 import com.aliucord.api.GatewayAPI
 import com.aliucord.api.rn.user.RNUser
-import com.aliucord.coreplugins.polls.*
+import com.aliucord.coreplugins.polls.MessagePollVoteEvent
+import com.aliucord.coreplugins.polls.chatview.PollChatEntry
+import com.aliucord.coreplugins.polls.chatview.WidgetChatListAdapterItemPoll
 import com.aliucord.coreplugins.polls.creation.PollCreateScreen
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
@@ -52,7 +55,6 @@ import de.robv.android.xposed.XposedBridge
 import kotlin.math.roundToInt
 import com.discord.api.message.Message as ApiMessage
 import com.discord.models.message.Message as ModelMessage
-
 
 internal class Polls : CorePlugin(Manifest("Polls")) {
     override val isHidden: Boolean = true

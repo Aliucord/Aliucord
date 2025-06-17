@@ -1,4 +1,4 @@
-package com.aliucord.coreplugins.polls
+package com.aliucord.coreplugins.polls.chatview
 
 import com.discord.api.message.poll.MessagePoll
 import com.discord.models.message.Message

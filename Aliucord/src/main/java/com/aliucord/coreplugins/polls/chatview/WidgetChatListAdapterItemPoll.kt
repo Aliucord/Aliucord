@@ -1,4 +1,4 @@
-package com.aliucord.coreplugins.polls
+package com.aliucord.coreplugins.polls.chatview
 
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams

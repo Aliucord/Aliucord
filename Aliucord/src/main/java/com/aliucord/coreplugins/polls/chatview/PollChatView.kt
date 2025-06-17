@@ -1,4 +1,4 @@
-package com.aliucord.coreplugins.polls
+package com.aliucord.coreplugins.polls.chatview
 
 import android.annotation.SuppressLint
 import android.content.Context

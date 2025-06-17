@@ -1,4 +1,4 @@
-package com.aliucord.coreplugins.polls
+package com.aliucord.coreplugins.polls.chatview
 
 import android.content.Context
 import com.aliucord.utils.ViewUtils.addTo
