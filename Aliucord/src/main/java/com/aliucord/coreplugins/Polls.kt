@@ -368,6 +368,9 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             if (msg.poll == null || msg.author.id != StoreStream.getUsers().me.id)
                 return@after
 
+            if (msg.poll!!.expiry!!.g() <= System.currentTimeMillis())
+                return@after
+
             if (layout.findViewById<View>(endPollId) != null)
                 return@after
 
