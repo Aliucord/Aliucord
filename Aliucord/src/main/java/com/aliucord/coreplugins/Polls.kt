@@ -24,6 +24,7 @@ import com.aliucord.coreplugins.polls.creation.PollCreateScreen
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.updater.ManagerBuild
+import com.aliucord.utils.ReflectUtils
 import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.wrappers.ChannelWrapper.Companion.id
 import com.aliucord.wrappers.ChannelWrapper.Companion.isDM
@@ -37,9 +38,12 @@ import com.discord.api.channel.Channel
 import com.discord.api.message.poll.MessagePollAnswerCount
 import com.discord.api.message.poll.MessagePollResult
 import com.discord.models.member.GuildMember
+import com.discord.models.user.MeUser
 import com.discord.stores.StoreMessageState
 import com.discord.stores.StoreStream
 import com.discord.utilities.color.ColorCompat
+import com.discord.utilities.permissions.ManageMessageContext
+import com.discord.utilities.permissions.PermissionsContextsKt
 import com.discord.utilities.spans.ClickableSpan
 import com.discord.views.CheckedSetting
 import com.discord.widgets.chat.input.*
@@ -334,7 +338,6 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
                 icon?.colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_ATOP)
             }
         }
-
         patcher.before<b.b.a.a.b>("onTabSelected", TabLayout.Tab::class.java)
         { (param, tab: TabLayout.Tab) ->
             if (tab.tag != "poll")
@@ -358,6 +361,29 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             PollCreateScreen.launch(ctx, name, channel.id)
         }
 
+        // Allow deleting poll result messages
+        patcher.patch(PermissionsContextsKt::class.java.getDeclaredMethod("isDeleteable", ModelMessage::class.java))
+        { (param, msg: ModelMessage) ->
+            if (msg.type == POLL_RESULT_MESSAGE_TYPE)
+                param.result = true
+        }
+
+        // Other clients cannot edit poll messages to add content, despite it being allowed by the API
+        // Here we also disable the functionality
+        patcher.after<ManageMessageContext.Companion>(
+            "from",
+            ModelMessage::class.java,
+            Long::class.javaObjectType,
+            MeUser::class.java,
+            Integer::class.java,
+            Boolean::class.javaPrimitiveType!!,
+            Boolean::class.javaPrimitiveType!!,
+            Boolean::class.javaPrimitiveType!!,
+        ) { (param, msg: ModelMessage) ->
+            if (msg.poll != null)
+                ReflectUtils.setField(param.result, "canEdit", false)
+        }
+
         // Adds an "End poll now" button in message actions
         val endPollId = View.generateViewId()
         patcher.after<WidgetChatListActions>("configureUI", WidgetChatListActions.Model::class.java)
@@ -365,7 +391,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             val layout = (requireView() as ViewGroup).getChildAt(0) as ViewGroup
             val msg = model.message!!
 
-            if (msg.poll == null || msg.author.id != StoreStream.getUsers().me.id)
+            if (msg.poll == null || msg.author.id != model.me.id)
                 return@after
 
             if (msg.poll!!.expiry!!.g() <= System.currentTimeMillis())
