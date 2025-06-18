@@ -50,9 +50,9 @@ internal class PollChatAnswersContainerView(private val ctx: Context) : LinearLa
         }
     }
 
-    fun updateState(state: PollChatView.State, isTransition: Boolean) {
+    fun updateState(state: PollChatView.State, shouldReanimate: Boolean) {
         for (answer in answerViews.values)
-            answer.updateState(state, isTransition)
+            answer.updateState(state, shouldReanimate)
     }
 
     fun getCheckedAnswers(): Iterable<Int> =

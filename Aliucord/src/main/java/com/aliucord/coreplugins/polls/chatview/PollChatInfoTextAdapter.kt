@@ -1,14 +1,13 @@
 package com.aliucord.coreplugins.polls.chatview
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.widget.TextView
 import com.aliucord.Utils
 import com.aliucord.coreplugins.polls.chatview.PollChatView.State
 import com.discord.api.utcdatetime.UtcDateTime
 import kotlin.random.Random
 
-internal class PollChatInfoTextAdapter(private val ctx: Context, private val infoText: TextView) {
+internal class PollChatInfoTextAdapter(private val infoText: TextView) {
     private companion object {
         const val MINUTE = 60
         const val HOUR = MINUTE * 60

@@ -119,7 +119,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
             }
         }
 
-        infoTextAdapter = PollChatInfoTextAdapter(ctx, this.infoText)
+        infoTextAdapter = PollChatInfoTextAdapter(this.infoText)
     }
 
     internal fun updateState(previousState: State?) {

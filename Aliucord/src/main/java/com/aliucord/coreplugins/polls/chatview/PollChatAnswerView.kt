@@ -15,6 +15,7 @@ import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.ViewUtils.addTo
 import com.discord.api.message.poll.MessagePollAnswer
 import com.discord.api.message.poll.MessagePollAnswerCount
+import com.discord.utilities.accessibility.AccessibilityUtils
 import com.discord.utilities.color.ColorCompat
 import com.discord.utilities.textprocessing.node.EmojiNode
 import com.discord.utilities.view.text.SimpleDraweeSpanTextView
@@ -124,7 +125,7 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
     fun updateCount(count: MessagePollAnswerCount, totalCount: Int, isWinner: Boolean, state: PollChatView.State) {
         val progress = (count.count.toDouble() * 100 / totalCount).roundToInt()
 
-        progressIndicator.setProgress(progress, true)
+        animateProgress(progress)
 
         val percent = "$progress%"
         val votes = "${count.count} vote${if (count.count != 1) "s" else ""}"
@@ -153,7 +154,7 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
         DrawableCompat.setTint(checkmark.drawable, color)
     }
 
-    fun updateState(state: PollChatView.State, isTransition: Boolean) {
+    fun updateState(state: PollChatView.State, shouldReanimate: Boolean) {
         when (state) {
             PollChatView.State.VOTING -> {
                 layout.isClickable = true
@@ -169,13 +170,20 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
                 layout.isClickable = false
                 checkbox.visibility = GONE
                 subtext.visibility = VISIBLE
-                if (isTransition) {
+                if (shouldReanimate) {
                     val progress = progressIndicator.progress
                     progressIndicator.progress = 0
-                    progressIndicator.setProgress(progress, true)
+                    animateProgress(progress)
                 }
                 progressIndicator.visibility = VISIBLE
             }
         }
+    }
+
+    private fun animateProgress(target: Int) {
+        if (AccessibilityUtils.INSTANCE.isReducedMotionEnabled)
+            progressIndicator.setProgress(target)
+        else
+            progressIndicator.setProgress(target, true)
     }
 }
