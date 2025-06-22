@@ -20,7 +20,7 @@ internal class StickerCrashFix : CorePlugin(Manifest("StickerCrashFix")) {
             Long::class.javaPrimitiveType!!,
         ) { param ->
             val durations = param.args[4] as IntArray
-            param.args[4] = durations.map { it.coerceAtLeast(100) }.toIntArray()
+            param.args[4] = durations.map { if (it <= 10) 100 else it }.toIntArray()
         }
     }
 
