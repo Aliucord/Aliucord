@@ -3,7 +3,7 @@
 version = "2.1.1"
 
 aliucord {
-    projectType.set(com.aliucord.gradle.ProjectType.INJECTOR)
+    projectType = com.aliucord.gradle.ProjectType.INJECTOR
 }
 
 android {

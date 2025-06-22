@@ -23,11 +23,11 @@ jobs:
           path: src
           persist-credentials: false
 
-      - name: Setup JDK 11
+      - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: "zulu"
-          java-version: "11"
+          java-version: "17"
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -133,12 +133,12 @@ jobs:
           path: src
           persist-credentials: false
 
-      - name: Setup JDK 11
+      - name: Setup JDK 17
         if: ${{ env.MAVEN_USERNAME != '' }}
         uses: actions/setup-java@v4
         with:
           distribution: "zulu"
-          java-version: "11"
+          java-version: "17"
 
       - name: Build & Publish to Maven
         if: ${{ env.MAVEN_USERNAME != '' }}
