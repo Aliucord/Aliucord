@@ -45,7 +45,7 @@ PLEASE NOTE THAT this is a MODIFICATION of the Discord APP and this is AGAINST T
   <img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/Aliucord/Aliucord/build-aliucord.yml?label=App%20Build&logo=githubactions&logoColor=white&style=flat-square">
 </a>
 
-1. Download and install [Aliucord Manager](https://github.com/Aliucord/Manager]
+1. Download and install [Aliucord Manager](https://github.com/Aliucord/Manager)
 2. Open the newly installed "Aliucord Manager" app from your app drawer
 3. Click "New Install", then click the "Install" button
 4. Wait for it to finish patching the Discord APK
