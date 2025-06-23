@@ -41,23 +41,16 @@ PLEASE NOTE THAT this is a MODIFICATION of the Discord APP and this is AGAINST T
     - Logs are also saved to `Aliucord/crashlogs` for easy access outside of the app
 
 ## 📲 Installation
-
-<a href="https://github.com/Aliucord/Aliucord/actions/workflows/build-installer.yml">
-  <img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/Aliucord/Aliucord/build-installer.yml?label=Installer%20Build&logo=githubactions&logoColor=white&style=flat-square">
-</a>
 <a href="https://github.com/Aliucord/Aliucord/actions/workflows/build.yml">
   <img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/Aliucord/Aliucord/build-aliucord.yml?label=App%20Build&logo=githubactions&logoColor=white&style=flat-square">
 </a>
 
-1. Download and install [Installer-release.apk](https://github.com/Aliucord/Aliucord/releases/latest/download/Installer-release.apk) from latest
-   release
-2. Open the newly installed "Aliucord Installer" app from your app drawer
-3. Click "Install", then choose the "Download" option
+1. Download and install [Aliucord Manager](https://github.com/Aliucord/Manager]
+2. Open the newly installed "Aliucord Manager" app from your app drawer
+3. Click "New Install", then click the "Install" button
 4. Wait for it to finish patching the Discord APK
-5. Click "Install" once prompted by Android and wait for Aliucord to finish installing. If the installer just stops or the apk fails to install just
-   try again and it should work
-6. If Google Play warns you about this application being unverified, ignore it. This happens because Aliucord is built & signed locally on your device
-   so Play Protect doesn't recognise the signature¹
+5. Click "Install" once prompted by Android and wait for Aliucord to finish installing. If the installer just stops or the apk fails to install just try again and it should work
+6. If Google Play warns you about this application being unverified, ignore it. This happens because Aliucord is built & signed locally on your device so Play Protect doesn't recognise the signature¹
 7. Open Aliucord, grant access to files (it needs this for finding plugins), log in to your account, and voila! Aliucord is at your fingertips!
 
 > ¹ If you'd like, you can disable this warning by turning off Play Protect in Google Play's settings, play protect is useless.
