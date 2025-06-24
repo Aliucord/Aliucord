@@ -4,9 +4,7 @@ package com.aliucord.coreplugins
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffColorFilter
-import android.graphics.Typeface
+import android.graphics.*
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.style.StyleSpan
@@ -20,15 +18,12 @@ import com.aliucord.Utils
 import com.aliucord.api.GatewayAPI
 import com.aliucord.api.rn.user.RNUser
 import com.aliucord.coreplugins.polls.MessagePollVoteEvent
+import com.aliucord.coreplugins.polls.PollsStore
 import com.aliucord.coreplugins.polls.chatview.PollChatEntry
 import com.aliucord.coreplugins.polls.chatview.WidgetChatListAdapterItemPoll
 import com.aliucord.coreplugins.polls.creation.PollCreateScreen
 import com.aliucord.entities.CorePlugin
-import com.aliucord.patcher.after
-import com.aliucord.patcher.before
-import com.aliucord.patcher.component1
-import com.aliucord.patcher.component2
-import com.aliucord.patcher.component3
+import com.aliucord.patcher.*
 import com.aliucord.updater.ManagerBuild
 import com.aliucord.utils.ReflectUtils
 import com.aliucord.utils.ViewUtils.addTo
@@ -52,16 +47,9 @@ import com.discord.utilities.permissions.ManageMessageContext
 import com.discord.utilities.permissions.PermissionsContextsKt
 import com.discord.utilities.spans.ClickableSpan
 import com.discord.views.CheckedSetting
-import com.discord.widgets.chat.input.WidgetChatInputAttachments
-import com.discord.widgets.chat.input.`WidgetChatInputAttachments$configureFlexInputContentPages$1`
-import com.discord.widgets.chat.input.`WidgetChatInputAttachments$configureFlexInputContentPages$1$page$1`
+import com.discord.widgets.chat.input.*
 import com.discord.widgets.chat.list.actions.WidgetChatListActions
-import com.discord.widgets.chat.list.adapter.WidgetChatListAdapter
-import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemSystemMessage
-import com.discord.widgets.chat.list.adapter.`WidgetChatListAdapterItemSystemMessage$getSystemMessage$1`
-import com.discord.widgets.chat.list.adapter.`WidgetChatListAdapterItemSystemMessage$getSystemMessage$roleSubscriptionPurchaseContext$1`
-import com.discord.widgets.chat.list.adapter.`WidgetChatListAdapterItemSystemMessage$getSystemMessage$usernameRenderContext$1`
-import com.discord.widgets.chat.list.adapter.`WidgetChatListAdapterItemSystemMessage$onConfigure$1`
+import com.discord.widgets.chat.list.adapter.*
 import com.discord.widgets.chat.list.entries.ChatListEntry
 import com.discord.widgets.chat.list.entries.MessageEntry
 import com.discord.widgets.notice.WidgetNoticeDialog
@@ -84,6 +72,8 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
     // Handle vote changes from the gateway
     @Synchronized
     fun handleVoteChange(event: MessagePollVoteEvent, isAdd: Boolean) {
+        PollsStore.handleGatewayEvent(event, isAdd)
+
         val store = StoreStream.getMessages()
         val meId = StoreStream.getUsers().me.id
 
@@ -182,14 +172,18 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         // Patch ModelMessage to copy our polls from ApiMessage
         patcher.after<ModelMessage>(ApiMessage::class.java)
         { (_, apiMessage: ApiMessage) ->
-            if (apiMessage.poll != null)
+            if (apiMessage.poll != null) {
                 poll = apiMessage.poll
+                PollsStore.handleNewPoll(this)
+            }
         }
         patcher.after<ModelMessage>("merge", ApiMessage::class.java)
         { (param, apiMessage: ApiMessage) ->
             val res = param.result as ModelMessage
-            if (apiMessage.poll != null)
+            if (apiMessage.poll != null) {
                 res.poll = apiMessage.poll
+                PollsStore.handleNewPoll(res)
+            }
         }
 
         /**
