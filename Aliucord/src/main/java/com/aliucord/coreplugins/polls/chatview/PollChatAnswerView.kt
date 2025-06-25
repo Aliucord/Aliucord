@@ -134,7 +134,7 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
         }
         subtext.text = voteText
 
-        val typeface = if (isWinner || count.meVoted)
+        val typefaceStyle = if (isWinner || count.meVoted)
             Typeface.BOLD
         else
             Typeface.NORMAL
@@ -148,8 +148,8 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
         else
             ColorCompat.getThemedColor(ctx, R.b.colorButtonSecondaryBackgroundActive)
 
-        label.setTypeface(null, typeface)
-        subtext.setTypeface(null, typeface)
+        label.setTypeface(Typeface.create(label.typeface, typefaceStyle))
+        subtext.setTypeface(Typeface.create(label.typeface, typefaceStyle))
         progressIndicator.setIndicatorColor(ColorUtils.setAlphaComponent(color, 0x50))
         DrawableCompat.setTint(checkmark.drawable, color)
     }
