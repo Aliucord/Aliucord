@@ -24,7 +24,9 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
         SHOW_RESULT,
         VOTED,
         CLOSED,
-        FINALISED
+        FINALISED;
+
+        fun visibleIf(vararg types: State) = if (this in types) VISIBLE else GONE
     }
 
     private data class PollVotePayload(@Suppress("PropertyName") val answer_ids: List<Int>)
@@ -129,37 +131,11 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
             showResultsButton.isEnabled = true
             removeVoteButton.isEnabled = true
         }
-        when (state) {
-            State.VOTING -> {
-                voteButton.visibility = VISIBLE
-                showResultsButton.visibility = VISIBLE
-                goBackButton.visibility = GONE
-                removeVoteButton.visibility = GONE
-                subtext.visibility = VISIBLE
-            }
-            State.SHOW_RESULT -> {
-                voteButton.visibility = GONE
-                showResultsButton.visibility = GONE
-                goBackButton.visibility = VISIBLE
-                removeVoteButton.visibility = GONE
-                subtext.visibility = VISIBLE
-            }
-            State.VOTED -> {
-                voteButton.visibility = GONE
-                showResultsButton.visibility = GONE
-                goBackButton.visibility = GONE
-                removeVoteButton.visibility = VISIBLE
-                subtext.visibility = VISIBLE
-            }
-            State.CLOSED,
-            State.FINALISED -> {
-                voteButton.visibility = GONE
-                showResultsButton.visibility = GONE
-                goBackButton.visibility = GONE
-                removeVoteButton.visibility = GONE
-                subtext.visibility = GONE
-            }
-        }
+        subtext.visibility = state.visibleIf(State.VOTING, State.SHOW_RESULT, State.VOTED)
+        voteButton.visibility = state.visibleIf(State.VOTING)
+        showResultsButton.visibility = state.visibleIf(State.VOTING)
+        goBackButton.visibility = state.visibleIf(State.SHOW_RESULT)
+        removeVoteButton.visibility = state.visibleIf(State.VOTED)
 
         answersContainer.updateState(state, previousState == State.VOTING)
     }
