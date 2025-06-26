@@ -52,6 +52,7 @@ import com.discord.widgets.chat.list.actions.WidgetChatListActions
 import com.discord.widgets.chat.list.adapter.*
 import com.discord.widgets.chat.list.entries.ChatListEntry
 import com.discord.widgets.chat.list.entries.MessageEntry
+import com.discord.widgets.chat.managereactions.ManageReactionsResultsAdapter
 import com.discord.widgets.notice.WidgetNoticeDialog
 import com.google.android.material.tabs.TabLayout
 import com.lytefast.flexinput.R
@@ -158,6 +159,8 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
     private fun patchChatView() {
         // For PollAnswerView
         XposedBridge.makeClassInheritable(CheckedSetting::class.java)
+        // For PollVotesDetailResultsAdapter
+        XposedBridge.makeClassInheritable(ManageReactionsResultsAdapter::class.java)
 
         patcher.before<WidgetChatListAdapter>("onCreateViewHolder", ViewGroup::class.java, Int::class.javaPrimitiveType!!)
         { (param, _: ViewGroup, entryType: Int) ->

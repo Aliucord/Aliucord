@@ -10,7 +10,6 @@ import com.discord.models.message.Message
 import com.discord.models.user.CoreUser
 import com.discord.models.user.User
 import com.discord.stores.StoreStream
-import com.discord.stores.StoreThread
 import com.google.gson.stream.JsonReader
 import rx.Subscription
 import rx.subjects.PublishSubject
@@ -44,7 +43,6 @@ object PollsStore {
     private val snapshots = HashMap<Long, HashMap<Int, VoterSnapshot>>()
     private val subject = PublishSubject.k0<VoteEvent>()
 
-    @StoreThread
     fun handleGatewayEvent(event: MessagePollVoteEvent, isAdd: Boolean) {
         val answers = snapshots[event.messageId]
         if (answers == null) {
@@ -80,7 +78,6 @@ object PollsStore {
         publish(event.channelId, event.messageId)
     }
 
-    @StoreThread
     fun publish(channelId: Long, messageId: Long) {
         subject.onNext(VoteEvent(channelId, messageId, snapshots[messageId]!!))
     }
@@ -93,7 +90,6 @@ object PollsStore {
         }
     }
 
-    @StoreThread
     fun fetchDetails(channelId: Long, messageId: Long, answerId: Int) {
         val answers = snapshots[messageId]
         if (answers == null) {
@@ -102,12 +98,8 @@ object PollsStore {
         }
 
         val lastSnapshot = answers[answerId]
-        if (lastSnapshot is VoterSnapshot.Loading)
+        if (lastSnapshot is VoterSnapshot.Loading || lastSnapshot is VoterSnapshot.Detailed)
             return
-        if (lastSnapshot is VoterSnapshot.Detailed) {
-            publish(channelId, messageId)
-            return
-        }
 
         val lastCount = lastSnapshot?.count ?: 0
         answers[answerId] = VoterSnapshot.Loading(lastCount)
@@ -134,7 +126,6 @@ object PollsStore {
         }
     }
 
-    @StoreThread
     fun handleNewPoll(message: Message, force: Boolean = false) {
         val poll = message.poll
         if (poll == null)
