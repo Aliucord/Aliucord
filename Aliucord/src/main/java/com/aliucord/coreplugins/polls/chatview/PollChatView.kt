@@ -5,7 +5,7 @@ import android.content.Context
 import android.view.ContextThemeWrapper
 import android.widget.TextView
 import com.aliucord.*
-import com.aliucord.coreplugins.polls.PollVotesDetailScreen
+import com.aliucord.coreplugins.polls.details.PollDetailsScreen
 import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.views.Button
@@ -174,7 +174,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
         val totalCount = data.results?.answerCounts?.sumOf { it.count } ?: 0
         infoTextAdapter.updateData(state, totalCount, data.expiry!!)
         infoText.setOnClickListener {
-            PollVotesDetailScreen.create(ctx, entry.message.channelId, entry.message.id)
+            PollDetailsScreen.create(ctx, entry.message.channelId, entry.message.id)
         }
 
         voteHandler = { isVoting ->
