@@ -7,7 +7,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.aliucord.Utils
-import com.aliucord.utils.DimenUtils
+import com.aliucord.utils.DimenUtils.dp
 import com.discord.api.message.poll.MessagePollAnswer
 import com.discord.utilities.mg_recycler.*
 import com.discord.utilities.textprocessing.node.EmojiNode
@@ -34,14 +34,29 @@ internal class PollDetailsAnswersAdapter(
         val textView: TextView = itemView.findViewById(Utils.getResId("manage_reactions_emoji_counter", "id"))
         val selectedIndicatorView: View = itemView.findViewById(Utils.getResId("manage_reactions_emoji_selected_indicator", "id"))
 
+        init {
+            emojiView.layoutParams = (emojiView.layoutParams as LinearLayout.LayoutParams).apply {
+                marginStart = 8.dp
+            }
+            textView.layoutParams = (textView.layoutParams as LinearLayout.LayoutParams).apply {
+                marginEnd = 8.dp
+            }
+        }
+
         @SuppressLint("SetTextI18n")
         override fun onConfigure(position: Int, data: AnswerItem) {
             super.onConfigure(position, data)
 
-            EmojiNode.Companion!!.renderEmoji(emojiView, data.answer.pollMedia.emoji, true, DimenUtils.dpToPx(20))
+            val emoji = data.answer.pollMedia.emoji
+            if (emoji != null) {
+                emojiView.visibility = View.VISIBLE
+                EmojiNode.Companion!!.renderEmoji(emojiView, emoji, true, 20.dp)
+            } else
+                emojiView.visibility = View.GONE
+
             textView.text = "${data.answer.pollMedia.text} (${data.voteCount})"
             selectedIndicatorView.visibility = if (data.isSelected) View.VISIBLE else View.INVISIBLE
-            containerView.setOnClickListener {
+            itemView.setOnClickListener {
                 adapter.onAnswerSelected(data.answer.answerId!!)
             }
         }
