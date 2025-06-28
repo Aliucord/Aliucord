@@ -45,7 +45,7 @@ PLEASE NOTE THAT this is a MODIFICATION of the Discord APP and this is AGAINST T
   <img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/Aliucord/Aliucord/build-aliucord.yml?label=App%20Build&logo=githubactions&logoColor=white&style=flat-square">
 </a>
 
-1. Download the Aliucord Manager](https://github.com/Aliucord/Manager/releases/latest)
+1. Download [Aliucord Manager](https://github.com/Aliucord/Manager/releases/latest)
 2. Open and install Aliucord Manager
     - If you have not enabled "Install from unknown sources" for your browser via system settings, do so now.
 3. Open Aliucord Manager
