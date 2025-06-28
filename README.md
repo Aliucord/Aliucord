@@ -45,17 +45,22 @@ PLEASE NOTE THAT this is a MODIFICATION of the Discord APP and this is AGAINST T
   <img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/Aliucord/Aliucord/build-aliucord.yml?label=App%20Build&logo=githubactions&logoColor=white&style=flat-square">
 </a>
 
-1. Download and install [Aliucord Manager](https://github.com/Aliucord/Manager)
-2. Open the newly installed "Aliucord Manager" app from your app drawer
-3. Click "New Install", then click the "Install" button
-4. Wait for it to finish patching the Discord APK
-5. Click "Install" once prompted by Android and wait for Aliucord to finish installing. If the installer just stops or the apk fails to install just try again and it should work
-6. If Google Play warns you about this application being unverified, ignore it. This happens because Aliucord is built & signed locally on your device so Play Protect doesn't recognise the signature¹
-7. Open Aliucord, grant access to files (it needs this for finding plugins), log in to your account, and voila! Aliucord is at your fingertips!
-
-> ¹ If you'd like, you can disable this warning by turning off Play Protect in Google Play's settings, play protect is useless.
->
-> Play Protect can be turned off by tapping on your user icon in the top right of Google Play, tapping on "Play Protect," tapping on the cog icon in the top right, and finally toggling "Scan apps with Play Protect" to off. This may result in Google Play "nagging" you to re-enable it sometimes when sideloading apps.\*
+1. Download [Aliucord Manager](https://github.com/Aliucord/Manager/releases/latest)
+2. Open and install Aliucord Manager
+    - If you have not enabled "Install from unknown sources" for your browser via system settings, do so now.
+3. Open Aliucord Manager
+4. Grant permission requests
+5. Click "New Install"
+    - You may change the the Aliucord app icon will look once installed
+6. Click "Install" and wait. Do not exit the app while it is running.
+    - If a failure occurs, it may be due to a variety of reasons:
+        - Poor internet connection
+        - Internet censorship / blocks (use a VPN or a different DNS server)
+        - Insufficient free storage (at least 500MB is recommended)
+    - If you are stuck, please ask for help in the `#support` channel of our [Discord](https://discord.gg/EsNDvBaHVU0).
+7. Click "Launch" or launch the newly installed Aliucord app directly
+8. Grant permission requests
+9. Sign in
 
 ## 🔌 Plugin Installation
 
