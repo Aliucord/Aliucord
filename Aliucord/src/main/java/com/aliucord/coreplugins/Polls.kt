@@ -36,10 +36,10 @@ import com.aliucord.wrappers.embeds.FieldWrapper.Companion.value
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper.Companion.rawFields
 import com.aliucord.wrappers.messages.MessageWrapper.Companion.poll
 import com.discord.api.channel.Channel
+import com.discord.models.domain.ModelMessageDelete
 import com.discord.models.member.GuildMember
 import com.discord.models.user.MeUser
-import com.discord.stores.StoreMessageState
-import com.discord.stores.StoreStream
+import com.discord.stores.*
 import com.discord.utilities.color.ColorCompat
 import com.discord.utilities.permissions.ManageMessageContext
 import com.discord.utilities.permissions.PermissionsContextsKt
@@ -108,6 +108,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             logger.warn("Base app outdated, cannot enable Polls");
             return;
         }
+        patchStore()
         patchChatView()
         patchResultMessage(context)
         patchAttachmentSelector()
@@ -118,37 +119,40 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         patcher.unpatchAll()
     }
 
-    private fun patchChatView() {
-        // For PollChatAnswerView
-        XposedBridge.makeClassInheritable(CheckedSetting::class.java)
-        // For PollDetailsResultsAdapter
-        XposedBridge.makeClassInheritable(ManageReactionsResultsAdapter::class.java)
+    private fun patchStore() {
+        // Watch for poll vote gateway events
+        GatewayAPI.onEvent<MessagePollVoteEvent>("MESSAGE_POLL_VOTE_ADD") { PollsStore.dispatchGatewayEvent(it, true) }
+        GatewayAPI.onEvent<MessagePollVoteEvent>("MESSAGE_POLL_VOTE_REMOVE") { PollsStore.dispatchGatewayEvent(it, false) }
 
-        patcher.before<WidgetChatListAdapter>("onCreateViewHolder", ViewGroup::class.java, Int::class.javaPrimitiveType!!)
-        { (param, _: ViewGroup, entryType: Int) ->
-            if (entryType == PollChatEntry.POLL_ENTRY_TYPE)
-                param.result = WidgetChatListAdapterItemPoll(this)
+        // Patch store methods to manage them in our store
+        patcher.patch(StoreStream::class.java.getDeclaredMethod("handleMessageCreate", ApiMessage::class.java))
+        { (_, msg: ApiMessage) -> PollsStore.handleMessageUpdate(msg) }
+
+        patcher.patch(StoreStream::class.java.getDeclaredMethod("handleMessageUpdate", ApiMessage::class.java))
+        { (_, msg: ApiMessage) -> PollsStore.handleMessageUpdate(msg) }
+
+        patcher.patch(StoreStream::class.java.getDeclaredMethod("handleMessageDelete", ModelMessageDelete::class.java))
+        { (_, deleteModel: ModelMessageDelete) ->
+            for (id in deleteModel.messageIds)
+                PollsStore.handleMessageDelete(deleteModel.channelId, id)
         }
 
-        // Watch for poll vote gateway events
-        GatewayAPI.onEvent<MessagePollVoteEvent>("MESSAGE_POLL_VOTE_ADD") { PollsStore.handleGatewayEvent(it, true) }
-        GatewayAPI.onEvent<MessagePollVoteEvent>("MESSAGE_POLL_VOTE_REMOVE") { PollsStore.handleGatewayEvent(it, false) }
+        patcher.patch(StoreStream::class.java.getDeclaredMethod("handleMessagesLoaded", StoreMessagesLoader.ChannelChunk::class.java))
+        { (_, chunk: StoreMessagesLoader.ChannelChunk) ->
+            for (msg in chunk.messages)
+                PollsStore.handleMessageUpdate(msg)
+        }
+
 
         // Patch ModelMessage to copy our polls from ApiMessage
         patcher.after<ModelMessage>(ApiMessage::class.java)
         { (_, apiMessage: ApiMessage) ->
-            if (apiMessage.poll != null) {
-                poll = apiMessage.poll
-                PollsStore.handleNewPoll(this)
-            }
+            apiMessage.poll?.let { this.poll = it }
         }
         patcher.after<ModelMessage>("merge", ApiMessage::class.java)
         { (param, apiMessage: ApiMessage) ->
             val res = param.result as ModelMessage
-            if (apiMessage.poll != null) {
-                res.poll = apiMessage.poll
-                PollsStore.handleNewPoll(res)
-            }
+            apiMessage.poll?.let { res.poll = it }
         }
 
         /**
@@ -172,23 +176,36 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             if (poll == null)
                 return@before
 
-            val oldPoll = StoreStream.getMessages().getMessage(msg.g(), msg.o())?.poll
+            val oldResults = PollsStore.getResultFor(msg.o(), false)
 
             // If we don't have the message in cache, don't do anything.
             // The REST API sends me_voted correctly.
-            if (oldPoll == null)
+            if (oldResults == null)
                 return@before
 
             // First (unfinalised) event: Retain old results
             if (poll.results == null) {
-                msg.poll = poll.copy(results = oldPoll.results)
+                msg.poll = poll.copy(results = oldResults)
                 return@before
             }
 
             // Second (finalised) event: Retain me_voted
-            for (count in oldPoll.results!!.answerCounts)
+            for (count in oldResults.answerCounts)
                 if (count.meVoted)
                     poll.results!!.answerCounts.find { it.id == count.id }!!.meVoted = true
+        }
+    }
+
+    private fun patchChatView() {
+        // For PollChatAnswerView
+        XposedBridge.makeClassInheritable(CheckedSetting::class.java)
+        // For PollDetailsResultsAdapter
+        XposedBridge.makeClassInheritable(ManageReactionsResultsAdapter::class.java)
+
+        patcher.before<WidgetChatListAdapter>("onCreateViewHolder", ViewGroup::class.java, Int::class.javaPrimitiveType!!)
+        { (param, _: ViewGroup, entryType: Int) ->
+            if (entryType == PollChatEntry.POLL_ENTRY_TYPE)
+                param.result = WidgetChatListAdapterItemPoll(this)
         }
 
         // Patch to attach our poll entry into the chat; we do this before embeds like other clients

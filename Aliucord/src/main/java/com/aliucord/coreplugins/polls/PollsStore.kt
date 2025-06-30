@@ -5,15 +5,17 @@ package com.aliucord.coreplugins.polls
 import com.aliucord.*
 import com.aliucord.utils.RxUtils.subscribe
 import com.aliucord.wrappers.messages.MessageWrapper.Companion.poll
+import com.discord.api.message.poll.*
 import com.discord.models.deserialization.gson.InboundGatewayGsonParser
-import com.discord.models.message.Message
 import com.discord.models.user.CoreUser
 import com.discord.models.user.User
 import com.discord.stores.StoreStream
 import com.google.gson.stream.JsonReader
 import rx.Subscription
 import rx.subjects.PublishSubject
+import com.discord.api.message.Message as ApiMessage
 import com.discord.api.user.User as ApiUser
+import com.discord.models.message.Message as ModelMessage
 
 object PollsStore {
     private val logger = Logger("Store/Polls")
@@ -22,7 +24,7 @@ object PollsStore {
     data class VoteEvent(
         val channelId: Long,
         val messageId: Long,
-        val voteSnapshots: HashMap<Int, VoterSnapshot>
+        val voteSnapshots: HashMap<Int, VoterSnapshot>?
     )
 
     sealed class VoterSnapshot {
@@ -69,23 +71,21 @@ object PollsStore {
     }
 
     private val snapshots = HashMap<Long, HashMap<Int, VoterSnapshot>>()
-    private val subject = PublishSubject.k0<VoteEvent>()
+    private val subject = PublishSubject.k0<VoteEvent?>()
 
-    fun handleGatewayEvent(event: MessagePollVoteEvent, isAdd: Boolean) {
+    fun dispatchGatewayEvent(event: MessagePollVoteEvent, isAdd: Boolean) {
         StoreStream.getDispatcherYesThisIsIntentional().schedule {
-            handleGatewayEventImpl(event, isAdd)
+            handleGatewayEvent(event, isAdd)
         }
     }
 
-    @Synchronized
-    private fun handleGatewayEventImpl(event: MessagePollVoteEvent, isAdd: Boolean) {
+    private fun handleGatewayEvent(event: MessagePollVoteEvent, isAdd: Boolean) {
         val isSelfVote = event.userId == StoreStream.getUsers().me.id
 
         val answers = snapshots[event.messageId]
-        if (answers == null) {
-            Logger("PollsStore").warn("Attempted to publish an event without initialisation")
+        if (answers == null)
             return
-        }
+
         val snapshot = answers[event.answerId]
         answers[event.answerId] = when (snapshot) {
             is VoterSnapshot.Lazy -> {
@@ -119,21 +119,42 @@ object PollsStore {
         publish(event.channelId, event.messageId)
     }
 
-    fun publish(channelId: Long, messageId: Long) {
-        subject.onNext(VoteEvent(channelId, messageId, snapshots[messageId]!!))
+    fun handleMessageUpdate(message: ApiMessage) =
+        handleMessageUpdate(message.g(), message.o(), message.poll)
+    fun handleMessageUpdate(message: ModelMessage) =
+        handleMessageUpdate(message.channelId, message.id, message.poll)
+
+    private fun handleMessageUpdate(channelId: Long, messageId: Long, poll: MessagePoll?) {
+        if (poll == null)
+            return
+
+        val target = HashMap<Int, VoterSnapshot>()
+        poll.results?.answerCounts?.forEach {
+            target[it.id] = VoterSnapshot.Lazy(it.count, it.meVoted)
+        }
+        snapshots[messageId] = target
+        publish(channelId, messageId)
     }
 
-    fun subscribeOnMain(channelId: Long, messageId: Long, onNext: (HashMap<Int, VoterSnapshot>) -> Unit): Subscription {
-        return subscribe(channelId, messageId) {
+    fun handleMessageDelete(channelId: Long, messageId: Long) {
+        snapshots.remove(messageId)
+        publish(channelId, messageId)
+    }
+
+    private fun publish(channelId: Long, messageId: Long) {
+        subject.onNext(VoteEvent(channelId, messageId, snapshots[messageId]))
+    }
+
+    fun subscribeOnMain(channelId: Long, messageId: Long, onNext: (HashMap<Int, VoterSnapshot>?) -> Unit) =
+        subscribe(channelId, messageId) {
             Utils.mainThread.post { onNext(it) }
         }
-    }
 
-    fun subscribe(channelId: Long, messageId: Long, onNext: (HashMap<Int, VoterSnapshot>) -> Unit): Subscription {
+    fun subscribe(channelId: Long, messageId: Long, onNext: (HashMap<Int, VoterSnapshot>?) -> Unit): Subscription {
         snapshots[messageId]?.let { onNext(it) }
         return subject.subscribe {
             if (this.channelId == channelId && this.messageId == messageId)
-                onNext(snapshots[messageId]!!)
+                onNext(snapshots[messageId])
         }
     }
 
@@ -172,18 +193,9 @@ object PollsStore {
         }
     }
 
-    fun handleNewPoll(message: Message, force: Boolean = false) {
-        val poll = message.poll
-        if (poll == null)
-            return logger.warn("Tried to handle message with no poll")
-
-        if (snapshots.contains(message.id) && !force)
-            return
-
-        val target = HashMap<Int, VoterSnapshot>()
-        poll.results?.answerCounts?.forEach {
-            target[it.id] = VoterSnapshot.Lazy(it.count, it.meVoted)
-        }
-        snapshots[message.id] = target
+    fun getResultFor(id: Long, finalised: Boolean) = snapshots[id]?.let {
+        MessagePollResult(finalised, it.map { (answerId, snapshot) ->
+            MessagePollAnswerCount(answerId, snapshot.count, snapshot.meVoted)
+        })
     }
 }

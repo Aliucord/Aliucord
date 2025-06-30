@@ -80,7 +80,7 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
     private fun update(attemptRetry: Boolean = false) {
         val data = data
         if (data == null)
-            return
+            return this.appActivity.finish()
 
         answersAdapter.setData(poll.answers.map { answer ->
             val count = data[answer.answerId]?.count ?: 0

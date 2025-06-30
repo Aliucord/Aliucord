@@ -59,7 +59,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
 
         private var targetChannel: Long? = null
         private var targetMessage: Long? = null
-        private var onNext: ((HashMap<Int, PollsStore.VoterSnapshot>) -> Unit)? = null
+        private var onNext: ((HashMap<Int, PollsStore.VoterSnapshot>?) -> Unit)? = null
 
         fun unsubscribe() {
             storeSubscription?.unsubscribe()
@@ -72,7 +72,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
             PollsStore.subscribeOnMain(targetChannel!!, targetMessage!!, onNext!!)
         }
 
-        fun configure(channelId: Long, messageId: Long, onNext: (HashMap<Int, PollsStore.VoterSnapshot>) -> Unit) {
+        fun configure(channelId: Long, messageId: Long, onNext: (HashMap<Int, PollsStore.VoterSnapshot>?) -> Unit) {
             targetChannel = channelId
             targetMessage = messageId
             this.onNext = onNext
@@ -226,6 +226,11 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
         }
 
         subscriptionHandler.configure(entry.message.channelId, entry.message.id) {
+            if (it == null) {
+                subscriptionHandler.unsubscribe()
+                return@configure
+            }
+
             if (state in listOf(State.CLOSED, State.FINALISED))
                 subscriptionHandler.unsubscribe()
             else {
