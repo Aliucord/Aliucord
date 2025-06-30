@@ -11,10 +11,10 @@ import android.widget.ImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.DrawableCompat
+import com.aliucord.coreplugins.polls.PollsStore.VoterSnapshot
 import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.ViewUtils.addTo
 import com.discord.api.message.poll.MessagePollAnswer
-import com.discord.api.message.poll.MessagePollAnswerCount
 import com.discord.utilities.accessibility.AccessibilityUtils
 import com.discord.utilities.color.ColorCompat
 import com.discord.utilities.textprocessing.node.EmojiNode
@@ -117,12 +117,12 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
         }
 
         updateState(PollChatView.State.VOTING, false)
-        updateCount(MessagePollAnswerCount(0, 0, false), 1, false, PollChatView.State.VOTING)
+        updateCount(VoterSnapshot.Empty, 1, false, PollChatView.State.VOTING)
 
         return this;
     }
 
-    fun updateCount(count: MessagePollAnswerCount, totalCount: Int, isWinner: Boolean, state: PollChatView.State) {
+    fun updateCount(count: VoterSnapshot, totalCount: Int, isWinner: Boolean, state: PollChatView.State) {
         val progress = (count.count.toDouble() * 100 / totalCount).roundToInt()
 
         animateProgress(progress)

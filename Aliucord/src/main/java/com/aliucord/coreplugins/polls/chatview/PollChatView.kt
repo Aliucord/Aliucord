@@ -5,6 +5,7 @@ import android.content.Context
 import android.view.ContextThemeWrapper
 import android.widget.TextView
 import com.aliucord.*
+import com.aliucord.coreplugins.polls.PollsStore
 import com.aliucord.coreplugins.polls.details.PollDetailsScreen
 import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.ViewUtils.addTo
@@ -15,6 +16,7 @@ import com.discord.utilities.color.ColorCompat
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.lytefast.flexinput.R
+import rx.Subscription
 import java.util.Calendar
 
 @SuppressLint("SetTextI18n")
@@ -51,6 +53,33 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
         }
     private val infoTextAdapter: PollChatInfoTextAdapter
     private var voteHandler: ((Boolean) -> Unit)? = null
+
+    private class SubscriptionHandler {
+        private var storeSubscription: Subscription? = null
+
+        private var targetChannel: Long? = null
+        private var targetMessage: Long? = null
+        private var onNext: ((HashMap<Int, PollsStore.VoterSnapshot>) -> Unit)? = null
+
+        fun unsubscribe() {
+            storeSubscription?.unsubscribe()
+        }
+
+        fun subscribe() {
+            unsubscribe()
+            if (targetChannel == null || targetMessage == null || onNext == null)
+                return
+            PollsStore.subscribeOnMain(targetChannel!!, targetMessage!!, onNext!!)
+        }
+
+        fun configure(channelId: Long, messageId: Long, onNext: (HashMap<Int, PollsStore.VoterSnapshot>) -> Unit) {
+            targetChannel = channelId
+            targetMessage = messageId
+            this.onNext = onNext
+        }
+    }
+
+    private val subscriptionHandler = SubscriptionHandler()
 
     init {
         setCardBackgroundColor(ColorCompat.getThemedColor(ctx, R.b.colorBackgroundSecondary))
@@ -144,7 +173,12 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
         val data = entry.poll
         val expired = (data.expiry?.g() ?: Long.MAX_VALUE) < Calendar.getInstance().timeInMillis
 
-        val newState = if (data.results?.isFinalized == true)
+        if (answersKey != entry.key) {
+            answersKey = entry.key
+            answersContainer.configure(data)
+        }
+
+        state = if (data.results?.isFinalized == true)
             State.FINALISED
         else if (expired)
             State.CLOSED
@@ -155,15 +189,6 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
         else
             State.VOTING
 
-        if (answersKey != entry.key) {
-            answersKey = entry.key
-            answersContainer.configure(data)
-        }
-
-        state = newState
-
-        data.results?.let { answersContainer.updateCounts(it, state) }
-
         title.text = data.question.text
 
         subtext.text = if (data.allowMultiselect)
@@ -171,8 +196,6 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
         else
             "Select one answer"
 
-        val totalCount = data.results?.answerCounts?.sumOf { it.count } ?: 0
-        infoTextAdapter.updateData(state, totalCount, data.expiry!!)
         infoText.setOnClickListener {
             PollDetailsScreen.create(ctx, entry.message.channelId, entry.message.id)
         }
@@ -201,13 +224,34 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
                 }
             }
         }
+
+        subscriptionHandler.configure(entry.message.channelId, entry.message.id) {
+            if (state in listOf(State.CLOSED, State.FINALISED))
+                subscriptionHandler.unsubscribe()
+            else {
+                state = if (it.values.any { it.meVoted })
+                    State.VOTED
+                else if (state == State.SHOW_RESULT)
+                    State.SHOW_RESULT
+                else
+                    State.VOTING
+            }
+            answersContainer.updateCounts(it, state)
+            infoTextAdapter.updateData(state, it.values.sumOf { it.count }, data.expiry!!)
+        }
+
+        subscriptionHandler.subscribe()
     }
 
     override fun onWindowVisibilityChanged(visibility: Int) {
         super.onWindowVisibilityChanged(visibility)
-        if (visibility == GONE)
+        if (visibility == GONE) {
             infoTextAdapter.stop()
-        else
+            subscriptionHandler.unsubscribe()
+        }
+        else {
             infoTextAdapter.start()
+            subscriptionHandler.subscribe()
+        }
     }
 }

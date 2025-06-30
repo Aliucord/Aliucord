@@ -71,7 +71,7 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
         setActionBarTitle("Poll Votes");
         setActionBarSubtitle(poll.question.text)
 
-        subscription = PollsStore.subscribe(channelId, messageId) {
+        subscription = PollsStore.subscribeOnMain(channelId, messageId) {
             data = it
             update()
         }

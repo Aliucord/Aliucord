@@ -62,7 +62,7 @@ internal class PollChatInfoTextAdapter(private val infoText: TextView) {
         currentLoopId = loopId
         Utils.threadPool.execute {
             do {
-                refresh()
+                Utils.mainThread.post { refresh() }
                 Thread.sleep(1000)
             } while (shouldRun && loopId == currentLoopId)
         }

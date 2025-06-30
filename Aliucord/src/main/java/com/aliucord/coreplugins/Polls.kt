@@ -36,8 +36,6 @@ import com.aliucord.wrappers.embeds.FieldWrapper.Companion.value
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper.Companion.rawFields
 import com.aliucord.wrappers.messages.MessageWrapper.Companion.poll
 import com.discord.api.channel.Channel
-import com.discord.api.message.poll.MessagePollAnswerCount
-import com.discord.api.message.poll.MessagePollResult
 import com.discord.models.member.GuildMember
 import com.discord.models.user.MeUser
 import com.discord.stores.StoreMessageState
@@ -71,42 +69,6 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
     }
 
     // Handle vote changes from the gateway
-    @Synchronized
-    fun handleVoteChange(event: MessagePollVoteEvent, isAdd: Boolean) {
-        PollsStore.handleGatewayEvent(event, isAdd)
-
-        val store = StoreStream.getMessages()
-        val meId = StoreStream.getUsers().me.id
-
-        val msg = store.getMessage(event.channelId, event.messageId)
-        if (msg == null)
-            return
-
-        val poll = msg.poll
-        if (poll == null) {
-            logger.error("POLL_VOTE gateway event received for message that is not a poll", null)
-            return
-        }
-
-        val results = poll.results?.copy() ?: MessagePollResult(false, listOf())
-        val counts = results.answerCounts.toMutableList()
-
-        var targetCount = counts.find { it.id == event.answerId }
-            ?: MessagePollAnswerCount(event.answerId, 0, false).apply { counts.add(this) }
-        if (isAdd)
-            targetCount.count += 1
-        else
-            targetCount.count -= 1
-
-        if (event.userId == meId)
-            targetCount.meVoted = isAdd
-
-        val newMsg = msg.synthesizeApiMessage()
-        newMsg.poll = poll.copy(results = results.copy(answerCounts = counts))
-
-        store.handleMessageUpdate(newMsg)
-    }
-
     // Show a confirmation dialog when ending polls
     fun showPollConfirmationDialog(fragmentManager: FragmentManager, ctx: Context, msg: ModelMessage, onSuccess: () -> Unit) {
         WidgetNoticeDialog.show(
@@ -157,9 +119,9 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
     }
 
     private fun patchChatView() {
-        // For PollAnswerView
+        // For PollChatAnswerView
         XposedBridge.makeClassInheritable(CheckedSetting::class.java)
-        // For PollVotesDetailResultsAdapter
+        // For PollDetailsResultsAdapter
         XposedBridge.makeClassInheritable(ManageReactionsResultsAdapter::class.java)
 
         patcher.before<WidgetChatListAdapter>("onCreateViewHolder", ViewGroup::class.java, Int::class.javaPrimitiveType!!)
@@ -169,8 +131,8 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         }
 
         // Watch for poll vote gateway events
-        GatewayAPI.onEvent<MessagePollVoteEvent>("MESSAGE_POLL_VOTE_ADD") { handleVoteChange(it, true) }
-        GatewayAPI.onEvent<MessagePollVoteEvent>("MESSAGE_POLL_VOTE_REMOVE") { handleVoteChange(it, false) }
+        GatewayAPI.onEvent<MessagePollVoteEvent>("MESSAGE_POLL_VOTE_ADD") { PollsStore.handleGatewayEvent(it, true) }
+        GatewayAPI.onEvent<MessagePollVoteEvent>("MESSAGE_POLL_VOTE_REMOVE") { PollsStore.handleGatewayEvent(it, false) }
 
         // Patch ModelMessage to copy our polls from ApiMessage
         patcher.after<ModelMessage>(ApiMessage::class.java)

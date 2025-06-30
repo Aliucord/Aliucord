@@ -1,10 +1,11 @@
 package com.aliucord.coreplugins.polls.chatview
 
 import android.content.Context
+import com.aliucord.coreplugins.polls.PollsStore.VoterSnapshot
 import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.views.Divider
 import com.aliucord.widgets.LinearLayout
-import com.discord.api.message.poll.*
+import com.discord.api.message.poll.MessagePoll
 
 internal class PollChatAnswersContainerView(private val ctx: Context) : LinearLayout(ctx) {
     private val answerViews = HashMap<Int, PollChatAnswerView>()
@@ -33,14 +34,13 @@ internal class PollChatAnswersContainerView(private val ctx: Context) : LinearLa
         }
     }
 
-    fun updateCounts(results: MessagePollResult, state: PollChatView.State) {
-        val counts = results.answerCounts
-        val total = counts.sumOf { it.count }.coerceAtLeast(1) // Prevent division by 0
-        var winner = counts.maxOfOrNull { it.count } ?: -1
+    fun updateCounts(counts: Map<Int, VoterSnapshot>, state: PollChatView.State) {
+        val total = counts.values.sumOf { it.count }.coerceAtLeast(1) // Prevent division by 0
+        var winner = counts.values.maxOfOrNull { it.count } ?: -1
         if (winner == 0)
             winner = -1 // There is no winner if there are no votes
         for ((id, answerView) in answerViews) {
-            val count = counts.find { it.id == id } ?: MessagePollAnswerCount(0, 0, false)
+            val count = counts.getOrElse(id) { VoterSnapshot.Empty }
             answerView.updateCount(
                 count,
                 total,
