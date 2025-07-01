@@ -3,6 +3,7 @@
 package com.aliucord.coreplugins.polls
 
 import com.aliucord.*
+import com.aliucord.coreplugins.polls.PollsStore.fetchDetails
 import com.aliucord.utils.RxUtils.subscribe
 import com.aliucord.wrappers.messages.MessageWrapper.Companion.poll
 import com.discord.api.message.poll.*
@@ -17,34 +18,51 @@ import com.discord.api.message.Message as ApiMessage
 import com.discord.api.user.User as ApiUser
 import com.discord.models.message.Message as ModelMessage
 
+/**
+ * A non-persistent store singleton that handles polls and changes to their votes.
+ */
 object PollsStore {
     private val logger = Logger("Store/Polls")
+    private val snapshots = HashMap<Long, HashMap<Int, VoterSnapshot>>()
+    private val subject = PublishSubject.k0<VoteEvent?>()
+
+    /** The response payload used in [fetchDetails] */
     private data class ResponsePayload(val users: List<ApiUser>)
 
-    data class VoteEvent(
+    /** A vote change event */
+    private data class VoteEvent(
         val channelId: Long,
         val messageId: Long,
         val voteSnapshots: HashMap<Int, VoterSnapshot>?
     )
 
+    /** A snapshot of vote details for an answer */
     sealed class VoterSnapshot {
+        /** In the process of converting into [VoterSnapshot.Detailed] via [fetchDetails] */
         data class Loading(val lastCount: Int, val lastSelfVote: Boolean) : VoterSnapshot() {
             companion object {
                 fun from(snapshot: VoterSnapshot?) = Loading(snapshot?.count ?: 0, snapshot?.meVoted == true)
             }
         }
+        /** When [fetchDetails] has failed. */
         data class Failed(val lastCount: Int, val lastSelfVote: Boolean) : VoterSnapshot() {
             companion object {
                 fun from(snapshot: VoterSnapshot?) = Failed(snapshot?.count ?: 0, snapshot?.meVoted == true)
             }
         }
+        /** When only vote counts are known. */
         data class Lazy(val voterCount: Int, val selfVoted: Boolean) : VoterSnapshot() {
             companion object {
                 fun from(snapshot: VoterSnapshot?) = Lazy(snapshot?.count ?: 0, snapshot?.meVoted == true)
             }
         }
+        /** Full details, including each user that has voted for this answer. */
         data class Detailed(val voters: List<User>) : VoterSnapshot()
 
+        /**
+         * Vote count. For [VoterSnapshot.Loading] and [VoterSnapshot.Failed],
+         * return the last known vote count.
+         */
         val count: Int
             get() = when (this) {
                 is Loading -> lastCount
@@ -53,6 +71,10 @@ object PollsStore {
                 is Detailed -> voters.size
             }
 
+        /**
+         * Whether or not the user has voted. For [VoterSnapshot.Loading] and
+         * [VoterSnapshot.Failed], return the last known state.
+         */
         val meVoted: Boolean
             get() = when (this) {
                 is Loading -> lastSelfVote
@@ -65,20 +87,30 @@ object PollsStore {
             }
 
         companion object {
+            /** Empty votes snapshot. */
             val Empty
                 get() = Detailed(listOf())
         }
     }
 
-    private val snapshots = HashMap<Long, HashMap<Int, VoterSnapshot>>()
-    private val subject = PublishSubject.k0<VoteEvent?>()
-
+    /**
+     * Handles a gateway event by also dispatching it to the store thread
+     *
+     * @param event Message poll vote update gateway event
+     * @param isAdd Whether the event is VOTE_ADD (true) or VOTE_REMOVE (false)
+     */
     fun dispatchGatewayEvent(event: MessagePollVoteEvent, isAdd: Boolean) {
         StoreStream.getDispatcherYesThisIsIntentional().schedule {
             handleGatewayEvent(event, isAdd)
         }
     }
 
+    /**
+     * Handles a gateway event
+     *
+     * @param event Message poll vote update gateway event
+     * @param isAdd Whether the event is VOTE_ADD (true) or VOTE_REMOVE (false)
+     */
     private fun handleGatewayEvent(event: MessagePollVoteEvent, isAdd: Boolean) {
         val isSelfVote = event.userId == StoreStream.getUsers().me.id
 
@@ -119,11 +151,35 @@ object PollsStore {
         publish(event.channelId, event.messageId)
     }
 
+    /**
+     * Handles a message create/update event, should only be called from [StoreStream] methods.
+     *
+     * Must be run on the store thread.
+     *
+     * @param message New message object
+     */
     fun handleMessageUpdate(message: ApiMessage) =
         handleMessageUpdate(message.g(), message.o(), message.poll)
+
+    /**
+     * Handles a message create/update event, should only be called from [StoreStream] methods.
+     *
+     * Must be run on the store thread.
+     *
+     * @param message New message object
+     */
     fun handleMessageUpdate(message: ModelMessage) =
         handleMessageUpdate(message.channelId, message.id, message.poll)
 
+    /**
+     * Handles a message create/update event.
+     *
+     * Must be run on the store thread.
+     *
+     * @param channelId Channel ID message was sent in
+     * @param messageId Message ID
+     * @param poll Message poll object
+     */
     private fun handleMessageUpdate(channelId: Long, messageId: Long, poll: MessagePoll?) {
         if (poll == null)
             return
@@ -136,20 +192,62 @@ object PollsStore {
         publish(channelId, messageId)
     }
 
+    /**
+     * Handles a message delete event, should only be called from [StoreStream] methods.
+     *
+     * Must be run on the store thread.
+     *
+     * @param channelId Channel ID message was sent in
+     * @param messageId Message ID
+     */
     fun handleMessageDelete(channelId: Long, messageId: Long) {
         snapshots.remove(messageId)
         publish(channelId, messageId)
     }
 
+    /**
+     * Publishes a [VoteEvent] to the subject.
+     *
+     * Must be run on the store thread.
+     *
+     * @param channelId Channel ID message was sent in
+     * @param messageId Message ID
+     */
     private fun publish(channelId: Long, messageId: Long) {
         subject.onNext(VoteEvent(channelId, messageId, snapshots[messageId]))
     }
 
+    /**
+     * Dispatches a publication of [VoteEvent] on the store thread.
+     *
+     * @param channelId Channel ID message was sent in
+     * @param messageId Message ID
+     */
+    private fun dispatchPublish(channelId: Long, messageId: Long) {
+        StoreStream.getDispatcherYesThisIsIntentional().schedule {
+            publish(channelId, messageId)
+        }
+    }
+
+    /**
+     * Subscribes to poll changes, and run the handler on the main UI thread.
+     *
+     * @param channelId Channel ID of message
+     * @param messageId Message ID to subscribe to
+     * @param onNext Event handler, will run on the main thread
+     */
     fun subscribeOnMain(channelId: Long, messageId: Long, onNext: (HashMap<Int, VoterSnapshot>?) -> Unit) =
         subscribe(channelId, messageId) {
             Utils.mainThread.post { onNext(it) }
         }
 
+    /**
+     * Subscribes to poll changes.
+     *
+     * @param channelId Channel ID of message
+     * @param messageId Message ID to subscribe to
+     * @param onNext Event handler
+     */
     fun subscribe(channelId: Long, messageId: Long, onNext: (HashMap<Int, VoterSnapshot>?) -> Unit): Subscription {
         snapshots[messageId]?.let { onNext(it) }
         return subject.subscribe {
@@ -158,6 +256,13 @@ object PollsStore {
         }
     }
 
+    /**
+     * Fetches detailed votes for a poll.
+     *
+     * @param channelId Channel ID of message
+     * @param messageId Message ID
+     * @param answerId Answer ID to fetch detailed votes for
+     */
     fun fetchDetails(channelId: Long, messageId: Long, answerId: Int) {
         val answers = snapshots[messageId]
         if (answers == null) {
@@ -170,7 +275,7 @@ object PollsStore {
             return
 
         answers[answerId] = VoterSnapshot.Loading.from(lastSnapshot)
-        publish(channelId, messageId)
+        dispatchPublish(channelId, messageId)
         Utils.threadPool.execute {
             val request = runCatching {
                 val res = Http.Request.newDiscordRNRequest("/channels/${channelId}/polls/${messageId}/answers/${answerId}").execute()
@@ -187,12 +292,16 @@ object PollsStore {
             } else {
                 VoterSnapshot.Detailed(data.map { CoreUser(it) })
             }
-            StoreStream.getDispatcherYesThisIsIntentional().schedule {
-                publish(channelId, messageId)
-            }
+            dispatchPublish(channelId, messageId)
         }
     }
 
+    /**
+     * Gets the stored votes for a message as [MessagePollResult] form.
+     *
+     * @param id Message id
+     * @param finalised Whether or not the poll is finalised
+     */
     fun getResultFor(id: Long, finalised: Boolean) = snapshots[id]?.let {
         MessagePollResult(finalised, it.map { (answerId, snapshot) ->
             MessagePollAnswerCount(answerId, snapshot.count, snapshot.meVoted)

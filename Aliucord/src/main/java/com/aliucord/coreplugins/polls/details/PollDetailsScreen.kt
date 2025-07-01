@@ -35,7 +35,7 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
         private set
 
     private lateinit var answersAdapter: PollDetailsAnswersAdapter
-    private lateinit var resultsAdapter: ManageReactionsResultsAdapter
+    private lateinit var resultsAdapter: PollDetailsResultsAdapter
     private var subscription: Subscription? = null
 
     lateinit var poll: MessagePoll

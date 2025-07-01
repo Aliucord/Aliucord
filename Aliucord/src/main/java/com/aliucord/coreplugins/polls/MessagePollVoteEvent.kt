@@ -2,6 +2,7 @@ package com.aliucord.coreplugins.polls
 
 import com.aliucord.utils.SerializedName
 
+/** Structure of a gateway poll vote update. */
 data class MessagePollVoteEvent(
     @SerializedName("user_id")
     val userId: Long,
