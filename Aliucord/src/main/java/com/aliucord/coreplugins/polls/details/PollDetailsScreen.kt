@@ -20,10 +20,11 @@ import rx.Subscription
 
 internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_reactions", "layout")) {
     companion object {
-        fun create(ctx: Context, channelId: Long, messageId: Long) {
+        fun launch(ctx: Context, channelId: Long, messageId: Long, initialAnswerId: Int = 1) {
             val intent = Intent()
                 .putExtra("com.discord.intent.extra.EXTRA_CHANNEL_ID", channelId)
                 .putExtra("com.discord.intent.extra.EXTRA_MESSAGE_ID", messageId)
+                .putExtra("com.discord.intent.extra.EXTRA_ANSWER_ID", initialAnswerId)
             Utils.openPage(ctx, PollDetailsScreen::class.java, intent)
         }
     }
@@ -36,10 +37,12 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
     private var subscription: Subscription? = null
 
     lateinit var poll: MessagePoll
-    private var selected: Int = 1
+    private var selected: Int = -1
         private set(value) {
+            val previous = field
             field = value
-            updateData(true)
+            if (previous != -1)
+                updateData(true)
         }
 
     var data: Map<Int, VotesSnapshot>? = null
@@ -47,17 +50,19 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
     override fun onViewBound(view: View) {
         super.onViewBound(view)
 
+        channelId = mostRecentIntent.getLongExtra("com.discord.intent.extra.EXTRA_CHANNEL_ID", -1L)
+        messageId = mostRecentIntent.getLongExtra("com.discord.intent.extra.EXTRA_MESSAGE_ID", -1L)
+        selected = mostRecentIntent.getIntExtra("com.discord.intent.extra.EXTRA_ANSWER_ID", 1)
+
+        if (channelId == -1L || messageId == -1L)
+            return this.appActivity.finish()
+
         val answersView = view.findViewById<RecyclerView>(Utils.getResId("manage_reactions_emojis_recycler", "id"))
         val resultsView = view.findViewById<RecyclerView>(Utils.getResId("manage_reactions_results_recycler", "id"))
         answersAdapter = MGRecyclerAdapter.configure(PollDetailsAnswersAdapter(answersView) {
             selected = it
         })
         resultsAdapter = MGRecyclerAdapter.configure(PollDetailsResultsAdapter(resultsView))
-
-        channelId = mostRecentIntent.getLongExtra("com.discord.intent.extra.EXTRA_CHANNEL_ID", -1L)
-        messageId = mostRecentIntent.getLongExtra("com.discord.intent.extra.EXTRA_MESSAGE_ID", -1L)
-        if (channelId == -1L || messageId == -1L)
-            return this.appActivity.finish()
 
         val poll = StoreStream.getMessages().getMessage(channelId, messageId)?.poll
         if (poll == null)
@@ -76,7 +81,7 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
 
     private fun updateData(attemptRetry: Boolean = false) {
         val data = data
-        if (data == null)
+        if (data == null) // Message is deleted
             return this.appActivity.finish()
 
         answersAdapter.setData(poll.answers.map { answer ->

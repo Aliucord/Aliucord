@@ -172,7 +172,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
         val data = entry.poll
         val expired = (data.expiry?.g() ?: Long.MAX_VALUE) < Calendar.getInstance().timeInMillis
 
-        answersContainer.configure(data)
+        answersContainer.configure(entry.message)
 
         state = if (data.results?.isFinalized == true)
             State.FINALISED
@@ -193,7 +193,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
             "Select one answer"
 
         infoText.setOnClickListener {
-            PollDetailsScreen.create(ctx, entry.message.channelId, entry.message.id)
+            PollDetailsScreen.launch(ctx, entry.message.channelId, entry.message.id)
         }
 
         voteHandler = { isVoting ->

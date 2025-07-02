@@ -7,11 +7,13 @@ import android.text.SpannableString
 import android.text.style.StyleSpan
 import android.util.TypedValue
 import android.view.View
+import android.view.View.OnClickListener
 import android.widget.ImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.DrawableCompat
 import com.aliucord.coreplugins.polls.PollsStore.VotesSnapshot
+import com.aliucord.coreplugins.polls.details.PollDetailsScreen
 import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.ViewUtils.addTo
 import com.discord.api.message.poll.MessagePollAnswer
@@ -35,10 +37,16 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
     private val subtext get() = l.f()
 
     private var isFirstSet = false
+    private lateinit var defaultOnClickListener: OnClickListener
+    private lateinit var detailsOnClickListener: OnClickListener
 
     companion object {
-        fun build(ctx: Context, answer: MessagePollAnswer, isMultiselect: Boolean)
-            = PollChatAnswerView(ctx).configure(answer, isMultiselect)
+        fun build(ctx: Context, channelId: Long, messageId: Long, answer: MessagePollAnswer, isMultiselect: Boolean, onClickListener: PollChatAnswerView.() -> Unit) =
+            PollChatAnswerView(ctx).apply {
+                defaultOnClickListener = OnClickListener { onClickListener() }
+                detailsOnClickListener = OnClickListener { PollDetailsScreen.launch(ctx, channelId, messageId, answer.answerId!!) }
+                configure(answer, isMultiselect)
+            }
     }
 
     private fun configure(answer: MessagePollAnswer, isMultiselect: Boolean): PollChatAnswerView {
@@ -159,7 +167,7 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
     fun updateState(state: PollChatView.State, shouldReanimate: Boolean) {
         when (state) {
             PollChatView.State.VOTING -> {
-                layout.isClickable = true
+                layout.setOnClickListener(defaultOnClickListener)
                 checkbox.visibility = VISIBLE
                 subtext.visibility = GONE
                 progressIndicator.visibility = GONE
@@ -169,7 +177,7 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
             PollChatView.State.FINALISED,
             PollChatView.State.VOTED -> {
                 isChecked = false
-                layout.isClickable = false
+                layout.setOnClickListener(detailsOnClickListener)
                 checkbox.visibility = GONE
                 subtext.visibility = VISIBLE
                 if (shouldReanimate) {
