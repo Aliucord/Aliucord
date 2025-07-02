@@ -68,9 +68,8 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         const val POLL_RESULT_MESSAGE_TYPE = 46
     }
 
-    // Handle vote changes from the gateway
     // Show a confirmation dialog when ending polls
-    fun showPollConfirmationDialog(fragmentManager: FragmentManager, ctx: Context, msg: ModelMessage, onSuccess: () -> Unit) {
+    private fun showPollConfirmationDialog(fragmentManager: FragmentManager, ctx: Context, msg: ModelMessage, onSuccess: () -> Unit) {
         WidgetNoticeDialog.show(
             fragmentManager,
             "End poll now?",
@@ -105,8 +104,8 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
 
     override fun start(context: Context) {
         if (!ManagerBuild.hasInjector("2.2.0") || !ManagerBuild.hasPatches("1.2.0")) {
-            logger.warn("Base app outdated, cannot enable Polls");
-            return;
+            logger.warn("Base app outdated, cannot enable Polls")
+            return
         }
         patchStore()
         patchChatView()
@@ -155,21 +154,8 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             apiMessage.poll?.let { res.poll = it }
         }
 
-        /**
-         * So apparently when a poll ends, in the message update payload, all of me_voted are
-         * cleared to false. Therefore, we need to patch the event handler to find the last model
-         * and then copy over the voted status here.
-         *
-         * BUT ALSO, when a poll ends, there is actually TWO events that get sent: the first one
-         * updates the expiry date to close the poll; however, this data is actually missing the
-         * results because they aren't finalised yet. It's only the second event (poll finalised)
-         * that the results data is included, but the me_voted is cleared with it.
-         *
-         * So we also have to copy the results over during the first event (which is recommended
-         * per Discord's doc), and then in the second event we use that to keep me_voted data.
-         *
-         * - Lava (lavadesu)
-         */
+        // When a poll ends, the message update payload may lose some results state. So we have to
+        // patch this and retain the last known state. - Lava (lavadesu)
         patcher.before<StoreStream>("handleMessageUpdate", ApiMessage::class.java)
         { (_, msg: ApiMessage) ->
             val poll = msg.poll
@@ -183,13 +169,15 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             if (oldResults == null)
                 return@before
 
-            // First (unfinalised) event: Retain old results
+            // If new results is empty, retain last known results.
+            // This happens during the first message update payload, when a poll is closed
+            // but not finalised. Also recommended as per Discord's doc.
             if (poll.results == null) {
                 msg.poll = poll.copy(results = oldResults)
                 return@before
             }
 
-            // Second (finalised) event: Retain me_voted
+            // Retain me_voted state from last known results.
             for (count in oldResults.answerCounts)
                 if (count.meVoted)
                     poll.results!!.answerCounts.find { it.id == count.id }!!.meVoted = true
@@ -280,7 +268,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
 
             val span = SpannableStringBuilder()
             val authorSpan = ClickableSpan(color, false, null) {
-                val roleCtx = `$roleSubscriptionPurchaseContext` as `WidgetChatListAdapterItemSystemMessage$getSystemMessage$roleSubscriptionPurchaseContext$1`;
+                val roleCtx = `$roleSubscriptionPurchaseContext` as `WidgetChatListAdapterItemSystemMessage$getSystemMessage$roleSubscriptionPurchaseContext$1`
                 roleCtx.`this$0`.adapter.eventHandler.onMessageAuthorAvatarClicked(msg, StoreStream.getGuildSelected().selectedGuildId)
             }
             span.append(`$authorName`, authorSpan, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
@@ -308,7 +296,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         { param ->
             val msg = `$message`
             if (msg.type == POLL_RESULT_MESSAGE_TYPE) {
-                StoreStream.getMessagesLoader().jumpToMessage(msg.messageReference!!.a(), msg.messageReference!!.c());
+                StoreStream.getMessagesLoader().jumpToMessage(msg.messageReference!!.a(), msg.messageReference!!.c())
                 param.result = null
             }
         }
