@@ -34,7 +34,7 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
     private val checkbox get() = l.c()
     private val subtext get() = l.f()
 
-    var isFirstSet = false
+    private var isFirstSet = false
 
     companion object {
         fun build(ctx: Context, answer: MessagePollAnswer, isMultiselect: Boolean)

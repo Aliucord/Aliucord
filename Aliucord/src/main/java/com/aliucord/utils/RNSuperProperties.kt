@@ -24,7 +24,6 @@ object RNSuperProperties {
     @JvmStatic
     val launchId = UUID.randomUUID().toString()
 
-    // FIXME: This might not be random
     @JvmStatic
     val heartbeatSessionId = Main.settings.getString("rnHeartbeatSessionId", null) ?: UUID.randomUUID().toString().also {
         Main.settings.setString("rnHeartbeatSessionId", it)
