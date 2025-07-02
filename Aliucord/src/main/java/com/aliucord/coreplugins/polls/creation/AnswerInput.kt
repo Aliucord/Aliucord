@@ -53,12 +53,12 @@ internal class AnswerInput(private val ctx: Context): ConstraintLayout(ctx) {
     fun setRemoveVisibility(visible: Boolean) {
         if (visible) {
             removeButton.visibility = VISIBLE
-            textInput.layoutParams = (textInput.layoutParams as ConstraintLayout.LayoutParams).apply {
+            textInput.layoutParams = (textInput.layoutParams as LayoutParams).apply {
                 marginEnd = 0
             }
         } else {
             removeButton.visibility = GONE
-            textInput.layoutParams = (textInput.layoutParams as ConstraintLayout.LayoutParams).apply {
+            textInput.layoutParams = (textInput.layoutParams as LayoutParams).apply {
                 marginEnd = p
             }
         }

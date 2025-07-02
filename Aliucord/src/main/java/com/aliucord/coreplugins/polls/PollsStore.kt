@@ -23,7 +23,7 @@ import com.discord.models.message.Message as ModelMessage
  */
 object PollsStore {
     private val logger = Logger("Store/Polls")
-    private val snapshots = HashMap<Long, HashMap<Int, VoterSnapshot>>()
+    private val snapshots = HashMap<Long, HashMap<Int, VotesSnapshot>>()
     private val subject = PublishSubject.k0<VoteEvent?>()
 
     /** The response payload used in [fetchDetails] */
@@ -33,63 +33,40 @@ object PollsStore {
     private data class VoteEvent(
         val channelId: Long,
         val messageId: Long,
-        val voteSnapshots: HashMap<Int, VoterSnapshot>?
+        val voteSnapshots: HashMap<Int, VotesSnapshot>?
     )
 
     /** A snapshot of vote details for an answer */
-    sealed class VoterSnapshot {
-        /** In the process of converting into [VoterSnapshot.Detailed] via [fetchDetails] */
-        data class Loading(val lastCount: Int, val lastSelfVote: Boolean) : VoterSnapshot() {
-            companion object {
-                fun from(snapshot: VoterSnapshot?) = Loading(snapshot?.count ?: 0, snapshot?.meVoted == true)
-            }
-        }
-        /** When [fetchDetails] has failed. */
-        data class Failed(val lastCount: Int, val lastSelfVote: Boolean) : VoterSnapshot() {
-            companion object {
-                fun from(snapshot: VoterSnapshot?) = Failed(snapshot?.count ?: 0, snapshot?.meVoted == true)
-            }
-        }
+    sealed class VotesSnapshot {
+        /** Vote count. */
+        abstract val count: Int
+        /** Whether or not the current user has voted on this answer. */
+        abstract val meVoted: Boolean
+
         /** When only vote counts are known. */
-        data class Lazy(val voterCount: Int, val selfVoted: Boolean) : VoterSnapshot() {
+        data class Lazy(
+            override val count: Int,
+            override val meVoted: Boolean,
+            /** If a previous [fetchDetails] request has failed. */
+            val hasFailed: Boolean = false,
+            /** If currently waiting for a response in [fetchDetails] */
+            val isLoading: Boolean = false,
+        ) : VotesSnapshot() {
             companion object {
-                fun from(snapshot: VoterSnapshot?) = Lazy(snapshot?.count ?: 0, snapshot?.meVoted == true)
+                fun from(snapshot: VotesSnapshot?) = Lazy(snapshot?.count ?: 0, snapshot?.meVoted == true)
             }
         }
-        /** Full details, including each user that has voted for this answer. */
-        data class Detailed(val voters: List<User>) : VoterSnapshot()
 
-        /**
-         * Vote count. For [VoterSnapshot.Loading] and [VoterSnapshot.Failed],
-         * return the last known vote count.
-         */
-        val count: Int
-            get() = when (this) {
-                is Loading -> lastCount
-                is Failed -> lastCount
-                is Lazy -> voterCount
-                is Detailed -> voters.size
-            }
+        /** Full details of each user that has voted for this answer. */
+        data class Detailed(val voters: List<User>) : VotesSnapshot() {
+            override val count: Int
+                get() = voters.size
 
-        /**
-         * Whether or not the user has voted. For [VoterSnapshot.Loading] and
-         * [VoterSnapshot.Failed], return the last known state.
-         */
-        val meVoted: Boolean
-            get() = when (this) {
-                is Loading -> lastSelfVote
-                is Failed -> lastSelfVote
-                is Lazy -> selfVoted
-                is Detailed -> {
+            override val meVoted: Boolean
+                get() {
                     val me = StoreStream.getUsers().me
-                    voters.any { it.id == me.id }
+                    return voters.any { it.id == me.id }
                 }
-            }
-
-        companion object {
-            /** Empty votes snapshot. */
-            val Empty
-                get() = Detailed(listOf())
         }
     }
 
@@ -120,32 +97,35 @@ object PollsStore {
 
         val snapshot = answers[event.answerId]
         answers[event.answerId] = when (snapshot) {
-            is VoterSnapshot.Lazy -> {
-                val voterCount = snapshot.voterCount + (if (isAdd) +1 else -1)
+            is VotesSnapshot.Lazy -> {
+                val count = snapshot.count + (if (isAdd) +1 else -1)
 
                 if (isSelfVote)
-                    VoterSnapshot.Lazy(voterCount, isAdd)
+                    VotesSnapshot.Lazy(count, isAdd)
                 else
-                    snapshot.copy(voterCount = voterCount)
+                    snapshot.copy(count = count)
             }
-            is VoterSnapshot.Detailed -> {
+            is VotesSnapshot.Detailed -> {
                 val user = StoreStream.getUsers().users[event.userId]
                 // TODO: Should we fetch the user, or just downgrade?
                 if (user == null) {
                     logger.warn("New voter is not in store, downgrading")
-                    VoterSnapshot.Lazy(snapshot.voters.size + 1, isSelfVote)
-                } else
-                    VoterSnapshot.Detailed(snapshot.voters.toMutableList().apply {
-                        if (isAdd) add(user) else remove(user)
-                    })
+                    VotesSnapshot.Lazy(snapshot.voters.size + 1, isSelfVote)
+                } else {
+                    val newVoters = if (isAdd)
+                        snapshot.voters + user
+                    else
+                        snapshot.voters - user
+                    VotesSnapshot.Detailed(newVoters)
+                }
             }
             else -> {
                 val user = StoreStream.getUsers().users[event.userId]
                 if (user == null) {
                     logger.warn("New voter is not in store, downgrading")
-                    VoterSnapshot.Lazy(1, isSelfVote)
+                    VotesSnapshot.Lazy(1, isSelfVote)
                 } else
-                    VoterSnapshot.Detailed(listOf(user))
+                    VotesSnapshot.Detailed(listOf(user))
             }
         }
         publish(event.channelId, event.messageId)
@@ -184,9 +164,9 @@ object PollsStore {
         if (poll == null)
             return
 
-        val target = HashMap<Int, VoterSnapshot>()
+        val target = HashMap<Int, VotesSnapshot>()
         poll.results?.answerCounts?.forEach {
-            target[it.id] = VoterSnapshot.Lazy(it.count, it.meVoted)
+            target[it.id] = VotesSnapshot.Lazy(it.count, it.meVoted)
         }
         snapshots[messageId] = target
         publish(channelId, messageId)
@@ -236,7 +216,7 @@ object PollsStore {
      * @param messageId Message ID to subscribe to
      * @param onNext Event handler, will run on the main thread
      */
-    fun subscribeOnMain(channelId: Long, messageId: Long, onNext: (HashMap<Int, VoterSnapshot>?) -> Unit) =
+    fun subscribeOnMain(channelId: Long, messageId: Long, onNext: (HashMap<Int, VotesSnapshot>?) -> Unit) =
         subscribe(channelId, messageId) {
             Utils.mainThread.post { onNext(it) }
         }
@@ -248,7 +228,7 @@ object PollsStore {
      * @param messageId Message ID to subscribe to
      * @param onNext Event handler
      */
-    fun subscribe(channelId: Long, messageId: Long, onNext: (HashMap<Int, VoterSnapshot>?) -> Unit): Subscription {
+    fun subscribe(channelId: Long, messageId: Long, onNext: (HashMap<Int, VotesSnapshot>?) -> Unit): Subscription {
         snapshots[messageId]?.let { onNext(it) }
         return subject.subscribe {
             if (this.channelId == channelId && this.messageId == messageId)
@@ -266,15 +246,17 @@ object PollsStore {
     fun fetchDetails(channelId: Long, messageId: Long, answerId: Int) {
         val answers = snapshots[messageId]
         if (answers == null) {
-            Logger("PollsStore").warn("Attempted to fetch details for uninitialised poll")
+            Logger("PollsStore").warn("Attempted to fetch details for unknown poll $channelId/$messageId")
             return
         }
 
-        val lastSnapshot = answers[answerId]
-        if (lastSnapshot is VoterSnapshot.Loading || lastSnapshot is VoterSnapshot.Detailed)
+        val lastSnapshot = answers[answerId] as? VotesSnapshot.Lazy
+        if (lastSnapshot == null)
+            return
+        if (lastSnapshot.isLoading)
             return
 
-        answers[answerId] = VoterSnapshot.Loading.from(lastSnapshot)
+        answers[answerId] = lastSnapshot.copy(isLoading = true)
         dispatchPublish(channelId, messageId)
         Utils.threadPool.execute {
             val request = runCatching {
@@ -288,9 +270,9 @@ object PollsStore {
                     logger.error("${result.statusCode} ${result.statusMessage} ${result.text()}", null)
                 else
                     logger.error(request.exceptionOrNull())
-                VoterSnapshot.Failed.from(lastSnapshot)
+                lastSnapshot.copy(isLoading = false, hasFailed = true)
             } else {
-                VoterSnapshot.Detailed(data.map { CoreUser(it) })
+                VotesSnapshot.Detailed(data.map { CoreUser(it) })
             }
             dispatchPublish(channelId, messageId)
         }

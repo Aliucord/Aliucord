@@ -8,7 +8,7 @@ import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import com.aliucord.Utils
 import com.aliucord.coreplugins.polls.PollsStore
-import com.aliucord.coreplugins.polls.PollsStore.VoterSnapshot
+import com.aliucord.coreplugins.polls.PollsStore.VotesSnapshot
 import com.aliucord.wrappers.messages.MessageWrapper.Companion.poll
 import com.discord.api.message.poll.MessagePoll
 import com.discord.api.message.reaction.MessageReactionEmoji
@@ -28,24 +28,21 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
         }
     }
 
-    var channelId: Long = -1
-        private set
-
-    var messageId: Long = -1
-        private set
+    private var channelId: Long = -1
+    private var messageId: Long = -1
 
     private lateinit var answersAdapter: PollDetailsAnswersAdapter
     private lateinit var resultsAdapter: PollDetailsResultsAdapter
     private var subscription: Subscription? = null
 
     lateinit var poll: MessagePoll
-    var selected: Int = 1
+    private var selected: Int = 1
         private set(value) {
             field = value
             update(true)
         }
 
-    var data: Map<Int, VoterSnapshot>? = null
+    var data: Map<Int, VotesSnapshot>? = null
 
     override fun onViewBound(view: View) {
         super.onViewBound(view)
@@ -68,7 +65,7 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
         this.poll = poll
 
         setActionBarDisplayHomeAsUpEnabled()
-        setActionBarTitle("Poll Votes");
+        setActionBarTitle("Poll Votes")
         setActionBarSubtitle(poll.question.text)
 
         subscription = PollsStore.subscribeOnMain(channelId, messageId) {
@@ -87,24 +84,21 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
             PollDetailsAnswersAdapter.AnswerItem(answer, count, answer.answerId == selected)
         })
 
-        val selectedDetails = data[selected]
+        val selectedSnapshot = data[selected]
         val map = StoreStream.getGuilds().members[StoreStream.getGuildSelected().selectedGuildId]
-        val payload = if (selectedDetails?.count == 0 && selectedDetails !is VoterSnapshot.Failed)
+        val payload = if (selectedSnapshot?.count == 0)
             listOf(PollDetailsResultsAdapter.EmptyItem())
-        else when (selectedDetails) {
-            null, is VoterSnapshot.Lazy -> {
-                PollsStore.fetchDetails(channelId, messageId, selected)
-                listOf(ManageReactionsResultsAdapter.LoadingItem())
-            }
-            is VoterSnapshot.Loading -> listOf(ManageReactionsResultsAdapter.LoadingItem())
-            is VoterSnapshot.Failed -> {
-                if (attemptRetry) {
+        else when (selectedSnapshot) {
+            null, is VotesSnapshot.Lazy -> {
+                val snapshot = selectedSnapshot as VotesSnapshot.Lazy?
+                if (snapshot?.hasFailed == true && !attemptRetry)
+                    listOf(PollDetailsResultsAdapter.ErrorItem(channelId, messageId, selected))
+                else {
                     PollsStore.fetchDetails(channelId, messageId, selected)
                     listOf(ManageReactionsResultsAdapter.LoadingItem())
-                } else
-                    listOf(PollDetailsResultsAdapter.ErrorItem(channelId, messageId, selected))
+                }
             }
-            is VoterSnapshot.Detailed -> selectedDetails.voters.map {
+            is VotesSnapshot.Detailed -> selectedSnapshot.voters.map {
                 ManageReactionsResultsAdapter.ReactionUserItem(
                     it,
                     0,

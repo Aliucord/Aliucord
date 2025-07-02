@@ -1,7 +1,7 @@
 package com.aliucord.coreplugins.polls.chatview
 
 import android.content.Context
-import com.aliucord.coreplugins.polls.PollsStore.VoterSnapshot
+import com.aliucord.coreplugins.polls.PollsStore.VotesSnapshot
 import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.views.Divider
 import com.aliucord.widgets.LinearLayout
@@ -10,7 +10,7 @@ import com.discord.api.message.poll.MessagePoll
 internal class PollChatAnswersContainerView(private val ctx: Context) : LinearLayout(ctx) {
     private val answerViews = HashMap<Int, PollChatAnswerView>()
 
-    val hasChecked get() = getCheckedAnswers().count() > 0
+    val hasChecked get() = getCheckedAnswers().isNotEmpty()
     var onHasCheckedChange: ((Boolean) -> Unit)? = null
 
     fun configure(data: MessagePoll) {
@@ -27,20 +27,20 @@ internal class PollChatAnswersContainerView(private val ctx: Context) : LinearLa
                             answerView.isChecked = false
                         else if (answerView === this)
                             answerView.isChecked = !answerView.isChecked
-                    onHasCheckedChange?.invoke(getCheckedAnswers().count() > 0)
+                    onHasCheckedChange?.invoke(getCheckedAnswers().isNotEmpty())
                 }
             }
             Divider(ctx).addTo(this)
         }
     }
 
-    fun updateCounts(counts: Map<Int, VoterSnapshot>, state: PollChatView.State) {
+    fun updateCounts(counts: Map<Int, VotesSnapshot>, state: PollChatView.State) {
         val total = counts.values.sumOf { it.count }.coerceAtLeast(1) // Prevent division by 0
         var winner = counts.values.maxOfOrNull { it.count } ?: -1
         if (winner == 0)
             winner = -1 // There is no winner if there are no votes
         for ((id, answerView) in answerViews) {
-            val count = counts.getOrElse(id) { VoterSnapshot.Empty }
+            val count = counts.getOrElse(id) { VotesSnapshot.Detailed(listOf()) }
             answerView.updateCount(
                 count,
                 total,
@@ -55,6 +55,6 @@ internal class PollChatAnswersContainerView(private val ctx: Context) : LinearLa
             answer.updateState(state, shouldReanimate)
     }
 
-    fun getCheckedAnswers(): Iterable<Int> =
+    fun getCheckedAnswers(): Set<Int> =
         answerViews.filter { (_, answerView) -> answerView.isChecked }.keys
 }

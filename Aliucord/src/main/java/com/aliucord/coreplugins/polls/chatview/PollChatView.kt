@@ -59,7 +59,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
 
         private var targetChannel: Long? = null
         private var targetMessage: Long? = null
-        private var onNext: ((HashMap<Int, PollsStore.VoterSnapshot>?) -> Unit)? = null
+        private var onNext: ((HashMap<Int, PollsStore.VotesSnapshot>?) -> Unit)? = null
 
         fun unsubscribe() {
             storeSubscription?.unsubscribe()
@@ -72,7 +72,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
             PollsStore.subscribeOnMain(targetChannel!!, targetMessage!!, onNext!!)
         }
 
-        fun configure(channelId: Long, messageId: Long, onNext: (HashMap<Int, PollsStore.VoterSnapshot>?) -> Unit) {
+        fun configure(channelId: Long, messageId: Long, onNext: (HashMap<Int, PollsStore.VotesSnapshot>?) -> Unit) {
             targetChannel = channelId
             targetMessage = messageId
             this.onNext = onNext
@@ -154,7 +154,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
         infoTextAdapter = PollChatInfoTextAdapter(this.infoText)
     }
 
-    internal fun updateState(previousState: State?) {
+    private fun updateState(previousState: State?) {
         if (state != previousState) {
             voteButton.isEnabled = answersContainer.hasChecked
             showResultsButton.isEnabled = true
@@ -225,8 +225,8 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
             }
         }
 
-        subscriptionHandler.configure(entry.message.channelId, entry.message.id) {
-            if (it == null) {
+        subscriptionHandler.configure(entry.message.channelId, entry.message.id) { snapshots ->
+            if (snapshots == null) {
                 subscriptionHandler.unsubscribe()
                 return@configure
             }
@@ -234,15 +234,15 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
             if (state in listOf(State.CLOSED, State.FINALISED))
                 subscriptionHandler.unsubscribe()
             else {
-                state = if (it.values.any { it.meVoted })
+                state = if (snapshots.values.any { it.meVoted })
                     State.VOTED
                 else if (state == State.SHOW_RESULT)
                     State.SHOW_RESULT
                 else
                     State.VOTING
             }
-            answersContainer.updateCounts(it, state)
-            infoTextAdapter.updateData(state, it.values.sumOf { it.count }, data.expiry!!)
+            answersContainer.updateCounts(snapshots, state)
+            infoTextAdapter.updateData(state, snapshots.values.sumOf { it.count }, data.expiry!!)
         }
 
         subscriptionHandler.subscribe()

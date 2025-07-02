@@ -13,7 +13,7 @@ import com.discord.stores.StoreStream
 import com.discord.widgets.chat.input.emoji.EmojiPickerContextType
 import com.discord.widgets.chat.input.emoji.WidgetEmojiPickerSheet
 
-internal class PollCreateViewModel() : ViewModel() {
+internal class PollCreateViewModel : ViewModel() {
     val logger = Logger("Polls")
 
     var onStateUpdate: ((newState: State, previousState: State) -> Unit)? = null
@@ -81,9 +81,9 @@ internal class PollCreateViewModel() : ViewModel() {
     }
 
     private fun buildPayload(): PollCreatePayload = PollCreatePayload(MessagePoll(
-        question = MessagePollMedia(state.question.toString(), null),
+        question = MessagePollMedia(state.question, null),
         answers = state.answers.map {
-            MessagePollAnswer(null, MessagePollMedia(it.answer.toString(), it.emoji?.asReactionEmoji()))
+            MessagePollAnswer(null, MessagePollMedia(it.answer, it.emoji?.asReactionEmoji()))
         },
         results = null,
         duration = state.duration.value,

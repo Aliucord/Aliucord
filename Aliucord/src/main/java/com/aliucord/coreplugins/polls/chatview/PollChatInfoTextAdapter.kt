@@ -38,12 +38,11 @@ internal class PollChatInfoTextAdapter(private val infoText: TextView) {
 
     @SuppressLint("SetTextI18n")
     private fun refresh() {
-        val expiryText = if (state == State.FINALISED)
-            "Poll closed"
-        else if (state == State.CLOSED)
-            "Poll closing"
-        else
-            getTimeString()
+        val expiryText = when (state) {
+            State.FINALISED -> "Poll closed"
+            State.CLOSED -> "Poll closing"
+            else -> getTimeString()
+        }
 
         val append = expiryText?.let { "  •  $expiryText" } ?: ""
         infoText.text = "$voteCount vote${if (voteCount != 1) "s" else ""}$append"

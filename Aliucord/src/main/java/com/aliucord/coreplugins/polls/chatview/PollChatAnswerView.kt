@@ -11,7 +11,7 @@ import android.widget.ImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.DrawableCompat
-import com.aliucord.coreplugins.polls.PollsStore.VoterSnapshot
+import com.aliucord.coreplugins.polls.PollsStore.VotesSnapshot
 import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.ViewUtils.addTo
 import com.discord.api.message.poll.MessagePollAnswer
@@ -117,12 +117,12 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
         }
 
         updateState(PollChatView.State.VOTING, false)
-        updateCount(VoterSnapshot.Empty, 1, false, PollChatView.State.VOTING)
+        updateCount(VotesSnapshot.Detailed(listOf()), 1, false, PollChatView.State.VOTING)
 
-        return this;
+        return this
     }
 
-    fun updateCount(count: VoterSnapshot, totalCount: Int, isWinner: Boolean, state: PollChatView.State) {
+    fun updateCount(count: VotesSnapshot, totalCount: Int, isWinner: Boolean, state: PollChatView.State) {
         val progress = (count.count.toDouble() * 100 / totalCount).roundToInt()
 
         animateProgress(progress)
@@ -148,8 +148,8 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
         else
             ColorCompat.getThemedColor(ctx, R.b.colorButtonSecondaryBackgroundActive)
 
-        label.setTypeface(Typeface.create(label.typeface, typefaceStyle))
-        subtext.setTypeface(Typeface.create(label.typeface, typefaceStyle))
+        label.typeface = Typeface.create(label.typeface, typefaceStyle)
+        subtext.typeface = Typeface.create(label.typeface, typefaceStyle)
         progressIndicator.setIndicatorColor(ColorUtils.setAlphaComponent(color, 0x50))
         DrawableCompat.setTint(checkmark.drawable, color)
     }
