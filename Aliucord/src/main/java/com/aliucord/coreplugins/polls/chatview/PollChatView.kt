@@ -44,7 +44,6 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
     private lateinit var goBackButton: MaterialButton
     private lateinit var removeVoteButton: MaterialButton
 
-    private var answersKey: String? = null
     private var state: State = State.VOTING
         set(value) {
             val previous = field
@@ -173,10 +172,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
         val data = entry.poll
         val expired = (data.expiry?.g() ?: Long.MAX_VALUE) < Calendar.getInstance().timeInMillis
 
-        if (answersKey != entry.key) {
-            answersKey = entry.key
-            answersContainer.configure(data)
-        }
+        answersContainer.configure(data)
 
         state = if (data.results?.isFinalized == true)
             State.FINALISED

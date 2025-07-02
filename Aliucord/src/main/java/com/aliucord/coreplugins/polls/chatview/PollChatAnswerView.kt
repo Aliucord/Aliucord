@@ -34,6 +34,8 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
     private val checkbox get() = l.c()
     private val subtext get() = l.f()
 
+    var isFirstSet = false
+
     companion object {
         fun build(ctx: Context, answer: MessagePollAnswer, isMultiselect: Boolean)
             = PollChatAnswerView(ctx).configure(answer, isMultiselect)
@@ -84,12 +86,7 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
             }
         }
 
-        // FIXME: for progressIndicator and gutter, does not support long poll answers that span
-        // multiple lines. I don't know how to get it to fill the whole height (MATCH_PARENT
-        // doesn't work), so I just used layout.minHeight over here for a non-responsive fix.
-        // Poll answer lengths are capped and usually short anyway, but still something needed
-        // to be figured out especially on low-density screen configurations
-        // - Lava (lavadesu)
+        // TODO: progressIndicator and gutter won't span the whole height for multi-line text
         progressIndicator = LinearProgressIndicator(ctx).addTo(this, 0) {
             trackColor = Color.TRANSPARENT
             trackThickness = layout.minHeight
@@ -118,6 +115,7 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
 
         updateState(PollChatView.State.VOTING, false)
         updateCount(VotesSnapshot.Detailed(listOf()), 1, false, PollChatView.State.VOTING)
+        isFirstSet = false
 
         return this
     }
@@ -125,7 +123,11 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
     fun updateCount(count: VotesSnapshot, totalCount: Int, isWinner: Boolean, state: PollChatView.State) {
         val progress = (count.count.toDouble() * 100 / totalCount).roundToInt()
 
-        animateProgress(progress)
+        if (!isFirstSet) {
+            isFirstSet = true
+            progressIndicator.setProgress(progress)
+        } else
+            animateProgress(progress)
 
         val percent = "$progress%"
         val votes = "${count.count} vote${if (count.count != 1) "s" else ""}"
