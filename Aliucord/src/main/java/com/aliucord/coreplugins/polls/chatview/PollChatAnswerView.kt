@@ -114,7 +114,7 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
         }
 
         updateState(PollChatView.State.VOTING, false)
-        updateCount(VotesSnapshot.Detailed(listOf()), 1, false, PollChatView.State.VOTING)
+        updateCount(VotesSnapshot.Detailed(), 1, false, PollChatView.State.VOTING)
         isFirstSet = false
 
         return this

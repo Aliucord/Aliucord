@@ -39,7 +39,7 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
     private var selected: Int = 1
         private set(value) {
             field = value
-            update(true)
+            updateData(true)
         }
 
     var data: Map<Int, VotesSnapshot>? = null
@@ -70,11 +70,11 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
 
         subscription = PollsStore.subscribeOnMain(channelId, messageId) {
             data = it
-            update()
+            updateData()
         }
     }
 
-    private fun update(attemptRetry: Boolean = false) {
+    private fun updateData(attemptRetry: Boolean = false) {
         val data = data
         if (data == null)
             return this.appActivity.finish()
@@ -84,14 +84,13 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
             PollDetailsAnswersAdapter.AnswerItem(answer, count, answer.answerId == selected)
         })
 
-        val selectedSnapshot = data[selected]
+        val selectedSnapshot = data[selected] ?: VotesSnapshot.Detailed()
         val map = StoreStream.getGuilds().members[StoreStream.getGuildSelected().selectedGuildId]
-        val payload = if (selectedSnapshot?.count == 0)
+        val payload = if (selectedSnapshot.count == 0)
             listOf(PollDetailsResultsAdapter.EmptyItem())
         else when (selectedSnapshot) {
-            null, is VotesSnapshot.Lazy -> {
-                val snapshot = selectedSnapshot as VotesSnapshot.Lazy?
-                if (snapshot?.hasFailed == true && !attemptRetry)
+            is VotesSnapshot.Lazy -> {
+                if (selectedSnapshot.hasFailed && !attemptRetry)
                     listOf(PollDetailsResultsAdapter.ErrorItem(channelId, messageId, selected))
                 else {
                     PollsStore.fetchDetails(channelId, messageId, selected)

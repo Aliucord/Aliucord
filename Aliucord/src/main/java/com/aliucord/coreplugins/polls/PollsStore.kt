@@ -58,7 +58,7 @@ object PollsStore {
         }
 
         /** Full details of each user that has voted for this answer. */
-        data class Detailed(val voters: List<User>) : VotesSnapshot() {
+        data class Detailed(val voters: List<User> = listOf()) : VotesSnapshot() {
             override val count: Int
                 get() = voters.size
 

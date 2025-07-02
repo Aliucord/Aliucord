@@ -40,7 +40,7 @@ internal class PollChatAnswersContainerView(private val ctx: Context) : LinearLa
         if (winner == 0)
             winner = -1 // There is no winner if there are no votes
         for ((id, answerView) in answerViews) {
-            val count = counts.getOrElse(id) { VotesSnapshot.Detailed(listOf()) }
+            val count = counts.getOrElse(id) { VotesSnapshot.Detailed() }
             answerView.updateCount(
                 count,
                 total,
