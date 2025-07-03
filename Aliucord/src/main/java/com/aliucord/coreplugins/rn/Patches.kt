@@ -19,6 +19,7 @@ import com.discord.api.sticker.StickerPartial
 import com.discord.api.user.User
 import com.discord.api.user.UserProfile
 import com.discord.app.AppFragment
+import com.discord.databinding.*
 import com.discord.models.member.GuildMember
 import com.discord.models.user.CoreUser
 import com.discord.models.user.MeUser
@@ -26,9 +27,10 @@ import com.discord.stores.*
 import com.discord.utilities.auth.`AuthUtils$createDiscriminatorInputValidator$1`
 import com.discord.utilities.icon.IconUtils
 import com.discord.utilities.user.UserUtils
+import com.discord.widgets.friends.FriendsListViewModel
+import com.discord.widgets.friends.WidgetFriendsListAdapter
 import com.discord.widgets.settings.account.WidgetSettingsAccountUsernameEdit
-import com.discord.widgets.user.UserNameFormatterKt
-import com.discord.widgets.user.WidgetUserPasswordVerify
+import com.discord.widgets.user.*
 import com.discord.widgets.user.profile.UserProfileHeaderView
 import com.discord.widgets.user.profile.UserProfileHeaderViewModel
 import com.google.android.material.textfield.TextInputLayout
@@ -108,6 +110,31 @@ fun patchGlobalName() {
 
     Patcher.addPatch(`ChannelUtils$getDisplayName$1`::class.java.getDeclaredMethod("invoke", Any::class.java), PreHook {
         (it.args[0] as User).globalName?.let { name -> it.result = name }
+    })
+
+    val itemUser = WidgetFriendsListAdapter.ItemUser::class.java
+    val itemUserBinding = itemUser.getDeclaredField("binding").apply { isAccessible = true }
+    val viewModelItem = FriendsListViewModel.Item::class.java
+    Patcher.addPatch(itemUser.getDeclaredMethod("onConfigure", Int::class.java, viewModelItem), Hook {
+        (it.args[1] as FriendsListViewModel.Item.Friend).user.globalName?.let { name ->
+            (itemUserBinding[it.thisObject] as WidgetFriendsListAdapterItemFriendBinding).f.text = name
+        }
+    })
+
+    val itemPendingUser = WidgetFriendsListAdapter.ItemPendingUser::class.java
+    val itemPendingUserBinding = itemPendingUser.getDeclaredField("binding").apply { isAccessible = true }
+    Patcher.addPatch(itemPendingUser.getDeclaredMethod("onConfigure", Int::class.java, viewModelItem), Hook {
+        (it.args[1] as FriendsListViewModel.Item.PendingFriendRequest).user.globalName?.let { name ->
+            (itemPendingUserBinding[it.thisObject] as WidgetFriendsListAdapterItemPendingBinding).f.text = name
+        }
+    })
+
+    val mutualFriendsViewHolder = WidgetUserMutualFriends.MutualFriendsAdapter.ViewHolder::class.java
+    val mutualFriendsViewHolderBinding = mutualFriendsViewHolder.getDeclaredField("binding").apply { isAccessible = true }
+    Patcher.addPatch(mutualFriendsViewHolder.getDeclaredMethod("onConfigure", Int::class.java, WidgetUserMutualFriends.Model.Item::class.java), Hook {
+        (it.args[1] as WidgetUserMutualFriends.Model.Item.MutualFriend).user.globalName?.let { name ->
+            (mutualFriendsViewHolderBinding[it.thisObject] as WidgetUserProfileAdapterItemFriendBinding).i.text = name
+        }
     })
 }
 
