@@ -1,0 +1,39 @@
+--- ./build/smali_original/com/discord/models/user/MeUser.smali	2025-07-03 17:47:56.497741700 +0200
++++ ./smali/com/discord/models/user/MeUser.smali	2025-07-03 22:01:06.885730300 +0200
+@@ -141,6 +141,8 @@
+ 
+ .field private final flags:I
+ 
++.field public globalName:Ljava/lang/String;
++
+ .field private final hasBirthday:Z
+ 
+ .field private final id:J
+@@ -1416,6 +1418,12 @@ .method public final copy(JLjava/lang/St
+ 
+     invoke-direct/range {v0 .. v19}, Lcom/discord/models/user/MeUser;-><init>(JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZILcom/discord/api/premium/PremiumTier;Ljava/lang/String;ZZLjava/lang/String;IILjava/lang/String;Lcom/discord/api/user/NsfwAllowance;Ljava/lang/String;Ljava/lang/String;)V
+ 
++    move-object/from16 v1, p0
++
++    iget-object v2, v1, Lcom/discord/models/user/MeUser;->globalName:Ljava/lang/String;
++
++    iput-object v2, v0, Lcom/discord/models/user/MeUser;->globalName:Ljava/lang/String;
++
+     return-object v20
+ .end method
+ 
+@@ -1705,6 +1713,14 @@ .method public getFlags()I
+     return v0
+ .end method
+ 
++.method public getGlobalName()Ljava/lang/String;
++    .locals 1
++
++    iget-object v0, p0, Lcom/discord/models/user/MeUser;->globalName:Ljava/lang/String;
++
++    return-object v0
++.end method
++
+ .method public final getHasBirthday()Z
+     .locals 1
+ 
