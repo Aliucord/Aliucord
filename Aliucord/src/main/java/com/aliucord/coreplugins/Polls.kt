@@ -36,6 +36,7 @@ import com.aliucord.wrappers.embeds.FieldWrapper.Companion.value
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper.Companion.rawFields
 import com.aliucord.wrappers.messages.poll
 import com.discord.api.channel.Channel
+import com.discord.gateway.GatewaySocket
 import com.discord.models.domain.ModelMessageDelete
 import com.discord.models.member.GuildMember
 import com.discord.models.user.MeUser
@@ -122,6 +123,20 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         // Watch for poll vote gateway events
         GatewayAPI.onEvent<MessagePollVoteEvent>("MESSAGE_POLL_VOTE_ADD") { PollsStore.dispatchGatewayEvent(it, true) }
         GatewayAPI.onEvent<MessagePollVoteEvent>("MESSAGE_POLL_VOTE_REMOVE") { PollsStore.dispatchGatewayEvent(it, false) }
+
+        // Silence "event unhandled" warnings in debug log
+        // private final void handleDispatch(Object obj, String str, int i, int i2, long j) {
+        patcher.before<GatewaySocket>(
+            "handleDispatch",
+            Object::class.java,
+            String::class.javaObjectType,
+            Int::class.javaPrimitiveType!!,
+            Int::class.javaPrimitiveType!!,
+            Long::class.javaPrimitiveType!!,
+        ) { (param, _: Any, event: String) ->
+            if (event == "MESSAGE_POLL_VOTE_ADD" || event == "MESSAGE_POLL_VOTE_REMOVE")
+                param.args[0] = Unit.a
+        }
 
         // Patch store methods to manage them in our store
         patcher.patch(StoreStream::class.java.getDeclaredMethod("handleMessageCreate", ApiMessage::class.java))
