@@ -254,14 +254,12 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             var pollQuestionText = ""
             var victorAnswerVotes = 0
             var totalVotes = 0
-            var victorAnswerId: Int? = null
             var victorAnswerText: String? = null
             msg.embeds.getOrNull(0)?.rawFields?.forEach {
                 when (it.name) {
                     "poll_question_text" -> pollQuestionText = it.value
                     "victor_answer_votes" -> victorAnswerVotes = it.value.toInt()
                     "total_votes" -> totalVotes = it.value.toInt()
-                    "victor_answer_id" -> victorAnswerId = it.value.toInt()
                     "victor_answer_text" -> victorAnswerText = it.value
                 }
             } ?: return@before logger.error("Tried to render poll result, but there was no embed?", null)
