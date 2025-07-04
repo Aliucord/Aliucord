@@ -5,7 +5,7 @@ package com.aliucord.coreplugins.polls
 import com.aliucord.*
 import com.aliucord.coreplugins.polls.PollsStore.fetchDetails
 import com.aliucord.utils.RxUtils.subscribe
-import com.aliucord.wrappers.messages.MessageWrapper.Companion.poll
+import com.aliucord.wrappers.messages.poll
 import com.discord.api.message.poll.*
 import com.discord.models.deserialization.gson.InboundGatewayGsonParser
 import com.discord.models.user.CoreUser

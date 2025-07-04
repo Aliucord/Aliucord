@@ -5,7 +5,7 @@ import com.aliucord.coreplugins.polls.PollsStore.VotesSnapshot
 import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.views.Divider
 import com.aliucord.widgets.LinearLayout
-import com.aliucord.wrappers.messages.MessageWrapper.Companion.poll
+import com.aliucord.wrappers.messages.poll
 import com.discord.models.message.Message
 
 internal class PollChatAnswersContainerView(private val ctx: Context) : LinearLayout(ctx) {

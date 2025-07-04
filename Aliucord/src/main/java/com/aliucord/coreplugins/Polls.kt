@@ -34,7 +34,7 @@ import com.aliucord.wrappers.ChannelWrapper.Companion.recipients
 import com.aliucord.wrappers.embeds.FieldWrapper.Companion.name
 import com.aliucord.wrappers.embeds.FieldWrapper.Companion.value
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper.Companion.rawFields
-import com.aliucord.wrappers.messages.MessageWrapper.Companion.poll
+import com.aliucord.wrappers.messages.poll
 import com.discord.api.channel.Channel
 import com.discord.models.domain.ModelMessageDelete
 import com.discord.models.member.GuildMember

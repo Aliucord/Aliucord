@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.aliucord.Utils
 import com.aliucord.coreplugins.polls.PollsStore
 import com.aliucord.coreplugins.polls.PollsStore.VotesSnapshot
-import com.aliucord.wrappers.messages.MessageWrapper.Companion.poll
+import com.aliucord.wrappers.messages.poll
 import com.discord.api.message.poll.MessagePoll
 import com.discord.api.message.reaction.MessageReactionEmoji
 import com.discord.app.AppFragment
