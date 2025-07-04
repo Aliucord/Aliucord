@@ -80,38 +80,38 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
     }
 
     private fun updateData(attemptRetry: Boolean = false) {
-        val data = data
-        if (data == null) // Message is deleted
+        val snapshots = data
+        if (snapshots == null) // Message is deleted
             return this.appActivity.finish()
 
         answersAdapter.setData(poll.answers.map { answer ->
-            val count = data[answer.answerId]?.count ?: 0
+            val count = snapshots[answer.answerId]?.count ?: 0
             PollDetailsAnswersAdapter.AnswerItem(answer, count, answer.answerId == selected)
         })
 
-        val selectedSnapshot = data[selected] ?: VotesSnapshot.Detailed()
-        val map = StoreStream.getGuilds().members[StoreStream.getGuildSelected().selectedGuildId]
-        val payload = if (selectedSnapshot.count == 0)
-            listOf(PollDetailsResultsAdapter.EmptyItem())
-        else when (selectedSnapshot) {
-            is VotesSnapshot.Lazy -> {
-                if (selectedSnapshot.hasFailed && !attemptRetry)
-                    listOf(PollDetailsResultsAdapter.ErrorItem(channelId, messageId, selected))
-                else {
-                    PollsStore.fetchDetails(channelId, messageId, selected)
-                    listOf(ManageReactionsResultsAdapter.LoadingItem())
+        val snapshot = snapshots[selected]!!
+        val usersMap = StoreStream.getUsers().users
+        val membersMap = StoreStream.getGuilds().members[StoreStream.getGuildSelected().selectedGuildId]
+        val payload = when {
+            snapshot.count == 0 ->
+                listOf(PollDetailsResultsAdapter.EmptyItem())
+            snapshot.hasFailed && !attemptRetry ->
+                listOf(PollDetailsResultsAdapter.ErrorItem(channelId, messageId, selected))
+            snapshot.hasFailed || snapshot.voters.isEmpty() || (snapshot.run { meVoted && voters.size == 1 && isIncomplete }) -> { // FIXME
+                PollsStore.fetchDetails(channelId, messageId, selected)
+                listOf(ManageReactionsResultsAdapter.LoadingItem())
+            }
+            else ->
+                snapshot.voters.map {
+                    ManageReactionsResultsAdapter.ReactionUserItem(
+                        usersMap[it],
+                        0,
+                        0,
+                        MessageReactionEmoji("", "", false),
+                        false,
+                        membersMap?.get(it)
+                    )
                 }
-            }
-            is VotesSnapshot.Detailed -> selectedSnapshot.voters.map {
-                ManageReactionsResultsAdapter.ReactionUserItem(
-                    it,
-                    0,
-                    0,
-                    MessageReactionEmoji("", "", false),
-                    false,
-                    map?.get(it.id)
-                )
-            }
         }
         resultsAdapter.setData(payload)
     }
