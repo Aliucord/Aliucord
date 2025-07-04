@@ -15,7 +15,10 @@ import com.discord.utilities.mg_recycler.MGRecyclerViewHolder
 import com.discord.widgets.chat.managereactions.ManageReactionsResultsAdapter
 import com.lytefast.flexinput.R
 
-internal class PollDetailsResultsAdapter(recyclerView: RecyclerView) : ManageReactionsResultsAdapter(recyclerView) {
+internal class PollDetailsResultsAdapter(
+    recyclerView: RecyclerView,
+    val onFetchMore: () -> Unit
+) : ManageReactionsResultsAdapter(recyclerView) {
     class EmptyItem : MGRecyclerDataPayload {
         override fun getKey() = "3"
         override fun getType() = 3
@@ -53,13 +56,33 @@ internal class PollDetailsResultsAdapter(recyclerView: RecyclerView) : ManageRea
         }
     }
 
+    class MiniLoadingItem() : MGRecyclerDataPayload {
+        override fun getKey() = "5"
+        override fun getType() = 5
+    }
+
+    @SuppressLint("SetTextI18n")
+    private class MiniLoadingViewHolder(adapter: ManageReactionsResultsAdapter)
+        : MGRecyclerViewHolder<ManageReactionsResultsAdapter, MGRecyclerDataPayload>(Utils.getResId("widget_manage_reactions_result_loading", "layout"), adapter) {
+
+        init {
+            itemView.layoutParams = itemView.layoutParams.apply { height = ViewGroup.LayoutParams.WRAP_CONTENT }
+        }
+    }
+
     override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): MGRecyclerViewHolder<ManageReactionsResultsAdapter, MGRecyclerDataPayload> =
         when (viewType) {
             0 -> ReactionUserViewHolder(this)
             1 -> LoadingViewHolder(this)
             3 -> EmptyViewHolder(this)
             4 -> ErrorViewHolder(this)
+            5 -> MiniLoadingViewHolder(this)
             else -> throw invalidViewTypeException(viewType)
         }
-}
 
+    override fun onBindViewHolder(viewHolder: MGRecyclerViewHolder<*, MGRecyclerDataPayload>, i: Int) {
+        super.onBindViewHolder(viewHolder, i)
+        if (viewHolder is MiniLoadingViewHolder)
+            onFetchMore()
+    }
+}

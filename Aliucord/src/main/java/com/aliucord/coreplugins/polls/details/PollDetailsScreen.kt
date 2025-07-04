@@ -62,7 +62,9 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
         answersAdapter = MGRecyclerAdapter.configure(PollDetailsAnswersAdapter(answersView) {
             selected = it
         })
-        resultsAdapter = MGRecyclerAdapter.configure(PollDetailsResultsAdapter(resultsView))
+        resultsAdapter = MGRecyclerAdapter.configure(PollDetailsResultsAdapter(resultsView) {
+            PollsStore.fetchDetails(channelId, messageId, selected)
+        })
 
         val poll = StoreStream.getMessages().getMessage(channelId, messageId)?.poll
         if (poll == null)
@@ -97,12 +99,12 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
                 listOf(PollDetailsResultsAdapter.EmptyItem())
             snapshot.hasFailed && !attemptRetry ->
                 listOf(PollDetailsResultsAdapter.ErrorItem(channelId, messageId, selected))
-            snapshot.hasFailed || snapshot.voters.isEmpty() || (snapshot.run { meVoted && voters.size == 1 && isIncomplete }) -> { // FIXME
+            snapshot.voters.isEmpty() -> {
                 PollsStore.fetchDetails(channelId, messageId, selected)
                 listOf(ManageReactionsResultsAdapter.LoadingItem())
             }
-            else ->
-                snapshot.voters.map {
+            else -> {
+                val userItems = snapshot.voters.map {
                     ManageReactionsResultsAdapter.ReactionUserItem(
                         usersMap[it],
                         0,
@@ -112,6 +114,11 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
                         membersMap?.get(it)
                     )
                 }
+                if (snapshot.isIncomplete)
+                    userItems + PollDetailsResultsAdapter.MiniLoadingItem()
+                else
+                    userItems
+            }
         }
         resultsAdapter.setData(payload)
     }
