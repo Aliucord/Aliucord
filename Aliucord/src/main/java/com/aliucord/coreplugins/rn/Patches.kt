@@ -21,14 +21,20 @@ import com.discord.api.user.UserProfile
 import com.discord.app.AppFragment
 import com.discord.databinding.*
 import com.discord.models.member.GuildMember
+import com.discord.models.presence.Presence
 import com.discord.models.user.CoreUser
 import com.discord.models.user.MeUser
 import com.discord.stores.*
 import com.discord.utilities.auth.`AuthUtils$createDiscriminatorInputValidator$1`
 import com.discord.utilities.icon.IconUtils
+import com.discord.utilities.mg_recycler.MGRecyclerDataPayload
+import com.discord.utilities.mg_recycler.SingleTypePayload
+import com.discord.utilities.search.suggestion.entries.UserSuggestion
 import com.discord.utilities.user.UserUtils
+import com.discord.widgets.chat.input.autocomplete.UserAutocompletable
 import com.discord.widgets.friends.FriendsListViewModel
 import com.discord.widgets.friends.WidgetFriendsListAdapter
+import com.discord.widgets.search.suggestions.WidgetSearchSuggestionsAdapter
 import com.discord.widgets.settings.account.WidgetSettingsAccountUsernameEdit
 import com.discord.widgets.user.*
 import com.discord.widgets.user.profile.UserProfileHeaderView
@@ -75,23 +81,26 @@ fun patchGlobalName() {
         }
     })
 
-    Patcher.addPatch(UserUtils::class.java.getDeclaredMethod("padDiscriminator", Int::class.java), PreHook {
+    val int = Int::class.java
+    Patcher.addPatch(UserUtils::class.java.getDeclaredMethod("padDiscriminator", int), PreHook {
         if (it.args[0] == 0) it.result = ""
     })
 
     val modelUser = ModelUser::class.java
-    Patcher.addPatch(GuildMember.Companion::class.java.getDeclaredMethod("getNickOrUsername", modelUser, GuildMember::class.java, Channel::class.java, List::class.java), Hook {
+    val guildMember = GuildMember::class.java
+    Patcher.addPatch(GuildMember.Companion::class.java.getDeclaredMethod("getNickOrUsername", modelUser, guildMember, Channel::class.java, List::class.java), Hook {
         val user = it.args[0] as ModelUser
         if (it.result == user.username) user.globalName?.let { name -> it.result = name }
     })
 
-    Patcher.addPatch(UserNameFormatterKt::class.java.getDeclaredMethod("getSpannableForUserNameWithDiscrim", modelUser, String::class.java, Context::class.java, Int::class.java, Int::class.java, Int::class.java, Int::class.java, Int::class.java, Int::class.java), PreHook {
+    Patcher.addPatch(UserNameFormatterKt::class.java.getDeclaredMethod("getSpannableForUserNameWithDiscrim", modelUser, String::class.java, Context::class.java, int, int, int, int, int, int), PreHook {
         if (it.args[1] == null) (it.args[0] as ModelUser).globalName?.let { name -> it.args[1] = name }
     })
 
-    Patcher.addPatch(UserProfileHeaderView::class.java.getDeclaredMethod("getSecondaryNameTextForUser", modelUser, GuildMember::class.java), PreHook {
+    Patcher.addPatch(UserProfileHeaderView::class.java.getDeclaredMethod("getSecondaryNameTextForUser", modelUser, guildMember), PreHook {
         val user = it.args[0] as ModelUser
-        if (user.globalName != null) it.result = UserUtils.INSTANCE.getUserNameWithDiscriminator(user, null, null)
+        if (user.globalName != null) it.result =
+            if (user.discriminator == 0) user.username else user.username + UserUtils.INSTANCE.getDiscriminatorWithPadding(user)
     })
     val headerViewModel = UserProfileHeaderViewModel.ViewState.Loaded::class.java
     Patcher.addPatch(UserProfileHeaderView::class.java.getDeclaredMethod("configureSecondaryName", headerViewModel), object : XC_MethodHook() {
@@ -115,7 +124,7 @@ fun patchGlobalName() {
     val itemUser = WidgetFriendsListAdapter.ItemUser::class.java
     val itemUserBinding = itemUser.getDeclaredField("binding").apply { isAccessible = true }
     val viewModelItem = FriendsListViewModel.Item::class.java
-    Patcher.addPatch(itemUser.getDeclaredMethod("onConfigure", Int::class.java, viewModelItem), Hook {
+    Patcher.addPatch(itemUser.getDeclaredMethod("onConfigure", int, viewModelItem), Hook {
         (it.args[1] as FriendsListViewModel.Item.Friend).user.globalName?.let { name ->
             (itemUserBinding[it.thisObject] as WidgetFriendsListAdapterItemFriendBinding).f.text = name
         }
@@ -123,7 +132,7 @@ fun patchGlobalName() {
 
     val itemPendingUser = WidgetFriendsListAdapter.ItemPendingUser::class.java
     val itemPendingUserBinding = itemPendingUser.getDeclaredField("binding").apply { isAccessible = true }
-    Patcher.addPatch(itemPendingUser.getDeclaredMethod("onConfigure", Int::class.java, viewModelItem), Hook {
+    Patcher.addPatch(itemPendingUser.getDeclaredMethod("onConfigure", int, viewModelItem), Hook {
         (it.args[1] as FriendsListViewModel.Item.PendingFriendRequest).user.globalName?.let { name ->
             (itemPendingUserBinding[it.thisObject] as WidgetFriendsListAdapterItemPendingBinding).f.text = name
         }
@@ -131,9 +140,28 @@ fun patchGlobalName() {
 
     val mutualFriendsViewHolder = WidgetUserMutualFriends.MutualFriendsAdapter.ViewHolder::class.java
     val mutualFriendsViewHolderBinding = mutualFriendsViewHolder.getDeclaredField("binding").apply { isAccessible = true }
-    Patcher.addPatch(mutualFriendsViewHolder.getDeclaredMethod("onConfigure", Int::class.java, WidgetUserMutualFriends.Model.Item::class.java), Hook {
+    Patcher.addPatch(mutualFriendsViewHolder.getDeclaredMethod("onConfigure", int, WidgetUserMutualFriends.Model.Item::class.java), Hook {
         (it.args[1] as WidgetUserMutualFriends.Model.Item.MutualFriend).user.globalName?.let { name ->
             (mutualFriendsViewHolderBinding[it.thisObject] as WidgetUserProfileAdapterItemFriendBinding).i.text = name
+        }
+    })
+
+    Patcher.addPatch(
+        UserAutocompletable::class.java.getDeclaredConstructor(modelUser, guildMember, String::class.java, Presence::class.java, Boolean::class.java),
+        PreHook {
+            if (it.args[2] == null) (it.args[0] as ModelUser).globalName?.let { name -> it.args[2] = name }
+        }
+    )
+
+    val userViewHolder = WidgetSearchSuggestionsAdapter.UserViewHolder::class.java
+    val userViewHolderBinding = userViewHolder.getDeclaredField("binding").apply { isAccessible = true }
+    Patcher.addPatch(userViewHolder.getDeclaredMethod("onConfigure", int, MGRecyclerDataPayload::class.java), Hook {
+        @Suppress("UNCHECKED_CAST") val data = (it.args[1] as SingleTypePayload<UserSuggestion>).data
+        if (data.nickname == null) data.user.globalName?.let { name ->
+            ((userViewHolderBinding[it.thisObject] as WidgetSearchSuggestionsItemUserBinding).b.k).apply {
+                d.text = c.text
+                c.text = name
+            }
         }
     })
 }

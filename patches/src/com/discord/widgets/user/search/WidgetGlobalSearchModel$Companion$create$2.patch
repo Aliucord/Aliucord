@@ -1,0 +1,19 @@
+--- ./build/smali_original/com/discord/widgets/user/search/WidgetGlobalSearchModel$Companion$create$2.smali	2025-07-05 13:09:16.509545400 +0200
++++ ./smali/com/discord/widgets/user/search/WidgetGlobalSearchModel$Companion$create$2.smali	2025-07-05 15:07:57.398914500 +0200
+@@ -142,7 +142,16 @@ .method public final invoke(Lcom/discord
+ 
+     invoke-direct {v4}, Ljava/util/ArrayList;-><init>()V
+ 
++    invoke-interface {p1}, Lcom/discord/models/user/User;->getGlobalName()Ljava/lang/String;
++
++    move-result-object v5
++
++    if-eqz v5, :cond_0
++
++    invoke-interface {v4, v5}, Ljava/util/Collection;->add(Ljava/lang/Object;)Z
++
+     .line 4
++    :cond_0
+     invoke-interface {v2}, Ljava/lang/Iterable;->iterator()Ljava/util/Iterator;
+ 
+     move-result-object v2
