@@ -4,11 +4,11 @@ package com.aliucord.coreplugins.polls.details
 
 import android.annotation.SuppressLint
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
+import android.widget.*
 import androidx.recyclerview.widget.RecyclerView
 import com.aliucord.Utils
 import com.aliucord.coreplugins.polls.PollsStore
+import com.aliucord.utils.DimenUtils.dp
 import com.discord.utilities.drawable.DrawableCompat
 import com.discord.utilities.mg_recycler.MGRecyclerDataPayload
 import com.discord.utilities.mg_recycler.MGRecyclerViewHolder
@@ -56,7 +56,7 @@ internal class PollDetailsResultsAdapter(
         }
     }
 
-    class MiniLoadingItem() : MGRecyclerDataPayload {
+    class MiniLoadingItem : MGRecyclerDataPayload {
         override fun getKey() = "5"
         override fun getType() = 5
     }
@@ -66,7 +66,10 @@ internal class PollDetailsResultsAdapter(
         : MGRecyclerViewHolder<ManageReactionsResultsAdapter, MGRecyclerDataPayload>(Utils.getResId("widget_manage_reactions_result_loading", "layout"), adapter) {
 
         init {
-            itemView.layoutParams = itemView.layoutParams.apply { height = ViewGroup.LayoutParams.WRAP_CONTENT }
+            val view = itemView as FrameLayout
+            val progressBar = view.getChildAt(0) as ProgressBar
+            progressBar.layoutParams = progressBar.layoutParams.apply { width = 24.dp; height = 24.dp; }
+            view.layoutParams = view.layoutParams.apply { height = ViewGroup.LayoutParams.WRAP_CONTENT }
         }
     }
 
