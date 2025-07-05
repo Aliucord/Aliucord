@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    val smaliVersion = "3.0.7"
+    val smaliVersion = "3.0.9"
     buildTools("com.android.tools.smali:smali:$smaliVersion")
     buildTools("com.android.tools.smali:smali-baksmali:$smaliVersion")
 }
@@ -157,24 +157,31 @@ task<Delete>("clean") {
 
 // --- Internal tasks --- //
 
-task<JavaExec>("disassembleInternal") {
-    classpath = buildTools
-    jvmArgs = listOf("-Xmx2G")
-    standardOutput = System.out
-    errorOutput = System.err
-
+task("disassembleInternal") {
     outputs.upToDateWhen {
         smaliOriginalDir.exists()
     }
 
-    systemProperty("line.separator", "\n") // Ensure smali output uses LF endings
-    mainClass.set("com.android.tools.smali.baksmali.Main")
-    args = listOf(
-        "disassemble",
-        "--use-locals",
-        "--output", smaliOriginalDir.absolutePath,
-        discordApk.absolutePath,
-    )
+    doFirst {
+        zipTree(discordApk.absolutePath).matching { include("classes*.dex") }.visit {
+            logger.lifecycle("Disassembling $name")
+            javaexec {
+                classpath = buildTools
+                jvmArgs = listOf("-Xmx2G")
+                standardOutput = System.out
+                errorOutput = System.err
+
+                systemProperty("line.separator", "\n") // Ensure smali output uses LF endings
+                mainClass.set("com.android.tools.smali.baksmali.Main")
+                args = listOf(
+                    "disassemble",
+                    "--use-locals",
+                    "--output", smaliOriginalDir.absolutePath,
+                    "${discordApk.absolutePath}/$name",
+                )
+            }
+        }
+    }
 }
 
 task<Copy>("copyDisassembled") {
