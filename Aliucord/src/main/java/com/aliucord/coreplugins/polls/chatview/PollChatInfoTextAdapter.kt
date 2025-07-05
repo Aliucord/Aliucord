@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.widget.TextView
 import com.aliucord.Utils
 import com.aliucord.coreplugins.polls.chatview.PollChatView.State
-import com.discord.api.utcdatetime.UtcDateTime
 import kotlin.random.Random
 
 internal class PollChatInfoTextAdapter(private val infoText: TextView) {
@@ -13,16 +12,12 @@ internal class PollChatInfoTextAdapter(private val infoText: TextView) {
         const val HOUR = MINUTE * 60
         const val DAY = HOUR * 24
     }
-    private var state: State = State.FINALISED
-    private var voteCount: Int = 0
-    private var expiry: UtcDateTime? = null
 
     private var currentLoopId: Int? = null
-    private val shouldRun
-        get() = (state != State.FINALISED) && (state != State.CLOSED)
+    private var model: PollChatView.Model? = null
 
-    private fun getTimeString(): CharSequence? = expiry?.let {
-        val diffInSeconds = ((it.g() - System.currentTimeMillis()) / 1000).coerceAtLeast(0)
+    private fun getTimeString(): CharSequence? = model?.expiry?.let {
+        val diffInSeconds = ((it - System.currentTimeMillis()) / 1000).coerceAtLeast(0)
         val formatted =
             if (diffInSeconds >= DAY)
                 "${diffInSeconds / DAY}d"
@@ -38,32 +33,35 @@ internal class PollChatInfoTextAdapter(private val infoText: TextView) {
 
     @SuppressLint("SetTextI18n")
     private fun refresh() {
-        val expiryText = when (state) {
-            State.FINALISED -> "Poll closed"
-            State.CLOSED -> "Poll closing"
+        val model = model
+        if (model == null)
+            return
+        val expiryText = when {
+            model.finalised -> "Poll closed"
+            model.state == State.CLOSED -> "Poll closing"
             else -> getTimeString()
         }
 
         val append = expiryText?.let { "  •  $expiryText" } ?: ""
-        infoText.text = "$voteCount vote${if (voteCount != 1) "s" else ""}$append"
+        infoText.text = "${model.totalVotes} vote${if (model.totalVotes != 1) "s" else ""}$append"
     }
 
-    fun updateData(state: State, voteCount: Int, expiry: UtcDateTime?) {
-        this.state = state
-        this.voteCount = voteCount
-        this.expiry = expiry
-
+    fun configure(model: PollChatView.Model) {
+        this.model = model
         start()
+        if (model.state == State.CLOSED)
+            stop()
     }
 
     fun start() {
         val loopId = Random.nextInt()
         currentLoopId = loopId
+
         Utils.threadPool.execute {
             do {
                 Utils.mainThread.post { refresh() }
                 Thread.sleep(1000)
-            } while (shouldRun && loopId == currentLoopId)
+            } while (loopId == currentLoopId)
         }
     }
 

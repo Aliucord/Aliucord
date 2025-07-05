@@ -4,81 +4,72 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.view.ContextThemeWrapper
 import android.widget.TextView
-import com.aliucord.*
-import com.aliucord.coreplugins.polls.PollsStore
 import com.aliucord.coreplugins.polls.details.PollDetailsScreen
 import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.ViewUtils.addTo
-import com.aliucord.views.Button
-import com.aliucord.views.DangerButton
+import com.aliucord.views.*
 import com.aliucord.widgets.LinearLayout
+import com.discord.api.message.reaction.MessageReactionEmoji
 import com.discord.utilities.color.ColorCompat
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.lytefast.flexinput.R
-import rx.Subscription
 import java.util.Calendar
 
 @SuppressLint("SetTextI18n")
 internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
     internal enum class State {
         VOTING,
-        SHOW_RESULT,
+        PEEKING_RESULTS,
         VOTED,
-        CLOSED,
-        FINALISED;
-
-        fun visibleIf(vararg types: State) = if (this in types) VISIBLE else GONE
+        CLOSED;
     }
 
-    private data class PollVotePayload(@Suppress("PropertyName") val answer_ids: List<Int>)
+    data class AnswerModel(
+        val id: Int,
+        val text: String,
+        val emoji: MessageReactionEmoji?,
+        val meVoted: Boolean,
+        val votes: Int,
+        val checked: Boolean,
+    )
 
-    private val logger = Logger("Polls")
+    data class Model(
+        val channelId: Long,
+        val messageId: Long,
+        val question: String,
+        val multiselect: Boolean,
+        val expiry: Long?,
+        val finalised: Boolean,
+        val peekingResults: Boolean,
+        val submittingVote: Boolean,
+        val answers: List<AnswerModel>,
+    ) {
+        val state = if ((expiry ?: Long.MAX_VALUE) < Calendar.getInstance().timeInMillis)
+            State.CLOSED
+        else if (answers.any { it.meVoted && it.votes != 0 })
+            State.VOTED
+        else if (peekingResults)
+            State.PEEKING_RESULTS
+        else
+            State.VOTING
+
+        val totalVotes
+            get() = answers.sumOf { it.votes }
+    }
 
     private lateinit var title: TextView
     private lateinit var subtext: TextView
     private lateinit var infoText: TextView
-    private lateinit var answersContainer: PollChatAnswersContainerView
+    private lateinit var answersContainer: LinearLayout
+    private lateinit var answerViews: List<PollChatAnswerView>
     private lateinit var voteButton: MaterialButton
     private lateinit var showResultsButton: MaterialButton
     private lateinit var goBackButton: MaterialButton
     private lateinit var removeVoteButton: MaterialButton
 
-    private var state: State = State.VOTING
-        set(value) {
-            val previous = field
-            field = value
-            updateState(previous)
-        }
     private val infoTextAdapter: PollChatInfoTextAdapter
-    private var voteHandler: ((Boolean) -> Unit)? = null
-
-    private class SubscriptionHandler {
-        private var storeSubscription: Subscription? = null
-
-        private var targetChannel: Long? = null
-        private var targetMessage: Long? = null
-        private var onNext: ((HashMap<Int, PollsStore.VotesSnapshot>?) -> Unit)? = null
-
-        fun unsubscribe() {
-            storeSubscription?.unsubscribe()
-        }
-
-        fun subscribe() {
-            unsubscribe()
-            if (targetChannel == null || targetMessage == null || onNext == null)
-                return
-            PollsStore.subscribeOnMain(targetChannel!!, targetMessage!!, onNext!!)
-        }
-
-        fun configure(channelId: Long, messageId: Long, onNext: (HashMap<Int, PollsStore.VotesSnapshot>?) -> Unit) {
-            targetChannel = channelId
-            targetMessage = messageId
-            this.onNext = onNext
-        }
-    }
-
-    private val subscriptionHandler = SubscriptionHandler()
+    private var viewModel: PollChatViewModel? = null
 
     init {
         setCardBackgroundColor(ColorCompat.getThemedColor(ctx, R.b.colorBackgroundSecondary))
@@ -91,12 +82,10 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
             subtext = TextView(ctx, null, 0, R.i.UiKit_Settings_Item_SubText).addTo(this) {
                 setPadding(p, p / 2, p, 0)
             }
-            answersContainer = PollChatAnswersContainerView(ctx).addTo(this) {
+            answersContainer = LinearLayout(ctx).addTo(this) {
                 setPadding(0, p, 0, p / 2)
-                onHasCheckedChange = {
-                    voteButton.isEnabled = it
-                }
             }
+
             LinearLayout(ctx).addTo(this) {
                 setPadding(p, 0, p, 0)
                 orientation = LinearLayout.HORIZONTAL
@@ -107,7 +96,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
                     setOnClickListener {
                         isEnabled = false
                         showResultsButton.isEnabled = false
-                        voteHandler?.invoke(true)
+                        viewModel?.addVotes()
                     }
                 }
                 showResultsButton = MaterialButton(
@@ -118,7 +107,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
                         marginStart = p / 2
                     }
                     setOnClickListener {
-                        state = State.SHOW_RESULT
+                        viewModel?.peekResults()
                     }
                 }
             }
@@ -131,7 +120,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
                     marginStart = p
                 }
                 setOnClickListener {
-                    state = State.VOTING
+                    viewModel?.unpeekResults()
                 }
             }
             removeVoteButton = DangerButton(ctx).addTo(this) {
@@ -142,7 +131,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
                 }
                 setOnClickListener {
                     isEnabled = false
-                    voteHandler?.invoke(false)
+                    viewModel?.removeVotes()
                 }
             }
             infoText = TextView(ctx, null, 0, R.i.UiKit_Settings_Item_SubText).addTo(this) {
@@ -153,106 +142,60 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
         infoTextAdapter = PollChatInfoTextAdapter(this.infoText)
     }
 
-    private fun updateState(previousState: State?) {
-        if (state != previousState) {
-            voteButton.isEnabled = answersContainer.hasChecked
-            showResultsButton.isEnabled = true
-            removeVoteButton.isEnabled = true
-        }
-        subtext.visibility = state.visibleIf(State.VOTING, State.SHOW_RESULT, State.VOTED)
-        voteButton.visibility = state.visibleIf(State.VOTING)
-        showResultsButton.visibility = state.visibleIf(State.VOTING)
-        goBackButton.visibility = state.visibleIf(State.SHOW_RESULT)
-        removeVoteButton.visibility = state.visibleIf(State.VOTED)
+    internal fun configure(entry: PollChatEntry) {
+        viewModel = PollChatViewModel(entry.message, entry.poll, ::configureUI)
+        val model = viewModel!!.model
 
-        answersContainer.updateState(state, previousState == State.VOTING)
+        answersContainer.removeAllViews()
+        val newViews = mutableListOf<PollChatAnswerView>()
+        Divider(ctx).addTo(answersContainer)
+        for (answer in model.answers) {
+            val view = PollChatAnswerView.build(ctx, model.channelId, model.messageId, answer.id, model.multiselect) {
+                viewModel!!.toggleVote(answer.id)
+            }.addTo(answersContainer)
+            newViews.add(view)
+            Divider(ctx).addTo(answersContainer)
+        }
+        answerViews = newViews
+
+        configureUI(model, false)
     }
 
-    internal fun configure(entry: PollChatEntry) {
-        val data = entry.poll
-        val expired = (data.expiry?.g() ?: Long.MAX_VALUE) < Calendar.getInstance().timeInMillis
+    private fun configureUI(model: Model, isUpdate: Boolean) {
+        val state = model.state
 
-        answersContainer.configure(entry.message)
-
-        state = if (data.results?.isFinalized == true)
-            State.FINALISED
-        else if (expired)
-            State.CLOSED
-        else if (data.results?.answerCounts?.find { it.meVoted && it.count != 0 } != null)
-            State.VOTED
-        else if (state == State.SHOW_RESULT)
-            State.SHOW_RESULT
-        else
-            State.VOTING
-
-        title.text = data.question.text
-
-        subtext.text = if (data.allowMultiselect)
+        title.text = model.question
+        subtext.text = if (model.multiselect)
             "Select one or more answers"
         else
             "Select one answer"
-
         infoText.setOnClickListener {
-            PollDetailsScreen.launch(ctx, entry.message.channelId, entry.message.id)
+            PollDetailsScreen.launch(ctx, model.channelId, model.messageId)
         }
 
-        voteHandler = { isVoting ->
-            Utils.threadPool.execute {
-                val request = runCatching {
-                    Http.Request.newDiscordRNRequest(
-                        "/channels/${entry.message.channelId}/polls/${entry.message.id}/answers/@me",
-                        "PUT"
-                    ).setRequestTimeout(10000).executeWithJson(PollVotePayload(
-                        if (isVoting)
-                            this.answersContainer.getCheckedAnswers().toList()
-                        else
-                            listOf()
-                    ))
-                }
-                val result = request.getOrNull()
-                if (result?.ok() != true) {
-                    logger.errorToast("Failed to submit poll vote")
-                    if (result != null)
-                        logger.error("${result.statusCode} ${result.statusMessage} ${result.text()}", null)
-                    else
-                        logger.error(request.exceptionOrNull())
-                    Utils.mainThread.post { updateState(null) }
-                }
-            }
-        }
+        voteButton.isEnabled = !model.submittingVote && model.answers.any { it.checked }
+        showResultsButton.isEnabled = !model.submittingVote
+        removeVoteButton.isEnabled = !model.submittingVote
 
-        subscriptionHandler.configure(entry.message.channelId, entry.message.id) { snapshots ->
-            if (snapshots == null) {
-                subscriptionHandler.unsubscribe()
-                return@configure
-            }
+        subtext.visibility = if (state != State.CLOSED) VISIBLE else GONE
+        voteButton.visibility = if (state == State.VOTING) VISIBLE else GONE
+        showResultsButton.visibility = if (state == State.VOTING) VISIBLE else GONE
+        goBackButton.visibility = if (state == State.PEEKING_RESULTS) VISIBLE else GONE
+        removeVoteButton.visibility = if (state == State.VOTED) VISIBLE else GONE
 
-            if (state in listOf(State.CLOSED, State.FINALISED))
-                subscriptionHandler.unsubscribe()
-            else {
-                state = if (snapshots.values.any { it.meVoted })
-                    State.VOTED
-                else if (state == State.SHOW_RESULT)
-                    State.SHOW_RESULT
-                else
-                    State.VOTING
-            }
-            answersContainer.updateCounts(snapshots, state)
-            infoTextAdapter.updateData(state, snapshots.values.sumOf { it.count }, data.expiry!!)
-        }
-
-        subscriptionHandler.subscribe()
+        infoTextAdapter.configure(model)
+        answerViews.forEach { it.configureUI(model, !isUpdate && !model.submittingVote) }
     }
 
     override fun onWindowVisibilityChanged(visibility: Int) {
         super.onWindowVisibilityChanged(visibility)
         if (visibility == GONE) {
             infoTextAdapter.stop()
-            subscriptionHandler.unsubscribe()
+            viewModel?.unsubscribe()
         }
         else {
             infoTextAdapter.start()
-            subscriptionHandler.subscribe()
+            viewModel?.subscribe()
         }
     }
 }
