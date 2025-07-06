@@ -1,0 +1,33 @@
+--- ./build/smali_original/com/discord/utilities/search/suggestion/SearchSuggestionEngine.smali	2025-07-05 13:09:49.997847600 +0200
++++ ./smali/com/discord/utilities/search/suggestion/SearchSuggestionEngine.smali	2025-07-06 14:41:09.366163400 +0200
+@@ -1068,7 +1068,22 @@ .method private final getUserSuggestions
+ 
+     move-result-object v4
+ 
++    invoke-interface {v3}, Lcom/discord/models/user/User;->getGlobalName()Ljava/lang/String;
++
++    move-result-object v5
++
++    if-eqz v5, :cond_0
++
++    const/4 v6, 0x1
++
++    invoke-static {v5, p1, v6}, Ld0/g0/w;->contains(Ljava/lang/CharSequence;Ljava/lang/CharSequence;Z)Z
++
++    move-result v5
++
++    if-nez v5, :cond_1
++
+     .line 13
++    :cond_0
+     invoke-interface {v3}, Lcom/discord/models/user/User;->getUsername()Ljava/lang/String;
+ 
+     move-result-object v5
+@@ -1093,6 +1108,7 @@ .method private final getUserSuggestions
+     if-eqz v2, :cond_31
+ 
+     .line 17
++    :cond_1
+     new-instance v2, Lcom/discord/utilities/search/suggestion/entries/UserSuggestion;
+ 
+     invoke-direct {v2, v3, p2, v4}, Lcom/discord/utilities/search/suggestion/entries/UserSuggestion;-><init>(Lcom/discord/models/user/User;Lcom/discord/utilities/search/suggestion/entries/UserSuggestion$TargetType;Lcom/discord/models/member/GuildMember;)V
