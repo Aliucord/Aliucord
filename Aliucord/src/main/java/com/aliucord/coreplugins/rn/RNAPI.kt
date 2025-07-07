@@ -8,6 +8,7 @@ package com.aliucord.coreplugins.rn
 
 import android.content.Context
 import com.aliucord.entities.CorePlugin
+import com.aliucord.updater.ManagerBuild
 import com.discord.api.user.UserProfile
 import de.robv.android.xposed.XposedBridge
 
@@ -18,8 +19,10 @@ internal class RNAPI : CorePlugin(Manifest("RNAPI")) {
     override fun load(context: Context?) {
         XposedBridge.makeClassInheritable(UserProfile::class.java)
 
+        if (ManagerBuild.hasPatches("1.1.1")) patchGlobalName()
+        else logger.warn("Base app outdated, cannot patch display names")
+
         patchNextCallAdapter()
-        patchGlobalName()
         patchUserProfile()
         patchDefaultAvatars()
         patchUsername()
