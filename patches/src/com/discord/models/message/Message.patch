@@ -1,9 +1,9 @@
---- smali/com/discord/models/message/Message.smali	2024-12-23 11:57:07.274066300 +0300
-+++ smali/com/discord/models/message/Message.smali	2025-01-06 17:05:48.870648200 +0300
+--- smali_original/com/discord/models/message/Message.smali
++++ smali/com/discord/models/message/Message.smali
 @@ -394,6 +394,16 @@
-
+ 
  .field private final messageReference:Lcom/discord/api/message/MessageReference;
-
+ 
 +.field public messageSnapshots:Ljava/util/List;
 +   .annotation system Ldalvik/annotation/Signature;
 +       value = {
@@ -15,5 +15,5 @@
 +.end field
 +
  .field private final nonce:Ljava/lang/String;
-
+ 
  .field private final numRetries:Ljava/lang/Integer;
