@@ -13,6 +13,7 @@ import com.aliucord.patcher.*
 import com.aliucord.wrappers.users.globalName
 import com.discord.api.channel.Channel
 import com.discord.api.channel.`ChannelUtils$getDisplayName$1`
+import com.discord.api.role.GuildRoleColors
 import com.discord.api.sticker.Sticker
 import com.discord.api.sticker.StickerFormatType
 import com.discord.api.sticker.StickerPartial
@@ -20,6 +21,7 @@ import com.discord.api.user.User
 import com.discord.api.user.UserProfile
 import com.discord.app.AppFragment
 import com.discord.databinding.*
+import com.discord.models.domain.Model
 import com.discord.models.member.GuildMember
 import com.discord.models.presence.Presence
 import com.discord.models.user.CoreUser
@@ -41,6 +43,7 @@ import com.discord.widgets.user.profile.UserProfileHeaderView
 import com.discord.widgets.user.profile.UserProfileHeaderViewModel
 import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.reflect.TypeToken
+import com.google.gson.stream.JsonToken
 import de.robv.android.xposed.XC_MethodHook
 import okhttp3.*
 import rx.Observable
@@ -234,4 +237,23 @@ fun patchStickers() {
 fun patchVoice() {
     // don't send heartbeat ("op": 3) on connect
     Patcher.addPatch(b.a.q.n0.a::class.java.getDeclaredMethod("k"), InsteadHook.DO_NOTHING)
+}
+
+// TODO: display gradient changes for role colors
+fun patchAuditLog() {
+    Patcher.addPatch(Model.JsonReader::class.java.getDeclaredMethod("parseUnknown", Model.JsonReader.ItemFactory::class.java), PreHook {
+        val reader = it.thisObject as Model.JsonReader
+        if (reader.peek() == JsonToken.l) {
+            val colors = GuildRoleColors()
+            reader.nextObject { field ->
+                when (field) {
+                    "primary_color" -> colors.primaryColor = reader.nextInt(0)
+                    "secondary_color" -> colors.secondaryColor = reader.nextIntOrNull()
+                    "tertiary_color" -> colors.tertiaryColor = reader.nextIntOrNull()
+                    else -> reader.skipValue()
+                }
+            }
+            it.result = colors
+        }
+    })
 }
