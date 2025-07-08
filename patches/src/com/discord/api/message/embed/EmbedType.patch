@@ -1,5 +1,5 @@
---- ./build/smali_original/com/discord/api/message/embed/EmbedType.smali	2025-06-05 18:09:53.206809784 +1000
-+++ ./smali/com/discord/api/message/embed/EmbedType.smali	2025-06-09 03:42:28.650264741 +1000
+--- smali_original/com/discord/api/message/embed/EmbedType.smali
++++ smali/com/discord/api/message/embed/EmbedType.smali
 @@ -70,6 +70,8 @@
  
  .field public static final enum LINK:Lcom/discord/api/message/embed/EmbedType;

@@ -1,0 +1,11 @@
+--- smali_original/com/discord/api/user/User.smali
++++ smali/com/discord/api/user/User.smali
+@@ -161,6 +161,8 @@
+ 
+ .field private final flags:Ljava/lang/Integer;
+ 
++.field public globalName:Ljava/lang/String;
++
+ .field private final id:J
+ 
+ .field private final locale:Ljava/lang/String;

@@ -143,9 +143,18 @@ task("writePatches") {
 
             logger.lifecycle("Writing patch for class $className")
 
+            val cleanDiff = diff
+                .split("\n")
+                .toMutableList()
+                .also {
+                    it[0] = "--- smali_original/$className.smali"
+                    it[1] = "+++ smali/$className.smali"
+                }
+                .joinToString("\n")
+
             File(patchesDir, "$className.patch")
                 .apply { parentFile.mkdirs() }
-                .writeText(diff)
+                .writeText(cleanDiff)
         }
     }
 }
