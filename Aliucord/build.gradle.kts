@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.aliucord"
-version = "2.1.0"
+version = "2.2.1"
 
 aliucord {
     projectType = com.aliucord.gradle.ProjectType.CORE

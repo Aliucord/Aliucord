@@ -129,8 +129,9 @@ private fun init(appActivity: AppActivity) {
  * Checks if app has permission for storage and if so checks settings and copies local dex to code cache
  */
 private fun useLocalDex(appActivity: AppActivity, dexFile: File): Boolean {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
-        return false
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        if (!Environment.isExternalStorageManager())
+            return false
     } else if (appActivity.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
         return false
     }

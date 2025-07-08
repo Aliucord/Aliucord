@@ -1,0 +1,35 @@
+--- smali_original/com/discord/widgets/chat/managereactions/ManageReactionsResultsAdapter$ReactionUserViewHolder.smali
++++ smali/com/discord/widgets/chat/managereactions/ManageReactionsResultsAdapter$ReactionUserViewHolder.smali
+@@ -193,9 +193,9 @@ .method public onConfigure(ILcom/discord
+ 
+     invoke-virtual {v1}, Lcom/discord/models/member/GuildMember;->getNick()Ljava/lang/String;
+ 
+-    move-result-object v1
++    move-result-object v2
+ 
+-    if-eqz v1, :cond_26
++    if-eqz v2, :cond_26
+ 
+     goto :goto_2e
+ 
+@@ -204,12 +204,18 @@ .method public onConfigure(ILcom/discord
+ 
+     move-result-object v1
+ 
++    invoke-interface {v1}, Lcom/discord/models/user/User;->getGlobalName()Ljava/lang/String;
++
++    move-result-object v2
++
++    if-nez v2, :goto_2e
++
+     invoke-interface {v1}, Lcom/discord/models/user/User;->getUsername()Ljava/lang/String;
+ 
+-    move-result-object v1
++    move-result-object v2
+ 
+     :goto_2e
+-    invoke-virtual {p1, v1}, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
++    invoke-virtual {p1, v2}, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
+ 
+     .line 5
+     iget-object p1, p0, Lcom/discord/widgets/chat/managereactions/ManageReactionsResultsAdapter$ReactionUserViewHolder;->binding:Lcom/discord/databinding/WidgetManageReactionsResultUserBinding;

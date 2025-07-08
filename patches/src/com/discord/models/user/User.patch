@@ -1,0 +1,12 @@
+--- smali_original/com/discord/models/user/User.smali
++++ smali/com/discord/models/user/User.smali
+@@ -82,6 +82,9 @@ .end method
+ .method public abstract getFlags()I
+ .end method
+ 
++.method public abstract getGlobalName()Ljava/lang/String;
++.end method
++
+ .method public abstract getId()J
+ .end method
+ 

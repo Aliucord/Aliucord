@@ -8,10 +8,8 @@ package com.aliucord.coreplugins.rn
 
 import android.content.Context
 import com.aliucord.entities.CorePlugin
-import com.discord.api.channel.Channel
-import com.discord.api.user.User
+import com.aliucord.updater.ManagerBuild
 import com.discord.api.user.UserProfile
-import com.discord.models.message.Message
 import de.robv.android.xposed.XposedBridge
 
 internal class RNAPI : CorePlugin(Manifest("RNAPI")) {
@@ -19,19 +17,20 @@ internal class RNAPI : CorePlugin(Manifest("RNAPI")) {
     override val isRequired = true
 
     override fun load(context: Context?) {
-        XposedBridge.makeClassInheritable(Channel::class.java)
-        XposedBridge.makeClassInheritable(Message::class.java)
-        XposedBridge.makeClassInheritable(User::class.java)
         XposedBridge.makeClassInheritable(UserProfile::class.java)
 
+        if (ManagerBuild.hasPatches("1.1.1")) patchGlobalName()
+        else logger.warn("Base app outdated, cannot patch display names")
+
         patchNextCallAdapter()
-        patchUser()
         patchUserProfile()
         patchDefaultAvatars()
         patchUsername()
         patchStickers()
         patchVoice()
-        fixPersisters()
+
+        if (ManagerBuild.hasInjector("2.1.2")) patchAuditLog()
+        else logger.warn("Base app outdated, cannot patch audit log")
     }
 
     override fun start(context: Context?) {}
