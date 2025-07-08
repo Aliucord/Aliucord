@@ -1,5 +1,5 @@
---- ./build/smali_original/com/discord/api/user/User.smali	2025-07-03 17:47:53.317434500 +0200
-+++ ./smali/com/discord/api/user/User.smali	2025-07-03 18:00:25.006489700 +0200
+--- smali_original/com/discord/api/user/User.smali
++++ smali/com/discord/api/user/User.smali
 @@ -161,6 +161,8 @@
  
  .field private final flags:Ljava/lang/Integer;

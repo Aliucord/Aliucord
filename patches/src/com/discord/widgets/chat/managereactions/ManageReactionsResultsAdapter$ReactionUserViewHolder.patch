@@ -1,5 +1,5 @@
---- ./build/smali_original/com/discord/widgets/chat/managereactions/ManageReactionsResultsAdapter$ReactionUserViewHolder.smali	2025-07-05 13:09:55.645672400 +0200
-+++ ./smali/com/discord/widgets/chat/managereactions/ManageReactionsResultsAdapter$ReactionUserViewHolder.smali	2025-07-06 13:57:37.755715200 +0200
+--- smali_original/com/discord/widgets/chat/managereactions/ManageReactionsResultsAdapter$ReactionUserViewHolder.smali
++++ smali/com/discord/widgets/chat/managereactions/ManageReactionsResultsAdapter$ReactionUserViewHolder.smali
 @@ -193,9 +193,9 @@ .method public onConfigure(ILcom/discord
  
      invoke-virtual {v1}, Lcom/discord/models/member/GuildMember;->getNick()Ljava/lang/String;

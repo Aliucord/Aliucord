@@ -1,5 +1,5 @@
---- ./build/smali_original/com/discord/utilities/search/suggestion/SearchSuggestionEngine.smali	2025-07-05 13:09:49.997847600 +0200
-+++ ./smali/com/discord/utilities/search/suggestion/SearchSuggestionEngine.smali	2025-07-06 14:41:09.366163400 +0200
+--- smali_original/com/discord/utilities/search/suggestion/SearchSuggestionEngine.smali
++++ smali/com/discord/utilities/search/suggestion/SearchSuggestionEngine.smali
 @@ -1068,7 +1068,22 @@ .method private final getUserSuggestions
  
      move-result-object v4
