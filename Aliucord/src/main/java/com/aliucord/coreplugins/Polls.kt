@@ -16,7 +16,6 @@ import androidx.fragment.app.FragmentManager
 import com.aliucord.Http
 import com.aliucord.Utils
 import com.aliucord.api.GatewayAPI
-import com.aliucord.api.rn.user.RNUser
 import com.aliucord.coreplugins.polls.MessagePollVoteEvent
 import com.aliucord.coreplugins.polls.PollsStore
 import com.aliucord.coreplugins.polls.chatview.PollChatEntry
@@ -35,6 +34,7 @@ import com.aliucord.wrappers.embeds.FieldWrapper.Companion.name
 import com.aliucord.wrappers.embeds.FieldWrapper.Companion.value
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper.Companion.rawFields
 import com.aliucord.wrappers.messages.poll
+import com.aliucord.wrappers.users.globalName
 import com.discord.api.channel.Channel
 import com.discord.gateway.GatewaySocket
 import com.discord.models.domain.ModelMessageDelete
@@ -353,10 +353,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             val channel = StoreStream.getChannelsSelected().selectedChannel
             val name = if (channel.isDM()) {
                 channel.recipients?.firstOrNull()?.let {
-                    if (it is RNUser)
-                        it.globalName
-                    else
-                        it.username
+                    it.globalName ?: it.username
                 } ?: "unknown user"
             } else {
                 "#" + channel.name
