@@ -1,0 +1,14 @@
+--- smali_original/com/discord/utilities/user/UserUtils.smali
++++ smali/com/discord/utilities/user/UserUtils.smali
+@@ -1617,5 +1617,11 @@ .method public final synthesizeApiUser(L
+ 
+     invoke-direct/range {v2 .. v26}, Lcom/discord/api/user/User;-><init>(JLjava/lang/String;Lcom/discord/nullserializable/NullSerializable;Lcom/discord/nullserializable/NullSerializable;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Lcom/discord/api/user/NsfwAllowance;Ljava/lang/Boolean;Lcom/discord/api/user/Phone;Ljava/lang/String;Lcom/discord/api/premium/PremiumTier;Ljava/lang/Integer;Lcom/discord/api/guildmember/GuildMember;Lcom/discord/nullserializable/NullSerializable;Lcom/discord/nullserializable/NullSerializable;I)V
+ 
++    invoke-interface/range {p1 .. p1}, Lcom/discord/models/user/User;->getGlobalName()Ljava/lang/String;
++
++    move-result-object v1
++
++    iput-object v1, v0, Lcom/discord/api/user/User;->globalName:Ljava/lang/String;
++
+     return-object v0
+ .end method
