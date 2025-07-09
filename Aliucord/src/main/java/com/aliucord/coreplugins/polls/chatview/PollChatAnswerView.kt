@@ -42,12 +42,20 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
     private lateinit var detailsOnClickListener: OnClickListener
 
     companion object {
-        fun build(ctx: Context, channelId: Long, messageId: Long, answerId: Int, isMultiselect: Boolean, onClickListener: PollChatAnswerView.() -> Unit) =
-            PollChatAnswerView(ctx).apply {
+        fun build(
+            ctx: Context,
+            channelId: Long,
+            messageId: Long,
+            answerId: Int,
+            isMultiselect: Boolean,
+            onClickListener: PollChatAnswerView.() -> Unit
+        ): PollChatAnswerView {
+            return PollChatAnswerView(ctx).apply {
                 defaultOnClickListener = OnClickListener { onClickListener() }
                 detailsOnClickListener = OnClickListener { PollDetailsScreen.launch(ctx, channelId, messageId, answerId) }
                 configure(answerId, isMultiselect)
             }
+        }
     }
 
     private fun configure(answerId: Int, isMultiselect: Boolean): PollChatAnswerView {

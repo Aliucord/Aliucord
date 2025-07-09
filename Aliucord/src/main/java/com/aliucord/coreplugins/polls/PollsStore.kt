@@ -100,8 +100,9 @@ object PollsStore {
      *
      * @param message New message object
      */
-    fun handleMessageUpdate(message: ApiMessage) =
+    fun handleMessageUpdate(message: ApiMessage) {
         handleMessageUpdate(message.g(), message.o(), message.poll)
+    }
 
     /**
      * Handles a message create/update event, should only be called from [StoreStream] methods.
@@ -110,8 +111,9 @@ object PollsStore {
      *
      * @param message New message object
      */
-    fun handleMessageUpdate(message: ModelMessage) =
+    fun handleMessageUpdate(message: ModelMessage) {
         handleMessageUpdate(message.channelId, message.id, message.poll)
+    }
 
     /**
      * Handles a message create/update event.
@@ -185,10 +187,11 @@ object PollsStore {
      * @param messageId Message ID to subscribe to
      * @param onNext Event handler, will run on the main thread
      */
-    fun subscribeOnMain(channelId: Long, messageId: Long, onNext: (HashMap<Int, VotesSnapshot>?) -> Unit) =
-        subscribe(channelId, messageId) {
+    fun subscribeOnMain(channelId: Long, messageId: Long, onNext: (HashMap<Int, VotesSnapshot>?) -> Unit): Subscription {
+        return subscribe(channelId, messageId) {
             Utils.mainThread.post { onNext(it) }
         }
+    }
 
     /**
      * Subscribes to poll changes.
@@ -260,9 +263,11 @@ object PollsStore {
      * @param id Message id
      * @param finalised Whether or not the poll is finalised
      */
-    fun getResultFor(id: Long, finalised: Boolean) = snapshots[id]?.let {
-        MessagePollResult(finalised, it.map { (answerId, snapshot) ->
-            MessagePollAnswerCount(answerId, snapshot.count, snapshot.meVoted)
-        })
+    fun getResultFor(id: Long, finalised: Boolean): MessagePollResult? {
+        return snapshots[id]?.let {
+            MessagePollResult(finalised, it.map { (answerId, snapshot) ->
+                MessagePollAnswerCount(answerId, snapshot.count, snapshot.meVoted)
+            })
+        }
     }
 }
