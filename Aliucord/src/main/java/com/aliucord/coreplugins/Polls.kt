@@ -139,19 +139,19 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         }
 
         // Patch store methods to manage them in our store
-        patcher.patch(StoreStream::class.java.getDeclaredMethod("handleMessageCreate", ApiMessage::class.java))
+        patcher.after<StoreStream>("handleMessageCreate", ApiMessage::class.java)
         { (_, msg: ApiMessage) -> PollsStore.handleMessageUpdate(msg) }
 
-        patcher.patch(StoreStream::class.java.getDeclaredMethod("handleMessageUpdate", ApiMessage::class.java))
+        patcher.after<StoreStream>("handleMessageUpdate", ApiMessage::class.java)
         { (_, msg: ApiMessage) -> PollsStore.handleMessageUpdate(msg) }
 
-        patcher.patch(StoreStream::class.java.getDeclaredMethod("handleMessageDelete", ModelMessageDelete::class.java))
+        patcher.after<StoreStream>("handleMessageDelete", ModelMessageDelete::class.java)
         { (_, deleteModel: ModelMessageDelete) ->
             for (id in deleteModel.messageIds)
                 PollsStore.handleMessageDelete(deleteModel.channelId, id)
         }
 
-        patcher.patch(StoreStream::class.java.getDeclaredMethod("handleMessagesLoaded", StoreMessagesLoader.ChannelChunk::class.java))
+        patcher.after<StoreStream>("handleMessagesLoaded", StoreMessagesLoader.ChannelChunk::class.java)
         { (_, chunk: StoreMessagesLoader.ChannelChunk) ->
             for (msg in chunk.messages)
                 PollsStore.handleMessageUpdate(msg)
