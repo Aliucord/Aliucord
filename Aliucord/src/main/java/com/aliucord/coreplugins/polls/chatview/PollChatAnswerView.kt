@@ -16,6 +16,10 @@ import com.aliucord.coreplugins.polls.details.PollDetailsScreen
 import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.DimenUtils.dp
 import com.aliucord.utils.ViewUtils.addTo
+import com.aliucord.utils.ViewUtils.checkbox
+import com.aliucord.utils.ViewUtils.label
+import com.aliucord.utils.ViewUtils.layout
+import com.aliucord.utils.ViewUtils.subtext
 import com.discord.utilities.accessibility.AccessibilityUtils
 import com.discord.utilities.color.ColorCompat
 import com.discord.utilities.textprocessing.node.EmojiNode
@@ -30,11 +34,6 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
     private lateinit var progressIndicator: LinearProgressIndicator
     private lateinit var gutter: View
     private lateinit var checkmark: ImageView
-
-    private val label get() = l.a()
-    private val layout get() = l.b() as ConstraintLayout
-    private val checkbox get() = l.c()
-    private val subtext get() = l.f()
 
     private var answerId = -1
     private var isFirstSet = false
