@@ -7,9 +7,11 @@ aliucord {
 }
 
 android {
+    androidResources {
+        enable = false
+    }
     buildFeatures {
         buildConfig = false
-        androidResources = false
     }
 }
 

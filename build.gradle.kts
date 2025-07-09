@@ -4,7 +4,6 @@ import com.aliucord.gradle.AliucordExtension
 import com.android.build.gradle.BaseExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
 
-@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     alias(libs.plugins.kotlin) apply false
     alias(libs.plugins.android.library) apply false
@@ -16,24 +15,25 @@ subprojects {
     if (project.name !in arrayOf("Aliucord", "Injector")) return@subprojects
 
     apply {
+        plugin("com.aliucord.gradle")
         plugin("com.android.library")
         plugin("kotlin-android")
-        plugin("com.aliucord.gradle")
     }
 
     android {
         namespace = "com.aliucord"
-
-        compileSdkVersion(30)
+        compileSdkVersion(36)
 
         @Suppress("ExpiredTargetSdkVersion")
         defaultConfig {
             minSdk = 24
-            targetSdk = 30
+            targetSdk = 36
         }
 
         buildTypes {
-            get("release").isMinifyEnabled = false
+            named("release") {
+                isMinifyEnabled = false
+            }
         }
     }
 
@@ -44,7 +44,7 @@ subprojects {
     }
 
     extensions.configure<KotlinAndroidProjectExtension> {
-        jvmToolchain(17)
+        jvmToolchain(21)
 
         compilerOptions {
             freeCompilerArgs.addAll(
