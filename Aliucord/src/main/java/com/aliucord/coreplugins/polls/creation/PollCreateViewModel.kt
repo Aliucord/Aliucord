@@ -16,37 +16,37 @@ import com.discord.widgets.chat.input.emoji.WidgetEmojiPickerSheet
 internal class PollCreateViewModel : ViewModel() {
     val logger = Logger("Polls")
 
-    var onStateUpdate: ((newState: State, previousState: State) -> Unit)? = null
+    var onModelUpdate: ((newModel: Model, previousModel: Model) -> Unit)? = null
         set(value) {
             field = value
-            value?.invoke(state, state)
+            value?.invoke(model, model)
         }
 
-    var state = State()
+    var model = Model()
         private set(value) {
             if (field == value)
                 return
-            val previousState = field
+            val previousModel = field
             field = value
-            onStateUpdate?.invoke(value, previousState)
+            onModelUpdate?.invoke(value, previousModel)
         }
 
     fun updateQuestionText(text: Editable) {
-        state = state.copy(question = text.toString())
+        model = model.copy(question = text.toString())
     }
 
     fun createAnswer() {
-        if (state.answers.size >= 10)
+        if (model.answers.size >= 10)
             return logger.warn("newAnswer() called, but there's already max answers? Ignoring..")
-        state = state.copy(answers = state.answers + listOf(AnswerState()))
+        model = model.copy(answers = model.answers + listOf(AnswerModel()))
     }
 
     fun deleteAnswer(index: Int) {
-        state = state.copy(answers = state.answers.filterIndexed { idx, _ -> idx != index })
+        model = model.copy(answers = model.answers.filterIndexed { idx, _ -> idx != index })
     }
 
     fun updateAnswerText(index: Int, text: Editable) {
-        state = state.copy(answers = state.answers.mapIndexed { idx, answer ->
+        model = model.copy(answers = model.answers.mapIndexed { idx, answer ->
             if (idx == index)
                 answer.copy(answer = text.toString())
             else
@@ -61,7 +61,7 @@ internal class PollCreateViewModel : ViewModel() {
         else
             EmojiPickerContextType.Global.INSTANCE
         WidgetEmojiPickerSheet.Companion!!.show(fragmentManager, {
-            state = state.copy(answers = state.answers.mapIndexed { idx, answer ->
+            model = model.copy(answers = model.answers.mapIndexed { idx, answer ->
                 if (idx == index)
                     answer.copy(emoji = it)
                 else
@@ -71,29 +71,29 @@ internal class PollCreateViewModel : ViewModel() {
     }
 
     fun updateIsMultiselect(isMultiselect: Boolean) {
-        state = state.copy(isMultiselect = isMultiselect)
+        model = model.copy(isMultiselect = isMultiselect)
     }
 
     fun showDurationSelector(fragmentManager: FragmentManager) {
-        DurationSelectorSheet(state.duration) {
-            state = state.copy(duration = it)
+        DurationSelectorSheet(model.duration) {
+            model = model.copy(duration = it)
         }.show(fragmentManager, DurationSelectorSheet::class.java.name)
     }
 
     private fun buildPayload(): PollCreatePayload = PollCreatePayload(MessagePoll(
-        question = MessagePollMedia(state.question, null),
-        answers = state.answers.map {
+        question = MessagePollMedia(model.question, null),
+        answers = model.answers.map {
             MessagePollAnswer(null, MessagePollMedia(it.answer, it.emoji?.asReactionEmoji()))
         },
         results = null,
-        duration = state.duration.value,
+        duration = model.duration.value,
         expiry = null,
-        allowMultiselect = state.isMultiselect,
+        allowMultiselect = model.isMultiselect,
         layoutType = 1
     ))
 
     fun sendRequest(channelId: Long) {
-        state = state.copy(requestState = RequestState.REQUESTING)
+        model = model.copy(requestState = RequestState.REQUESTING)
         Utils.threadPool.execute {
             val request = runCatching {
                 Http.Request.newDiscordRNRequest(
@@ -112,7 +112,7 @@ internal class PollCreateViewModel : ViewModel() {
             } else {
                 RequestState.SUCCESS
             }
-            Utils.mainThread.post { state = state.copy(requestState = newState) }
+            Utils.mainThread.post { model = model.copy(requestState = newState) }
         }
     }
 }

@@ -73,20 +73,20 @@ internal class PollCreateScreen : SettingsPage() {
             }
     }
 
-    internal enum class RequestState {
+    enum class RequestState {
         IDLE,
         REQUESTING,
         SUCCESS,
     }
 
-    internal data class AnswerState(
+    data class AnswerModel(
         val answer: String = "",
         val emoji: Emoji? = null,
     )
 
-    internal data class State(
+    data class Model(
         val question: String = "",
-        val answers: List<AnswerState> = listOf(AnswerState(), AnswerState()),
+        val answers: List<AnswerModel> = listOf(AnswerModel(), AnswerModel()),
         val duration: Duration = Duration.ONE_DAY,
         val isMultiselect: Boolean = false,
         val requestState: RequestState = RequestState.IDLE,
@@ -121,7 +121,7 @@ internal class PollCreateScreen : SettingsPage() {
             createTextInput(ctx, "Type your question") { viewModel.updateQuestionText(it) }
                 .margin()
                 .addTo(linearLayout) {
-                    editText.setText(viewModel.state.question)
+                    editText.setText(viewModel.model.question)
                 }
 
             Divider(ctx).addTo(this)
@@ -129,8 +129,8 @@ internal class PollCreateScreen : SettingsPage() {
             addHeader("Answers")
             val answerInputs = List(10) { index ->
                 AnswerInput(ctx).margin(hori = false).addTo(this) {
-                    viewModel.state.answers.getOrNull(index)?.let { state ->
-                        setText(state.answer)
+                    viewModel.model.answers.getOrNull(index)?.let { model ->
+                        setText(model.answer)
                     }
                     onDelete = { viewModel.deleteAnswer(index) }
                     onOpenEmoji = { viewModel.showEmojiSelector(index, childFragmentManager) }
@@ -175,40 +175,40 @@ internal class PollCreateScreen : SettingsPage() {
                 }
             }
 
-            viewModel.onStateUpdate = { state, previous ->
-                when (state.requestState) {
+            viewModel.onModelUpdate = { model, previous ->
+                when (model.requestState) {
                     RequestState.IDLE -> {
                         createButton.isEnabled =
-                            state.question != "" && // Question is not empty
-                            state.answers.find { it.answer == "" } == null // No empty answers
+                            model.question != "" && // Question is not empty
+                            model.answers.find { it.answer == "" } == null // No empty answers
                     }
                     RequestState.REQUESTING -> createButton.isEnabled = false
                     RequestState.SUCCESS -> this@PollCreateScreen.appActivity.finish()
                 }
 
-                durationSelector.setSubtext(state.duration.text)
-                multiselectSwitch.isChecked = state.isMultiselect
-                addAnswerButton.visibility = if (state.answers.size >= 10)
+                durationSelector.setSubtext(model.duration.text)
+                multiselectSwitch.isChecked = model.isMultiselect
+                addAnswerButton.visibility = if (model.answers.size >= 10)
                     View.GONE
                 else
                     View.VISIBLE
 
                 answerInputs.forEachIndexed { idx, input ->
-                    val answerState = state.answers.getOrNull(idx)
-                    if (answerState == null)
+                    val answerModel = model.answers.getOrNull(idx)
+                    if (answerModel == null)
                         input.visibility = View.GONE
                     else {
                         input.visibility = View.VISIBLE
-                        input.setEmoji(answerState.emoji)
-                        input.setRemoveVisibility(state.answers.size != 1)
+                        input.setEmoji(answerModel.emoji)
+                        input.setRemoveVisibility(model.answers.size != 1)
 
-                        val currentSize = state.answers.size
+                        val currentSize = model.answers.size
                         val previousSize = previous.answers.size
                         if (currentSize != previousSize) {
                             if (currentSize > previousSize && idx == currentSize - 1)
                                 input.requestFocus() // Request focus for newly added answer
 
-                            input.setText(answerState.answer) // Update text on answer length change
+                            input.setText(answerModel.answer) // Update text on answer length change
                         }
                     }
                 }

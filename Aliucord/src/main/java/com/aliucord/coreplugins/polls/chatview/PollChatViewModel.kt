@@ -36,9 +36,9 @@ internal class PollChatViewModel(
                     it.answerId!!,
                     it.pollMedia.text,
                     it.pollMedia.emoji,
-                    count?.meVoted ?: false,
-                    count?.count ?: 0,
-                    false
+                    meVoted = count?.meVoted ?: false,
+                    votes = count?.count ?: 0,
+                    checked = false
                 )
             }
         )
