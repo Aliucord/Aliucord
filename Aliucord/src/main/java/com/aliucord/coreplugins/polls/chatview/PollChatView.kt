@@ -45,14 +45,20 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
         val submittingVote: Boolean,
         val answers: List<AnswerModel>,
     ) {
-        val state = if ((expiry ?: Long.MAX_VALUE) < Calendar.getInstance().timeInMillis)
-            State.CLOSED
-        else if (answers.any { it.meVoted && it.votes != 0 })
-            State.VOTED
-        else if (peekingResults)
-            State.PEEKING_RESULTS
-        else
-            State.VOTING
+        val state = when {
+            (expiry ?: Long.MAX_VALUE) < Calendar.getInstance().timeInMillis -> {
+                State.CLOSED
+            }
+            answers.any { it.meVoted && it.votes != 0 } -> {
+                State.VOTED
+            }
+            peekingResults -> {
+                State.PEEKING_RESULTS
+            }
+            else -> {
+                State.VOTING
+            }
+        }
 
         val totalVotes
             get() = answers.sumOf { it.votes }

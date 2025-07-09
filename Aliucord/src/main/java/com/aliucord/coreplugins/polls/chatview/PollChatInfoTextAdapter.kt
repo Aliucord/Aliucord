@@ -18,15 +18,12 @@ internal class PollChatInfoTextAdapter(private val infoText: TextView) {
 
     private fun getTimeString(): CharSequence? = model?.expiry?.let {
         val diffInSeconds = ((it - System.currentTimeMillis()) / 1000).coerceAtLeast(0)
-        val formatted =
-            if (diffInSeconds >= DAY)
-                "${diffInSeconds / DAY}d"
-            else if (diffInSeconds >= HOUR)
-                "${diffInSeconds / HOUR}h"
-            else if (diffInSeconds >= MINUTE)
-                "${diffInSeconds / MINUTE}m"
-            else
-                "${diffInSeconds}s"
+        val formatted = when {
+            diffInSeconds >= DAY -> "${diffInSeconds / DAY}d"
+            diffInSeconds >= HOUR -> "${diffInSeconds / HOUR}h"
+            diffInSeconds >= MINUTE -> "${diffInSeconds / MINUTE}m"
+            else -> "${diffInSeconds}s"
+        }
 
         "$formatted left"
     }

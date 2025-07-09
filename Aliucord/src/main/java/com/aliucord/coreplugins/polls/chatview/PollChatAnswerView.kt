@@ -180,12 +180,12 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
         checkmark.visibility = if (answer.meVoted) VISIBLE else GONE
         isChecked = answer.checked
 
-        val color = if (isWinner)
-            ColorCompat.getThemedColor(ctx, R.b.colorButtonPositiveBackground)
-        else if (answer.meVoted && state == PollChatView.State.VOTED)
-            ColorCompat.getThemedColor(ctx, R.b.color_brand)
-        else
-            ColorCompat.getThemedColor(ctx, R.b.colorButtonSecondaryBackgroundActive)
+        val colorId = when {
+            isWinner -> R.b.colorButtonPositiveBackground
+            answer.meVoted && state == PollChatView.State.VOTED -> R.b.color_brand
+            else -> R.b.colorButtonSecondaryBackgroundActive
+        }
+        val color = ColorCompat.getThemedColor(ctx, colorId)
 
         label.typeface = Typeface.create(label.typeface, typefaceStyle)
         subtext.typeface = Typeface.create(label.typeface, typefaceStyle)
