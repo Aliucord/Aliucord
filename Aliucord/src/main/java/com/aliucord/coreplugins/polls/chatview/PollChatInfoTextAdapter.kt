@@ -42,7 +42,7 @@ internal class PollChatInfoTextAdapter(private val infoText: TextView) {
             else -> getTimeString()
         }
 
-        val append = expiryText?.let { "  •  $expiryText" } ?: ""
+        val append = expiryText?.let { "  •  $expiryText" }.orEmpty()
         infoText.text = "${model.totalVotes} vote${if (model.totalVotes != 1) "s" else ""}$append"
     }
 
