@@ -9,4 +9,3 @@ internal enum class Duration(val text: String, val value: Int) {
     ONE_WEEK("1 week", 168),
     TWO_WEEKS("2 weeks", 336),
 }
-

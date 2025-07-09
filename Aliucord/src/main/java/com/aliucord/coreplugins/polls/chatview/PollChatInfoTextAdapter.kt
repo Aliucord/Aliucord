@@ -66,4 +66,3 @@ internal class PollChatInfoTextAdapter(private val infoText: TextView) {
         currentLoopId = null
     }
 }
-

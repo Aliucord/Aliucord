@@ -427,4 +427,3 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         }
     }
 }
-

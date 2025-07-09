@@ -15,4 +15,3 @@ internal data class PollCreatePayload(private val poll: MessagePoll) {
     private val tts = false
     private val flags = 0
 }
-
