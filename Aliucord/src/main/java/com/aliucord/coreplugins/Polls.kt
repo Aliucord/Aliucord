@@ -279,27 +279,29 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
                 }
             } ?: return@before logger.error("Tried to render poll result, but there was no embed?", null)
 
-            val span = SpannableStringBuilder()
-            val authorSpan = ClickableSpan(color, false, null) {
-                val roleCtx = `$roleSubscriptionPurchaseContext` as `WidgetChatListAdapterItemSystemMessage$getSystemMessage$roleSubscriptionPurchaseContext$1`
-                roleCtx.`this$0`.adapter.eventHandler.onMessageAuthorAvatarClicked(msg, StoreStream.getGuildSelected().selectedGuildId)
-            }
-            span.append(`$authorName`, authorSpan, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
-            span.append("'s poll ")
-            span.append(pollQuestionText, StyleSpan(Typeface.BOLD), SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
-            span.append(" has closed! ")
-
             if (totalVotes == 0)
                 totalVotes = 1 // Prevent division by 0
             val percent = (victorAnswerVotes.toDouble() * 100 / totalVotes).roundToInt()
-            if (victorAnswerVotes == 0)
-                span.append("There were no votes :(")
-            else if (victorAnswerText == null)
-                span.append("The result was a draw (${percent}%).")
-            else {
-                span.append("The winner was ")
-                span.append(victorAnswerText, StyleSpan(Typeface.BOLD), SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
-                span.append(" (${percent}%).")
+
+            val span = SpannableStringBuilder().apply {
+                val authorSpan = ClickableSpan(color, false, null) {
+                    val roleCtx = `$roleSubscriptionPurchaseContext` as `WidgetChatListAdapterItemSystemMessage$getSystemMessage$roleSubscriptionPurchaseContext$1`
+                    roleCtx.`this$0`.adapter.eventHandler.onMessageAuthorAvatarClicked(msg, StoreStream.getGuildSelected().selectedGuildId)
+                }
+                append(`$authorName`, authorSpan, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
+                append("'s poll ")
+                append(pollQuestionText, StyleSpan(Typeface.BOLD), SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
+                append(" has closed! ")
+
+                if (victorAnswerVotes == 0)
+                    append("There were no votes :(")
+                else if (victorAnswerText == null)
+                    append("The result was a draw (${percent}%).")
+                else {
+                    append("The winner was ")
+                    append(victorAnswerText, StyleSpan(Typeface.BOLD), SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    append(" (${percent}%).")
+                }
             }
 
             param.result = span
