@@ -96,11 +96,12 @@ internal class PollChatViewModel(
                     "PUT"
                 ).setRequestTimeout(10000).executeWithJson(
                     PollVotePayload(
-                    if (isAdd)
-                        model.answers.filter { it.checked }.map { it.id }
-                    else
-                        listOf()
-                ))
+                        if (isAdd)
+                            model.answers.filter { it.checked }.map { it.id }
+                        else
+                            listOf()
+                    )
+                )
             }
             val result = request.getOrNull()
             if (result?.ok() != true) {

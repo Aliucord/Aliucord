@@ -89,7 +89,6 @@ internal class PollCreateScreen : SettingsPage() {
         val answers: List<AnswerState> = listOf(AnswerState(), AnswerState()),
         val duration: Duration = Duration.ONE_DAY,
         val isMultiselect: Boolean = false,
-
         val requestState: RequestState = RequestState.IDLE,
     )
 
