@@ -57,6 +57,10 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
         if (channelId == -1L || messageId == -1L)
             return this.appActivity.finish()
 
+        val poll = StoreStream.getMessages().getMessage(channelId, messageId)?.poll
+            ?: return this.appActivity.finish()
+        this.poll = poll
+
         val answersView = view.findViewById<RecyclerView>(Utils.getResId("manage_reactions_emojis_recycler", "id"))
         val resultsView = view.findViewById<RecyclerView>(Utils.getResId("manage_reactions_results_recycler", "id"))
         answersAdapter = MGRecyclerAdapter.configure(PollDetailsAnswersAdapter(answersView) {
@@ -65,11 +69,6 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
         resultsAdapter = MGRecyclerAdapter.configure(PollDetailsResultsAdapter(resultsView) {
             PollsStore.fetchDetails(channelId, messageId, selected)
         })
-
-        val poll = StoreStream.getMessages().getMessage(channelId, messageId)?.poll
-        if (poll == null)
-            return this.appActivity.finish()
-        this.poll = poll
 
         setActionBarDisplayHomeAsUpEnabled()
         setActionBarTitle("Poll Votes")

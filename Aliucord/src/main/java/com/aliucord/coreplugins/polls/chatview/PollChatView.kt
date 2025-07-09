@@ -60,8 +60,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
             }
         }
 
-        val totalVotes
-            get() = answers.sumOf { it.votes }
+        val totalVotes get() = answers.sumOf { it.votes }
     }
 
     private lateinit var title: TextView

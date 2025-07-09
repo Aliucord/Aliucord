@@ -76,10 +76,7 @@ object PollsStore {
      * @param isAdd Whether the event is VOTE_ADD (true) or VOTE_REMOVE (false)
      */
     private fun handleGatewayEvent(event: MessagePollVoteEvent, isAdd: Boolean) {
-        val answers = snapshots[event.messageId]
-        if (answers == null)
-            return
-
+        val answers = snapshots[event.messageId] ?: return
         val snapshot = answers[event.answerId]!!
         val count = snapshot.count + if (isAdd) +1 else -1
         val voters = when {

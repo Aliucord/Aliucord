@@ -30,9 +30,7 @@ internal class PollChatInfoTextAdapter(private val infoText: TextView) {
 
     @SuppressLint("SetTextI18n")
     private fun refresh() {
-        val model = model
-        if (model == null)
-            return
+        val model = model ?: return
         val expiryText = when {
             model.finalised -> "Poll closed"
             model.state == State.CLOSED -> "Poll closing"
