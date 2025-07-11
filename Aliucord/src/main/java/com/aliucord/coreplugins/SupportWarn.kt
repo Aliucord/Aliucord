@@ -1,6 +1,5 @@
 package com.aliucord.coreplugins
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
@@ -16,7 +15,6 @@ import com.discord.widgets.chat.input.ChatInputViewModel
 import com.discord.widgets.chat.input.WidgetChatInput
 import com.lytefast.flexinput.R
 
-@SuppressLint("SetTextI18n")
 internal class SupportWarn : CorePlugin(Manifest("SupportWarn")) {
     private val SettingsAPI.acceptedPrdNotRequests: Boolean by settings.delegate(false)
     private val SettingsAPI.acceptedDevNotSupport: Boolean by settings.delegate(false)

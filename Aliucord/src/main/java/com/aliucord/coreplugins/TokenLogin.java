@@ -6,7 +6,6 @@
 
 package com.aliucord.coreplugins;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -78,7 +77,6 @@ public final class TokenLogin extends CorePlugin {
     }
 
     @Override
-    @SuppressLint("SetTextI18n")
     public void start(Context appContext) throws Throwable {
         Patcher.addPatch(WidgetAuthLanding.class.getDeclaredMethod("onViewBound", View.class), new Hook(param -> {
             Context context = ((WidgetAuthLanding) param.thisObject).requireContext();

@@ -6,7 +6,6 @@
 
 package com.aliucord.settings;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ShapeDrawable;
@@ -45,7 +44,6 @@ public class Plugins extends SettingsPage {
             private final Adapter adapter;
             public final PluginCard card;
 
-            @SuppressLint("SetTextI18n")
             public ViewHolder(Adapter adapter, PluginCard card) {
                 super(card);
                 this.adapter = adapter;
@@ -282,7 +280,6 @@ public class Plugins extends SettingsPage {
     }
 
     @Override
-    @SuppressLint("SetTextI18n")
     public void onViewBound(View view) {
         super.onViewBound(view);
         setActionBarTitle("Plugins");

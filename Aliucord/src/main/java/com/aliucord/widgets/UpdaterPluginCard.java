@@ -28,7 +28,7 @@ import com.discord.utilities.color.ColorCompat;
 import com.google.android.material.card.MaterialCardView;
 import com.lytefast.flexinput.R;
 
-@SuppressLint({"SetTextI18n", "ViewConstructor"})
+@SuppressLint({"ViewConstructor"})
 public class UpdaterPluginCard extends MaterialCardView {
     public UpdaterPluginCard(Context context, String plugin, Runnable forceUpdate) {
         super(context);

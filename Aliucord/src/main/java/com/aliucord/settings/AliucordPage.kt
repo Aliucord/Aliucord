@@ -6,7 +6,6 @@
 
 package com.aliucord.settings
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.view.View
 import android.widget.TextView
@@ -25,7 +24,6 @@ const val AUTO_UPDATE_ALIUCORD_KEY = "AC_aliucord_auto_update_enabled"
 const val ALIUCORD_FROM_STORAGE_KEY = "AC_from_storage"
 
 class AliucordPage : SettingsPage() {
-    @SuppressLint("SetTextI18n")
     override fun onViewBound(view: View) {
         super.onViewBound(view)
 

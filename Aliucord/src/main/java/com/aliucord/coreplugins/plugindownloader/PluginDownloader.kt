@@ -6,7 +6,6 @@
 
 package com.aliucord.coreplugins.plugindownloader
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
@@ -47,7 +46,6 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
         }
     }
 
-    @SuppressLint("SetTextI18n")
     override fun start(context: Context) {
         patcher.patch(
             WidgetChatListActions::class.java.getDeclaredMethod("configureUI", WidgetChatListActions.Model::class.java),

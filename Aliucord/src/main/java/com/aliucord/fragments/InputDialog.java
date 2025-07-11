@@ -7,7 +7,6 @@ package com.aliucord.fragments;
 
 import static android.view.View.OnClickListener;
 
-import android.annotation.SuppressLint;
 import android.text.method.LinkMovementMethod;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -43,7 +42,6 @@ public class InputDialog extends AppDialog {
     private View.OnClickListener onOkListener;
     private Integer inputType;
 
-    @SuppressLint("SetTextI18n")
     @Override
     public void onViewBound(View view) {
         super.onViewBound(view);

@@ -11,7 +11,6 @@ import static com.aliucord.updater.Updater.isDiscordOutdated;
 import static com.aliucord.updater.Updater.updateAliucord;
 import static com.aliucord.updater.Updater.usingDexFromStorage;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Color;
 import android.view.Gravity;
@@ -31,7 +30,6 @@ public class Updater extends SettingsPage {
     private String stateText = "No new updates found";
 
     @Override
-    @SuppressLint("SetTextI18n")
     public void onViewBound(View view) {
         super.onViewBound(view);
 
