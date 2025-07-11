@@ -5,10 +5,10 @@ import com.android.build.gradle.BaseExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
 
 plugins {
-    alias(libs.plugins.kotlin) apply false
-    alias(libs.plugins.android.library) apply false
     alias(libs.plugins.aliucord.gradle) apply false
+    alias(libs.plugins.android.library) apply false
     alias(libs.plugins.dokka) apply false
+    alias(libs.plugins.kotlin) apply false
 }
 
 subprojects {
