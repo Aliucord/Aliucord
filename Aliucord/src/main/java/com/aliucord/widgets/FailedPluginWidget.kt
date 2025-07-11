@@ -22,7 +22,7 @@ import com.discord.utilities.file.FileUtilsKt
 import com.lytefast.flexinput.R
 import java.io.File
 
-@SuppressLint("SetTextI18n", "ViewConstructor")
+@SuppressLint("ViewConstructor")
 class FailedPluginWidget(ctx: Context, private val file: File, private val reason: Any, onDelete: () -> Unit) : LinearLayout(ctx),
     View.OnClickListener {
     private val shortReason = reason.toString().let { if (reason is Throwable) "$it\n\n(Click file name for full info)" else it }

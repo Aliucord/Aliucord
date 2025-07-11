@@ -38,6 +38,10 @@ subprojects {
             targetSdk = 30
         }
 
+        lintOptions {
+            disable += "SetTextI18n"
+        }
+
         buildTypes {
             get("release").isMinifyEnabled = false
         }

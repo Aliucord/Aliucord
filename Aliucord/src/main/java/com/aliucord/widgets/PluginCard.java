@@ -6,7 +6,6 @@
 
 package com.aliucord.widgets;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.text.method.LinkMovementMethod;
 import android.view.Gravity;
@@ -36,7 +35,6 @@ public class PluginCard extends MaterialCardView {
     public final ToolbarButton repoButton;
     public final ToolbarButton changeLogButton;
 
-    @SuppressLint("SetTextI18n")
     public PluginCard(Context ctx) {
         super(ctx);
         setRadius(DimenUtils.getDefaultCardRadius());

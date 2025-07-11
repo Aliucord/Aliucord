@@ -7,7 +7,6 @@
 package com.aliucord;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -127,7 +126,6 @@ public final class Main {
      * Aliucord's init hook. Plugins are started here
      * @noinspection unused
      */
-    @SuppressLint("SetTextI18n")
     public static void init(AppActivity activity) {
         if (initialized) return;
         initialized = true;
