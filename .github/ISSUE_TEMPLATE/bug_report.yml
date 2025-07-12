@@ -51,7 +51,7 @@ body:
     attributes:
       label: Android Version
       description: What Android version is this happening on?
-      placeholder: Android 13 (One UI 5.1), or SDK 33
+      placeholder: Android 13, or SDK 33
     validations:
       required: true
 
