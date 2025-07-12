@@ -80,17 +80,18 @@ internal class PollCreateViewModel : ViewModel() {
         }.show(fragmentManager, DurationSelectorSheet::class.java.name)
     }
 
-    private fun buildPayload(): PollCreatePayload = PollCreatePayload(MessagePoll(
-        question = MessagePollMedia(model.question, null),
-        answers = model.answers.map {
-            MessagePollAnswer(null, MessagePollMedia(it.answer, it.emoji?.asReactionEmoji()))
-        },
-        results = null,
-        duration = model.duration.value,
-        expiry = null,
-        allowMultiselect = model.isMultiselect,
-        layoutType = 1
-    ))
+    private fun buildPayload(): PollCreatePayload =
+        PollCreatePayload(MessagePoll(
+            question = MessagePollMedia(model.question, null),
+            answers = model.answers.map {
+                MessagePollAnswer(null, MessagePollMedia(it.answer, it.emoji?.asReactionEmoji()))
+            },
+            results = null,
+            duration = model.duration.value,
+            expiry = null,
+            allowMultiselect = model.isMultiselect,
+            layoutType = 1
+        ))
 
     fun sendRequest(channelId: Long) {
         model = model.copy(requestState = RequestState.REQUESTING)
