@@ -55,6 +55,7 @@ import java.lang.reflect.Field
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.random.Random
 import kotlin.system.exitProcess
 
 /** Utility class that holds miscellaneous Utilities  */
@@ -566,4 +567,14 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
         }
         bar.show()
     }
+
+    /**
+     * Generates a current snowflake nonce similar to RN or Desktop. The default NonceGenerator uses time
+     * in the future, which RN and Desktop do not do.
+     *
+     * @return Snowflake nonce with current timestamp.
+     */
+    @JvmStatic
+    fun generateRNNonce() =
+        SnowflakeUtils.fromTimestamp(System.currentTimeMillis()) + Random.nextBits(23)
 }
