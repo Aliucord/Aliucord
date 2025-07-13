@@ -12,6 +12,7 @@ import android.content.res.Resources;
 
 import com.aliucord.coreplugins.badges.SupporterBadges;
 import com.aliucord.coreplugins.plugindownloader.PluginDownloader;
+import com.aliucord.coreplugins.slashcommandsfix.SlashCommandsFix;
 import com.aliucord.coreplugins.rn.RNAPI;
 import com.aliucord.entities.CorePlugin;
 import com.aliucord.entities.Plugin;
@@ -258,6 +259,7 @@ public class PluginManager {
             new SupporterBadges(),
             new TokenLogin(),
             new UploadSize(),
+            new SlashCommandsFix(),
         };
 
         for (Plugin p : corePlugins) {
