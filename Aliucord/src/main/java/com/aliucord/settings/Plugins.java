@@ -283,7 +283,7 @@ public class Plugins extends SettingsPage {
     public void onViewBound(View view) {
         super.onViewBound(view);
         setActionBarTitle("Plugins");
-        setActionBarSubtitle(PluginManager.plugins.size() + " Installed");
+        setActionBarSubtitle(PluginManager.getPluginsInfo());
         removeScrollView();
 
         var context = view.getContext();
