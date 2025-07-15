@@ -14,13 +14,15 @@ import com.aliucord.Utils
  */
 @SuppressLint("MissingPermission")
 @Suppress("PrivatePropertyName", "unused")
-abstract class RNMessage(context: Context = Utils.appContext) {
-    protected open val content = ""
-    protected open val flags = 0
-    protected open val tts = false
+abstract class RNMessage(
+    protected val content: String = "",
+    protected val flags: Int = 0,
+    protected val tts: Boolean = false,
+    protected val nonce: String = Utils.generateRNNonce().toString(),
+    context: Context = Utils.appContext,
+) {
     private var mobile_network_type = "unknown"
     private var signal_strength = 0
-    private val nonce = Utils.generateRNNonce()
 
     init {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
