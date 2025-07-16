@@ -2,7 +2,6 @@
 
 package com.aliucord.coreplugins.polls.creation
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.View
 import android.widget.ScrollView
@@ -22,7 +21,6 @@ internal class DurationSelectorSheet(
     private val current: Duration,
     private val onSelected: (Duration) -> Unit
 ) : BottomSheet() {
-    @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, bundle: Bundle?) {
         super.onViewCreated(view, bundle)
 

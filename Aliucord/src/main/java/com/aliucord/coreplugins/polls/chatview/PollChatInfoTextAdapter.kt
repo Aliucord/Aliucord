@@ -1,6 +1,5 @@
 package com.aliucord.coreplugins.polls.chatview
 
-import android.annotation.SuppressLint
 import android.widget.TextView
 import com.aliucord.Utils
 import com.aliucord.coreplugins.polls.chatview.PollChatView.State
@@ -28,7 +27,6 @@ internal class PollChatInfoTextAdapter(private val infoText: TextView) {
         "$formatted left"
     }
 
-    @SuppressLint("SetTextI18n")
     private fun refresh() {
         val model = model ?: return
         val expiryText = when {

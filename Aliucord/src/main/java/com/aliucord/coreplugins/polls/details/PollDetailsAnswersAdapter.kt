@@ -1,6 +1,5 @@
 package com.aliucord.coreplugins.polls.details
 
-import android.annotation.SuppressLint
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -43,7 +42,6 @@ internal class PollDetailsAnswersAdapter(
             }
         }
 
-        @SuppressLint("SetTextI18n")
         override fun onConfigure(position: Int, data: AnswerItem) {
             super.onConfigure(position, data)
 

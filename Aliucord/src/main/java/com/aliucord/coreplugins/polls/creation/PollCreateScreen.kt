@@ -2,7 +2,6 @@
 
 package com.aliucord.coreplugins.polls.creation
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.text.Editable
@@ -97,7 +96,6 @@ internal class PollCreateScreen : SettingsPage() {
             this.text = text
         }
 
-    @SuppressLint("SetTextI18n")
     override fun onViewBound(view: View) {
         super.onViewBound(view)
         if (view !is CoordinatorLayout)

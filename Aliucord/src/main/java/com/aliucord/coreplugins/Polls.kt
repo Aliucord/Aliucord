@@ -2,7 +2,6 @@
 
 package com.aliucord.coreplugins
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.text.SpannableString
@@ -364,7 +363,6 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         }
     }
 
-    @SuppressLint("SetTextI18n")
     fun patchChatListActions() {
         // Allow deleting poll result messages
         patcher.patch(PermissionsContextsKt::class.java.getDeclaredMethod("isDeleteable", ModelMessage::class.java))

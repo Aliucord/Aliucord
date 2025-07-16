@@ -16,7 +16,6 @@ import com.google.android.material.card.MaterialCardView
 import com.lytefast.flexinput.R
 import java.util.Calendar
 
-@SuppressLint("SetTextI18n")
 internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
     internal enum class State {
         VOTING,

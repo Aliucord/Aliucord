@@ -2,7 +2,6 @@
 
 package com.aliucord.coreplugins.polls.details
 
-import android.annotation.SuppressLint
 import android.view.ViewGroup
 import android.widget.*
 import androidx.recyclerview.widget.RecyclerView
@@ -24,7 +23,6 @@ internal class PollDetailsResultsAdapter(
         override fun getType() = 3
     }
 
-    @SuppressLint("SetTextI18n")
     private class EmptyViewHolder(adapter: ManageReactionsResultsAdapter)
         : MGRecyclerViewHolder<ManageReactionsResultsAdapter, MGRecyclerDataPayload>(Utils.getResId("widget_manage_reactions_result_error", "layout"), adapter) {
 
@@ -42,7 +40,6 @@ internal class PollDetailsResultsAdapter(
         override fun getType() = 4
     }
 
-    @SuppressLint("SetTextI18n")
     private class ErrorViewHolder(adapter: ManageReactionsResultsAdapter)
         : MGRecyclerViewHolder<ManageReactionsResultsAdapter, MGRecyclerDataPayload>(Utils.getResId("widget_manage_reactions_result_error", "layout"), adapter) {
 
@@ -61,7 +58,6 @@ internal class PollDetailsResultsAdapter(
         override fun getType() = 5
     }
 
-    @SuppressLint("SetTextI18n")
     private class MiniLoadingViewHolder(adapter: ManageReactionsResultsAdapter)
         : MGRecyclerViewHolder<ManageReactionsResultsAdapter, MGRecyclerDataPayload>(Utils.getResId("widget_manage_reactions_result_loading", "layout"), adapter) {
 
