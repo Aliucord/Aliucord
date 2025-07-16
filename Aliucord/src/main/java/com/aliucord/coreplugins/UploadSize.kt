@@ -106,7 +106,6 @@ internal class UploadSize : CorePlugin(Manifest("UploadSize")) {
 
             XposedBridge.invokeOriginalMethod(it.method, it.thisObject, it.args)
 
-            @Suppress("SetTextI18n")
             g().j.text = "Max file size is $maxFileSize MB"
 
             null

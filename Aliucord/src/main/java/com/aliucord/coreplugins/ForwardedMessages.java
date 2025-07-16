@@ -1,6 +1,5 @@
 package com.aliucord.coreplugins;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
@@ -72,7 +71,6 @@ public class ForwardedMessages extends CorePlugin {
     }
 
     @Override
-    @SuppressLint("SetTextI18n")
     @SuppressWarnings("unchecked")
     public void start(Context context) throws Throwable {
         if (!ManagerBuild.hasInjector("2.1.0") || !ManagerBuild.hasPatches("1.1.0")) {

@@ -2,7 +2,6 @@
 
 package com.aliucord.coreplugins.forwardedmessages
 
-import android.annotation.SuppressLint
 import android.os.Build
 import android.text.Spannable
 import android.text.SpannableStringBuilder
@@ -58,7 +57,6 @@ internal class WidgetChatListAdapterItemForwardSource(
         /* color = */ 0
     ).mutate().also { it.setBounds(0, 0, 16.dp, 16.dp) }
 
-    @SuppressLint("SetTextI18n")
     override fun onConfigure(i: Int, data: ChatListEntry) {
         super.onConfigure(i, data)
         if (data !is ForwardSourceChatEntry) return

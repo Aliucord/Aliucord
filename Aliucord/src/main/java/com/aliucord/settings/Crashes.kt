@@ -5,7 +5,6 @@
  */
 package com.aliucord.settings
 
-import android.annotation.SuppressLint
 import android.text.SpannableStringBuilder
 import android.view.Gravity
 import android.view.View
@@ -26,7 +25,6 @@ import java.util.*
 private data class CrashLog(val timestamp: String, val stacktrace: String, var times: Int)
 
 class Crashes : SettingsPage() {
-    @SuppressLint("SetTextI18n")
     override fun onViewBound(view: View) {
         super.onViewBound(view)
         setActionBarTitle("Crash Logs")
