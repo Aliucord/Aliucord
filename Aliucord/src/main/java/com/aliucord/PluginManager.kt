@@ -284,6 +284,7 @@ object PluginManager {
             PrivateThreads(),
             RNAPI(),
             Pronouns(),
+            ShowReplyMention(),
             StickerCrashFix(),
             SupportWarn(),
             SupporterBadges(),
