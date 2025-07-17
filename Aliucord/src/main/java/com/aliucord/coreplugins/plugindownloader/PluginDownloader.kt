@@ -72,7 +72,7 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
                 }
 
                 when (msg.channelId) {
-                    PLUGIN_LINKS_UPDATES_CHANNEL_ID, PLUGIN_SUPPORT_CHANNEL_ID, PLUGIN_DEVELOPMENT_CHANNEL_ID -> {
+                    SUPPORT_CHANNEL_ID, PLUGIN_LINKS_UPDATES_CHANNEL_ID, PLUGIN_SUPPORT_CHANNEL_ID, PLUGIN_DEVELOPMENT_CHANNEL_ID -> {
                         zipPattern.matcher(content).run {
                             while (find()) {
                                 val author = group(1)!!
