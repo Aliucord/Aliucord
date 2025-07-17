@@ -11,6 +11,7 @@ import android.content.Context
 import android.view.View
 import com.aliucord.Http
 import com.aliucord.entities.CorePlugin
+import com.aliucord.entities.RNMessage
 import com.aliucord.patcher.*
 import com.aliucord.utils.GsonUtils
 import com.aliucord.utils.RNSuperProperties
@@ -19,12 +20,9 @@ import com.discord.api.premium.PremiumTier
 import com.discord.models.user.User
 import com.discord.restapi.RestAPIParams
 import com.discord.restapi.utils.CountingRequestBody
-import com.discord.stores.*
 import com.discord.utilities.messagesend.`MessageQueue$doSend$2`
 import com.discord.utilities.premium.PremiumUtils
-import com.discord.utilities.rest.AttachmentRequestBody
-import com.discord.utilities.rest.SendUtils
-import com.discord.utilities.rest.SendUtilsKt
+import com.discord.utilities.rest.*
 import com.discord.widgets.chat.MessageManager
 import com.discord.widgets.chat.MessageManager.AttachmentValidationResult
 import com.discord.widgets.chat.MessageManager.AttachmentsRequest
@@ -51,14 +49,14 @@ internal class UploadSize : CorePlugin(Manifest("UploadSize")) {
         }
 
         class MessagePayload(
-            val content: String,
+            content: String,
+            nonce: String,
             val channelId: String,
             val type: Int,
             val messageReference: RestAPIParams.Message.MessageReference?,
             val allowedMentions: RestAPIParams.Message.AllowedMentions?,
             val attachments: List<Attachment>,
-            val nonce: String
-        ) {
+        ): RNMessage(content = content, nonce = nonce) {
             class Attachment(val id: String, val filename: String, val uploadedFilename: String)
         }
     }
@@ -181,12 +179,12 @@ internal class UploadSize : CorePlugin(Manifest("UploadSize")) {
                         GsonUtils.gsonRestApi,
                         MessagePayload(
                             content.trimEnd(),
+                            nonce,
                             channelId.toString(),
                             if (messageReference == null) 0 else 19,
                             messageReference,
                             allowedMentions,
-                            attachments,
-                            nonce
+                            attachments
                         )
                     ).json(GsonUtils.gsonRestApi, Message::class.java)
                 )
