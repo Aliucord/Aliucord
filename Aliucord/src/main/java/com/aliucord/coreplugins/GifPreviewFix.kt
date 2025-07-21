@@ -26,7 +26,13 @@ internal class GifPreviewFix : CorePlugin(Manifest("GifPreviewFix")) {
 
             val uri = Uri.parse(result[0])
             if (uri.path?.endsWith(".gif") == true) {
-                val newUri = uri.buildUpon().appendQueryParameter("format", "gif").build()
+                val newUri = uri
+                    .buildUpon()
+                    .encodedQuery(uri.encodedQuery?.replace(
+                        "&format=webp",
+                        "&format=gif"
+                    ))
+                    .build()
                 result[0] = newUri.toString()
 
                 it.result = result
