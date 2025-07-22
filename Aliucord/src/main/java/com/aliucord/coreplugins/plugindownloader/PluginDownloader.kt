@@ -11,13 +11,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import com.aliucord.*
 import com.aliucord.Constants.*
-import com.aliucord.Logger
-import com.aliucord.Utils
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.wrappers.messages.AttachmentWrapper.Companion.filename
 import com.aliucord.wrappers.messages.AttachmentWrapper.Companion.url
+import com.discord.models.message.Message
 import com.discord.stores.StoreStream
 import com.discord.utilities.color.ColorCompat
 import com.discord.widgets.chat.list.actions.WidgetChatListActions
@@ -72,13 +72,13 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
 
                 when (msg.channelId) {
                     PLUGIN_LINKS_UPDATES_CHANNEL_ID, PLUGIN_DEVELOPMENT_CHANNEL_ID ->
-                        handlePluginZipMessage(content, layout, actions)
+                        handlePluginZipMessage(msg, layout, actions)
 
                     SUPPORT_CHANNEL_ID, PLUGIN_SUPPORT_CHANNEL_ID -> {
                         val member = StoreStream.getGuilds().getMember(ALIUCORD_GUILD_ID, msg.author.id)
                         val isTrusted = member?.roles?.any { it in arrayOf(SUPPORT_HELPER_ROLE_ID, PLUGIN_DEVELOPER_ROLE_ID) } ?: false
 
-                        if (isTrusted) handlePluginZipMessage(content, layout, actions)
+                        if (isTrusted) handlePluginZipMessage(msg, layout, actions)
                     }
 
                     PLUGIN_LINKS_CHANNEL_ID -> {
@@ -99,18 +99,35 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
 
     override fun stop(context: Context) {}
 
-    private fun handlePluginZipMessage(content: String, layout: ViewGroup, actions: WidgetChatListActions) {
-        zipPattern.matcher(content).run {
+    private fun handlePluginZipMessage(msg: Message, layout: ViewGroup, actions: WidgetChatListActions) {
+        zipPattern.matcher(msg.content).run {
             while (find()) {
                 val author = group(1)!!
                 val repo = group(2)!!
                 val name = group(3)!!
+
+                // Don't accidentally install core as a plugin
+                if (name == "Aliucord") continue
 
                 val plugin = PluginFile(name)
                 addEntry(layout, "${if (plugin.isInstalled) "Reinstall" else "Install"} $name") {
                     plugin.install(author, repo)
                     actions.dismiss()
                 }
+            }
+        }
+
+        for (attachment in msg.attachments) {
+            if (attachment.filename.run { !endsWith(".zip") || equals("Aliucord.zip") }) continue
+
+            val name = attachment.filename.removeSuffix(".zip")
+            val isInstalled = PluginManager.plugins.containsKey(name)
+
+            addEntry(layout, "${if (isInstalled) "Reinstall" else "Install"} $name") {
+                PluginFile(name).install(
+                    url = attachment.url,
+                    callback = actions::dismiss,
+                )
             }
         }
     }
