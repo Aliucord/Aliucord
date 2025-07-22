@@ -38,6 +38,7 @@ internal class GifPreviewFix : CorePlugin(Manifest("GifPreviewFix")) {
                 .build()
 
             urls[0] = newUri.toString()
+            params.result = urls
         }
     }
 
