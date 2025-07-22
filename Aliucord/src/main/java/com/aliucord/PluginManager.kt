@@ -282,6 +282,7 @@ object PluginManager {
             PluginDownloader(),
             PrivateChannelsListScroll(),
             PrivateThreads(),
+            RestartButton(),
             RNAPI(),
             Pronouns(),
             ShowReplyMention(),
@@ -295,7 +296,7 @@ object PluginManager {
         corePlugins.forEach { p ->
             logger.info("Loading coreplugin: ${p.name}")
             try {
-                plugins.put(p.name, p)
+                plugins[p.name] = p
                 p.load(context)
             } catch (e: Throwable) {
                 logger.errorToast("Failed to load coreplugin ${p.name}", e)
