@@ -24,15 +24,17 @@ internal class GifPreviewFix : CorePlugin(Manifest("GifPreviewFix")) {
             @Suppress("UNCHECKED_CAST")
             val result = (it.result as List<String>).toMutableList()
 
-            val uri = Uri.parse(result[0])
+            val uri = Uri.parse(result[0].replace("&?", "&"))
             if (uri.path?.endsWith(".gif") == true) {
-                val newUri = uri
-                    .buildUpon()
-                    .encodedQuery(uri.encodedQuery?.replace(
-                        "&format=webp",
-                        "&format=gif"
-                    ))
-                    .build()
+                val newUri = uri.buildUpon().run {
+                    clearQuery()
+                    uri.queryParameterNames.forEach { param ->
+                        if (param != "format") {
+                            appendQueryParameter(param, uri.getQueryParameter(param))
+                        }
+                    }
+                    build()
+                }
                 result[0] = newUri.toString()
 
                 it.result = result
