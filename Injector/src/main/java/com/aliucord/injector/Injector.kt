@@ -129,7 +129,8 @@ private fun init(appActivity: AppActivity) {
 }
 
 /**
- * Checks if app has permission for storage and if so checks settings and copies local dex to internal caches.
+ * Checks if app has permission for storage and if so checks settings as to whether
+ * using custom/local core bundle is enable .
  */
 private fun useCustomDex(appActivity: AppActivity): Boolean {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
