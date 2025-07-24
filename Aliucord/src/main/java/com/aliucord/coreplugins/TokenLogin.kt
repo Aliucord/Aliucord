@@ -53,14 +53,14 @@ internal class TokenLogin : CorePlugin(Manifest("TokenLogin")) {
             }
 
             val button = v.getChildAt(2) as MaterialButton?
-            button?.setOnClickListener { e ->
+            button?.setOnClickListener {
                 if (input?.editText == null) return@setOnClickListener
                 val token = input.editText!!.text
                 if (token.length == 70) login(token)
             }
         }
 
-        fun login(token: CharSequence) {
+        private fun login(token: CharSequence) {
             StoreAuthentication.`access$dispatchLogin`(
                 StoreStream.getAuthentication(),
                 ModelLoginResult(token.toString().startsWith("mfa."), null, token.toString(), null, ArrayList<RequiredAction?>())
