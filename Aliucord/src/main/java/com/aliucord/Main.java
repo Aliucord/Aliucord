@@ -40,11 +40,9 @@ import com.discord.api.message.embed.EmbedField;
 import com.discord.app.*;
 import com.discord.databinding.WidgetChangeLogBinding;
 import com.discord.databinding.WidgetDebuggingAdapterItemBinding;
-import com.discord.models.domain.Model;
-import com.discord.models.domain.ModelUserSettings;
+import com.discord.models.domain.*;
 import com.discord.models.domain.emoji.ModelEmojiUnicode;
-import com.discord.stores.StoreChangeLog;
-import com.discord.stores.StoreStream;
+import com.discord.stores.*;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.utilities.guildautomod.AutoModUtils;
 import com.discord.utilities.user.UserUtils;
@@ -315,6 +313,13 @@ public final class Main {
         Patcher.addPatch(StoreChangeLog.class,
             "openChangeLog",
             new Class[]{ Context.class, boolean.class },
+            new InsteadHook(param -> null)
+        );
+
+        // Disable the google play rating request dialog
+        Patcher.addPatch(StoreReviewRequest.class,
+            "handleConnectionOpen",
+            new Class[]{ ModelPayload.class },
             new InsteadHook(param -> null)
         );
 
