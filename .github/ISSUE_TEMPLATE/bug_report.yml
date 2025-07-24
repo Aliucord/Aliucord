@@ -87,4 +87,4 @@ body:
 
   - type: markdown
     attributes:
-      value: Upload a file containing logcat output, see [here](https://pastebin.com/pNhXwhrd) for how
+      value: After creating this issue, please upload a file containing a logcat in a separate comment! See [here](https://pastebin.com/pNhXwhrd) on how to accomplish this.
