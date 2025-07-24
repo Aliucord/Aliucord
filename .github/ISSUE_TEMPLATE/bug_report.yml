@@ -84,3 +84,7 @@ body:
       options:
         - label: I’ve checked that this issue hasn’t already been reported.
           required: true
+
+  - type: markdown
+    attributes:
+      value: Upload a file containing logcat output, see [here](https://pastebin.com/pNhXwhrd) for how
