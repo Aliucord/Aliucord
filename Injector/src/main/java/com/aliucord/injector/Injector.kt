@@ -184,7 +184,7 @@ private fun pruneArtProfile(ctx: Context): Boolean {
     Logger.d("Pruning ART usage profile...")
     val profile = File("/data/misc/profiles/cur/0/" + ctx.packageName + "/primary.prof")
     if (!profile.exists()) {
-        return false
+        return true
     }
     if (profile.length() > 0) {
         try {

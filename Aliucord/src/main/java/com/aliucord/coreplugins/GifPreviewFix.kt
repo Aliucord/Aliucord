@@ -9,7 +9,7 @@ package com.aliucord.coreplugins
 import android.content.Context
 import android.net.Uri
 import com.aliucord.entities.CorePlugin
-import com.aliucord.patcher.after
+import com.aliucord.patcher.*
 import com.discord.utilities.embed.EmbedResourceUtils
 
 internal class GifPreviewFix : CorePlugin(Manifest("GifPreviewFix")) {
@@ -17,20 +17,28 @@ internal class GifPreviewFix : CorePlugin(Manifest("GifPreviewFix")) {
     override val isRequired = true
 
     override fun load(context: Context) {
-        patcher.after<EmbedResourceUtils>("getPreviewUrls", String::class.java, Int::class.java, Int::class.java, Boolean::class.java) {
-            // it.args[3] is a boolean that indicates
-            // if the gif should be animated (for example no autoplay setting)
-            if (!(it.args[3] as Boolean)) return@after
+        patcher.after<EmbedResourceUtils>(
+            "getPreviewUrls",
+            String::class.java, Int::class.java, Int::class.java, Boolean::class.java,
+        ) { (params, _: String, _: Int, _: Int, animated: Boolean) ->
+            if (!animated) return@after
+
             @Suppress("UNCHECKED_CAST")
-            val result = (it.result as List<String>).toMutableList()
+            val urls = (params.result as List<String>).toMutableList()
 
-            val uri = Uri.parse(result[0])
-            if (uri.path?.endsWith(".gif") == true) {
-                val newUri = uri.buildUpon().encodedQuery("format=gif").build()
-                result[0] = newUri.toString()
+            val uri = Uri.parse(urls[0].replace("&?", "&"))
+                ?.takeIf { it.path?.endsWith(".gif") == true }
+                ?: return@after
 
-                it.result = result
-            }
+            val filteredQueryKeys = uri.queryParameterNames.filter { it != "format" }
+
+            val newUri = uri.buildUpon()
+                .clearQuery()
+                .apply { filteredQueryKeys.forEach { appendQueryParameter(it, uri.getQueryParameter(it)) } }
+                .build()
+
+            urls[0] = newUri.toString()
+            params.result = urls
         }
     }
 

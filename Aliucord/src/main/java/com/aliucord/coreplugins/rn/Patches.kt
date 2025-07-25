@@ -33,6 +33,7 @@ import com.discord.utilities.mg_recycler.MGRecyclerDataPayload
 import com.discord.utilities.mg_recycler.SingleTypePayload
 import com.discord.utilities.search.suggestion.entries.UserSuggestion
 import com.discord.utilities.user.UserUtils
+import com.discord.views.user.SettingsMemberView
 import com.discord.widgets.chat.input.autocomplete.UserAutocompletable
 import com.discord.widgets.friends.FriendsListViewModel
 import com.discord.widgets.friends.WidgetFriendsListAdapter
@@ -45,7 +46,6 @@ import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonToken
 import de.robv.android.xposed.XC_MethodHook
-import okhttp3.*
 import rx.Observable
 import java.lang.reflect.Type
 import java.util.Collections
@@ -164,6 +164,16 @@ fun patchGlobalName() {
             ((userViewHolderBinding[it.thisObject] as WidgetSearchSuggestionsItemUserBinding).b.k).apply {
                 d.text = c.text
                 c.text = name
+            }
+        }
+    })
+
+    Patcher.addPatch(SettingsMemberView::class.java.getDeclaredMethod("a", modelUser, guildMember), Hook {
+        if ((it.args[1] as GuildMember?)?.nick != null) return@Hook
+        (it.args[0] as ModelUser).globalName?.let { name ->
+            (it.thisObject as SettingsMemberView).j.apply {
+                d.j.c.text = name
+                c.visibility = View.VISIBLE
             }
         }
     })

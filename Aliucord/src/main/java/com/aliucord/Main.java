@@ -40,10 +40,9 @@ import com.discord.api.message.embed.EmbedField;
 import com.discord.app.*;
 import com.discord.databinding.WidgetChangeLogBinding;
 import com.discord.databinding.WidgetDebuggingAdapterItemBinding;
-import com.discord.models.domain.Model;
-import com.discord.models.domain.ModelUserSettings;
+import com.discord.models.domain.*;
 import com.discord.models.domain.emoji.ModelEmojiUnicode;
-import com.discord.stores.StoreStream;
+import com.discord.stores.*;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.utilities.guildautomod.AutoModUtils;
 import com.discord.utilities.user.UserUtils;
@@ -175,6 +174,10 @@ public final class Main {
             TextView uploadLogs = layout.findViewById(Utils.getResId("upload_debug_logs", "id"));
             uploadLogs.setText("Aliucord Support Server");
             uploadLogs.setOnClickListener(e -> Utils.joinSupportServer(e.getContext()));
+
+            // Remove Discord changelog button
+            TextView changelogBtn = layout.findViewById(Utils.getResId("changelog", "id"));
+            changelogBtn.setVisibility(View.GONE);
         }));
 
         // Patch to repair built-in emotes is needed because installer doesn't recompile resources,
@@ -305,6 +308,20 @@ public final class Main {
                 logger.error("Couldn't patch possible Android 15 (?) crash", e);
             }
         }
+
+        // Disable the Discord changelog page
+        Patcher.addPatch(StoreChangeLog.class,
+            "openChangeLog",
+            new Class[]{ Context.class, boolean.class },
+            new InsteadHook(param -> null)
+        );
+
+        // Disable the google play rating request dialog
+        Patcher.addPatch(StoreReviewRequest.class,
+            "handleConnectionOpen",
+            new Class[]{ ModelPayload.class },
+            new InsteadHook(param -> null)
+        );
 
         if (loadedPlugins) {
             PluginManager.startCorePlugins();
