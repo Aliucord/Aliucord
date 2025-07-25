@@ -1,6 +1,6 @@
 --- smali_original/com/discord/api/message/Message.smali
 +++ smali/com/discord/api/message/Message.smali
-@@ -237,6 +237,16 @@
+@@ -237,6 +237,18 @@
  
  .field private final messageReference:Lcom/discord/api/message/MessageReference;
  
@@ -13,6 +13,8 @@
 +       }
 +   .end annotation
 +.end field
++
++.field public poll:Lcom/discord/api/message/poll/MessagePoll;
 +
  .field private final nonce:Ljava/lang/String;
  
