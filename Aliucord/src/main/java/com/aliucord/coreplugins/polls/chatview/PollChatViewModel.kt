@@ -79,10 +79,12 @@ internal class PollChatViewModel(
     fun toggleVote(id: Int) {
         setModel(model.copy(
             answers = model.answers.map {
-                if (it.id == id)
-                    it.copy(checked = !it.checked)
-                else
-                    it
+                val checked = when {
+                    it.id == id -> !it.checked
+                    !model.multiselect -> false
+                    else -> it.checked
+                }
+                it.copy(checked = checked)
             }
         ))
     }
