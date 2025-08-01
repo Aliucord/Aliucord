@@ -280,6 +280,7 @@ object PluginManager {
             MembersListFix(),
             NoTrack(),
             PluginDownloader(),
+            Polls(),
             PrivateChannelsListScroll(),
             PrivateThreads(),
             RestartButton(),
