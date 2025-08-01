@@ -1,59 +1,90 @@
 name: Bug/Crash Report
-description: Create a bug or crash report for Aliucord itself. To report bugs or crashes related to plugins, please go to our support server, or the plugin's repository and make an issue there instead.
+description: Report a bug or crash in Aliucord. For plugin issues, please use the plugin's repo or our support server.
 labels: [bug]
 body:
   - type: input
     id: discord
     attributes:
-      label: Discord Account
-      description: Who on Discord is making this request? Not required.
-      placeholder: username#0000
+      label: Discord username (Optional)
+      description: Your Discord username, in case we need to follow up.
+      placeholder: username123
     validations:
       required: false
+
   - type: textarea
     id: bug-description
     attributes:
-      label: What happens when the bug or crash occurs?
-      description: Where does this bug or crash occur, when does it occur, etc.
-      placeholder: The bug/crash happens sometimes when I do ..., causing this to not work/the app to crash. I think it happens because of ..., I hope that can help!
+      label: What’s the issue?
+      description: Describe what happens, when it happens, and where.
+      placeholder: |
+        Example:
+        When I open the settings page and tap on "Plugins", the app crashes with no warning.
     validations:
       required: true
+
   - type: textarea
     id: expected-behaviour
     attributes:
-      label: What is the expected behaviour?
-      description: Simply detail what the expected behaviour is.
-      placeholder: I expect Aliucord to open the ... page instead of ..., it prevents me from doing ... and it is annoying.
-    validations:
-      required: true
-  - type: textarea
-    id: steps-to-take
-    attributes:
-      label: How do you recreate this bug or crash?
-      description: Give us a list of steps in order to recreate the bug or crash.
+      label: What did you expect to happen?
+      description: Describe the correct or expected behavior.
       placeholder: |
-        1. Do ...
-        2. Then ...
-        3. Do this ..., ... and then ...
-        4. Observe "the bug" or "the crash"
+        Example:
+        I expected the "Plugins" page to open without crashing.
     validations:
       required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: How can we reproduce it?
+      description: Provide step-by-step instructions.
+      placeholder: |
+        Steps:
+        1. Go to Settings
+        2. Tap on "Plugins"
+        3. App crashes immediately
+    validations:
+      required: true
+
+  - type: input
+    id: android-version
+    attributes:
+      label: Android Version
+      description: What Android version is this happening on?
+      placeholder: Android 13, or SDK 33
+    validations:
+      required: true
+
+  - type: input
+    id: device-info
+    attributes:
+      label: Device & OS Info
+      description: Device model and ROM/skin (e.g. One UI, LineageOS, Pixel Experience).
+      placeholder: Samsung Galaxy S21, One UI 5.1
+    validations:
+      required: true
+
   - type: textarea
     id: crash-log
     attributes:
-      label: Crash-log
-      description: Paste the crash-log for your plugin between the two sections of "```".
-      value: |
+      label: Crash Log (if applicable)
+      description: Paste the crash log (between triple backticks ```).
+      placeholder: |
         ```
-        Replace this text with your crash-log.
+        Paste your crash log here
         ```
     validations:
       required: false
+
   - type: checkboxes
     id: agreement-check
     attributes:
-      label: Request Agreement
-      description: Did you check to make sure the bug or crash you've found has not already been reported? Keep in mind that bugs and crashes can resurface, so if it's been reported before maybe it's come back!
+      label: Before Submitting
+      description: Please confirm the following:
       options:
-        - label: I did indeed check to make sure the bug or crash report is applicable!
+        - label: I’ve checked that this issue hasn’t already been reported.
           required: true
+
+  - type: markdown
+    attributes:
+      value: After creating this issue, please upload a file containing a logcat in a separate comment! See [here](https://pastebin.com/pNhXwhrd) on how to accomplish this.
