@@ -3,13 +3,15 @@
 version = "2.1.2"
 
 aliucord {
-    projectType.set(com.aliucord.gradle.ProjectType.INJECTOR)
+    projectType = com.aliucord.gradle.ProjectType.INJECTOR
 }
 
 android {
+    androidResources {
+        enable = false
+    }
     buildFeatures {
         buildConfig = false
-        androidResources = false
     }
 }
 
