@@ -1,0 +1,20 @@
+--- smali_original/b/i/c/m/e/b.smali
++++ smali/b/i/c/m/e/b.smali
+@@ -41,15 +41,9 @@ .method public a(Lb/i/c/l/e;)Ljava/lang/
+     check-cast p1, Landroid/content/Context;
+ 
+     .line 3
+-    new-instance v0, Ljava/io/File;
+-
+-    invoke-virtual {p1}, Landroid/content/Context;->getFilesDir()Ljava/io/File;
+-
+-    move-result-object v1
+-
+-    const-string v2, ".com.google.firebase.crashlytics-ndk"
++    const/4 v0, 0x0
+ 
+-    invoke-direct {v0, v1, v2}, Ljava/io/File;-><init>(Ljava/io/File;Ljava/lang/String;)V
++    return-object v0
+ 
+     .line 4
+     new-instance v1, Lb/i/c/m/e/a;
