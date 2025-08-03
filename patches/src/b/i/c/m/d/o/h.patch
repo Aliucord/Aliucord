@@ -1,6 +1,6 @@
 --- smali_original/b/i/c/m/d/o/h.smali
 +++ smali/b/i/c/m/d/o/h.smali
-@@ -26,41 +26,9 @@ .method public a()Ljava/io/File;
+@@ -26,44 +26,7 @@ .method public a()Ljava/io/File;
      .locals 3
  
      .line 1
@@ -32,13 +32,16 @@
 -    goto :goto_22
 -
 -    .line 3
-     :cond_1a
-     sget-object v0, Lb/i/c/m/d/b;->a:Lb/i/c/m/d/b;
- 
+-    :cond_1a
+-    sget-object v0, Lb/i/c/m/d/b;->a:Lb/i/c/m/d/b;
+-
 -    const-string v1, "Couldn\'t create file"
 -
 -    invoke-virtual {v0, v1}, Lb/i/c/m/d/b;->g(Ljava/lang/String;)V
 -
      const/4 v0, 0x0
  
-     :cond_22
+-    :cond_22
+-    :goto_22
+     return-object v0
+ .end method
