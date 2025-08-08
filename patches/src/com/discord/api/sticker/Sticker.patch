@@ -1,0 +1,36 @@
+--- smali_original/com/discord/api/sticker/Sticker.smali
++++ smali/com/discord/api/sticker/Sticker.smali
+@@ -187,6 +187,10 @@ .method public b()Ljava/lang/String;
+ 
+     if-eq v0, v1, :cond_1a
+ 
++    const/4 v1, 0x4
++
++    if-eq v0, v1, :cond_gif
++
+     const/4 v1, 0x3
+ 
+     if-ne v0, v1, :cond_14
+@@ -211,6 +215,11 @@ .method public b()Ljava/lang/String;
+     :cond_1d
+     const-string v0, ""
+ 
++    goto :goto_1f
++
++    :cond_gif
++    const-string v0, ".gif"
++
+     :goto_1f
+     return-object v0
+ .end method
+@@ -593,6 +602,10 @@ .method public final l()Z
+ 
+     if-eq v0, v1, :cond_d
+ 
++    sget-object v1, Lcom/discord/api/sticker/StickerFormatType;->GIF:Lcom/discord/api/sticker/StickerFormatType;
++
++    if-eq v0, v1, :cond_d
++
+     sget-object v1, Lcom/discord/api/sticker/StickerFormatType;->LOTTIE:Lcom/discord/api/sticker/StickerFormatType;
+ 
+     if-ne v0, v1, :cond_b

@@ -1,0 +1,25 @@
+--- smali_original/com/discord/api/sticker/StickerPartial.smali
++++ smali/com/discord/api/sticker/StickerPartial.smali
+@@ -126,6 +126,10 @@ .method public b()Ljava/lang/String;
+ 
+     if-eq v0, v1, :cond_1a
+ 
++    const/4 v1, 0x4
++
++    if-eq v0, v1, :cond_gif
++
+     const/4 v1, 0x3
+ 
+     if-ne v0, v1, :cond_14
+@@ -150,6 +154,11 @@ .method public b()Ljava/lang/String;
+     :cond_1d
+     const-string v0, ""
+ 
++    goto :goto_1f
++
++    :cond_gif
++    const-string v0, ".gif"
++
+     :goto_1f
+     return-object v0
+ .end method
