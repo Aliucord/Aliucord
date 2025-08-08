@@ -311,9 +311,9 @@ public final class Main {
 
         // Disable the Discord changelog page
         Patcher.addPatch(StoreChangeLog.class,
-            "openChangeLog",
-            new Class[]{ Context.class, boolean.class },
-            new InsteadHook(param -> null)
+            "shouldShowChangelog",
+            new Class[]{ Context.class, long.class, String.class, Integer.class },
+            new InsteadHook(param -> false)
         );
 
         // Disable the google play rating request dialog
