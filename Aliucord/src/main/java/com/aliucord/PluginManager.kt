@@ -291,6 +291,7 @@ object PluginManager {
             SupporterBadges(),
             TokenLogin(),
             UploadSize(),
+            AlignThreads()
         )
 
         corePlugins.forEach { p ->
