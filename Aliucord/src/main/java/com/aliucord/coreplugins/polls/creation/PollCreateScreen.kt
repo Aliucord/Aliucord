@@ -81,16 +81,17 @@ internal class PollCreateScreen : SettingsPage() {
 
     override fun onViewBound(view: View) {
         super.onViewBound(view)
-        if (view !is CoordinatorLayout)
-            return
+        if (view !is CoordinatorLayout) return
 
         val ctx = requireContext()
         val viewModel = ViewModelProvider(this).get(PollCreateViewModel::class.java)
 
         val channelName = mostRecentIntent.getStringExtra("com.discord.intent.extra.EXTRA_CHANNEL_NAME")
         val channelId = mostRecentIntent.getLongExtra("com.discord.intent.extra.EXTRA_CHANNEL_ID", -1L)
-        if (channelId == -1L)
-            return this.appActivity.finish()
+        if (channelId == -1L) {
+            this.appActivity.finish()
+            return
+        }
 
         setActionBarTitle("Create poll")
         setActionBarSubtitle(channelName)
@@ -169,16 +170,18 @@ internal class PollCreateScreen : SettingsPage() {
 
                 durationSelector.setSubtext(model.duration.text)
                 multiselectSwitch.isChecked = model.isMultiselect
-                addAnswerButton.visibility = if (model.answers.size >= 10)
+                addAnswerButton.visibility = if (model.answers.size >= 10) {
                     View.GONE
-                else
+                }
+                else {
                     View.VISIBLE
+                }
 
                 answerInputs.forEachIndexed { idx, input ->
                     val answerModel = model.answers.getOrNull(idx)
-                    if (answerModel == null)
+                    if (answerModel == null) {
                         input.visibility = View.GONE
-                    else {
+                    } else {
                         input.visibility = View.VISIBLE
                         input.setEmoji(answerModel.emoji)
                         input.setRemoveVisibility(model.answers.size != 1)

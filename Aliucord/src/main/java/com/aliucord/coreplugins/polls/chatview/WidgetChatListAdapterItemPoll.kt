@@ -33,8 +33,9 @@ internal class WidgetChatListAdapterItemPoll(adapter: WidgetChatListAdapter)
     override fun onConfigure(i: Int, data: ChatListEntry) {
         super.onConfigure(i, data)
 
-        if (data !is PollChatEntry)
+        if (data !is PollChatEntry) {
             throw IllegalArgumentException("Tried to configure poll view with non-poll data (${data.javaClass.name})")
+        }
 
         val highlightBg = root.getViewById(Utils.getResId("chat_list_adapter_item_highlighted_bg", "id"))
         val gutterBg = root.getViewById(Utils.getResId("chat_list_adapter_item_gutter_bg", "id"))

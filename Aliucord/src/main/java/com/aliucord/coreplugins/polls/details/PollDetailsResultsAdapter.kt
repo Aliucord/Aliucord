@@ -84,7 +84,8 @@ internal class PollDetailsResultsAdapter(
 
     override fun onBindViewHolder(viewHolder: MGRecyclerViewHolder<*, MGRecyclerDataPayload>, i: Int) {
         super.onBindViewHolder(viewHolder, i)
-        if (viewHolder is MiniLoadingViewHolder)
+        if (viewHolder is MiniLoadingViewHolder) {
             onFetchMore()
+        }
     }
 }

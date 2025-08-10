@@ -7,7 +7,6 @@ import android.text.SpannableString
 import android.text.style.StyleSpan
 import android.util.TypedValue
 import android.view.View
-import android.view.View.OnClickListener
 import android.widget.ImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.graphics.ColorUtils
@@ -60,10 +59,11 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
     private fun configure(answerId: Int, isMultiselect: Boolean): PollChatAnswerView {
         this.answerId = answerId
         removeAllViews()
-        if (isMultiselect)
+        if (isMultiselect) {
             f(ViewType.CHECK)
-        else
+        } else {
             f(ViewType.RADIO)
+        }
 
         val p = DimenUtils.defaultPadding
         val p2 = DimenUtils.defaultPadding / 2
@@ -162,14 +162,12 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
 
         if (!isFirstSet) {
             isFirstSet = true
-            progressIndicator.setProgress(progress)
+            progressIndicator.setProgressCompat(progress, false)
         } else {
-            if (isStateTransition)
+            if (isStateTransition) {
                 progressIndicator.progress = 0
-            if (AccessibilityUtils.INSTANCE.isReducedMotionEnabled)
-                progressIndicator.setProgress(progress)
-            else
-                progressIndicator.setProgress(progress, true)
+            }
+            progressIndicator.setProgressCompat(progress, !AccessibilityUtils.INSTANCE.isReducedMotionEnabled)
         }
 
         val percent = "$progress%"
@@ -179,10 +177,11 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
         }
         subtext.text = voteText
 
-        val typefaceStyle = if (isWinner || answer.meVoted)
+        val typefaceStyle = if (isWinner || answer.meVoted) {
             Typeface.BOLD
-        else
+        } else {
             Typeface.NORMAL
+        }
         gutter.visibility = if (isWinner) VISIBLE else GONE
         checkmark.visibility = if (answer.meVoted) VISIBLE else GONE
         isChecked = answer.checked

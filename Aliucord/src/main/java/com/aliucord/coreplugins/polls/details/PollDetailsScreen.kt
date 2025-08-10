@@ -41,8 +41,9 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
         set(value) {
             val previous = field
             field = value
-            if (previous != -1)
+            if (previous != -1) {
                 updateData(true)
+            }
         }
 
     var data: Map<Int, VotesSnapshot>? = null
@@ -54,12 +55,12 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
         messageId = mostRecentIntent.getLongExtra("com.discord.intent.extra.EXTRA_MESSAGE_ID", -1L)
         selected = mostRecentIntent.getIntExtra("com.discord.intent.extra.EXTRA_ANSWER_ID", 1)
 
-        if (channelId == -1L || messageId == -1L)
+        if (channelId == -1L || messageId == -1L) {
             return this.appActivity.finish()
+        }
 
-        val poll = StoreStream.getMessages().getMessage(channelId, messageId)?.poll
+        poll = StoreStream.getMessages().getMessage(channelId, messageId)?.poll
             ?: return this.appActivity.finish()
-        this.poll = poll
 
         val answersView = view.findViewById<RecyclerView>(Utils.getResId("manage_reactions_emojis_recycler", "id"))
         val resultsView = view.findViewById<RecyclerView>(Utils.getResId("manage_reactions_results_recycler", "id"))
@@ -82,8 +83,10 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
 
     private fun updateData(attemptRetry: Boolean = false) {
         val snapshots = data
-        if (snapshots == null) // Message is deleted
-            return this.appActivity.finish()
+        if (snapshots == null) { // Message is deleted
+            this.appActivity.finish()
+            return
+        }
 
         answersAdapter.setData(poll.answers.map { answer ->
             val count = snapshots[answer.answerId]?.count ?: 0
@@ -94,10 +97,12 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
         val usersMap = StoreStream.getUsers().users
         val membersMap = StoreStream.getGuilds().members[StoreStream.getGuildSelected().selectedGuildId]
         val payload = when {
-            snapshot.count == 0 ->
+            snapshot.count == 0 -> {
                 listOf(PollDetailsResultsAdapter.EmptyItem())
-            snapshot.hasFailed && !attemptRetry ->
+            }
+            snapshot.hasFailed && !attemptRetry -> {
                 listOf(PollDetailsResultsAdapter.ErrorItem(channelId, messageId, selected))
+            }
             snapshot.voters.isEmpty() -> {
                 PollsStore.fetchDetails(channelId, messageId, selected)
                 listOf(ManageReactionsResultsAdapter.LoadingItem())
@@ -113,10 +118,12 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
                         membersMap?.get(it)
                     )
                 }
-                if (snapshot.isIncomplete)
+                if (snapshot.isIncomplete) {
                     userItems + PollDetailsResultsAdapter.MiniLoadingItem()
-                else
+                }
+                else {
                     userItems
+                }
             }
         }
         resultsAdapter.setData(payload)

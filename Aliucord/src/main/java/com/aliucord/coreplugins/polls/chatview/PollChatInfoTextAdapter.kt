@@ -42,8 +42,9 @@ internal class PollChatInfoTextAdapter(private val infoText: TextView) {
     fun configure(model: PollChatView.Model) {
         this.model = model
         start()
-        if (model.state == State.CLOSED)
+        if (model.state == State.CLOSED) {
             stop()
+        }
     }
 
     fun start() {

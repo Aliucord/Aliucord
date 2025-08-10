@@ -132,8 +132,9 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             Int::class.javaPrimitiveType!!,
             Long::class.javaPrimitiveType!!,
         ) { (param, _: Any, event: String) ->
-            if (event == "MESSAGE_POLL_VOTE_ADD" || event == "MESSAGE_POLL_VOTE_REMOVE")
+            if (event == "MESSAGE_POLL_VOTE_ADD" || event == "MESSAGE_POLL_VOTE_REMOVE") {
                 param.args[0] = Unit.a
+            }
         }
 
         // Patch store methods to manage them in our store
@@ -188,15 +189,12 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             ApiMessage::class.java
         ) { (_, msg: ApiMessage) ->
             val poll = msg.poll
-            if (poll == null)
-                return@before
-
-            val oldResults = PollsStore.getResultFor(msg.o(), false)
+                ?: return@before
 
             // If we don't have the message in cache, don't do anything.
             // The REST API sends me_voted correctly.
-            if (oldResults == null)
-                return@before
+            val oldResults = PollsStore.getResultFor(msg.o(), false)
+                ?: return@before
 
             // If new results is empty, retain last known results.
             // This happens during the first message update payload, when a poll is closed
@@ -207,9 +205,11 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             }
 
             // Retain me_voted state from last known results.
-            for (count in oldResults.answerCounts)
-                if (count.meVoted)
+            for (count in oldResults.answerCounts) {
+                if (count.meVoted) {
                     poll.results!!.answerCounts.find { it.id == count.id }!!.meVoted = true
+                }
+            }
         }
     }
 
@@ -245,8 +245,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             Map::class.java,
         ) { (param, msg: ModelMessage) ->
             val poll = msg.poll
-            if (poll == null)
-                return@after
+                ?: return@after
 
             @Suppress("UNCHECKED_CAST")
             val res = (param.result as List<ChatListEntry>).toMutableList()
@@ -262,8 +261,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             Int::class.javaPrimitiveType!!,
             ChatListEntry::class.java,
         ) { (_, _: Int, entry: MessageEntry) ->
-            if (entry.message.type != POLL_RESULT_MESSAGE_TYPE)
-                return@after
+            if (entry.message.type != POLL_RESULT_MESSAGE_TYPE) return@after
 
             val imageView = WidgetChatListAdapterItemSystemMessage.`access$getBinding$p`(this).f
             val drawable = ContextCompat.getDrawable(context, R.e.ic_sort_white_24dp)?.apply {
@@ -278,8 +276,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             Context::class.java
         ) { param ->
             val msg = `$this_getSystemMessage`
-            if (msg.type != POLL_RESULT_MESSAGE_TYPE)
-                return@before
+            if (msg.type != POLL_RESULT_MESSAGE_TYPE) return@before
 
             val renderCtx = `$usernameRenderContext` as `WidgetChatListAdapterItemSystemMessage$getSystemMessage$usernameRenderContext$1`
             val color = renderCtx.`$authorRoleColor`
@@ -297,8 +294,8 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
                 }
             } ?: return@before logger.error("Tried to render poll result, but there was no embed?", null)
 
-            if (totalVotes == 0)
-                totalVotes = 1 // Prevent division by 0
+            // Prevent division by 0
+            totalVotes = totalVotes.coerceAtLeast(1)
             val percent = (victorAnswerVotes.toDouble() * 100 / totalVotes).roundToInt()
 
             val span = SpannableStringBuilder().apply {
@@ -311,11 +308,11 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
                 append(pollQuestionText, StyleSpan(Typeface.BOLD), SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
                 append(" has closed! ")
 
-                if (victorAnswerVotes == 0)
+                if (victorAnswerVotes == 0) {
                     append("There were no votes :(")
-                else if (victorAnswerText == null)
+                } else if (victorAnswerText == null) {
                     append("The result was a draw (${percent}%).")
-                else {
+                } else {
                     append("The winner was ")
                     append(victorAnswerText, StyleSpan(Typeface.BOLD), SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
                     append(" (${percent}%).")
@@ -372,8 +369,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             "onTabSelected",
             TabLayout.Tab::class.java
         ) { (param, tab: TabLayout.Tab) ->
-            if (tab.tag != "poll")
-                return@before
+            if (tab.tag != "poll") return@before
 
             val ctx = this.a.requireContext()
             val parentFragment = this.a.parentFragment as FlexInputFragment
@@ -397,8 +393,9 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             "isDeleteable",
             ModelMessage::class.java
         )) { (param, msg: ModelMessage) ->
-            if (msg.type == POLL_RESULT_MESSAGE_TYPE)
+            if (msg.type == POLL_RESULT_MESSAGE_TYPE) {
                 param.result = true
+            }
         }
 
         // Other clients cannot edit poll messages to add content, despite it being allowed by the API
@@ -413,8 +410,9 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             Boolean::class.javaPrimitiveType!!,
             Boolean::class.javaPrimitiveType!!,
         ) { (param, msg: ModelMessage) ->
-            if (msg.poll != null)
+            if (msg.poll != null) {
                 ReflectUtils.setField(param.result, "canEdit", false)
+            }
         }
 
         // Adds an "End poll now" button in message actions

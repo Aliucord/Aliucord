@@ -49,8 +49,9 @@ internal class PollDetailsAnswersAdapter(
             if (emoji != null) {
                 emojiView.visibility = View.VISIBLE
                 EmojiNode.Companion!!.renderEmoji(emojiView, emoji, true, 20.dp)
-            } else
+            } else {
                 emojiView.visibility = View.GONE
+            }
 
             textView.text = "${data.answer.pollMedia.text} (${data.voteCount})"
             selectedIndicatorView.visibility = if (data.isSelected) View.VISIBLE else View.INVISIBLE
@@ -64,8 +65,9 @@ internal class PollDetailsAnswersAdapter(
         parent: ViewGroup,
         viewType: Int
     ): MGRecyclerViewHolder<PollDetailsAnswersAdapter, AnswerItem> {
-        if (viewType != 0)
+        if (viewType != 0) {
             throw invalidViewTypeException(viewType)
+        }
         return AnswerViewHolder(this)
     }
 }

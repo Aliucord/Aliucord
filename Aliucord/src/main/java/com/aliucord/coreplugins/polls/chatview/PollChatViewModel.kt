@@ -113,10 +113,11 @@ internal class PollChatViewModel(
             val result = request.getOrNull()
             if (result?.ok() != true) {
                 logger.errorToast("Failed to submit poll vote")
-                if (result != null)
+                if (result != null) {
                     logger.error("${result.statusCode} ${result.statusMessage} ${result.text()}", null)
-                else
+                } else {
                     logger.error(request.exceptionOrNull())
+                }
             }
             Utils.mainThread.post { setModel(model.copy(
                 submittingVote = false,

@@ -24,7 +24,7 @@ object PollsStore {
     private val logger = Logger("Store/Polls")
     private val dispatcher = StoreStream.getDispatcherYesThisIsIntentional()
     private val snapshots = HashMap<Long, HashMap<Int, VotesSnapshot>>()
-    private val subject = PublishSubject.k0<VoteEvent?>()
+    private val subject = PublishSubject.k0<VoteEvent>()
 
     /** The response payload used in [fetchDetails] */
     private data class ResponsePayload(val users: List<ApiUser>)
@@ -82,12 +82,15 @@ object PollsStore {
         val voters = when {
             // Do not add new voter to an incomplete snapshot; fetching more might skip users
             // with IDs less than the new voter
-            snapshot.isIncomplete && event.userId > (snapshot.voters.lastOrNull() ?: 0) ->
+            snapshot.isIncomplete && event.userId > (snapshot.voters.lastOrNull() ?: 0) -> {
                 snapshot.voters
-            isAdd ->
+            }
+            isAdd -> {
                 snapshot.voters.toSortedSet().apply { add(event.userId) }
-            else ->
+            }
+            else -> {
                 snapshot.voters.toSortedSet().apply { remove(event.userId) }
+            }
         }
         answers[event.answerId] = snapshot.copy(count = count, voters = voters)
         publish(event.channelId, event.messageId)
@@ -125,18 +128,18 @@ object PollsStore {
      * @param poll Message poll object
      */
     private fun handleMessageUpdate(channelId: Long, messageId: Long, poll: MessagePoll?) {
-        if (poll == null)
-            return
+        if (poll == null) return
 
         val target = HashMap<Int, VotesSnapshot>()
         poll.answers.forEach { answer ->
             val id = answer.answerId!!
             val answerCount = poll.results?.answerCounts?.find { it.id == id }
             val count = answerCount?.count ?: 0
-            val voters = if (answerCount?.meVoted == true)
+            val voters = if (answerCount?.meVoted == true) {
                 sortedSetOf(StoreStream.getUsers().me.id)
-            else
+            } else {
                 sortedSetOf()
+            }
             target[id] = VotesSnapshot(count, voters)
         }
         snapshots[messageId] = target
@@ -203,8 +206,9 @@ object PollsStore {
     fun subscribe(channelId: Long, messageId: Long, onNext: (HashMap<Int, VotesSnapshot>?) -> Unit): Subscription {
         snapshots[messageId]?.let { onNext(it) }
         return subject.subscribe {
-            if (this.channelId == channelId && this.messageId == messageId)
+            if (this.channelId == channelId && this.messageId == messageId) {
                 onNext(snapshots[messageId])
+            }
         }
     }
 
@@ -222,9 +226,8 @@ object PollsStore {
             return
         }
 
-        val lastSnapshot = answers[answerId]!!
-        if (lastSnapshot.isLoading || !lastSnapshot.isIncomplete)
-            return
+        val lastSnapshot = answers[answerId] ?: return
+        if (lastSnapshot.isLoading || !lastSnapshot.isIncomplete) return
 
         val meId = StoreStream.getUsers().me.id
         // As part of me_voted, the me user may be added in out-of-order, therefore let's not consider them.
@@ -242,10 +245,11 @@ object PollsStore {
             val (result, data) = request.getOrNull() ?: (null to listOf())
             answers[answerId] = if (result?.ok() != true) {
                 logger.errorToast("Failed to fetch poll results")
-                if (result != null)
+                if (result != null) {
                     logger.error("${result.statusCode} ${result.statusMessage} ${result.text()}", null)
-                else
+                } else {
                     logger.error(request.exceptionOrNull())
+                }
                 lastSnapshot.copy(isLoading = false, hasFailed = true)
             } else {
                 dispatcher.schedule {

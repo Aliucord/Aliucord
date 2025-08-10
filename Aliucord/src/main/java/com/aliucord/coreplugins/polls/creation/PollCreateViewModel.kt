@@ -36,8 +36,10 @@ internal class PollCreateViewModel : ViewModel() {
     }
 
     fun createAnswer() {
-        if (model.answers.size >= 10)
-            return logger.warn("newAnswer() called, but there's already max answers? Ignoring..")
+        if (model.answers.size >= 10) {
+            logger.warn("newAnswer() called, but there's already max answers? Ignoring..")
+            return
+        }
         model = model.copy(answers = model.answers + listOf(AnswerModel()))
     }
 
@@ -47,19 +49,21 @@ internal class PollCreateViewModel : ViewModel() {
 
     fun updateAnswerText(index: Int, text: Editable) {
         model = model.copy(answers = model.answers.mapIndexed { idx, answer ->
-            if (idx == index)
+            if (idx == index) {
                 answer.copy(answer = text.toString())
-            else
+            } else {
                 answer
+            }
         })
     }
 
     fun showEmojiSelector(index: Int, fragmentManager: FragmentManager) {
         val guild = StoreStream.getGuildSelected()
-        val emojiCtx = if (guild != null)
+        val emojiCtx = if (guild != null) {
             EmojiPickerContextType.Guild(guild.selectedGuildId)
-        else
+        } else {
             EmojiPickerContextType.Global.INSTANCE
+        }
         WidgetEmojiPickerSheet.Companion!!.show(fragmentManager, {
             model = model.copy(answers = model.answers.mapIndexed { idx, answer ->
                 if (idx == index)
@@ -105,10 +109,11 @@ internal class PollCreateViewModel : ViewModel() {
             val result = request.getOrNull()
             val newState = if (result?.ok() != true) {
                 logger.errorToast("Failed to create poll")
-                if (result != null)
+                if (result != null) {
                     logger.error("${result.statusCode} ${result.statusMessage} ${result.text()}", null)
-                else
+                } else {
                     logger.error(request.exceptionOrNull())
+                }
                 RequestState.IDLE
             } else {
                 RequestState.SUCCESS

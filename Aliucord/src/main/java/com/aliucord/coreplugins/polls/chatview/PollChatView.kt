@@ -180,10 +180,11 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
         val state = model.state
 
         title.text = model.question
-        subtext.text = if (model.multiselect)
+        subtext.text = if (model.multiselect) {
             "Select one or more answers"
-        else
+        } else {
             "Select one answer"
+        }
         infoText.setOnClickListener {
             PollDetailsScreen.launch(ctx, model.channelId, model.messageId)
         }

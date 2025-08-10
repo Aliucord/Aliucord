@@ -38,8 +38,7 @@ internal class DurationSelectorSheet(
                 LinearLayout(ctx).addTo(this) {
                     for (duration in Duration.values()) {
                         Utils.createCheckedSetting(ctx, CheckedSetting.ViewType.RADIO, duration.text, null).addTo(this) {
-                            if (current == duration)
-                                isChecked = true
+                            isChecked = current == duration
                             setOnCheckedListener {
                                 onSelected(duration)
                                 dismiss()
