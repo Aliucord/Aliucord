@@ -64,7 +64,10 @@ internal class PollDetailsResultsAdapter(
         init {
             val view = itemView as FrameLayout
             val progressBar = view.getChildAt(0) as ProgressBar
-            progressBar.layoutParams = progressBar.layoutParams.apply { width = 24.dp; height = 24.dp; }
+            progressBar.layoutParams = progressBar.layoutParams.apply {
+                width = 24.dp
+                height = 24.dp
+            }
             view.layoutParams = view.layoutParams.apply { height = ViewGroup.LayoutParams.WRAP_CONTENT }
         }
     }

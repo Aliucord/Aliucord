@@ -2,6 +2,7 @@ package com.aliucord.coreplugins.polls.chatview
 
 import com.aliucord.*
 import com.aliucord.coreplugins.polls.PollsStore
+import com.aliucord.utils.SerializedName
 import com.discord.api.message.poll.MessagePoll
 import com.discord.models.message.Message
 import rx.Subscription
@@ -11,7 +12,10 @@ internal class PollChatViewModel(
     poll: MessagePoll,
     private val onModelUpdate: (PollChatView.Model, isUpdate: Boolean) -> Unit,
 ) {
-    private data class PollVotePayload(@Suppress("PropertyName") val answer_ids: List<Int>)
+    private data class PollVotePayload(
+        @SerializedName("answer_ids")
+        val answerIds: List<Int>
+    )
 
     private val logger = Logger("Polls")
     var model: PollChatView.Model
@@ -98,10 +102,11 @@ internal class PollChatViewModel(
                     "PUT"
                 ).setRequestTimeout(10000).executeWithJson(
                     PollVotePayload(
-                        if (isAdd)
+                        answerIds = if (isAdd) {
                             model.answers.filter { it.checked }.map { it.id }
-                        else
+                        } else {
                             listOf()
+                        }
                     )
                 )
             }

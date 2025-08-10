@@ -15,8 +15,11 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.lifecycle.ViewModelProvider
 import com.aliucord.Utils
 import com.aliucord.fragments.SettingsPage
-import com.aliucord.utils.DimenUtils
+import com.aliucord.utils.DimenUtils.dp
 import com.aliucord.utils.ViewUtils.addTo
+import com.aliucord.utils.ViewUtils.checkbox
+import com.aliucord.utils.ViewUtils.layout
+import com.aliucord.utils.ViewUtils.setDefaultMargins
 import com.aliucord.views.*
 import com.discord.api.message.reaction.MessageReactionEmoji
 import com.discord.models.domain.emoji.*
@@ -26,31 +29,11 @@ import com.lytefast.flexinput.R
 
 internal class PollCreateScreen : SettingsPage() {
     companion object {
-        val p = DimenUtils.defaultPadding
-
         fun launch(ctx: Context, channelName: String, channelId: Long) {
             val intent = Intent()
                 .putExtra("com.discord.intent.extra.EXTRA_CHANNEL_NAME", channelName)
                 .putExtra("com.discord.intent.extra.EXTRA_CHANNEL_ID", channelId)
             Utils.openPage(ctx, PollCreateScreen::class.java, intent)
-        }
-
-        fun <T: View> T.margin(bottom: Boolean = true, top: Boolean = false, hori: Boolean = true): T {
-            val params = if (layoutParams == null)
-                LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
-            else
-                LayoutParams(layoutParams)
-            layoutParams = params.apply {
-                if (top)
-                    topMargin = p
-                if (bottom)
-                    bottomMargin = p
-                if (hori) {
-                    leftMargin = p
-                    rightMargin = p
-                }
-            }
-            return this
         }
 
         fun Emoji.asReactionEmoji() = when (this) {
@@ -92,7 +75,7 @@ internal class PollCreateScreen : SettingsPage() {
     )
 
     private fun addHeader(text: String) =
-        TextView(requireContext(), null, 0, R.i.UiKit_Stage_SectionHeader).margin(top = true).addTo(linearLayout) {
+        TextView(requireContext(), null, 0, R.i.UiKit_Stage_SectionHeader).setDefaultMargins(top = true).addTo(linearLayout) {
             this.text = text
         }
 
@@ -117,7 +100,7 @@ internal class PollCreateScreen : SettingsPage() {
 
             addHeader("Question")
             createTextInput(ctx, "Type your question") { viewModel.updateQuestionText(it) }
-                .margin()
+                .setDefaultMargins()
                 .addTo(linearLayout) {
                     editText.setText(viewModel.model.question)
                 }
@@ -126,7 +109,7 @@ internal class PollCreateScreen : SettingsPage() {
 
             addHeader("Answers")
             val answerInputs = List(10) { index ->
-                AnswerInput(ctx).margin(hori = false).addTo(this) {
+                AnswerInput(ctx).setDefaultMargins(left = false, right = false).addTo(this) {
                     viewModel.model.answers.getOrNull(index)?.let { model ->
                         setText(model.answer)
                     }
@@ -135,7 +118,7 @@ internal class PollCreateScreen : SettingsPage() {
                     onTextChange = { viewModel.updateAnswerText(index, it) }
                 }
             }
-            val addAnswerButton = Button(ctx).margin().addTo(this) {
+            val addAnswerButton = Button(ctx).setDefaultMargins().addTo(this) {
                 text = "Add answer"
                 setOnClickListener { viewModel.createAnswer() }
             }
@@ -144,18 +127,18 @@ internal class PollCreateScreen : SettingsPage() {
 
             addHeader("Options")
             val durationSelector = Utils.createCheckedSetting(ctx, CheckedSetting.ViewType.CHECK, "Duration", null).addTo(this) {
-                l.c().visibility = View.GONE
-                ImageView(ctx).addTo(l.b() as ConstraintLayout) {
+                checkbox.visibility = View.GONE
+                ImageView(ctx).addTo(layout) {
                     val res = DrawableCompat.getThemedDrawableRes(ctx, R.b.ic_navigate_next)
                     setImageResource(res)
-                    setPadding(0, 0, p / 4, 0)
+                    setPadding(0, 0, 2.dp, 0)
                     layoutParams = ConstraintLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT).apply {
                         bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
                         topToTop = ConstraintLayout.LayoutParams.PARENT_ID
                         endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
                     }
                 }
-                l.b().setOnClickListener {
+                layout.setOnClickListener {
                     viewModel.showDurationSelector(childFragmentManager)
                 }
             }
@@ -166,7 +149,7 @@ internal class PollCreateScreen : SettingsPage() {
                 }
             }
 
-            val createButton = Button(ctx).margin(top = true).addTo(this) {
+            val createButton = Button(ctx).setDefaultMargins(top = true).addTo(this) {
                 text = "Create Poll"
                 setOnClickListener {
                     viewModel.sendRequest(channelId)

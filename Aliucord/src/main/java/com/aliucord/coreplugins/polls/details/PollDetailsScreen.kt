@@ -38,7 +38,7 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
 
     lateinit var poll: MessagePoll
     private var selected: Int = -1
-        private set(value) {
+        set(value) {
             val previous = field
             field = value
             if (previous != -1)

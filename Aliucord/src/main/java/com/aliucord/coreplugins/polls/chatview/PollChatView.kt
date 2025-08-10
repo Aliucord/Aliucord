@@ -1,6 +1,5 @@
 package com.aliucord.coreplugins.polls.chatview
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.view.ContextThemeWrapper
 import android.widget.TextView
@@ -146,21 +145,33 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
         infoTextAdapter = PollChatInfoTextAdapter(this.infoText)
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     internal fun configure(entry: PollChatEntry) {
         viewModel = PollChatViewModel(entry.message, entry.poll, ::configureUI)
         val model = viewModel!!.model
 
         answersContainer.removeAllViews()
-        val newViews = mutableListOf<PollChatAnswerView>()
         Divider(ctx).addTo(answersContainer)
-        for (answer in model.answers) {
-            val view = PollChatAnswerView.build(ctx, model.channelId, model.messageId, answer.id, model.multiselect) {
-                viewModel!!.toggleVote(answer.id)
-            }.addTo(answersContainer)
-            newViews.add(view)
-            Divider(ctx).addTo(answersContainer)
+
+        answerViews = buildList {
+            for (answer in model.answers) {
+                val view = PollChatAnswerView.build(
+                    ctx,
+                    model.channelId,
+                    model.messageId,
+                    answer.id,
+                    model.multiselect,
+                    onClickListener = {
+                        viewModel!!.toggleVote(answer.id)
+                    },
+                )
+
+                add(view)
+
+                view.addTo(answersContainer)
+                Divider(ctx).addTo(answersContainer)
+            }
         }
-        answerViews = newViews
 
         configureUI(model, false)
     }

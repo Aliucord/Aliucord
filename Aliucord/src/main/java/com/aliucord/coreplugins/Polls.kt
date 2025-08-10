@@ -124,7 +124,6 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         GatewayAPI.onEvent<MessagePollVoteEvent>("MESSAGE_POLL_VOTE_REMOVE") { PollsStore.dispatchGatewayEvent(it, false) }
 
         // Silence "event unhandled" warnings in debug log
-        // private final void handleDispatch(Object obj, String str, int i, int i2, long j) {
         patcher.before<GatewaySocket>(
             "handleDispatch",
             Object::class.java,
@@ -138,40 +137,56 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         }
 
         // Patch store methods to manage them in our store
-        patcher.after<StoreStream>("handleMessageCreate", ApiMessage::class.java)
-        { (_, msg: ApiMessage) -> PollsStore.handleMessageUpdate(msg) }
+        patcher.after<StoreStream>(
+            "handleMessageCreate",
+            ApiMessage::class.java
+        ) { (_, msg: ApiMessage) ->
+            PollsStore.handleMessageUpdate(msg)
+        }
 
-        patcher.after<StoreStream>("handleMessageUpdate", ApiMessage::class.java)
-        { (_, msg: ApiMessage) -> PollsStore.handleMessageUpdate(msg) }
+        patcher.after<StoreStream>(
+            "handleMessageUpdate",
+            ApiMessage::class.java
+        ) { (_, msg: ApiMessage) ->
+            PollsStore.handleMessageUpdate(msg)
+        }
 
-        patcher.after<StoreStream>("handleMessageDelete", ModelMessageDelete::class.java)
-        { (_, deleteModel: ModelMessageDelete) ->
-            for (id in deleteModel.messageIds)
+        patcher.after<StoreStream>(
+            "handleMessageDelete",
+            ModelMessageDelete::class.java
+        ) { (_, deleteModel: ModelMessageDelete) ->
+            for (id in deleteModel.messageIds) {
                 PollsStore.handleMessageDelete(deleteModel.channelId, id)
+            }
         }
 
-        patcher.after<StoreStream>("handleMessagesLoaded", StoreMessagesLoader.ChannelChunk::class.java)
-        { (_, chunk: StoreMessagesLoader.ChannelChunk) ->
-            for (msg in chunk.messages)
+        patcher.after<StoreStream>(
+            "handleMessagesLoaded",
+            StoreMessagesLoader.ChannelChunk::class.java
+        ) { (_, chunk: StoreMessagesLoader.ChannelChunk) ->
+            for (msg in chunk.messages) {
                 PollsStore.handleMessageUpdate(msg)
+            }
         }
-
 
         // Patch ModelMessage to copy our polls from ApiMessage
-        patcher.after<ModelMessage>(ApiMessage::class.java)
-        { (_, apiMessage: ApiMessage) ->
+        patcher.after<ModelMessage>(ApiMessage::class.java) { (_, apiMessage: ApiMessage) ->
             apiMessage.poll?.let { this.poll = it }
         }
-        patcher.after<ModelMessage>("merge", ApiMessage::class.java)
-        { (param, apiMessage: ApiMessage) ->
+        patcher.after<ModelMessage>(
+            "merge",
+            ApiMessage::class.java
+        ) { (param, apiMessage: ApiMessage) ->
             val res = param.result as ModelMessage
             apiMessage.poll?.let { res.poll = it }
         }
 
         // When a poll ends, the message update payload may lose some results state. So we have to
         // patch this and retain the last known state. - Lava (lavadesu)
-        patcher.before<StoreStream>("handleMessageUpdate", ApiMessage::class.java)
-        { (_, msg: ApiMessage) ->
+        patcher.before<StoreStream>(
+            "handleMessageUpdate",
+            ApiMessage::class.java
+        ) { (_, msg: ApiMessage) ->
             val poll = msg.poll
             if (poll == null)
                 return@before
@@ -204,10 +219,14 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         // For PollDetailsResultsAdapter
         XposedBridge.makeClassInheritable(ManageReactionsResultsAdapter::class.java)
 
-        patcher.before<WidgetChatListAdapter>("onCreateViewHolder", ViewGroup::class.java, Int::class.javaPrimitiveType!!)
-        { (param, _: ViewGroup, entryType: Int) ->
-            if (entryType == PollChatEntry.POLL_ENTRY_TYPE)
+        patcher.before<WidgetChatListAdapter>(
+            "onCreateViewHolder",
+            ViewGroup::class.java,
+            Int::class.javaPrimitiveType!!
+        ) { (param, _: ViewGroup, entryType: Int) ->
+            if (entryType == PollChatEntry.POLL_ENTRY_TYPE) {
                 param.result = WidgetChatListAdapterItemPoll(this)
+            }
         }
 
         // Patch to attach our poll entry into the chat; we do this before embeds like other clients
@@ -306,8 +325,10 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             param.result = span
         }
         // Patch message onClick to jump to poll from poll result
-        patcher.before<`WidgetChatListAdapterItemSystemMessage$onConfigure$1`>("onClick", View::class.java)
-        { param ->
+        patcher.before<`WidgetChatListAdapterItemSystemMessage$onConfigure$1`>(
+            "onClick",
+            View::class.java
+        ) { param ->
             val msg = `$message`
             if (msg.type == POLL_RESULT_MESSAGE_TYPE) {
                 StoreStream.getMessagesLoader().jumpToMessage(msg.messageReference!!.a(), msg.messageReference!!.c())
@@ -325,25 +346,32 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             val pages = flexInputFragment.r.toMutableList()
             val page = `WidgetChatInputAttachments$configureFlexInputContentPages$1$page$1`(ctx, R.e.ic_sort_white_24dp, pollStringId)
             @Suppress("CAST_NEVER_SUCCEEDS")
-            pages.add(page as b.b.a.d.d.a) // I don't know why but IntelliJ complains that page is not the right type
+            pages.add(page as b.b.a.d.d.a) // Cast required because of missing superclass issue
             flexInputFragment.r = pages.toTypedArray()
         }
-        patcher.before<TabLayout.Tab>("setContentDescription", Int::class.javaPrimitiveType!!)
-        { (param, id: Int) ->
+
+        patcher.before<TabLayout.Tab>(
+            "setContentDescription",
+            Int::class.javaPrimitiveType!!
+        ) { (param, id: Int) ->
             if (id == pollStringId) {
                 tag = "poll"
                 param.result = setContentDescription("Create Poll")
             }
         }
-        patcher.after<TabLayout.Tab>("setIcon", Int::class.javaPrimitiveType!!)
-        { (_, id: Int) ->
+        patcher.after<TabLayout.Tab>(
+            "setIcon",
+            Int::class.javaPrimitiveType!!
+        ) { (_, id: Int) ->
             if (id == R.e.ic_sort_white_24dp) {
                 val color = ColorCompat.getThemedColor(view, R.b.flexInputIconColor)
                 icon?.colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_ATOP)
             }
         }
-        patcher.before<b.b.a.a.b>("onTabSelected", TabLayout.Tab::class.java)
-        { (param, tab: TabLayout.Tab) ->
+        patcher.before<b.b.a.a.b>(
+            "onTabSelected",
+            TabLayout.Tab::class.java
+        ) { (param, tab: TabLayout.Tab) ->
             if (tab.tag != "poll")
                 return@before
 
@@ -365,8 +393,10 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
 
     fun patchChatListActions() {
         // Allow deleting poll result messages
-        patcher.patch(PermissionsContextsKt::class.java.getDeclaredMethod("isDeleteable", ModelMessage::class.java))
-        { (param, msg: ModelMessage) ->
+        patcher.patch(PermissionsContextsKt::class.java.getDeclaredMethod(
+            "isDeleteable",
+            ModelMessage::class.java
+        )) { (param, msg: ModelMessage) ->
             if (msg.type == POLL_RESULT_MESSAGE_TYPE)
                 param.result = true
         }
@@ -389,25 +419,20 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
 
         // Adds an "End poll now" button in message actions
         val endPollId = View.generateViewId()
-        patcher.after<WidgetChatListActions>("configureUI", WidgetChatListActions.Model::class.java)
-        { (_, model: WidgetChatListActions.Model) ->
+        patcher.after<WidgetChatListActions>(
+            "configureUI",
+            WidgetChatListActions.Model::class.java
+        ) { (_, model: WidgetChatListActions.Model) ->
             val layout = (requireView() as ViewGroup).getChildAt(0) as ViewGroup
             val msg = model.message!!
 
-            if (msg.poll == null)
-                return@after
+            if (msg.poll == null) return@after
+            if (msg.author.id != model.me.id) return@after
+            if (msg.poll!!.expiry!!.g() <= System.currentTimeMillis()) return@after
+            if (layout.findViewById<View>(endPollId) != null) return@after
 
-            if (msg.author.id != model.me.id)
-                return@after
-
-            if (msg.poll!!.expiry!!.g() <= System.currentTimeMillis())
-                return@after
-
-            if (layout.findViewById<View>(endPollId) != null)
-                return@after
-
-            val replyView =
-                layout.findViewById<View>(Utils.getResId("dialog_chat_actions_edit", "id")) ?: return@after
+            val replyView = layout.findViewById<View>(Utils.getResId("dialog_chat_actions_edit", "id"))
+                ?: return@after
             val idx = layout.indexOfChild(replyView)
 
             TextView(layout.context, null, 0, R.i.UiKit_Settings_Item_Icon).addTo(layout, idx) {
