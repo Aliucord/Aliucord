@@ -252,6 +252,11 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             res.add(0, PollChatEntry(poll, msg))
             param.result = res
         }
+
+        // Patch to fix unhandled reply preview
+        patcher.before<ModelMessage>("shouldShowReplyPreviewAsAttachment") { param ->
+            if (this.poll != null) param.result = true
+        }
     }
 
     private fun patchResultMessage(context: Context) {
