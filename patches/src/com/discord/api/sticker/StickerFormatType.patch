@@ -1,0 +1,40 @@
+--- smali_original/com/discord/api/sticker/StickerFormatType.smali
++++ smali/com/discord/api/sticker/StickerFormatType.smali
+@@ -66,6 +66,8 @@
+ 
+ .field public static final enum UNKNOWN:Lcom/discord/api/sticker/StickerFormatType;
+ 
++.field public static final enum GIF:Lcom/discord/api/sticker/StickerFormatType;
++
+ 
+ # instance fields
+ .field private final apiValue:I
+@@ -75,7 +77,7 @@ # direct methods
+ .method public static constructor <clinit>()V
+     .locals 5
+ 
+-    const/4 v0, 0x4
++    const/4 v0, 0x5
+ 
+     new-array v0, v0, [Lcom/discord/api/sticker/StickerFormatType;
+ 
+@@ -133,6 +135,19 @@ .method public static constructor <clini
+ 
+     aput-object v1, v0, v3
+ 
++    new-instance v1, Lcom/discord/api/sticker/StickerFormatType;
++
++    const-string v2, "GIF"
++
++    const/4 v3, 0x4
++
++    .line 5
++    invoke-direct {v1, v2, v3, v3}, Lcom/discord/api/sticker/StickerFormatType;-><init>(Ljava/lang/String;II)V
++
++    sput-object v1, Lcom/discord/api/sticker/StickerFormatType;->GIF:Lcom/discord/api/sticker/StickerFormatType;
++
++    aput-object v1, v0, v3
++
+     sput-object v0, Lcom/discord/api/sticker/StickerFormatType;->$VALUES:[Lcom/discord/api/sticker/StickerFormatType;
+ 
+     new-instance v0, Lcom/discord/api/sticker/StickerFormatType$Companion;

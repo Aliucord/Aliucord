@@ -1,0 +1,28 @@
+--- smali_original/com/discord/api/sticker/Sticker$WhenMappings.smali
++++ smali/com/discord/api/sticker/Sticker$WhenMappings.smali
+@@ -30,7 +30,7 @@ .method public static synthetic construc
+ 
+     invoke-static {}, Lcom/discord/api/sticker/StickerFormatType;->values()[Lcom/discord/api/sticker/StickerFormatType;
+ 
+-    const/4 v0, 0x4
++    const/4 v0, 0x5
+ 
+     new-array v1, v0, [I
+ 
+@@ -70,6 +70,16 @@ .method public static synthetic construc
+ 
+     invoke-virtual {v2}, Ljava/lang/Enum;->ordinal()I
+ 
++    move-result v2
++
++    const/4 v3, 0x4
++
++    aput v3, v1, v2
++
++    sget-object v2, Lcom/discord/api/sticker/StickerFormatType;->GIF:Lcom/discord/api/sticker/StickerFormatType;
++
++    invoke-virtual {v2}, Ljava/lang/Enum;->ordinal()I
++
+     move-result v2
+ 
+     aput v0, v1, v2
