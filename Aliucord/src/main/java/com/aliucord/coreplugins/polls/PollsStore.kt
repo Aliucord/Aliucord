@@ -82,7 +82,11 @@ object PollsStore {
         val voters = when {
             // Do not add new voter to an incomplete snapshot; fetching more might skip users
             // with IDs less than the new voter
-            snapshot.isIncomplete && event.userId > (snapshot.voters.lastOrNull() ?: 0) -> {
+            // * however, we have special handling for self votes specifically (both in fetching
+            //   and various other functions such as meVoted), so add anyway if its self voting
+            snapshot.isIncomplete
+                && event.userId > (snapshot.voters.lastOrNull() ?: 0)
+                && event.userId != StoreStream.getUsers().me.id -> {
                 snapshot.voters
             }
             isAdd -> {
