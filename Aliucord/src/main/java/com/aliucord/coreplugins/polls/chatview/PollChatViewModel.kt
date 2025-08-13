@@ -10,7 +10,7 @@ import rx.Subscription
 internal class PollChatViewModel(
     msg: Message,
     poll: MessagePoll,
-    private val onModelUpdate: (PollChatView.Model, isUpdate: Boolean) -> Unit,
+    var onModelUpdate: (PollChatView.Model, isUpdate: Boolean) -> Unit,
 ) {
     private data class PollVotePayload(
         @SerializedName("answer_ids")

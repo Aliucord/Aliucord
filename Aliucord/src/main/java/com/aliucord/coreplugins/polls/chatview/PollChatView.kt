@@ -147,7 +147,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
 
     @OptIn(ExperimentalStdlibApi::class)
     internal fun configure(entry: PollChatEntry) {
-        viewModel = PollChatViewModel(entry.message, entry.poll, ::configureUI)
+        viewModel = PollChatViewModelFactory.create(entry, ::configureUI)
         val model = viewModel!!.model
 
         answersContainer.removeAllViews()
@@ -208,8 +208,7 @@ internal class PollChatView(private val ctx: Context) : MaterialCardView(ctx) {
         if (visibility == GONE) {
             infoTextAdapter.stop()
             viewModel?.unsubscribe()
-        }
-        else {
+        } else {
             infoTextAdapter.start()
             viewModel?.subscribe()
         }

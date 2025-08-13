@@ -160,16 +160,6 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
         val progress = (answer.votes.toDouble() * 100 / model.totalVotes.coerceAtLeast(1)).roundToInt()
         val isWinner = model.state == PollChatView.State.CLOSED && answer.votes == model.answers.maxOf { it.votes }.coerceAtLeast(1)
 
-        if (!isFirstSet) {
-            isFirstSet = true
-            progressIndicator.setProgressCompat(progress, false)
-        } else {
-            if (isStateTransition) {
-                progressIndicator.progress = 0
-            }
-            progressIndicator.setProgressCompat(progress, !AccessibilityUtils.INSTANCE.isReducedMotionEnabled)
-        }
-
         val percent = "$progress%"
         val votes = "${answer.votes} vote${if (answer.votes != 1) "s" else ""}"
         val voteText = SpannableString("$percent  •  $votes").apply {
@@ -197,5 +187,16 @@ internal class PollChatAnswerView private constructor(private val ctx: Context) 
         subtext.typeface = Typeface.create(label.typeface, typefaceStyle)
         progressIndicator.setIndicatorColor(ColorUtils.setAlphaComponent(color, 0x50))
         DrawableCompat.setTint(checkmark.drawable, color)
+
+        if (!isFirstSet) {
+            isFirstSet = true
+            progressIndicator.setProgressCompat(progress, false)
+            checkbox.jumpDrawablesToCurrentState()
+        } else {
+            if (isStateTransition) {
+                progressIndicator.progress = 0
+            }
+            progressIndicator.setProgressCompat(progress, !AccessibilityUtils.INSTANCE.isReducedMotionEnabled)
+        }
     }
 }
