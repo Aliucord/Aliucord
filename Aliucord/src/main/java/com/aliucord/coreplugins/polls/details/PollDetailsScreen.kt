@@ -119,13 +119,14 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
             else -> {
                 val userItems = snapshot.voters.mapNotNull { id ->
                     usersMap[id]?.let { user ->
+                        // channelId and messageId are only used for deleting reactions
                         ManageReactionsResultsAdapter.ReactionUserItem(
-                            user,
-                            0,
-                            0,
-                            MessageReactionEmoji("", "", false),
-                            false,
-                            membersMap?.get(id)
+                            /* user */ user,
+                            /* channelId */ 0,
+                            /* messageId */ 0,
+                            /* emoji */ MessageReactionEmoji("", "", false),
+                            /* canDelete */ false,
+                            /* guildMember */ membersMap?.get(id)
                         )
                     }
                 }
