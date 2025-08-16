@@ -292,6 +292,7 @@ object PluginManager {
             SupporterBadges(),
             TokenLogin(),
             UploadSize(),
+            MessageWidthFix()
         )
 
         corePlugins.forEach { p ->
