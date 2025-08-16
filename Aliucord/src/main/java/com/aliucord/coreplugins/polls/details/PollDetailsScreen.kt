@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.aliucord.Utils
 import com.aliucord.coreplugins.polls.PollsStore
 import com.aliucord.coreplugins.polls.PollsStore.VotesSnapshot
+import com.aliucord.utils.RxUtils.subscribe
 import com.aliucord.wrappers.messages.poll
 import com.discord.api.message.poll.MessagePoll
 import com.discord.api.message.reaction.MessageReactionEmoji
@@ -34,6 +35,7 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
 
     private lateinit var answersAdapter: PollDetailsAnswersAdapter
     private lateinit var resultsAdapter: PollDetailsResultsAdapter
+    private var userStoreSubscription: Subscription? = null
     private var subscription: Subscription? = null
 
     lateinit var poll: MessagePoll
@@ -75,18 +77,25 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
         setActionBarTitle("Poll Votes")
         setActionBarSubtitle(poll.question.text)
 
-        subscription = PollsStore.subscribeOnMain(channelId, messageId) {
-            data = it
-            updateData()
+        subscription = PollsStore.subscribeOnMain(channelId, messageId) { newData ->
+            if (newData == null) { // Message is deleted
+                this.appActivity.finish()
+                return@subscribeOnMain
+            }
+
+            data = newData
+            val userIDs = newData.values.flatMap { it.voters }.toSet()
+            userStoreSubscription?.unsubscribe()
+            userStoreSubscription = StoreStream.getUsers().observeUsers(userIDs, true).subscribe {
+                Utils.mainThread.post {
+                    updateData()
+                }
+            }
         }
     }
 
     private fun updateData(attemptRetry: Boolean = false) {
-        val snapshots = data
-        if (snapshots == null) { // Message is deleted
-            this.appActivity.finish()
-            return
-        }
+        val snapshots = data ?: return
 
         answersAdapter.setData(poll.answers.map { answer ->
             val count = snapshots[answer.answerId]?.count ?: 0
@@ -108,20 +117,22 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
                 listOf(ManageReactionsResultsAdapter.LoadingItem())
             }
             else -> {
-                val userItems = snapshot.voters.map {
-                    ManageReactionsResultsAdapter.ReactionUserItem(
-                        usersMap[it],
-                        0,
-                        0,
-                        MessageReactionEmoji("", "", false),
-                        false,
-                        membersMap?.get(it)
-                    )
+                val userItems = snapshot.voters.mapNotNull { id ->
+                    usersMap[id]?.let { user ->
+                        // channelId and messageId are only used for deleting reactions
+                        ManageReactionsResultsAdapter.ReactionUserItem(
+                            /* user */ user,
+                            /* channelId */ 0,
+                            /* messageId */ 0,
+                            /* emoji */ MessageReactionEmoji("", "", false),
+                            /* canDelete */ false,
+                            /* guildMember */ membersMap?.get(id)
+                        )
+                    }
                 }
-                if (snapshot.isIncomplete) {
+                if (userItems.size != snapshot.count) {
                     userItems + PollDetailsResultsAdapter.MiniLoadingItem()
-                }
-                else {
+                } else {
                     userItems
                 }
             }
@@ -132,5 +143,6 @@ internal class PollDetailsScreen : AppFragment(Utils.getResId("widget_manage_rea
     override fun onDestroy() {
         super.onDestroy()
         subscription?.unsubscribe()
+        userStoreSubscription?.unsubscribe()
     }
 }

@@ -4,8 +4,7 @@ package com.aliucord.coreplugins.polls.creation
 
 import android.content.Context
 import android.content.Intent
-import android.text.Editable
-import android.text.TextWatcher
+import android.text.*
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout.LayoutParams
@@ -42,9 +41,10 @@ internal class PollCreateScreen : SettingsPage() {
             else -> throw IllegalStateException("Unknown emoji type ${this::class.java.name}")
         }
 
-        fun createTextInput(ctx: Context, placeholder: String, onAfterTextChanged: (Editable) -> Unit) =
+        fun createTextInput(ctx: Context, maxLength: Int, placeholder: String, onAfterTextChanged: (Editable) -> Unit) =
             TextInput(ctx, placeholder).apply {
                 editText.maxLines = 1
+                editText.filters = arrayOf(InputFilter.LengthFilter(maxLength))
                 editText.addTextChangedListener(object : TextWatcher {
                     override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
                     override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) { }
@@ -100,7 +100,7 @@ internal class PollCreateScreen : SettingsPage() {
             setPadding(0, 0, 0, 0)
 
             addHeader("Question")
-            createTextInput(ctx, "Type your question") { viewModel.updateQuestionText(it) }
+            createTextInput(ctx, 300, "Type your question") { viewModel.updateQuestionText(it) }
                 .setDefaultMargins()
                 .addTo(linearLayout) {
                     editText.setText(viewModel.model.question)

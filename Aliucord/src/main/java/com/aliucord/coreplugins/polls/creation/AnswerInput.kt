@@ -85,7 +85,7 @@ internal class AnswerInput(private val ctx: Context): ConstraintLayout(ctx) {
     }
 
     private val textInput =
-        createTextInput(ctx, "Type your answer") { onTextChange?.invoke(it) }
+        createTextInput(ctx, 55, "Type your answer") { onTextChange?.invoke(it) }
             .addTo(this) {
                 id = textInputId
                 layoutParams = LayoutParams(0, LayoutParams.WRAP_CONTENT).apply {
