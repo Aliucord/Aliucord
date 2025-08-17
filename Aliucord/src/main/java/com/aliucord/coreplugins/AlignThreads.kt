@@ -41,7 +41,7 @@ internal class AlignThreads : CorePlugin(Manifest("AlignThreads")) {
         val iconId = if (themed) {
             DrawableCompat.getThemedDrawableRes(rootView.context, R.b.ic_thread)
         } else {
-            R.b.ic_thread
+            R.e.ic_thread
         }
         val icon = ContextCompat.getDrawable(rootView.context, iconId)!!.apply {
             val size = DimenUtils.dpToPx(24)
