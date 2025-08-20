@@ -242,6 +242,11 @@ fun patchStickers() {
     }
     Patcher.addPatch(Sticker::class.java.getDeclaredMethod("a"), hook)
     Patcher.addPatch(StickerPartial::class.java.getDeclaredMethod("a"), hook)
+    val hook2 = Hook {
+        if (it.result == "") it.result = ".gif"
+    }
+    Patcher.addPatch(Sticker::class.java.getDeclaredMethod("b"), hook2)
+    Patcher.addPatch(StickerPartial::class.java.getDeclaredMethod("b"), hook2)
 }
 
 fun patchVoice() {
