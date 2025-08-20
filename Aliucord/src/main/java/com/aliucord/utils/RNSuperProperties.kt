@@ -22,6 +22,12 @@ object RNSuperProperties {
     }
 
     @JvmStatic
+    val launchId = UUID.randomUUID().toString()
+
+    @JvmStatic
+    val heartbeatSessionId = UUID.randomUUID().toString()
+
+    @JvmStatic
     val superProperties = JSONObject().apply {
         put("os", "Android")
         put("browser", "Discord Android")
@@ -30,19 +36,23 @@ object RNSuperProperties {
         put("client_version", versionString)
         put("release_channel", "betaRelease")
         put("device_vendor_id", vendorId)
+        put("design_id", 2)
         put("browser_user_agent", "")
         put("browser_version", "")
         put("os_version", Build.VERSION.SDK_INT.toString())
-        put("client_build_number", versionCode)
+        put("client_build_number", buildNumber)
         put("client_event_source", JSONObject.NULL)
-        put("design_id", 0)
+        put("client_launch_id", launchId)
+        put("client_app_state", "active")
+        put("client_heartbeat_session_id", heartbeatSessionId)
     }
 
     @JvmStatic
     val superPropertiesBase64: String = Base64.encodeToString(superProperties.toString().toByteArray(), 2)
 
     // update to latest Beta branch sometimes
-    const val versionCode = 183109
-    const val versionString = "183.9 - rn"
+    const val buildNumber = 4169
+    const val versionCode = 283110
+    const val versionString = "283.10 - rn"
     const val userAgent = "Discord-Android/$versionCode;RNA"
 }

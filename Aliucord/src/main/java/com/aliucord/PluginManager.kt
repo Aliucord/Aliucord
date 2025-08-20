@@ -280,6 +280,7 @@ object PluginManager {
             MembersListFix(),
             NoTrack(),
             PluginDownloader(),
+            Polls(),
             PrivateChannelsListScroll(),
             PrivateThreads(),
             RestartButton(),
@@ -291,6 +292,7 @@ object PluginManager {
             SupporterBadges(),
             TokenLogin(),
             UploadSize(),
+            AlignThreads()
         )
 
         corePlugins.forEach { p ->
