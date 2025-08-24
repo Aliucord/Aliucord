@@ -278,6 +278,7 @@ object PluginManager {
             ForwardedMessages(),
             GifPreviewFix(),
             MembersListFix(),
+            NewPins(),
             NoTrack(),
             PluginDownloader(),
             Polls(),
