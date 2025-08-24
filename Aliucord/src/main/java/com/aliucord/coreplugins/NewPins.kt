@@ -2,20 +2,30 @@ package com.aliucord.coreplugins
 
 import android.content.Context
 import android.view.View
-import android.view.ViewGroup.LayoutParams.MATCH_PARENT
-import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
+import android.widget.LinearLayout.LayoutParams
+import com.aliucord.Http
 import com.aliucord.Utils
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
+import com.aliucord.utils.GsonUtils
+import com.aliucord.utils.SerializedName
 import com.aliucord.utils.ViewUtils.addTo
 import com.discord.models.message.Message
 import com.discord.models.user.MeUser
+import com.discord.stores.*
 import com.discord.utilities.permissions.ManageMessageContext
 import com.discord.utilities.permissions.PermissionUtils
+import com.discord.utilities.rest.RestAPI
 import com.discord.views.TernaryCheckBox
 import com.discord.widgets.channels.permissions.WidgetChannelSettingsEditPermissions
 import com.discord.widgets.channels.permissions.`WidgetChannelSettingsEditPermissions$permissionCheckboxes$2`
+import com.discord.widgets.chat.list.adapter.WidgetChatListAdapter
+import com.discord.widgets.chat.list.entries.LoadingEntry
+import com.discord.widgets.chat.pins.WidgetChannelPinnedMessages
+import rx.Observable
+import java.net.URLEncoder
+import java.util.WeakHashMap
 
 internal class NewPins : CorePlugin(Manifest("NewPins")) {
     override val isHidden: Boolean = true
@@ -26,11 +36,149 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
     }
 
     override fun start(context: Context) {
+        patchPinnedMessages()
         patchMessageContext()
         patchPermissionsEditor()
     }
 
     override fun stop(context: Context) { }
+
+    private data class ChannelPinsExtension(
+        var isFetching: Boolean = false,
+        var hasMore: Boolean = true,
+        var oldestPinTimestamp: String? = null,
+    )
+    private val pinExtensionData = HashMap<Long, ChannelPinsExtension>()
+    private val WidgetChatListAdapter.extension get() = pinExtensionData.getOrPut(this.data.channelId) { ChannelPinsExtension() }
+
+    private data class GetChannelPinsResponse(
+        val items: List<MessagePin>,
+        @SerializedName("has_more") val hasMore: Boolean,
+    ) {
+        data class MessagePin(
+            @SerializedName("pinned_at") val pinnedAt: String,
+            val message: com.discord.api.message.Message,
+        )
+    }
+
+    // Patches pinned messages to show more than 50 pins
+    private fun patchPinnedMessages() {
+        // The event handler doesn't store the adapter, so we have to patch and store it to use it
+        val handlerAdapterMap = WeakHashMap<WidgetChatListAdapter.EventHandler, WidgetChatListAdapter>()
+        // The widget's adapter is private. Reflection is also possible, but might as well use a weakmap
+        val widgetAdapterMap = WeakHashMap<WidgetChannelPinnedMessages, WidgetChatListAdapter>()
+
+        // The adapter conveniently gets passed here right after its constructed, so we store it in our weakmaps
+        patcher.after<WidgetChannelPinnedMessages>(
+            "addThreadSpineItemDecoration",
+            WidgetChatListAdapter::class.java
+        ) { (_, adapter: WidgetChatListAdapter) ->
+            handlerAdapterMap[adapter.eventHandler] = adapter
+            widgetAdapterMap[this] = adapter
+        }
+
+        // Listens to state updates and then fetches new pins when the bottom (state.isAtTop) is reached
+        patcher.after<WidgetChannelPinnedMessages.ChannelPinnedMessagesAdapterEventHandler>(
+            "onInteractionStateUpdated",
+            StoreChat.InteractionState::class.java,
+        ) { (_, state: StoreChat.InteractionState) ->
+            @Suppress("CAST_NEVER_SUCCEEDS")
+            val adapter = handlerAdapterMap[this as WidgetChatListAdapter.EventHandler] // cast required because ide is confused with nested classes
+                ?: return@after
+
+            // Yes, top means bottom
+            if (state.isAtTop) {
+                requestMorePins(adapter)
+            }
+        }
+
+        // Replaces the old endpoint with the new one to get extra information like pin timestamps and hasMore
+        patcher.instead<RestAPI>("getChannelPins", Long::class.javaPrimitiveType!!) { (_, channelId: Long) ->
+            Observable.h0<List<com.discord.api.message.Message>> { emitter -> // Observable.create(onSubscribe: (emitter: Subscriber) -> Unit)
+                val req = Http.Request.newDiscordRNRequest("/channels/${channelId}/messages/pins")
+                val res = req.execute()
+                if (!res.ok()) {
+                    logger.errorToast("Error while fetching pins: ${res.statusCode}: ${res.statusMessage}", null)
+                    emitter.onNext(listOf())
+                } else {
+                    val data = res.json(GsonUtils.gsonRestApi, GetChannelPinsResponse::class.java)
+                    val extension = pinExtensionData.getOrPut(channelId) { ChannelPinsExtension() }
+                    extension.hasMore = data.hasMore
+                    extension.oldestPinTimestamp = data.items.last().pinnedAt
+                    emitter.onNext(data.items.map { it.message })
+                }
+                emitter.onCompleted()
+            }
+        }
+
+        // Adds a cute loading icon when there's more to be loaded
+        patcher.before<WidgetChannelPinnedMessages>(
+            "configureUI",
+            WidgetChannelPinnedMessages.Model::class.java
+        ) { (param, model: WidgetChannelPinnedMessages.Model) ->
+            val adapter = widgetAdapterMap[this]
+                ?: return@before
+
+            if (adapter.extension.hasMore) {
+                param.args[0] = model.copy(
+                    model.channel,
+                    model.guild,
+                    model.userId,
+                    model.channelNames,
+                    model.list + LoadingEntry(),
+                    model.myRoleIds,
+                    model.channelId,
+                    model.guildId,
+                    model.oldestMessageId,
+                    model.newMessagesMarkerMessageId,
+                    model.isSpoilerClickAllowed,
+                )
+            }
+        }
+    }
+
+    // Fetch more pins
+    private fun requestMorePins(adapter: WidgetChatListAdapter) {
+        if (adapter.data.list.size < 50) return
+        if (adapter.extension.isFetching) return
+        if (!adapter.extension.hasMore) return
+        if (adapter.extension.oldestPinTimestamp == null) return
+
+        adapter.extension.isFetching = true
+
+        Utils.threadPool.execute {
+            val response = runCatching {
+                val encodedTimestamp = URLEncoder.encode(adapter.extension.oldestPinTimestamp, "UTF-8")
+                val url = "/channels/${adapter.data.channelId}/messages/pins?before=${encodedTimestamp}"
+                Http.Request.newDiscordRNRequest(url)
+                    .execute()
+                    .json(GsonUtils.gsonRestApi, GetChannelPinsResponse::class.java)
+            }
+
+            response.exceptionOrNull()?.let { exception ->
+                logger.error("Failed to fetch new pins", exception)
+                return@execute
+            }
+
+            val data = response.getOrNull()
+                ?: return@execute
+
+            val olderPins = data.items.map { Message(it.message) }
+            adapter.extension.hasMore = data.hasMore
+
+            val pinStore = StoreStream.getPinnedMessages()
+            pinStore.dispatcher.schedule {
+                @Suppress("UNCHECKED_CAST")
+                val lastPins = StorePinnedMessages.`access$getPinnedMessages$p`(pinStore)[adapter.data.channelId] as List<Message>
+                StorePinnedMessages.`access$handlePinnedMessagesLoaded`(
+                    StoreStream.getPinnedMessages(),
+                    adapter.data.channelId,
+                    lastPins + olderPins,
+                )
+                adapter.extension.isFetching = false
+            }
+        }
+    }
 
     // Supports the new Pin Messages permission
     private fun patchMessageContext() {
@@ -102,7 +250,7 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
 
             TernaryCheckBox(view.context, null).addTo(layout, index) {
                 id = pinMessagesCheckboxViewId
-                layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+                layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
 
                 this.k.e.run { /* label.run */
                     text = "Pin Messages"
