@@ -370,6 +370,25 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
                 icon?.colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_ATOP)
             }
         }
+        // This runs when the user swipes to the polls tab
+        // For some reason, after the user closes the create poll screen, the content dialog will reappear.
+        // This only happens if the user swiped to it rather than clicking the button.
+        // This causes the user to get stuck in the creation screen, as it will reopen from the polls page,
+        // forever. If we dismiss it again here, it will be gone for good.
+        patcher.before<b.b.a.a.c>(
+            "onPageSelected",
+            Int::class.javaPrimitiveType!!
+        ) { (param, index: Int) ->
+            val tabLayout = this.a.l
+            val tab = tabLayout.getTabAt(index)
+
+            // When it reappears, the selected page is the poll page, but the selected tab is always 0
+            if (tab?.tag == "poll" && tabLayout.selectedTabPosition == 0) {
+                val parentFragment = this.a.parentFragment as FlexInputFragment
+                parentFragment.s.onContentDialogDismissed(false)
+                param.result = null
+            }
+        }
         patcher.before<b.b.a.a.b>(
             "onTabSelected",
             TabLayout.Tab::class.java
