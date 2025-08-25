@@ -29,13 +29,11 @@ import java.util.WeakHashMap
 
 import com.discord.api.message.Message as ApiMessage
 
+private const val PIN_MESSAGES_PERMISSION = 1L shl 51
+
 internal class NewPins : CorePlugin(Manifest("NewPins")) {
     override val isHidden: Boolean = true
     override val isRequired: Boolean = true
-
-    private companion object {
-        const val PIN_MESSAGES_PERMISSION = 1L shl 51
-    }
 
     override fun start(context: Context) {
         patchPinnedMessages()
