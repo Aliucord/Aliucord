@@ -33,7 +33,7 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
     override val isHidden: Boolean = true
     override val isRequired: Boolean = true
 
-    companion object {
+    private companion object {
         const val PIN_MESSAGES_PERMISSION = 1L shl 51
     }
 
