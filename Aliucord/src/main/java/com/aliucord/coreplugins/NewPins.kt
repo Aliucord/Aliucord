@@ -27,6 +27,8 @@ import rx.Observable
 import java.net.URLEncoder
 import java.util.WeakHashMap
 
+import com.discord.api.message.Message as ApiMessage
+
 internal class NewPins : CorePlugin(Manifest("NewPins")) {
     override val isHidden: Boolean = true
     override val isRequired: Boolean = true
@@ -57,7 +59,7 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
     ) {
         data class MessagePin(
             @SerializedName("pinned_at") val pinnedAt: String,
-            val message: com.discord.api.message.Message,
+            val message: ApiMessage,
         )
     }
 
@@ -82,9 +84,7 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
             "onInteractionStateUpdated",
             StoreChat.InteractionState::class.java,
         ) { (_, state: StoreChat.InteractionState) ->
-            @Suppress("CAST_NEVER_SUCCEEDS")
-            val adapter = handlerAdapterMap[this as WidgetChatListAdapter.EventHandler] // cast required because ide is confused with nested classes
-                ?: return@after
+            val adapter = handlerAdapterMap[this] ?: return@after
 
             // Yes, top means bottom
             if (state.isAtTop) {
@@ -94,7 +94,7 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
 
         // Replaces the old endpoint with the new one to get extra information like pin timestamps and hasMore
         patcher.instead<RestAPI>("getChannelPins", Long::class.javaPrimitiveType!!) { (_, channelId: Long) ->
-            Observable.h0<List<com.discord.api.message.Message>> { emitter -> // Observable.create(onSubscribe: (emitter: Subscriber) -> Unit)
+            Observable.h0<List<ApiMessage>> { emitter -> // Observable.create(onSubscribe: (emitter: Subscriber) -> Unit)
                 val req = Http.Request.newDiscordRNRequest("/channels/${channelId}/messages/pins")
                 val res = req.execute()
                 if (!res.ok()) {
@@ -116,8 +116,7 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
             "configureUI",
             WidgetChannelPinnedMessages.Model::class.java
         ) { (param, model: WidgetChannelPinnedMessages.Model) ->
-            val adapter = widgetAdapterMap[this]
-                ?: return@before
+            val adapter = widgetAdapterMap[this] ?: return@before
 
             if (adapter.extension.hasMore) {
                 param.args[0] = model.copy(
@@ -147,35 +146,29 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
         adapter.extension.isFetching = true
 
         Utils.threadPool.execute {
-            val response = runCatching {
+            try {
                 val encodedTimestamp = URLEncoder.encode(adapter.extension.oldestPinTimestamp, "UTF-8")
                 val url = "/channels/${adapter.data.channelId}/messages/pins?before=${encodedTimestamp}"
-                Http.Request.newDiscordRNRequest(url)
+                val data = Http.Request.newDiscordRNRequest(url)
                     .execute()
                     .json(GsonUtils.gsonRestApi, GetChannelPinsResponse::class.java)
-            }
 
-            response.exceptionOrNull()?.let { exception ->
+                val olderPins = data.items.map { Message(it.message) }
+                adapter.extension.hasMore = data.hasMore
+
+                val pinStore = StoreStream.getPinnedMessages()
+                pinStore.dispatcher.schedule {
+                    @Suppress("UNCHECKED_CAST")
+                    val lastPins = StorePinnedMessages.`access$getPinnedMessages$p`(pinStore)[adapter.data.channelId] as List<Message>
+                    StorePinnedMessages.`access$handlePinnedMessagesLoaded`(
+                        StoreStream.getPinnedMessages(),
+                        adapter.data.channelId,
+                        lastPins + olderPins,
+                    )
+                    adapter.extension.isFetching = false
+                }
+            } catch (exception: Throwable) {
                 logger.error("Failed to fetch new pins", exception)
-                return@execute
-            }
-
-            val data = response.getOrNull()
-                ?: return@execute
-
-            val olderPins = data.items.map { Message(it.message) }
-            adapter.extension.hasMore = data.hasMore
-
-            val pinStore = StoreStream.getPinnedMessages()
-            pinStore.dispatcher.schedule {
-                @Suppress("UNCHECKED_CAST")
-                val lastPins = StorePinnedMessages.`access$getPinnedMessages$p`(pinStore)[adapter.data.channelId] as List<Message>
-                StorePinnedMessages.`access$handlePinnedMessagesLoaded`(
-                    StoreStream.getPinnedMessages(),
-                    adapter.data.channelId,
-                    lastPins + olderPins,
-                )
-                adapter.extension.isFetching = false
             }
         }
     }
@@ -212,15 +205,13 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
             val isPrivateDM = isPrivateChannel && !isSystemDM
             val isPinPermitted = isPrivateDM || PermissionUtils.can(PIN_MESSAGES_PERMISSION, permissions)
             val canPin = isPinPermitted && !isArchivedThread
-            param.setResult(
-                ManageMessageContext(
-                    result.canManageMessages,
-                    result.canEdit,
-                    result.canDelete,
-                    result.canAddReactions,
-                    canPin,
-                    result.canMarkUnread
-                )
+            param.result = ManageMessageContext(
+                result.canManageMessages,
+                result.canEdit,
+                result.canDelete,
+                result.canAddReactions,
+                canPin,
+                result.canMarkUnread
             )
         }
     }
