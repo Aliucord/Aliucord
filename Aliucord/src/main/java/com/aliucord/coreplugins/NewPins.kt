@@ -225,9 +225,9 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
             View::class.java,
         ) { (_, view: View) ->
             val layoutId = Utils.getResId("channel_permissions_text_container", "id")
-            val layout: LinearLayout = view.findViewById(layoutId)
+            val layout = view.findViewById<LinearLayout>(layoutId)
             val manageMessagesCheckboxId = Utils.getResId("channel_permission_text_manage_messages", "id")
-            val manageMessagesCheckbox: TernaryCheckBox = view.findViewById(manageMessagesCheckboxId)
+            val manageMessagesCheckbox = view.findViewById<TernaryCheckBox>(manageMessagesCheckboxId)
             val index = layout.indexOfChild(manageMessagesCheckbox) + 1
 
             // TODO: Should be changed after 2026/01/12, or when official client does
@@ -272,7 +272,7 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
                 return@after
             }
 
-            val pinMessagesCheckbox: TernaryCheckBox? = view.findViewById(pinMessagesCheckboxViewId)
+            val pinMessagesCheckbox = view.findViewById<TernaryCheckBox?>(pinMessagesCheckboxViewId)
             if (pinMessagesCheckbox == null) {
                 logger.error(IllegalStateException("Pin messages checkbox not found"))
                 return@after
