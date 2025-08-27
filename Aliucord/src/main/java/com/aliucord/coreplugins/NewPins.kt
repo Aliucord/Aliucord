@@ -25,11 +25,21 @@ import com.discord.widgets.chat.list.entries.LoadingEntry
 import com.discord.widgets.chat.pins.WidgetChannelPinnedMessages
 import rx.Observable
 import java.net.URLEncoder
+import java.util.Date
 import java.util.WeakHashMap
 
 import com.discord.api.message.Message as ApiMessage
 
 private const val PIN_MESSAGES_PERMISSION = 1L shl 51
+
+// After 2026/01/12, users will no longer be able to pin messages with the
+// Manage Messages permission.
+// https://discord.com/developers/docs/change-log#pin-permission-split
+// This constant is the Unix timestamp in ms at 2026/01/11, one day before the
+// breaking change. Code relating to this constant can be safely removed after
+// the switch.
+private const val MIGRATION_DEADLINE = 1768003200000L
+private val isPastDeadline get() = Date().time > MIGRATION_DEADLINE
 
 internal class NewPins : CorePlugin(Manifest("NewPins")) {
     override val isHidden: Boolean = true
@@ -195,10 +205,8 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
             ) ->
             val result = param.result as ManageMessageContext
 
-            // TODO: After 2026/01/12, users will no longer be able to pin messages with the
-            // Manage Messages permission, and this line should be removed around the same time.
-            // https://discord.com/developers/docs/change-log#pin-permission-split
-            if (result.canTogglePinned) return@after
+            // TODO: This line can be removed after 2026/01/12
+            if (result.canTogglePinned && !isPastDeadline) return@after
 
             val isPrivateDM = isPrivateChannel && !isSystemDM
             val isPinPermitted = isPrivateDM || PermissionUtils.can(PIN_MESSAGES_PERMISSION, permissions)
@@ -230,12 +238,20 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
             val manageMessagesCheckbox = view.findViewById<TernaryCheckBox>(manageMessagesCheckboxId)
             val index = layout.indexOfChild(manageMessagesCheckbox) + 1
 
-            // TODO: Should be changed after 2026/01/12, or when official client does
-            manageMessagesCheckbox.setLabel("Manage Messages ⚠")
-            manageMessagesCheckbox.setSubtext(
-                "Members with this permission can delete messages by other members or pin any message.*\n\n" +
-                "* Pinning messages now has a separate permission. This setting's behaviour will change soon."
-            )
+            // TODO: This block can be removed after 2026/01/12, keeping the else
+            if (!isPastDeadline) {
+                manageMessagesCheckbox.setLabel("Manage Messages ⚠")
+                manageMessagesCheckbox.setSubtext(
+                    "Members with this permission can delete messages by other members or pin any message.*\n\n" +
+                        "* Pinning messages now has a separate permission. This setting's behaviour will change soon."
+                )
+            } else {
+                // Texts could be changed later to match official clients, if they differ.
+                manageMessagesCheckbox.setLabel("Manage Messages")
+                manageMessagesCheckbox.setSubtext(
+                    "Members with this permission can delete messages by other members."
+                )
+            }
 
             TernaryCheckBox(view.context, null).addTo(layout, index) {
                 id = pinMessagesCheckboxViewId
