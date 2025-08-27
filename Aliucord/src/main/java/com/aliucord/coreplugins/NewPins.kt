@@ -1,9 +1,14 @@
 package com.aliucord.coreplugins
 
 import android.content.Context
+import android.text.SpannableString
+import android.text.SpannableStringBuilder
+import android.text.style.ForegroundColorSpan
+import android.util.TypedValue
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.LinearLayout.LayoutParams
+import androidx.constraintlayout.widget.ConstraintLayout
 import com.aliucord.Http
 import com.aliucord.Utils
 import com.aliucord.entities.CorePlugin
@@ -11,23 +16,31 @@ import com.aliucord.patcher.*
 import com.aliucord.utils.GsonUtils
 import com.aliucord.utils.SerializedName
 import com.aliucord.utils.ViewUtils.addTo
+import com.aliucord.utils.ViewUtils.label
+import com.aliucord.utils.ViewUtils.subtext
+import com.aliucord.wrappers.GuildRoleWrapper.Companion.permissions
 import com.discord.models.message.Message
 import com.discord.models.user.MeUser
+import com.discord.restapi.RestAPIParams
 import com.discord.stores.*
+import com.discord.utilities.color.ColorCompat
 import com.discord.utilities.permissions.ManageMessageContext
 import com.discord.utilities.permissions.PermissionUtils
 import com.discord.utilities.rest.RestAPI
+import com.discord.views.CheckedSetting
 import com.discord.views.TernaryCheckBox
 import com.discord.widgets.channels.permissions.WidgetChannelSettingsEditPermissions
 import com.discord.widgets.channels.permissions.`WidgetChannelSettingsEditPermissions$permissionCheckboxes$2`
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapter
 import com.discord.widgets.chat.list.entries.LoadingEntry
 import com.discord.widgets.chat.pins.WidgetChannelPinnedMessages
+import com.discord.widgets.servers.WidgetServerSettingsEditRole
+import com.discord.widgets.servers.WidgetServerSettingsEditRole.Model.ManageStatus
+import com.lytefast.flexinput.R
 import rx.Observable
 import java.net.URLEncoder
 import java.util.Date
 import java.util.WeakHashMap
-
 import com.discord.api.message.Message as ApiMessage
 
 private const val PIN_MESSAGES_PERMISSION = 1L shl 51
@@ -41,6 +54,29 @@ private const val PIN_MESSAGES_PERMISSION = 1L shl 51
 private const val MIGRATION_DEADLINE = 1768003200000L
 private val isPastDeadline get() = Date().time > MIGRATION_DEADLINE
 
+// TODO: Post migration strings are made up, and might differ from official clients later.
+private val MANAGE_MESSAGES_TEXT = if (!isPastDeadline) {
+    "Manage Messages ⚠"
+} else {
+    "Manage Messages"
+}
+
+private val MANAGE_MESSAGES_SUBTEXT = if (!isPastDeadline) {
+    SpannableStringBuilder().apply {
+        append("Members with this permission can delete messages by other members or pin any message.*\n\n")
+        append(
+            "* Pinning messages now has a separate permission. This setting's behaviour will change soon.",
+            ForegroundColorSpan(Utils.appContext.getColor(R.c.status_yellow)),
+            SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+    }
+} else {
+    "Members with this permission can delete messages by other members."
+}
+
+private const val PIN_MESSAGES_TEXT = "Pin Messages"
+private const val PIN_MESSAGES_SUBTEXT = "Allows members to pin or unpin any message."
+
 internal class NewPins : CorePlugin(Manifest("NewPins")) {
     override val isHidden: Boolean = true
     override val isRequired: Boolean = true
@@ -48,7 +84,8 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
     override fun start(context: Context) {
         patchPinnedMessages()
         patchMessageContext()
-        patchPermissionsEditor()
+        patchChannelPermissionsEditor()
+        patchRolePermissionsEditor()
     }
 
     override fun stop(context: Context) { }
@@ -222,8 +259,98 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
         }
     }
 
-    // Patches the permissions editor to show new permission
-    private fun patchPermissionsEditor() {
+    // Patches the role permissions editor to show new permission
+    private fun patchRolePermissionsEditor() {
+        val pinMessagesCheckboxViewId = View.generateViewId()
+
+        // Patches the editor to add the new permission checkbox
+        patcher.before<WidgetServerSettingsEditRole>(
+            "onViewBound",
+            View::class.java,
+        ) { (_, view: View) ->
+            val manageMessagesCheckboxId = Utils.getResId("role_settings_manage_messages", "id")
+            val manageMessagesCheckbox = view.findViewById<CheckedSetting>(manageMessagesCheckboxId)
+            val layout = manageMessagesCheckbox.parent as LinearLayout
+            val index = layout.indexOfChild(manageMessagesCheckbox) + 1
+
+            manageMessagesCheckbox.setText(MANAGE_MESSAGES_TEXT)
+            manageMessagesCheckbox.setSubtext(MANAGE_MESSAGES_SUBTEXT)
+
+            CheckedSetting(view.context, null).addTo(layout, index) {
+                id = pinMessagesCheckboxViewId
+                layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+
+                label.run {
+                    setTextColor(ColorCompat.getThemedColor(view.context, R.b.primary_100))
+                    setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimension(R.d.uikit_textsize_large))
+                    text = PIN_MESSAGES_TEXT
+                    layoutParams = (layoutParams as ConstraintLayout.LayoutParams).apply {
+                        marginStart = 0
+                    }
+                }
+                subtext.run {
+                    setTextColor(ColorCompat.getThemedColor(view.context, R.b.primary_300))
+                    setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimension(R.d.uikit_textsize_medium))
+                    text = PIN_MESSAGES_SUBTEXT
+                    layoutParams = (layoutParams as ConstraintLayout.LayoutParams).apply {
+                        marginStart = 0
+                    }
+                }
+            }
+        }
+
+        // Patches the method responsible for handling logic related to permissions (checked state, update request, etc..)
+        patcher.after<WidgetServerSettingsEditRole>(
+            "setupPermissionsSettings",
+            WidgetServerSettingsEditRole.Model::class.java
+        ) { (_, model: WidgetServerSettingsEditRole.Model) ->
+            val view = this.view
+            if (view == null) {
+                logger.error(IllegalStateException("View was not initialised"))
+                return@after
+            }
+            val pinMessagesCheckbox = view.findViewById<CheckedSetting?>(pinMessagesCheckboxViewId)
+            if (pinMessagesCheckbox == null) {
+                logger.error(IllegalStateException("Pin messages checkbox not found"))
+                return@after
+            }
+
+            val permissionEnabled = PermissionUtils.can(PIN_MESSAGES_PERMISSION, model.role.permissions)
+            pinMessagesCheckbox.isChecked = permissionEnabled
+            val manageStatus = model.manageStatus ?: ManageStatus.NO_MANAGE_ROLES_PERMISSION
+            if (manageStatus == ManageStatus.CAN_MANAGE_ADMIN) {
+                enableRoleSetting(pinMessagesCheckbox, model)
+            } else if (manageStatus == ManageStatus.CAN_MANAGE_CONDITIONAL) {
+                val selfCan = PermissionUtils.can(PIN_MESSAGES_PERMISSION, model.myPermissions)
+                if (!selfCan) {
+                    // You don't have permission to change this
+                    pinMessagesCheckbox.b(R.h.help_missing_permission) // onClickToastText(stringId)
+                } else if (model.isSingular(PIN_MESSAGES_PERMISSION) && permissionEnabled) {
+                    // Removing the permission from the role would remove it from yourself
+                    pinMessagesCheckbox.b(R.h.help_singular_permission) // onClickToastText(stringId)
+                } else {
+                    enableRoleSetting(pinMessagesCheckbox, model)
+                }
+            } else {
+                val toastMessage = WidgetServerSettingsEditRole.`access$getLockMessage`(this, model, false)
+                pinMessagesCheckbox.c(toastMessage) // onClickToastText(string)
+            }
+        }
+    }
+
+    // Ref: WidgetServerSettingsEditRole$enableSetting$1
+    private fun WidgetServerSettingsEditRole.enableRoleSetting(checkbox: CheckedSetting, model: WidgetServerSettingsEditRole.Model) {
+        checkbox.e { // setOnClickListener
+            val binding = WidgetServerSettingsEditRole.`access$getBinding$p`(this)
+            binding.b.clearFocus() // TextInputLayout.clearFocus()
+            val roleUpdateParams = RestAPIParams.Role.createWithRole(model.role)
+            roleUpdateParams.permissions = model.role.permissions xor PIN_MESSAGES_PERMISSION
+            WidgetServerSettingsEditRole.`access$patchRole`(this, model.guildId, roleUpdateParams)
+        }
+    }
+
+    // Patches the channel permissions editor to show new permission
+    private fun patchChannelPermissionsEditor() {
         val pinMessagesCheckboxViewId = View.generateViewId()
 
         // Patches the editor to add our new pin messages checkbox and change the information
@@ -238,32 +365,20 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
             val manageMessagesCheckbox = view.findViewById<TernaryCheckBox>(manageMessagesCheckboxId)
             val index = layout.indexOfChild(manageMessagesCheckbox) + 1
 
-            // TODO: This block can be removed after 2026/01/12, keeping the else
-            if (!isPastDeadline) {
-                manageMessagesCheckbox.setLabel("Manage Messages ⚠")
-                manageMessagesCheckbox.setSubtext(
-                    "Members with this permission can delete messages by other members or pin any message.*\n\n" +
-                        "* Pinning messages now has a separate permission. This setting's behaviour will change soon."
-                )
-            } else {
-                // Texts could be changed later to match official clients, if they differ.
-                manageMessagesCheckbox.setLabel("Manage Messages")
-                manageMessagesCheckbox.setSubtext(
-                    "Members with this permission can delete messages by other members."
-                )
-            }
+            manageMessagesCheckbox.setLabel(MANAGE_MESSAGES_TEXT)
+            manageMessagesCheckbox.setSubtext(MANAGE_MESSAGES_SUBTEXT)
 
             TernaryCheckBox(view.context, null).addTo(layout, index) {
                 id = pinMessagesCheckboxViewId
                 layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
 
                 this.k.e.run { /* label.run */
-                    text = "Pin Messages"
+                    text = PIN_MESSAGES_TEXT
                     visibility = View.VISIBLE
                 }
 
                 this.k.f.run { /* subtext.run */
-                    text = "Allows members to pin or unpin any message."
+                    text = PIN_MESSAGES_SUBTEXT
                     visibility = View.VISIBLE
                 }
             }
