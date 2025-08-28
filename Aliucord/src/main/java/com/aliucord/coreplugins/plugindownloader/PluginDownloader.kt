@@ -112,7 +112,7 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
 
                 val plugin = PluginFile(name)
                 addEntry(layout, "${if (plugin.isInstalled) "Reinstall" else "Install"} $name") {
-                    plugin.install("https://github.com/$author/$repo/raw/$commit/$plugin.zip")
+                    plugin.install("https://github.com/$author/$repo/raw/$commit/$name.zip")
                     actions.dismiss()
                 }
             }
