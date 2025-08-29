@@ -292,7 +292,8 @@ object PluginManager {
             SupporterBadges(),
             TokenLogin(),
             UploadSize(),
-            AlignThreads()
+            AlignThreads(),
+            RemoveBilling()
         )
 
         corePlugins.forEach { p ->
