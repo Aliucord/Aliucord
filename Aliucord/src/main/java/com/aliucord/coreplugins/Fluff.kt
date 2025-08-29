@@ -14,8 +14,12 @@ internal class Fluff : CorePlugin(Manifest().apply {
     name = "Fluff"
     description = "Adds support for various user decorations"
 }) {
-    // TODO: make visible once plugin is finished
+    // TODO: make visible once plugin is ready
     override val isHidden = true
+
+    init {
+        settingsTab = SettingsTab(FluffSettings.Sheet::class.java, SettingsTab.Type.BOTTOM_SHEET)
+    }
 
     override fun start(context: Context) {
         if (!FluffSettings.enable) return
