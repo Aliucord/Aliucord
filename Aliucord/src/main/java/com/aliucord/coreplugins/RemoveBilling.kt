@@ -16,6 +16,7 @@ import com.discord.widgets.servers.guildboost.WidgetGuildBoost
 import com.discord.widgets.settings.profile.WidgetEditProfileBannerSheet
 import b.a.a.b.d
 import b.a.a.b.c
+import com.discord.widgets.stickers.UnsendableStickerPremiumUpsellDialog
 
 internal class RemoveBilling : CorePlugin(Manifest("RemoveBilling")) {
     override val isHidden = true
@@ -50,14 +51,19 @@ internal class RemoveBilling : CorePlugin(Manifest("RemoveBilling")) {
                 removeTextView(view, Utils.getResId(i, "id"))
             }
         }
-        // Remove "Get Nitro" button from when trying to upload a custom banner
+        // Remove the "Get Nitro" button from when trying to upload a custom banner
         patcher.after<d>("onViewBound", View::class.java) { (_, view: View) ->
             var view = view.findViewById<RelativeLayout>(Utils.getResId("get_premium_button", "id"))
             view.setVisibility(View.GONE)
         }
-        // Remove "Get Nitro" button from when trying to use an emoji from another server
+        // Remove the "Get Nitro" button from when trying to use an emoji from another server
         patcher.after<c>("onViewBound", View::class.java) { (_, view: View) ->
             var view = view.findViewById<View>(Utils.getResId("premium_upsell_get_premium", "id"))
+            view.setVisibility(View.GONE)
+        }
+        // Remove the "Subscribe" button from when trying to use a sticker from another server
+        patcher.after<UnsendableStickerPremiumUpsellDialog>("onViewBound", View::class.java) { (_, view: View) ->
+            var view = view.findViewById<View>(Utils.getResId("sticker_premium_upsell_subscribe_button", "id"))
             view.setVisibility(View.GONE)
         }
     }
