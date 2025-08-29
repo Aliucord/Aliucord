@@ -143,7 +143,7 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
 
         // Replaces the old endpoint with the new one to get extra information like pin timestamps and hasMore
         patcher.instead<RestAPI>("getChannelPins", Long::class.javaPrimitiveType!!) { (_, channelId: Long) ->
-            RxUtils.create { subscriber ->
+            RxUtils.create<List<ApiMessage>> { subscriber ->
                 val req = Http.Request.newDiscordRNRequest("/channels/${channelId}/messages/pins")
                 val res = req.execute()
                 if (!res.ok()) {
