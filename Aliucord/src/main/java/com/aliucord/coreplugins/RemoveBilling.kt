@@ -18,6 +18,8 @@ import b.a.a.b.d
 import b.a.a.b.c
 
 internal class RemoveBilling : CorePlugin(Manifest("RemoveBilling")) {
+    override val isHidden = true
+    
     init {
         manifest.description = "Removes all references to billing"
     }
