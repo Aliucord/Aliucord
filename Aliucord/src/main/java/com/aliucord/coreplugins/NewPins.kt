@@ -90,13 +90,16 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
 
     override fun stop(context: Context) { }
 
-    private data class ChannelPinsExtension(
+    private data class PinStateExtra(
         var isFetching: Boolean = false,
         var hasMore: Boolean = true,
         var oldestPinTimestamp: String? = null,
-    )
-    private val pinExtensionData = HashMap<Long, ChannelPinsExtension>()
-    private val WidgetChatListAdapter.extension get() = pinExtensionData.getOrPut(this.data.channelId) { ChannelPinsExtension() }
+    ) {
+        companion object {
+            private val channelPins = HashMap<Long, PinStateExtra>()
+            fun of(channelId: Long) = channelPins.getOrPut(channelId) { PinStateExtra() }
+        }
+    }
 
     private data class GetChannelPinsResponse(
         val items: List<MessagePin>,
@@ -147,36 +150,24 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
                     emitter.onNext(listOf())
                 } else {
                     val data = res.json(GsonUtils.gsonRestApi, GetChannelPinsResponse::class.java)
-                    val extension = pinExtensionData.getOrPut(channelId) { ChannelPinsExtension() }
-                    extension.hasMore = data.hasMore
-                    extension.oldestPinTimestamp = data.items.last().pinnedAt
+                    val state = PinStateExtra.of(channelId)
+                    state.hasMore = data.hasMore
+                    state.oldestPinTimestamp = data.items.last().pinnedAt
                     emitter.onNext(data.items.map { it.message })
                 }
                 emitter.onCompleted()
             }
         }
 
+        val modelListField = WidgetChannelPinnedMessages.Model::class.java.getDeclaredField("list")
+            .apply { isAccessible = true }
         // Adds a cute loading icon when there's more to be loaded
         patcher.before<WidgetChannelPinnedMessages>(
             "configureUI",
             WidgetChannelPinnedMessages.Model::class.java
-        ) { (param, model: WidgetChannelPinnedMessages.Model) ->
-            val adapter = widgetAdapterMap[this] ?: return@before
-
-            if (adapter.extension.hasMore) {
-                param.args[0] = model.copy(
-                    model.channel,
-                    model.guild,
-                    model.userId,
-                    model.channelNames,
-                    model.list + LoadingEntry(),
-                    model.myRoleIds,
-                    model.channelId,
-                    model.guildId,
-                    model.oldestMessageId,
-                    model.newMessagesMarkerMessageId,
-                    model.isSpoilerClickAllowed,
-                )
+        ) { (_, model: WidgetChannelPinnedMessages.Model) ->
+            if (PinStateExtra.of(model.channelId).hasMore) {
+                modelListField.set(model, model.list + LoadingEntry())
             }
         }
     }
@@ -184,22 +175,24 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
     // Fetch more pins
     private fun requestMorePins(adapter: WidgetChatListAdapter) {
         if (adapter.data.list.size < 50) return
-        if (adapter.extension.isFetching) return
-        if (!adapter.extension.hasMore) return
-        if (adapter.extension.oldestPinTimestamp == null) return
 
-        adapter.extension.isFetching = true
+        val state = PinStateExtra.of(adapter.data.channelId)
+        if (state.isFetching) return
+        if (!state.hasMore) return
+        if (state.oldestPinTimestamp == null) return
+
+        state.isFetching = true
 
         Utils.threadPool.execute {
             try {
-                val encodedTimestamp = URLEncoder.encode(adapter.extension.oldestPinTimestamp, "UTF-8")
+                val encodedTimestamp = URLEncoder.encode(state.oldestPinTimestamp, "UTF-8")
                 val url = "/channels/${adapter.data.channelId}/messages/pins?before=${encodedTimestamp}"
                 val data = Http.Request.newDiscordRNRequest(url)
                     .execute()
                     .json(GsonUtils.gsonRestApi, GetChannelPinsResponse::class.java)
 
                 val olderPins = data.items.map { Message(it.message) }
-                adapter.extension.hasMore = data.hasMore
+                state.hasMore = data.hasMore
 
                 val pinStore = StoreStream.getPinnedMessages()
                 pinStore.dispatcher.schedule {
@@ -210,7 +203,7 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
                         adapter.data.channelId,
                         lastPins + olderPins,
                     )
-                    adapter.extension.isFetching = false
+                    state.isFetching = false
                 }
             } catch (exception: Throwable) {
                 logger.error("Failed to fetch new pins", exception)
