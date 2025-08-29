@@ -9,3 +9,18 @@
  .field private final id:J
  
  .field private final locale:Ljava/lang/String;
+@@ -185,6 +187,14 @@
+ 
+ .field private final verified:Ljava/lang/Boolean;
+ 
++.field public avatarDecorationData:Lcom/discord/api/user/AvatarDecoration;
++
++.field public collectibles:Lcom/discord/api/user/Collectibles;
++
++.field public displayNameStyles:Lcom/discord/api/user/DisplayNameStyle;
++
++.field public primaryGuild:Lcom/discord/api/user/PrimaryGuild;
++
+ 
+ # direct methods
+ .method public constructor <init>(JLjava/lang/String;Lcom/discord/nullserializable/NullSerializable;Lcom/discord/nullserializable/NullSerializable;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Lcom/discord/api/user/NsfwAllowance;Ljava/lang/Boolean;Lcom/discord/api/user/Phone;Ljava/lang/String;Lcom/discord/api/premium/PremiumTier;Ljava/lang/Integer;Lcom/discord/api/guildmember/GuildMember;Lcom/discord/nullserializable/NullSerializable;Lcom/discord/nullserializable/NullSerializable;I)V
