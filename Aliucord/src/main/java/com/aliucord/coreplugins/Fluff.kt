@@ -1,10 +1,9 @@
 package com.aliucord.coreplugins
 
 import android.content.Context
-import com.aliucord.api.SettingsAPI
+import com.aliucord.coreplugins.fluff.FluffSettings
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
-import com.aliucord.settings.delegate
 import com.aliucord.updater.ManagerBuild
 import com.aliucord.wrappers.users.*
 import com.discord.api.user.User
@@ -15,14 +14,11 @@ internal class Fluff : CorePlugin(Manifest().apply {
     name = "Fluff"
     description = "Adds support for various user decorations"
 }) {
-    // Disable by default, but allows enabling for testing by manually editing the json settings
-    private val SettingsAPI.enable by settings.delegate(false)
-
     // TODO: make visible once plugin is finished
     override val isHidden = true
 
     override fun start(context: Context) {
-        if (!settings.enable) return
+        if (!FluffSettings.enable) return
         if (!ManagerBuild.hasInjector("2.3.0") || !ManagerBuild.hasPatches("1.3.0")) {
             logger.warn("Base app outdated, cannot enable Fluff")
             return
