@@ -14,6 +14,7 @@ import com.aliucord.Utils
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.utils.GsonUtils
+import com.aliucord.utils.RxUtils
 import com.aliucord.utils.SerializedName
 import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.utils.ViewUtils.label
@@ -142,20 +143,20 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
 
         // Replaces the old endpoint with the new one to get extra information like pin timestamps and hasMore
         patcher.instead<RestAPI>("getChannelPins", Long::class.javaPrimitiveType!!) { (_, channelId: Long) ->
-            Observable.h0<List<ApiMessage>> { emitter -> // Observable.create(onSubscribe: (emitter: Subscriber) -> Unit)
+            RxUtils.create { subscriber ->
                 val req = Http.Request.newDiscordRNRequest("/channels/${channelId}/messages/pins")
                 val res = req.execute()
                 if (!res.ok()) {
                     logger.errorToast("Error while fetching pins: ${res.statusCode}: ${res.statusMessage}", null)
-                    emitter.onNext(listOf())
+                    subscriber.onNext(listOf())
                 } else {
                     val data = res.json(GsonUtils.gsonRestApi, GetChannelPinsResponse::class.java)
                     val state = PinStateExtra.of(channelId)
                     state.hasMore = data.hasMore
                     state.oldestPinTimestamp = data.items.last().pinnedAt
-                    emitter.onNext(data.items.map { it.message })
+                    subscriber.onNext(data.items.map { it.message })
                 }
-                emitter.onCompleted()
+                subscriber.onCompleted()
             }
         }
 
