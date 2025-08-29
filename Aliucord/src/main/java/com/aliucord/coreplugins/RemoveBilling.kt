@@ -19,7 +19,7 @@ import b.a.a.b.c
 
 internal class RemoveBilling : CorePlugin(Manifest("RemoveBilling")) {
     init {
-        manifest.description = "Removes all referrences to billing"
+        manifest.description = "Removes all references to billing"
     }
 
     override fun start(context: Context) {
