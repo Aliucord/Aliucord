@@ -2,6 +2,7 @@ package com.aliucord.coreplugins
 
 import android.content.Context
 import com.aliucord.coreplugins.fluff.FluffSettings
+import com.aliucord.coreplugins.fluff.GuildTags
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.updater.ManagerBuild
@@ -17,21 +18,18 @@ internal class Fluff : CorePlugin(Manifest().apply {
     name = "Fluff"
     description = "Adds support for various user decorations"
 }) {
-    // TODO: make visible once plugin is ready
-    override val isHidden = true
-
     init {
         settingsTab = SettingsTab(FluffSettings.Sheet::class.java, SettingsTab.Type.BOTTOM_SHEET)
     }
 
     override fun start(context: Context) {
-        if (!FluffSettings.enable) return
         if (!ManagerBuild.hasInjector("2.3.0") || !ManagerBuild.hasPatches("1.3.0")) {
             logger.warn("Base app outdated, cannot enable Fluff")
             return
         }
 
         patchFields()
+        GuildTags.patch(patcher)
     }
 
     override fun stop(context: Context) {
