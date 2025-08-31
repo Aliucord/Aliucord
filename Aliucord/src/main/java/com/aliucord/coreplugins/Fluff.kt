@@ -7,8 +7,11 @@ import com.aliucord.patcher.*
 import com.aliucord.updater.ManagerBuild
 import com.aliucord.wrappers.users.*
 import com.discord.api.user.User
+import com.discord.models.member.GuildMember
 import com.discord.models.user.CoreUser
 import com.discord.models.user.MeUser
+import com.discord.stores.StoreGuilds
+import com.discord.api.guildmember.GuildMember as ApiGuildMember
 
 internal class Fluff : CorePlugin(Manifest().apply {
     name = "Fluff"
@@ -27,6 +30,7 @@ internal class Fluff : CorePlugin(Manifest().apply {
             logger.warn("Base app outdated, cannot enable Fluff")
             return
         }
+
         patchFields()
     }
 
@@ -63,6 +67,28 @@ internal class Fluff : CorePlugin(Manifest().apply {
             (api.collectibles ?: old.collectibles)?.let { res.collectibles = it }
             (api.displayNameStyles ?: old.displayNameStyles)?.let { res.displayNameStyles = it }
             (api.primaryGuild ?: old.primaryGuild)?.let { res.primaryGuild = it }
+        }
+
+        // The signature is huge, and it's a static method so can't be patched by patcher.after due to a bug
+        // Therefore I (Lava) have opted to do this instead
+        // This method would be ApiGuildMember.copy$default
+        patcher.patch(ApiGuildMember::class.java.declaredMethods.first { it.name == "a" }) { (param, old: ApiGuildMember) ->
+            val res = param.result as ApiGuildMember
+            res.avatarDecorationData = old.avatarDecorationData
+            res.collectibles = old.collectibles
+        }
+
+        patcher.after<GuildMember.Companion>(
+            "from",
+            ApiGuildMember::class.java,
+            Long::class.javaPrimitiveType!!,
+            Map::class.java,
+            StoreGuilds::class.java,
+        ) { (param, api: ApiGuildMember) ->
+            val res = param.result as GuildMember
+
+            res.avatarDecorationData = api.avatarDecorationData
+            res.collectibles = api.collectibles
         }
     }
 }
