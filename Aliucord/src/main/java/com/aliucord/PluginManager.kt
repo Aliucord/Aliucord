@@ -284,6 +284,7 @@ object PluginManager {
             PrivateChannelsListScroll(),
             PrivateThreads(),
             RestartButton(),
+            RemoveBilling(),
             RNAPI(),
             Pronouns(),
             ShowReplyMention(),
@@ -293,7 +294,6 @@ object PluginManager {
             TokenLogin(),
             UploadSize(),
             AlignThreads(),
-            RemoveBilling()
         )
 
         corePlugins.forEach { p ->
