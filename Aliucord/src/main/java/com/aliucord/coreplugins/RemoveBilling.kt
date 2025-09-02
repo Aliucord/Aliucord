@@ -36,6 +36,13 @@ internal class RemoveBilling : CorePlugin(Manifest("RemoveBilling")) {
             }
         }
 
+        // Remove Gift button
+        patcher.after<`FlexInputFragment$d`>("invoke", Any::class.java) {
+			val fragment = this.receiver as FlexInputFragment
+			val binding = fragment.j() ?: return@after
+			binding.m.visibility = View.GONE
+		}
+
         // Remove boost/subscribe buttons on Boosting page
         patcher.after<WidgetGuildBoost>("onViewBound", View::class.java) { (_, view: View) ->
             var ids = arrayOf("boost_status_subscribe_button", "boost_status_protip", "boost_status_subscribe_button2", "view_premium_marketing_learn_more", "menu_premium_guild")
