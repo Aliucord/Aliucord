@@ -23,8 +23,8 @@ internal class PluginFile(val plugin: String) : File("${Constants.PLUGINS_PATH}/
         Utils.threadPool.execute {
             val isReinstall = isInstalled
             if (PluginManager.plugins[plugin] is CorePlugin) {
-                Utils.showToast("You cannot install this plugin because it has the same name as an existing coreplugin :|")
-                throw IOException()
+                Utils.showToast("External plugins are not able to override built-in coreplugins!")
+                return
             }
             
             try {
