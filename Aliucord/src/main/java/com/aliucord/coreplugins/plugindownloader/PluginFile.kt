@@ -24,7 +24,7 @@ internal class PluginFile(val plugin: String) : File("${Constants.PLUGINS_PATH}/
             val isReinstall = isInstalled
             if (PluginManager.plugins[plugin] is CorePlugin) {
                 Utils.showToast("External plugins are not able to override built-in coreplugins!")
-                return
+                throw IOException()
             }
             
             try {
