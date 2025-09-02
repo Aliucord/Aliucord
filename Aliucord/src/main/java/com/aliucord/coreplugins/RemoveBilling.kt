@@ -62,6 +62,8 @@ internal class RemoveBilling : CorePlugin(Manifest("RemoveBilling")) {
         // Remove the "Get Nitro" button from when trying to use an emoji from another server
         patcher.after<c>("onViewBound", View::class.java) { (_, view: View) ->
             val textview = view.findViewById<View>(Utils.getResId("premium_upsell_get_premium", "id")); textview.setVisibility(View.GONE)
+            // Remove the "Learn more" button from when trying to use an animated avatar
+            val textview2 = view.findViewById<View>(Utils.getResId("premium_upsell_learn_more", "id")); textview2.setVisibility(View.GONE)
         }
 
         // Remove the "Subscribe" button from when trying to use a sticker from another server
