@@ -270,6 +270,7 @@ object PluginManager {
     @JvmStatic
     fun loadCorePlugins(context: Context) {
         val corePlugins = arrayOf(
+            AlignThreads(),
             ButtonsAPI(),
             CommandHandler(),
             CoreCommands(),
@@ -283,17 +284,16 @@ object PluginManager {
             Polls(),
             PrivateChannelsListScroll(),
             PrivateThreads(),
-            RestartButton(),
-            RemoveBilling(),
-            RNAPI(),
             Pronouns(),
+            RNAPI(),
+            RemoveBilling(),
+            RestartButton(),
             ShowReplyMention(),
             StickerCrashFix(),
             SupportWarn(),
             SupporterBadges(),
             TokenLogin(),
             UploadSize(),
-            AlignThreads(),
         )
 
         corePlugins.forEach { p ->
