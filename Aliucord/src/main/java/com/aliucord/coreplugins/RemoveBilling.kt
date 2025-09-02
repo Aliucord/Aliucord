@@ -21,68 +21,59 @@ import com.discord.widgets.settings.WidgetSettingsMedia
 
 internal class RemoveBilling : CorePlugin(Manifest("RemoveBilling")) {
     override val isHidden = true
-    
+
     init {
-        manifest.description = "Removes all references to billing"
+        manifest.description = "Removes all references to billing and nitro"
     }
 
     override fun start(context: Context) {
         // Remove Billing settings
         patcher.after<WidgetSettings>("onViewBound", View::class.java) { (_, view: View) ->
-            var container: LinearLayout = view.findViewById(Utils.getResId("nitro_settings_container", "id"))
-            var ids = arrayOf("settings_nitro", "nitro_boosting", "nitro_header")
-            for (i in ids) {
-                container.removeView(view.findViewById(Utils.getResId(i, "id")))
+            var container = view.findViewById<LinearLayout>(Utils.getResId("nitro_settings_container", "id"))
+            for (id in arrayOf("settings_nitro", "nitro_boosting", "nitro_header")) {
+                container.removeView(view.findViewById(Utils.getResId(id, "id")))
             }
             // Remove Billing settings divider
             container.removeViewAt(0)
             // Remove the Nitro gifting setting
-            removeTextView(view, Utils.getResId("nitro_gifting", "id"))
+            val textview = view.findViewById<TextView>(Utils.getResId("nitro_gifting", "id")); textview.setVisibility(View.GONE)
         }
-        
+
         // Remove Gift button
         patcher.after<`FlexInputFragment$d`>("invoke", Any::class.java) {
 			val fragment = this.receiver as FlexInputFragment
 			val binding = fragment.j() ?: return@after
 			binding.m.visibility = View.GONE
 		}
-        
+
         // Remove boost/subscribe buttons on Boosting page
         patcher.after<WidgetGuildBoost>("onViewBound", View::class.java) { (_, view: View) ->
             var ids = arrayOf("boost_status_subscribe_button", "boost_status_protip", "boost_status_subscribe_button2", "view_premium_marketing_learn_more", "menu_premium_guild")
             for (i in ids) {
-                removeTextView(view, Utils.getResId(i, "id"))
+                val textview = view.findViewById<TextView>(Utils.getResId(i, "id")); textview.setVisibility(View.GONE)
             }
         }
-        
+
         // Remove the "Get Nitro" button from when trying to upload a custom banner
         patcher.after<d>("onViewBound", View::class.java) { (_, view: View) ->
-            var view = view.findViewById<RelativeLayout>(Utils.getResId("get_premium_button", "id"))
-            view.setVisibility(View.GONE)
+            val textview = view.findViewById<RelativeLayout>(Utils.getResId("get_premium_button", "id")); textview.setVisibility(View.GONE)
         }
-        
+
         // Remove the "Get Nitro" button from when trying to use an emoji from another server
         patcher.after<c>("onViewBound", View::class.java) { (_, view: View) ->
-            var view = view.findViewById<View>(Utils.getResId("premium_upsell_get_premium", "id"))
-            view.setVisibility(View.GONE)
+            val textview = view.findViewById<View>(Utils.getResId("premium_upsell_get_premium", "id")); textview.setVisibility(View.GONE)
         }
-        
+
         // Remove the "Subscribe" button from when trying to use a sticker from another server
         patcher.after<UnsendableStickerPremiumUpsellDialog>("onViewBound", View::class.java) { (_, view: View) ->
-            var view = view.findViewById<View>(Utils.getResId("sticker_premium_upsell_subscribe_button", "id"))
-            view.setVisibility(View.GONE)
+            val textview = view.findViewById<View>(Utils.getResId("sticker_premium_upsell_subscribe_button", "id")); textview.setVisibility(View.GONE)
         }
 
         // Remove the Nitro advertisement on the "Auto-compress Images" toggle
         patcher.after<WidgetSettingsMedia>("onViewBound", View::class.java) { (_, view: View) ->
-            removeTextView(view, Utils.getResId("compression_toggle_subtext", "id"))
+            val textview = view.findViewById<TextView>(Utils.getResId("compression_toggle_subtext", "id")); textview.setVisibility(View.GONE)
         }
     }
 
     override fun stop(context: Context) = patcher.unpatchAll()
-
-    private fun removeTextView(rootView: View, textViewId: Int) {
-        val textView = rootView.findViewById<TextView>(textViewId)
-        textView.setVisibility(View.GONE)
-    }
 }
