@@ -18,6 +18,7 @@ import b.a.a.b.d
 import b.a.a.b.c
 import com.discord.widgets.stickers.UnsendableStickerPremiumUpsellDialog
 import com.discord.widgets.settings.WidgetSettingsMedia
+import com.discord.widgets.settings.premium.`WidgetSettingsGifting$binding$2`
 
 internal class RemoveBilling : CorePlugin(Manifest("RemoveBilling")) {
     override val isHidden = true
@@ -30,21 +31,10 @@ internal class RemoveBilling : CorePlugin(Manifest("RemoveBilling")) {
         // Remove Billing settings
         patcher.after<WidgetSettings>("onViewBound", View::class.java) { (_, view: View) ->
             var container = view.findViewById<LinearLayout>(Utils.getResId("nitro_settings_container", "id"))
-            for (id in arrayOf("settings_nitro", "nitro_boosting", "nitro_header")) {
+            for (id in arrayOf("settings_nitro", "nitro_boosting")) {
                 container.removeView(view.findViewById(Utils.getResId(id, "id")))
             }
-            // Remove Billing settings divider
-            container.removeViewAt(0)
-            // Remove the Nitro gifting setting
-            val textview = view.findViewById<TextView>(Utils.getResId("nitro_gifting", "id")); textview.setVisibility(View.GONE)
         }
-
-        // Remove Gift button
-        patcher.after<`FlexInputFragment$d`>("invoke", Any::class.java) {
-			val fragment = this.receiver as FlexInputFragment
-			val binding = fragment.j() ?: return@after
-			binding.m.visibility = View.GONE
-		}
 
         // Remove boost/subscribe buttons on Boosting page
         patcher.after<WidgetGuildBoost>("onViewBound", View::class.java) { (_, view: View) ->
@@ -62,8 +52,6 @@ internal class RemoveBilling : CorePlugin(Manifest("RemoveBilling")) {
         // Remove the "Get Nitro" button from when trying to use an emoji from another server
         patcher.after<c>("onViewBound", View::class.java) { (_, view: View) ->
             val textview = view.findViewById<View>(Utils.getResId("premium_upsell_get_premium", "id")); textview.setVisibility(View.GONE)
-            // Remove the "Learn more" button from when trying to use an animated avatar
-            val textview2 = view.findViewById<View>(Utils.getResId("premium_upsell_learn_more", "id")); textview2.setVisibility(View.GONE)
         }
 
         // Remove the "Subscribe" button from when trying to use a sticker from another server
@@ -75,6 +63,12 @@ internal class RemoveBilling : CorePlugin(Manifest("RemoveBilling")) {
         patcher.after<WidgetSettingsMedia>("onViewBound", View::class.java) { (_, view: View) ->
             val textview = view.findViewById<TextView>(Utils.getResId("compression_toggle_subtext", "id")); textview.setVisibility(View.GONE)
         }
+
+        // Remove some nonfunctional elements in the Gifting page
+        patcher.after<`WidgetSettingsGifting$binding$2`>("invoke", View::class.java) { (_, view: View) ->
+            val textview = view.findViewById<LinearLayout>(Utils.getResId("settings_gifting_purchase_gift_section", "id")); textview.setVisibility(View.GONE)
+        }
+
     }
 
     override fun stop(context: Context) = patcher.unpatchAll()
