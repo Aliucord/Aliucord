@@ -50,6 +50,8 @@ import rx.Observable
 import java.lang.reflect.Type
 import java.util.Collections
 import com.discord.models.user.User as ModelUser
+import com.discord.api.message.embed.MessageEmbed;
+import com.discord.api.message.embed.EmbedType.*;
 
 fun patchNextCallAdapter() {
     val oldUserProfile = TypeToken.getParameterized(Observable::class.java, UserProfile::class.java).type
@@ -252,6 +254,21 @@ fun patchStickers() {
 fun patchVoice() {
     // don't send heartbeat ("op": 3) on connect
     Patcher.addPatch(b.a.q.n0.a::class.java.getDeclaredMethod("k"), InsteadHook.DO_NOTHING)
+}
+
+fun patchMessageEmbeds() {
+	Patcher.addPatch(MessageEmbed::class.java.getDeclaredMethod("k"), Hook{
+		val embed = it.thisObject as MessageEmbed;
+		if(it.result == RICH){
+			if(embed.m() != null){
+				it.result = VIDEO;
+			}else if(embed.c() != null && embed.h() != null){
+				it.result = ARTICLE;
+			}else if(embed.f() != null){
+				it.result = IMAGE;
+			}
+		}
+	});
 }
 
 // TODO: display gradient changes for role colors
