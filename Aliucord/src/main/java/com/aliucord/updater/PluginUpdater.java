@@ -65,7 +65,6 @@ public class PluginUpdater {
                 });
 
         String updatablePlugins = String.format("**%s**", TextUtils.join("**, **", updates.toArray()));
-
         String body;
         if (Main.settings.getBool(AliucordPageKt.AUTO_UPDATE_PLUGINS_KEY, false)) {
             int res = PluginUpdater.updateAll();
