@@ -143,6 +143,8 @@ public final class Main {
             layout.addView(header, baseIndex++);
 
             var font = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium);
+            var update_or_updates = (PluginUpdater.numberOfPlugins() <= 2) ? String.format("Updater (%s %s)", PluginUpdater.numberOfPlugins(), "new update!") : String.format("Updater (%s %s)", PluginUpdater.numberOfPlugins(), "new updates!");
+            var updater_title = (PluginUpdater.numberOfPlugins() != 0) ? update_or_updates : "Updater";
 
             layout.addView(
                 makeSettingsEntry(font, context, "Settings", R.e.ic_behavior_24dp, AliucordPage.class),
@@ -153,7 +155,7 @@ public final class Main {
                 baseIndex++
             );
             layout.addView(
-                makeSettingsEntry(font, context, "Updater", R.e.ic_file_download_white_24dp, Updater.class),
+                makeSettingsEntry(font, context, updater_title, R.e.ic_file_download_white_24dp, Updater.class),
                 baseIndex++
             );
             layout.addView(
