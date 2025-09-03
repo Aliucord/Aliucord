@@ -28,6 +28,7 @@ internal class RNAPI : CorePlugin(Manifest("RNAPI")) {
         patchUsername()
         patchStickers()
         patchVoice()
+        patchMessageEmbeds()
 
         if (ManagerBuild.hasInjector("2.1.2")) patchAuditLog()
         else logger.warn("Base app outdated, cannot patch audit log")
