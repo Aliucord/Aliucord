@@ -65,6 +65,7 @@ public class PluginUpdater {
                 });
 
         String updatablePlugins = String.format("**%s**", TextUtils.join("**, **", updates.toArray()));
+
         String body;
         if (Main.settings.getBool(AliucordPageKt.AUTO_UPDATE_PLUGINS_KEY, false)) {
             int res = PluginUpdater.updateAll();
@@ -97,6 +98,17 @@ public class PluginUpdater {
 
         notificationData.setBody(MDUtils.render(body));
         NotificationsAPI.display(notificationData);
+    }
+
+
+    public static int numberOfPlugins() {
+        updates.clear();
+        for (Map.Entry<String, Plugin> plugin : PluginManager.plugins.entrySet()) {
+            if (checkPluginUpdate(plugin.getValue()))
+                updates.add(plugin.getKey());
+        }
+        int numberOfPlugins = updates.toArray().length;
+        return numberOfPlugins;
     }
 
     public static boolean checkPluginUpdate(Plugin plugin) {
