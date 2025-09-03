@@ -52,8 +52,6 @@ import java.util.Collections
 import com.discord.models.user.User as ModelUser
 import com.discord.api.message.embed.MessageEmbed
 import com.discord.api.message.embed.EmbedType
-import java.lang.reflect.Field
-import java.lang.reflect.Modifier
 
 fun patchNextCallAdapter() {
     val oldUserProfile = TypeToken.getParameterized(Observable::class.java, UserProfile::class.java).type
