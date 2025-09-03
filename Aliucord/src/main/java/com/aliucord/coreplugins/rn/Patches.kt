@@ -51,7 +51,7 @@ import java.lang.reflect.Type
 import java.util.Collections
 import com.discord.models.user.User as ModelUser
 import com.discord.api.message.embed.MessageEmbed;
-import com.discord.api.message.embed.EmbedType.*;
+import com.discord.api.message.embed.EmbedType;
 
 fun patchNextCallAdapter() {
     val oldUserProfile = TypeToken.getParameterized(Observable::class.java, UserProfile::class.java).type
@@ -259,14 +259,8 @@ fun patchVoice() {
 fun patchMessageEmbeds() {
 	Patcher.addPatch(MessageEmbed::class.java.getDeclaredMethod("k"), Hook{
 		val embed = it.thisObject as MessageEmbed;
-		if(it.result == RICH){
-			if(embed.m() != null){
-				it.result = VIDEO;
-			}else if(embed.c() != null && embed.h() != null){
-				it.result = ARTICLE;
-			}else if(embed.f() != null){
-				it.result = IMAGE;
-			}
+		if(it.result == EmbedType.RICH && embed.m() != null){
+			it.result = EmbedType.VIDEO;
 		}
 	});
 }
