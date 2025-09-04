@@ -1,0 +1,32 @@
+--- smali_original/com/discord/restapi/RestAPIParams$UserRelationship$Add.smali
++++ smali/com/discord/restapi/RestAPIParams$UserRelationship$Add.smali
+@@ -51,7 +51,15 @@
+ 
+ .field private final captchaRqtoken:Ljava/lang/String;
+ 
+-.field private final discriminator:I
++.field private final discriminator:Lcom/discord/nullserializable/NullSerializable$a;
++    .annotation system Ldalvik/annotation/Signature;
++        value = {
++            "Lcom/discord/nullserializable/NullSerializable$a<",
++            "Ljava/lang/Integer;",
++            ">;"
++        }
++    .end annotation
++.end field
+ 
+ .field private final username:Ljava/lang/String;
+ 
+@@ -69,7 +77,11 @@ .method public constructor <init>(Ljava/
+ 
+     iput-object p1, p0, Lcom/discord/restapi/RestAPIParams$UserRelationship$Add;->username:Ljava/lang/String;
+ 
+-    iput p2, p0, Lcom/discord/restapi/RestAPIParams$UserRelationship$Add;->discriminator:I
++    new-instance p2, Lcom/discord/nullserializable/NullSerializable$a;
++
++    invoke-direct {p2}, Lcom/discord/nullserializable/NullSerializable$a;-><init>()V
++
++    iput-object p2, p0, Lcom/discord/restapi/RestAPIParams$UserRelationship$Add;->discriminator:Lcom/discord/nullserializable/NullSerializable$a;
+ 
+     iput-object p3, p0, Lcom/discord/restapi/RestAPIParams$UserRelationship$Add;->captchaKey:Ljava/lang/String;
+ 
