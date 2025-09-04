@@ -50,8 +50,8 @@ public object Updater {
         public var versionCode: Int,
     )
 
-    var isAliucordOutdated: Boolean? = false
-    var isDiscordOutdated: Boolean? = false
+    var isAliucordOutdated: Boolean = false
+    var isDiscordOutdated: Boolean = false
 
     fun fetchAliucordData(): Boolean {
         try {
@@ -75,7 +75,7 @@ public object Updater {
     public fun AliucordOutdated(): Boolean {
         if (usingDexFromStorage() || isUpdaterDisabled()) return false
         if (isAliucordOutdated == null && !fetchAliucordData()) return false
-        return isAliucordOutdated!!
+        return isAliucordOutdated
     }
 
     /**
@@ -87,7 +87,7 @@ public object Updater {
     public fun DiscordOutdated(): Boolean {
         if (isUpdaterDisabled()) return false
         if (isDiscordOutdated == null && !fetchAliucordData()) return false
-        return isDiscordOutdated!!
+        return isDiscordOutdated
     }
 
     /**
