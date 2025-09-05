@@ -65,7 +65,7 @@ public object Updater {
 
     fun fetchAliucordData(): Boolean {
         try {
-            var url = "https://raw.githubusercontent.com/omardotdev/test-please-ignore/refs/heads/main/data.json"
+            var url = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/data.json"
             var res = Http.simpleJsonGet(url, AliucordData::class.java)
             isAliucordOutdated = isOutdated("Aliucord", BuildConfig.VERSION, res.coreVersion)
             isDiscordOutdated = Constants.DISCORD_VERSION < res.versionCode
