@@ -55,7 +55,7 @@ public object Updater {
         public var versionCode: Int,
     )
 
-    var isAliucordOutdated: Boolean? = true
+    var isAliucordOutdated: Boolean? = false
     var isDiscordOutdated: Boolean? = false
     var isPatchesOutdated: Boolean? = false
     var isInjectorOutdated: Boolean? = false
