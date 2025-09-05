@@ -71,10 +71,10 @@ public object Updater {
             isDiscordOutdated = Constants.DISCORD_VERSION < res.versionCode
             isPatchesOutdated = isOutdated("Patches", currentPatchesVersion, res.patchesVersion)
             isInjectorOutdated = isOutdated("Injector", currentInjectorVersion, res.injectorVersion)
-            return true;
+            return true
         } catch (ex: IOException) {
             PluginUpdater.logger.error("Failed to check updates for Aliucord", ex);
-            return false;
+            return false
         }
     }
 
