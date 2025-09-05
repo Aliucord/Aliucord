@@ -55,7 +55,7 @@ public object Updater {
         public var versionCode: Int,
     )
 
-    var isAliucordOutdated: Boolean? = false
+    var isAliucordOutdated: Boolean? = true
     var isDiscordOutdated: Boolean? = false
     var isPatchesOutdated: Boolean? = false
     var isInjectorOutdated: Boolean? = false
@@ -132,7 +132,12 @@ public object Updater {
      */
     @JvmStatic
     public fun updateAliucord(ctx: Context) {
-        var c = Class.forName("com.aliucord.injector.Injector")
+        var c: Class<*>
+        try {
+            c = Class.forName("com.aliucord.injector.InjectorKt")
+        } catch (e: ClassNotFoundException) {
+            c = Class.forName("com.aliucord.injector.Injector")
+        }
         ReflectUtils.invokeMethod(
             c,
             null,
