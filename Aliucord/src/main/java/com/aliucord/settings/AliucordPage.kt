@@ -21,7 +21,7 @@ import com.lytefast.flexinput.R
 const val AUTO_DISABLE_ON_CRASH_KEY = "autoDisableCrashingPlugins"
 const val AUTO_UPDATE_PLUGINS_KEY = "AC_plugins_auto_update_enabled"
 const val AUTO_UPDATE_ALIUCORD_KEY = "AC_aliucord_auto_update_enabled"
-const val ALIUCORD_FROM_STORAGE_KEY = "AC_from_storage"
+public const val ALIUCORD_FROM_STORAGE_KEY = "AC_from_storage"
 
 class AliucordPage : SettingsPage() {
     override fun onViewBound(view: View) {

@@ -8,7 +8,7 @@ package com.aliucord.updater
 import android.content.Context
 
 import com.aliucord.*
-import com.aliucord.settings.AliucordPage
+import com.aliucord.injector.ALIUCORD_FROM_STORAGE_KEY
 import com.aliucord.utils.ReflectUtils
 import com.aliucord.updater.PluginUpdater.updates
 import com.aliucord.Logger.*
@@ -158,6 +158,6 @@ public object Updater {
      */
     @JvmStatic
     public fun usingDexFromStorage(): Boolean {
-        return Main.settings.getBool("ALIUCORD_FROM_STORAGE_KEY", false)
+        return Main.settings.getBool(ALIUCORD_FROM_STORAGE_KEY, false)
     }
 }

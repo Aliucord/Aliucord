@@ -8,6 +8,8 @@ package com.aliucord.settings;
 
 import static com.aliucord.updater.Updater.AliucordOutdated;
 import static com.aliucord.updater.Updater.DiscordOutdated;
+import static com.aliucord.updater.Updater.InjectorOutdated;
+import static com.aliucord.updater.Updater.PatchesOutdated;
 import static com.aliucord.updater.Updater.updateAliucord;
 import static com.aliucord.updater.Updater.usingDexFromStorage;
 
@@ -41,6 +43,13 @@ public class Updater extends SettingsPage {
 
         Utils.threadPool.execute(() -> {
             Snackbar sb;
+
+            if (PatchesOutdated()) {
+                sb = Snackbar.make(getLinearLayout(), "Aliucord's patches are outdated, Please reinstall Aliucord through Manager.", Snackbar.LENGTH_INDEFINITE);
+            } else if (InjectorOutdated()) {
+                sb = Snackbar.make(getLinearLayout(), "Injector is outdated, Please reinstall Aliucord through Manager.", Snackbar.LENGTH_INDEFINITE);
+            }
+
             if (usingDexFromStorage()) {
                 sb = Snackbar.make(getLinearLayout(), "Updater disabled due to using Aliucord from storage.", Snackbar.LENGTH_INDEFINITE);
             } else if (DiscordOutdated()) {
