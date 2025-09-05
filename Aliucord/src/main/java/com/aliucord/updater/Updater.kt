@@ -12,6 +12,7 @@ import com.aliucord.settings.AliucordPage
 import com.aliucord.utils.ReflectUtils
 import com.aliucord.updater.PluginUpdater.updates
 import com.aliucord.Logger.*
+import com.aliucord.updater.ManagerBuild
 
 import java.io.File
 import java.io.IOException
@@ -39,7 +40,9 @@ public object Updater {
                 if (newInt < oldInt) return false
             }
         } catch (th: NumberFormatException) {
-            PluginUpdater.logger.error(th);
+            PluginUpdater.logger.error(String.format("Failed to check updates for %s due to an invalid updater/manifest version", component), th)
+        } catch (th: NullPointerException) {
+            PluginUpdater.logger.error(String.format("Failed to check updates for %s due to an invalid updater/manifest version", component), th)
         }
 
         return false;
@@ -47,18 +50,27 @@ public object Updater {
 
     private data class AliucordData (
         public var coreVersion: String,
+        public var patchesVersion: String,
+        public var injectorVersion: String,
         public var versionCode: Int,
     )
 
     var isAliucordOutdated: Boolean? = false
     var isDiscordOutdated: Boolean? = false
+    var isPatchesOutdated: Boolean? = false
+    var isInjectorOutdated: Boolean? = false
+
+    var currentPatchesVersion = ManagerBuild.metadata?.run { "$patchesVersion" } ?: ""
+    var currentInjectorVersion = ManagerBuild.metadata?.run { "$injectorVersion" } ?: ""
 
     fun fetchAliucordData(): Boolean {
         try {
-            var url = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/data.json"
+            var url = "https://raw.githubusercontent.com/omardotdev/test-please-ignore/refs/heads/main/data.json"
             var res = Http.simpleJsonGet(url, AliucordData::class.java)
             isAliucordOutdated = isOutdated("Aliucord", BuildConfig.VERSION, res.coreVersion)
             isDiscordOutdated = Constants.DISCORD_VERSION < res.versionCode
+            isPatchesOutdated = isOutdated("Patches", currentPatchesVersion, res.patchesVersion)
+            isInjectorOutdated = isOutdated("Injector", currentInjectorVersion, res.injectorVersion)
             return true;
         } catch (ex: IOException) {
             PluginUpdater.logger.error("Failed to check updates for Aliucord", ex);
@@ -79,9 +91,31 @@ public object Updater {
     }
 
     /**
+     * Determines whether Patches is outdated
+     *
+     * return - Whether Aliucord's currently supported Patches version is newer than the installed one
+     */
+    @JvmStatic
+    public fun PatchesOutdated(): Boolean {
+        if (isPatchesOutdated == null && !fetchAliucordData()) return false
+        return isPatchesOutdated!!
+    }
+
+    /**
+     * Determines whether Injector is outdated
+     *
+     * return - Whether Aliucord's currently supported Injector version is newer than the installed one
+     */
+    @JvmStatic
+    public fun InjectorOutdated(): Boolean {
+        if (isInjectorOutdated == null && !fetchAliucordData()) return false
+        return isInjectorOutdated!!
+    }
+
+    /**
      * Determines whether the Base Discord is outdated
      *
-     * @return Whether Aliucord's currently supported Discord version is newer than the installed one
+     * return - Whether Aliucord's currently supported Discord version is newer than the installed one
      */
     @JvmStatic
     public fun DiscordOutdated(): Boolean {
@@ -89,6 +123,7 @@ public object Updater {
         if (isDiscordOutdated == null && !fetchAliucordData()) return false
         return isDiscordOutdated!!
     }
+
 
     /**
      * Replaces the local Aliucord version with the latest from Github
@@ -119,7 +154,7 @@ public object Updater {
     /**
      * Determines whether the Aliucord dex is being loaded from storage
      *
-     * return - Whether preference {@link AliucordPageKt#ALIUCORD_FROM_STORAGE_KEY} is set to true
+     * return - Whether preference {@link AliucordPage#ALIUCORD_FROM_STORAGE_KEY} is set to true
      */
     @JvmStatic
     public fun usingDexFromStorage(): Boolean {

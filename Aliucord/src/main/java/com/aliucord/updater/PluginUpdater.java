@@ -95,6 +95,14 @@ public class PluginUpdater {
             }
         }
 
+        if (Updater.PatchesOutdated()) {
+            body = "Patches is outdated, Please reinstall Aliucord through Manager - " + body;
+        }
+
+        if (Updater.InjectorOutdated()) {
+            body = "Injector is outdated, Please reinstall Aliucord through Manager - " + body;
+        }
+
         notificationData.setBody(MDUtils.render(body));
         NotificationsAPI.display(notificationData);
     }
