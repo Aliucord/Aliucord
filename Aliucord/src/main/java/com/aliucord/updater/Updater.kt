@@ -67,7 +67,7 @@ public object Updater {
     var currentInjectorVersion = ManagerBuild.metadata?.run { "$injectorVersion" } ?: ""
 
     /**
-     * Fetchws Aliucord data, then determines whether each component is outdated or not
+     * Fetches Aliucord data, then determines whether each component is outdated or not
      *
      * return - Whether fetching the Aliucord data was successful or not
      */
