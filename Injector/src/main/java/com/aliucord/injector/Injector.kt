@@ -31,7 +31,7 @@ private const val DEX_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord
 
 @Suppress("DEPRECATION")
 private val BASE_DIRECTORY = File(Environment.getExternalStorageDirectory().absolutePath, "Aliucord")
-private const val ALIUCORD_FROM_STORAGE_KEY = "AC_from_storage"
+public const val ALIUCORD_FROM_STORAGE_KEY = "AC_from_storage"
 
 private var unhook: XC_MethodHook.Unhook? = null
 
