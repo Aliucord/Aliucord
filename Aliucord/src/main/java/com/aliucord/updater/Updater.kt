@@ -9,7 +9,7 @@ import android.content.Context
 
 import com.aliucord.*
 import com.aliucord.injector.ALIUCORD_FROM_STORAGE_KEY
-import com.aliucord.utils.ReflectUtils
+import com.aliucord.injector.downloadLatestAliucordDex
 
 import java.io.File
 import java.io.IOException
@@ -23,8 +23,7 @@ object Updater {
      * newVersion - The latest version of the plugin
      * return - Whether newVersion is newer than version
      */
-     @JvmStatic
-     fun isOutdated(component: String, version: String, newVersion: String): Boolean {
+     @JvmStatic fun isOutdated(component: String, version: String, newVersion: String): Boolean {
         try {
             val versions = version.split("\\.")
             val newVersions = newVersion.split("\\.")
@@ -88,8 +87,7 @@ object Updater {
      *
      * return - Whether latest remote Aliucord commit hash is newer than the installed one
      */
-    @JvmStatic
-    fun AliucordOutdated(): Boolean {
+    @JvmStatic fun AliucordOutdated(): Boolean {
         if (usingDexFromStorage() || isUpdaterDisabled()) return false
         if (isAliucordOutdated == null && !fetchAliucordData()) return false
         return isAliucordOutdated!!
@@ -100,8 +98,7 @@ object Updater {
      *
      * return - Whether Aliucord's currently supported Patches version is newer than the installed one
      */
-    @JvmStatic
-    fun PatchesOutdated(): Boolean {
+    @JvmStatic fun PatchesOutdated(): Boolean {
         if (isPatchesOutdated == null && !fetchAliucordData()) return false
         return isPatchesOutdated!!
     }
@@ -111,8 +108,7 @@ object Updater {
      *
      * return - Whether Aliucord's currently supported Injector version is newer than the installed one
      */
-    @JvmStatic
-    fun InjectorOutdated(): Boolean {
+    @JvmStatic fun InjectorOutdated(): Boolean {
         if (isInjectorOutdated == null && !fetchAliucordData()) return false
         return isInjectorOutdated!!
     }
@@ -122,8 +118,7 @@ object Updater {
      *
      * return - Whether Aliucord's currently supported Discord version is newer than the installed one
      */
-    @JvmStatic
-    fun DiscordOutdated(): Boolean {
+    @JvmStatic fun DiscordOutdated(): Boolean {
         if (isUpdaterDisabled()) return false
         if (isDiscordOutdated == null && !fetchAliucordData()) return false
         return isDiscordOutdated!!
@@ -136,18 +131,7 @@ object Updater {
      * param ctx - Context
      */
     @JvmStatic fun updateAliucord(ctx: Context) {
-        var c: Class<*>
-        try {
-            Class.forName("com.aliucord.injector.InjectorKt")
-        } catch (e: ClassNotFoundException) {
-            Class.forName("com.aliucord.injector.Injector")
-        }.also { c = it }
-        ReflectUtils.invokeMethod(
-            c,
-            null,
-            "downloadLatestAliucordDex",
-            File(ctx.codeCacheDir, "Aliucord.zip")
-        )
+        downloadLatestAliucordDex(File(ctx.codeCacheDir, "Aliucord.zip"))
     }
 
     /**
@@ -155,8 +139,7 @@ object Updater {
      *
      * return - Whether preference "disableAliucordUpdater" is set to true
      */
-    @JvmStatic
-    fun isUpdaterDisabled(): Boolean {
+    @JvmStatic fun isUpdaterDisabled(): Boolean {
         return Main.settings.getBool("disableAliucordUpdater", false)
     }
 
@@ -165,8 +148,7 @@ object Updater {
      *
      * return - Whether preference {@link AliucordPage#ALIUCORD_FROM_STORAGE_KEY} is set to true
      */
-    @JvmStatic
-    fun usingDexFromStorage(): Boolean {
+    @JvmStatic fun usingDexFromStorage(): Boolean {
         return Main.settings.getBool(ALIUCORD_FROM_STORAGE_KEY, false)
     }
 }
