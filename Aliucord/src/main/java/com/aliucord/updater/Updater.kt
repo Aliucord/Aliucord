@@ -48,6 +48,7 @@ public object Updater {
         return false;
     }
 
+    // Class for the Aliucord data to be fetched
     private data class AliucordData (
         public var coreVersion: String,
         public var patchesVersion: String,
@@ -55,14 +56,21 @@ public object Updater {
         public var versionCode: Int,
     )
 
+    // Set variables to null by default
     private var isAliucordOutdated: Boolean? = null
     private var isDiscordOutdated: Boolean? = null
     private var isPatchesOutdated: Boolean? = null
     private var isInjectorOutdated: Boolean? = null
 
+    // Get the current patches and injector version using ManagerBuild
     var currentPatchesVersion = ManagerBuild.metadata?.run { "$patchesVersion" } ?: ""
     var currentInjectorVersion = ManagerBuild.metadata?.run { "$injectorVersion" } ?: ""
 
+    /**
+     * Fetchws Aliucord data, then determines whether each component is outdated or not
+     *
+     * return - Whether fetching the Aliucord data was successful or not
+     */
     fun fetchAliucordData(): Boolean {
         try {
             var url = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/data.json"
