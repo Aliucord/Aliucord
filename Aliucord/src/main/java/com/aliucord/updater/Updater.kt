@@ -55,10 +55,10 @@ public object Updater {
         public var versionCode: Int,
     )
 
-    var isAliucordOutdated: Boolean? = false
-    var isDiscordOutdated: Boolean? = false
-    var isPatchesOutdated: Boolean? = false
-    var isInjectorOutdated: Boolean? = false
+    private var isAliucordOutdated: Boolean? = null
+    private var isDiscordOutdated: Boolean? = null
+    private var isPatchesOutdated: Boolean? = null
+    private var isInjectorOutdated: Boolean? = null
 
     var currentPatchesVersion = ManagerBuild.metadata?.run { "$patchesVersion" } ?: ""
     var currentInjectorVersion = ManagerBuild.metadata?.run { "$injectorVersion" } ?: ""
