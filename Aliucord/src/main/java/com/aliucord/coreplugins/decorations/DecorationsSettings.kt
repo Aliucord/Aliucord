@@ -1,4 +1,4 @@
-package com.aliucord.coreplugins.fluff
+package com.aliucord.coreplugins.decorations
 
 import android.os.Bundle
 import android.view.View
@@ -9,8 +9,8 @@ import com.aliucord.settings.delegate
 import com.aliucord.widgets.BottomSheet
 import com.discord.views.CheckedSetting
 
-internal object FluffSettings {
-    private val settings = SettingsAPI("Fluff")
+internal object DecorationsSettings {
+    private val settings = SettingsAPI("Decorations")
 
     // TODO: remove this
     // This exists to allow enabling for testing by manually editing the json settings

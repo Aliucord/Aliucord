@@ -1,7 +1,7 @@
 package com.aliucord.coreplugins
 
 import android.content.Context
-import com.aliucord.coreplugins.fluff.FluffSettings
+import com.aliucord.coreplugins.decorations.DecorationsSettings
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.updater.ManagerBuild
@@ -13,21 +13,21 @@ import com.discord.models.user.MeUser
 import com.discord.stores.StoreGuilds
 import com.discord.api.guildmember.GuildMember as ApiGuildMember
 
-internal class Fluff : CorePlugin(Manifest().apply {
-    name = "Fluff"
+internal class Decorations : CorePlugin(Manifest().apply {
+    name = "Decorations"
     description = "Adds support for various user decorations"
 }) {
     // TODO: make visible once plugin is ready
     override val isHidden = true
 
     init {
-        settingsTab = SettingsTab(FluffSettings.Sheet::class.java, SettingsTab.Type.BOTTOM_SHEET)
+        settingsTab = SettingsTab(DecorationsSettings.Sheet::class.java, SettingsTab.Type.BOTTOM_SHEET)
     }
 
     override fun start(context: Context) {
-        if (!FluffSettings.enable) return
+        if (!DecorationsSettings.enable) return
         if (!ManagerBuild.hasInjector("2.3.0") || !ManagerBuild.hasPatches("1.3.0")) {
-            logger.warn("Base app outdated, cannot enable Fluff")
+            logger.warn("Base app outdated, cannot enable Decorations")
             return
         }
 
