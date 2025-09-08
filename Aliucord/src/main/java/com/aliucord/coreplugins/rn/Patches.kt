@@ -13,6 +13,8 @@ import com.aliucord.patcher.*
 import com.aliucord.wrappers.users.globalName
 import com.discord.api.channel.Channel
 import com.discord.api.channel.`ChannelUtils$getDisplayName$1`
+import com.discord.api.message.embed.EmbedType
+import com.discord.api.message.embed.MessageEmbed
 import com.discord.api.role.GuildRoleColors
 import com.discord.api.sticker.Sticker
 import com.discord.api.sticker.StickerFormatType
@@ -48,7 +50,7 @@ import com.google.gson.stream.JsonToken
 import de.robv.android.xposed.XC_MethodHook
 import rx.Observable
 import java.lang.reflect.Type
-import java.util.Collections
+import java.util.*
 import com.discord.models.user.User as ModelUser
 
 fun patchNextCallAdapter() {
@@ -252,6 +254,20 @@ fun patchStickers() {
 fun patchVoice() {
     // don't send heartbeat ("op": 3) on connect
     Patcher.addPatch(b.a.q.n0.a::class.java.getDeclaredMethod("k"), InsteadHook.DO_NOTHING)
+}
+
+fun patchMessageEmbeds() {
+    val fEmbedType = MessageEmbed::class.java.getDeclaredField("type")
+        .apply { isAccessible = true }
+
+    // Set RICH embeds with videos as VIDEO embeds
+    Patcher.addPatch(MessageEmbed::class.java.getDeclaredMethod("k"), Hook {
+        val embed = it.thisObject as MessageEmbed
+        if (it.result == EmbedType.RICH && fEmbedType[embed] != null) {
+            it.result = EmbedType.VIDEO
+            fEmbedType[embed] = EmbedType.VIDEO
+        }
+    })
 }
 
 // TODO: display gradient changes for role colors
