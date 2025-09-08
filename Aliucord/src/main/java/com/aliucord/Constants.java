@@ -37,13 +37,15 @@ public final class Constants {
     /** Code of the Aliucord discord server */
     public static final String ALIUCORD_SUPPORT = "EsNDvBaHVU";
     public static final long ALIUCORD_GUILD_ID = 811255666990907402L;
-    public static final long SUPPORT_CHANNEL_ID = 811261298997460992L;
-    public static final long PLUGIN_SUPPORT_CHANNEL_ID = 847566769258233926L;
-    public static final long PLUGIN_LINKS_CHANNEL_ID = 811275162715553823L;
-    public static final long PLUGIN_LINKS_UPDATES_CHANNEL_ID = 845784407846813696L;
-    public static final long PLUGIN_REQUESTS_CHANNEL_ID = 811275334342541353L;
-    public static final long THEMES_CHANNEL_ID = 824357609778708580L;
-    public static final long PLUGIN_DEVELOPMENT_CHANNEL_ID = 811261478875299840L;
+    public static final long SUPPORT_CHANNEL_ID = 811261298997460992L; // #support
+    public static final long PLUGIN_SUPPORT_CHANNEL_ID = 847566769258233926L; // #plugin-support
+    public static final long PLUGIN_LINKS_CHANNEL_ID = 811275162715553823L; // #plugins-list
+    public static final long PLUGIN_LINKS_UPDATES_CHANNEL_ID = 845784407846813696L; // #new-plugins
+    public static final long PLUGIN_REQUESTS_CHANNEL_ID = 811275334342541353L; // #plugin-requests
+    public static final long THEMES_CHANNEL_ID = 824357609778708580L; // #themes
+    public static final long PLUGIN_DEVELOPMENT_CHANNEL_ID = 811261478875299840L; // #plugin-development
+    public static final long PLUGIN_DEVELOPER_ROLE_ID = 811277662747623464L; // @plugin-developer
+    public static final long SUPPORT_HELPER_ROLE_ID = 1397067198761144361L; // @support-helper
 
     /** Path of Aliucord folder */
     public static final String BASE_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Aliucord";

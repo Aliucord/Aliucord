@@ -270,6 +270,7 @@ object PluginManager {
     @JvmStatic
     fun loadCorePlugins(context: Context) {
         val corePlugins = arrayOf(
+            AlignThreads(),
             ButtonsAPI(),
             CommandHandler(),
             CoreCommands(),
@@ -278,12 +279,16 @@ object PluginManager {
             ForwardedMessages(),
             GifPreviewFix(),
             MembersListFix(),
+            NewPins(),
             NoTrack(),
             PluginDownloader(),
+            Polls(),
             PrivateChannelsListScroll(),
             PrivateThreads(),
-            RNAPI(),
             Pronouns(),
+            RNAPI(),
+            RemoveBilling(),
+            RestartButton(),
             ShowReplyMention(),
             StickerCrashFix(),
             SupportWarn(),
@@ -295,7 +300,7 @@ object PluginManager {
         corePlugins.forEach { p ->
             logger.info("Loading coreplugin: ${p.name}")
             try {
-                plugins.put(p.name, p)
+                plugins[p.name] = p
                 p.load(context)
             } catch (e: Throwable) {
                 logger.errorToast("Failed to load coreplugin ${p.name}", e)

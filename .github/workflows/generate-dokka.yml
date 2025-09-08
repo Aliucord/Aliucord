@@ -1,6 +1,7 @@
 name: Dokka
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
