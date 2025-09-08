@@ -72,6 +72,11 @@ private fun init(appActivity: AppActivity) {
         val customDexFile = appActivity.codeCacheDir.resolve("Aliucord.custom.zip")
         val useCustomDex = useCustomDex(appActivity)
 
+        // Copy core bundle from external storage to internal cache
+        if (useCustomDex) {
+            File(BASE_DIRECTORY, "Aliucord.zip").copyTo(customDexFile, overwrite = true)
+        }
+
         // Download new core
         if (!useCustomDex && !dexFile.exists()) {
             val successRef = AtomicBoolean(true)
