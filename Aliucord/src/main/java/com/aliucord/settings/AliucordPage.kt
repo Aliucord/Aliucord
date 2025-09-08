@@ -61,8 +61,9 @@ class AliucordPage : SettingsPage() {
         addLink(ctx, "Support Server", R.e.ic_help_24dp) {
             Utils.joinSupportServer(it.context)
         }
-        addLink(ctx, "Support us on GitHub Sponsors", R.e.ic_heart_24dp) {
-            Utils.launchUrl("https://github.com/sponsors/Juby210")
+        addLink(ctx, "Support us with a donation!", R.e.ic_heart_24dp) {
+            val user = arrayOf("Juby210", "rushiiMachine").random()
+            Utils.launchUrl("https://github.com/sponsors/$user")
         }
     }
 
