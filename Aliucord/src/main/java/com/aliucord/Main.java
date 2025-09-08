@@ -55,6 +55,7 @@ import com.discord.widgets.chat.list.entries.ChatListEntry;
 import com.discord.widgets.debugging.WidgetDebugging;
 import com.discord.widgets.guilds.profile.WidgetChangeGuildIdentity;
 import com.discord.widgets.guilds.profile.WidgetGuildProfileSheet$configureGuildActions$$inlined$apply$lambda$4;
+import com.discord.widgets.home.WidgetHome;
 import com.discord.widgets.settings.WidgetSettings;
 import com.discord.widgets.settings.profile.WidgetEditUserOrGuildMemberProfile;
 import com.lytefast.flexinput.R;
@@ -320,6 +321,21 @@ public final class Main {
         Patcher.addPatch(StoreReviewRequest.class,
             "handleConnectionOpen",
             new Class[]{ ModelPayload.class },
+            new InsteadHook(param -> null)
+        );
+
+        // Disable school hubs dialog upon login
+        Patcher.addPatch(StoreNotices.class,
+            "hasBeenSeen",
+            new Class[]{ String.class },
+            new PreHook(param -> {
+                if ("WidgetHubEmailFlow".equals((String) param.args[0]))
+                    param.setResult(true);
+            })
+        );
+        Patcher.addPatch(WidgetHome.class,
+            "maybeShowHubEmailUpsell",
+            null,
             new InsteadHook(param -> null)
         );
 
