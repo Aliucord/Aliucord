@@ -17,6 +17,6 @@ internal class ForwardSourceChatEntry(
     }
 
     companion object {
-        const val FORWARD_SOURCE_ENTRY_TYPE = 44
+        const val FORWARD_SOURCE_ENTRY_TYPE = 100
     }
 }
