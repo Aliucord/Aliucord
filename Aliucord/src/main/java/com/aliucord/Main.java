@@ -35,6 +35,7 @@ import com.aliucord.utils.ChangelogUtils;
 import com.aliucord.utils.ReflectUtils;
 import com.aliucord.views.Divider;
 import com.aliucord.views.ToolbarButton;
+import com.aliucord.widgets.SideloadingBlockWarning;
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper;
 import com.discord.api.message.embed.EmbedField;
 import com.discord.app.*;
@@ -343,6 +344,8 @@ public final class Main {
             PluginManager.startCorePlugins();
             startAllPlugins();
         }
+
+        SideloadingBlockWarning.INSTANCE.maybeOpenDialog();
     }
 
     private static void crashHandler(Thread thread, Throwable throwable) {
