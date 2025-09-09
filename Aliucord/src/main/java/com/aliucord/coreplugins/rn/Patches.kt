@@ -10,6 +10,7 @@ import android.content.Context
 import android.view.View
 import com.aliucord.api.rn.user.RNUserProfile
 import com.aliucord.patcher.*
+import com.aliucord.wrappers.embeds.MessageEmbedWrapper.Companion.rawVideo
 import com.aliucord.wrappers.users.globalName
 import com.discord.api.channel.Channel
 import com.discord.api.channel.`ChannelUtils$getDisplayName$1`
@@ -263,7 +264,7 @@ fun patchMessageEmbeds() {
     // Set RICH embeds with videos as VIDEO embeds
     Patcher.addPatch(MessageEmbed::class.java.getDeclaredMethod("k"), Hook {
         val embed = it.thisObject as MessageEmbed
-        if (it.result == EmbedType.RICH && fEmbedType[embed] != null) {
+        if (it.result == EmbedType.RICH && embed.rawVideo != null) {
             it.result = EmbedType.VIDEO
             fEmbedType[embed] = EmbedType.VIDEO
         }
