@@ -48,9 +48,12 @@ class AliucordPage : SettingsPage() {
             addSwitch(
                 ctx,
                 ALIUCORD_FROM_STORAGE_KEY,
-                "Use Aliucord from storage",
-                "Meant for developers. Do not enable unless you know what you're doing. If someone else is telling you to do this, you are likely being scammed."
-            )
+                "Use Aliucord core from storage",
+                "Meant for developers. Do not enable unless you know what you're doing. " +
+                    "Uses a custom core bundle that was pushed to the device.",
+            ) {
+                Utils.promptRestart()
+            }
         }
 
         addDivider(ctx)
@@ -67,11 +70,19 @@ class AliucordPage : SettingsPage() {
         }
     }
 
-    private fun addSwitch(ctx: Context, setting: String, title: String, subtitle: String?, default: Boolean = false) {
+    private fun addSwitch(
+        ctx: Context,
+        setting: String,
+        title: String,
+        subtitle: String?,
+        default: Boolean = false,
+        onToggled: ((checked: Boolean) -> Unit)? = null,
+    ) {
         Utils.createCheckedSetting(ctx, CheckedSetting.ViewType.SWITCH, title, subtitle).run {
             isChecked = Main.settings.getBool(setting, default)
             setOnCheckedListener {
                 Main.settings.setBool(setting, it)
+                onToggled?.invoke(it)
             }
             linearLayout.addView(this)
         }
