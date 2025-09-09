@@ -276,6 +276,7 @@ object PluginManager {
             CoreCommands(),
             DefaultStickers(),
             ExperimentDefaults(),
+            Fluff(),
             ForwardedMessages(),
             GifPreviewFix(),
             MembersListFix(),

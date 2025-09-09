@@ -6,29 +6,34 @@
 
 package com.aliucord.wrappers.users
 
-import com.discord.api.user.User
+import com.aliucord.utils.accessField
+import com.aliucord.utils.accessGetter
+import com.discord.api.user.*
 import com.discord.models.user.CoreUser
 import com.discord.models.user.MeUser
-import java.lang.reflect.Field
-import java.lang.reflect.Method
 import com.discord.models.user.User as ModelUser
 
-private val apiGlobalNameField: Field = User::class.java.getDeclaredField("globalName")
-private val coreGlobalNameField: Field = CoreUser::class.java.getDeclaredField("globalName")
-private val meGlobalNameField: Field = MeUser::class.java.getDeclaredField("globalName")
-private val modelGetGlobalName: Method = ModelUser::class.java.getDeclaredMethod("getGlobalName")
+var User.globalName by accessField<User, String?>()
+var CoreUser.globalName by accessField<CoreUser, String?>()
+var MeUser.globalName by accessField<MeUser, String?>()
+val ModelUser.globalName by accessGetter<ModelUser, String?>()
 
-var User.globalName
-    get() = apiGlobalNameField[this] as String?
-    set(it) = apiGlobalNameField.set(this, it)
+var User.avatarDecorationData by accessField<User, AvatarDecoration?>()
+var CoreUser.avatarDecorationData by accessField<CoreUser, AvatarDecoration?>()
+var MeUser.avatarDecorationData by accessField<MeUser, AvatarDecoration?>()
+val ModelUser.avatarDecorationData by accessGetter<ModelUser, AvatarDecoration?>()
 
-var CoreUser.globalName
-    get() = coreGlobalNameField[this] as String?
-    set(it) = coreGlobalNameField.set(this, it)
+var User.collectibles by accessField<User, Collectibles?>()
+var CoreUser.collectibles by accessField<CoreUser, Collectibles?>()
+var MeUser.collectibles by accessField<MeUser, Collectibles?>()
+val ModelUser.collectibles by accessGetter<ModelUser, Collectibles?>()
 
-var MeUser.globalName
-    get() = meGlobalNameField[this] as String?
-    set(it) = meGlobalNameField.set(this, it)
+var User.displayNameStyles by accessField<User, DisplayNameStyle?>()
+var CoreUser.displayNameStyles by accessField<CoreUser, DisplayNameStyle?>()
+var MeUser.displayNameStyles by accessField<MeUser, DisplayNameStyle?>()
+val ModelUser.displayNameStyles by accessGetter<ModelUser, DisplayNameStyle?>()
 
-val ModelUser.globalName
-    get() = modelGetGlobalName(this) as String?
+var User.primaryGuild by accessField<User, PrimaryGuild?>()
+var CoreUser.primaryGuild by accessField<CoreUser, PrimaryGuild?>()
+var MeUser.primaryGuild by accessField<MeUser, PrimaryGuild?>()
+val ModelUser.primaryGuild by accessGetter<ModelUser, PrimaryGuild?>()
