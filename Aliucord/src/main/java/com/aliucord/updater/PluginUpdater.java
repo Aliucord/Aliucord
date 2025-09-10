@@ -54,7 +54,7 @@ public class PluginUpdater {
             if (checkPluginUpdate(plugin.getValue()))
                 updates.add(plugin.getKey());
         }
-        if (!notify || (updates.size() == 0 && !(!Updater.usingDexFromStorage() && Updater.isAliucordOutdated()))) return;
+        if (!notify || (updates.size() == 0 && !(!Updater.usingDexFromStorage() && Updater.AliucordOutdated()))) return;
 
         NotificationData notificationData = new NotificationData()
                 .setTitle("Updater")
@@ -79,9 +79,9 @@ public class PluginUpdater {
         } else body = "All plugins up to date!";
 
         if (!Updater.usingDexFromStorage()) {
-            if (Updater.isDiscordOutdated()) {
+            if (Updater.DiscordOutdated()) {
                 body = "Your Base Discord is outdated. Please update using the installer - " + body;
-            } else if (Updater.isAliucordOutdated()) {
+            } else if (Updater.AliucordOutdated()) {
                 if (Main.settings.getBool(AliucordPageKt.AUTO_UPDATE_ALIUCORD_KEY, false)) {
                     try {
                         Updater.updateAliucord(Utils.appActivity);
@@ -93,6 +93,14 @@ public class PluginUpdater {
                     body = "Your Aliucord is outdated. Please update it to the latest version - " + body;
                 }
             }
+        }
+
+        if (Updater.PatchesOutdated()) {
+            body = "Patches is outdated, Please reinstall Aliucord through Manager - " + body;
+        }
+
+        if (Updater.InjectorOutdated()) {
+            body = "Injector is outdated, Please reinstall Aliucord through Manager - " + body;
         }
 
         notificationData.setBody(MDUtils.render(body));
