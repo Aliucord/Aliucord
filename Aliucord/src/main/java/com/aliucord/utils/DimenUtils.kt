@@ -31,6 +31,13 @@ object DimenUtils {
         get() = dpToPx(this)
 
     /**
+     * Converts DP to PX
+     * @return `DP` converted to PX
+     */
+    val Float.dp: Int
+        get() = dpToPx(this)
+
+    /**
      * Converts DP to PX.
      * @param dp DP value
      * @return `DP` converted to PX
