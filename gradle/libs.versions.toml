@@ -1,7 +1,7 @@
 [versions]
 aliucord-gradle = "2.0.0"
-aliuhook = "1.1.3"
-android-gradle = "8.11.0"
+aliuhook = "1.1.4"
+android-gradle = "8.13.0"
 discord = "126021"
 dokka = "1.8.10"
 kotlin = "2.2.0"
@@ -19,6 +19,7 @@ aliuhook = { module = "com.aliucord:Aliuhook", version.ref = "aliuhook" }
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 discord = { module = "com.discord:discord", version.ref = "discord" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
 smali = { module = "com.android.tools.smali:smali", version.ref = "smali" }
 smali-baksmali = { module = "com.android.tools.smali:smali-baksmali", version.ref = "smali" }
@@ -26,5 +27,6 @@ smali-baksmali = { module = "com.android.tools.smali:smali-baksmali", version.re
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "android-gradle" }
-aliucord-gradle = { id = "com.aliucord.gradle", version.ref = "aliucord-gradle" }
+aliucord-core = { id = "com.aliucord.core", version.ref = "aliucord-gradle" }
+aliucord-injector = { id = "com.aliucord.injector", version.ref = "aliucord-gradle" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }

@@ -2,17 +2,29 @@
 
 plugins {
     `maven-publish`
-    id("org.jetbrains.dokka")
+    alias(libs.plugins.aliucord.core)
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.dokka)
+    alias(libs.plugins.kotlin)
 }
 
 group = "com.aliucord"
 version = "2.2.1"
 
-aliucord {
-    projectType = com.aliucord.gradle.ProjectType.CORE
-}
-
 android {
+    namespace = "com.aliucord"
+    compileSdkVersion(36)
+
+    defaultConfig {
+        minSdk = 24
+    }
+
+    buildTypes {
+        named("release") {
+            isMinifyEnabled = false
+        }
+    }
+
     defaultConfig {
         buildConfigField("String", "VERSION", "\"$version\"")
         buildConfigField("boolean", "RELEASE", System.getenv("RELEASE") ?: "false")
@@ -23,13 +35,33 @@ android {
         viewBinding = true
         buildConfig = true
     }
+
+    publishing {
+        singleVariant("debug") {}
+    }
+}
+
+kotlin {
+    jvmToolchain(21)
+
+    compilerOptions {
+        freeCompilerArgs.addAll(
+            "-Xno-call-assertions",
+            "-Xno-param-assertions",
+            "-Xno-receiver-assertions",
+        )
+    }
 }
 
 dependencies {
-    api(libs.appcompat)
-    api(libs.material)
-    api(libs.constraintlayout)
-    api(libs.aliuhook)
+    val discord by configurations
+
+    discord(libs.discord)
+    compileOnly(libs.aliuhook)
+    compileOnly(libs.appcompat)
+    compileOnly(libs.constraintlayout)
+    compileOnly(libs.kotlin.stdlib)
+    compileOnly(libs.material)
     compileOnly(project(":Injector")) // Needed to access certain stubs
 }
 
