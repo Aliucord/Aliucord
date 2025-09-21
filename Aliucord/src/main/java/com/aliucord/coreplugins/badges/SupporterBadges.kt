@@ -106,8 +106,7 @@ internal class SupporterBadges : CorePlugin(MANIFEST) {
     override fun stop(context: Context) {}
 
     private companion object {
-        val MANIFEST = Manifest().apply {
-            name = "SupporterBadges"
+        val MANIFEST = Manifest("SupporterBadges").apply {
             description = "Show badges in the profiles of contributors and donors ♡"
         }
 

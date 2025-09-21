@@ -67,14 +67,14 @@ object PluginManager {
                     gson.fromJson(it, Plugin.Manifest::class.java)
                 }
             }
-            val name = manifest.name
+            val name = requireNotNull(manifest.name)
             val pluginClass = loader.loadClass(manifest.pluginClassName) as Class<out Plugin>
 
             Patcher.addPatch(pluginClass.getDeclaredConstructor(), PreHook {
                 try {
-                    ReflectUtils.setField(Plugin::class.java, it.thisObject, "manifest", manifest)
-                } catch (_: Exception) {
-                    logger.errorToast("Failed to set manifest for " + manifest.name)
+                    ReflectUtils.setField(Plugin::class.java, it.thisObject, "_manifest", manifest)
+                } catch (e: Exception) {
+                    logger.errorToast("Failed to set manifest for " + manifest.name, e)
                 }
             })
 
