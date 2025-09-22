@@ -87,7 +87,7 @@ object Updater {
      *
      * return - Whether latest remote Aliucord commit hash is newer than the installed one
      */
-    @JvmStatic fun AliucordOutdated(): Boolean {
+    @JvmStatic fun aliucordOutdated(): Boolean {
         if (usingDexFromStorage() || isUpdaterDisabled()) return false
         if (isAliucordOutdated == null && !fetchAliucordData()) return false
         return isAliucordOutdated!!
@@ -98,7 +98,7 @@ object Updater {
      *
      * return - Whether Aliucord's currently supported Patches version is newer than the installed one
      */
-    @JvmStatic fun PatchesOutdated(): Boolean {
+    @JvmStatic fun patchesOutdated(): Boolean {
         if (isPatchesOutdated == null && !fetchAliucordData()) return false
         return isPatchesOutdated!!
     }
@@ -108,7 +108,7 @@ object Updater {
      *
      * return - Whether Aliucord's currently supported Injector version is newer than the installed one
      */
-    @JvmStatic fun InjectorOutdated(): Boolean {
+    @JvmStatic fun injectorOutdated(): Boolean {
         if (isInjectorOutdated == null && !fetchAliucordData()) return false
         return isInjectorOutdated!!
     }
@@ -118,7 +118,7 @@ object Updater {
      *
      * return - Whether Aliucord's currently supported Discord version is newer than the installed one
      */
-    @JvmStatic fun DiscordOutdated(): Boolean {
+    @JvmStatic fun discordOutdated(): Boolean {
         if (isUpdaterDisabled()) return false
         if (isDiscordOutdated == null && !fetchAliucordData()) return false
         return isDiscordOutdated!!

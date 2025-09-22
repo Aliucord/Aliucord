@@ -6,10 +6,10 @@
 
 package com.aliucord.settings;
 
-import static com.aliucord.updater.Updater.AliucordOutdated;
-import static com.aliucord.updater.Updater.DiscordOutdated;
-import static com.aliucord.updater.Updater.InjectorOutdated;
-import static com.aliucord.updater.Updater.PatchesOutdated;
+import static com.aliucord.updater.Updater.aliucordOutdated;
+import static com.aliucord.updater.Updater.discordOutdated;
+import static com.aliucord.updater.Updater.injectorOutdated;
+import static com.aliucord.updater.Updater.patchesOutdated;
 import static com.aliucord.updater.Updater.updateAliucord;
 import static com.aliucord.updater.Updater.usingDexFromStorage;
 
@@ -44,15 +44,17 @@ public class Updater extends SettingsPage {
         Utils.threadPool.execute(() -> {
             Snackbar sb;
 
-            if (PatchesOutdated()) {
-                sb = Snackbar.make(getLinearLayout(), "Aliucord's patches are outdated, Please reinstall Aliucord through Manager.", Snackbar.LENGTH_INDEFINITE);
-            } else if (InjectorOutdated()) {
+            if (patchesOutdated() && injectorOutdated()) {
+                sb = Snackbar.make(getLinearLayout(), "Injector and patches are outdated, Please reinstall Aliucord through Manager.", Snackbar.LENGTH_INDEFINITE);
+            } else if (injectorOutdated()) {
                 sb = Snackbar.make(getLinearLayout(), "Injector is outdated, Please reinstall Aliucord through Manager.", Snackbar.LENGTH_INDEFINITE);
+            } else if (patchesOutdated()) {
+                sb = Snackbar.make(getLinearLayout(), "Patches is outdated, Please reinstall Aliucord through Manager.", Snackbar.LENGTH_INDEFINITE);
             }
 
             if (usingDexFromStorage()) {
                 sb = Snackbar.make(getLinearLayout(), "Updater disabled due to using Aliucord from storage.", Snackbar.LENGTH_INDEFINITE);
-            } else if (DiscordOutdated()) {
+            } else if (discordOutdated()) {
                 sb = Snackbar
                     .make(getLinearLayout(), "Your Base Discord is outdated. Please update using the installer.", BaseTransientBottomBar.LENGTH_INDEFINITE)
                     .setAction("Open Installer", v -> {
@@ -63,7 +65,7 @@ public class Updater extends SettingsPage {
                         else
                             Utils.showToast("Please install the Aliucord installer and try again.");
                     });
-            } else if (AliucordOutdated()) {
+            } else if (aliucordOutdated()) {
                 sb = Snackbar
                     .make(getLinearLayout(), "Your Aliucord is outdated.", Snackbar.LENGTH_INDEFINITE)
                     .setAction("Update", v -> Utils.threadPool.execute(() -> {
