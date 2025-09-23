@@ -1,0 +1,15 @@
+--- smali_original/com/discord/widgets/channels/memberlist/PrivateChannelMemberListItemGeneratorKt.smali
++++ smali/com/discord/widgets/channels/memberlist/PrivateChannelMemberListItemGeneratorKt.smali
+@@ -86,6 +86,12 @@ .method private static final createMembe
+ 
+     .line 1
+     :cond_7
++    invoke-interface/range {p0 .. p0}, Lcom/discord/models/user/User;->getGlobalName()Ljava/lang/String;
++
++    move-result-object v6
++
++    if-nez v6, :goto_c
++
+     invoke-interface/range {p0 .. p0}, Lcom/discord/models/user/User;->getUsername()Ljava/lang/String;
+ 
+     move-result-object v1

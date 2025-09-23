@@ -6,7 +6,6 @@
 
 package com.aliucord.settings
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.view.View
 import android.widget.TextView
@@ -25,7 +24,6 @@ const val AUTO_UPDATE_ALIUCORD_KEY = "AC_aliucord_auto_update_enabled"
 const val ALIUCORD_FROM_STORAGE_KEY = "AC_from_storage"
 
 class AliucordPage : SettingsPage() {
-    @SuppressLint("SetTextI18n")
     override fun onViewBound(view: View) {
         super.onViewBound(view)
 
@@ -50,9 +48,12 @@ class AliucordPage : SettingsPage() {
             addSwitch(
                 ctx,
                 ALIUCORD_FROM_STORAGE_KEY,
-                "Use Aliucord from storage",
-                "Meant for developers. Do not enable unless you know what you're doing. If someone else is telling you to do this, you are likely being scammed."
-            )
+                "Use Aliucord core from storage",
+                "Meant for developers. Do not enable unless you know what you're doing. " +
+                    "Uses a custom core bundle that was pushed to the device.",
+            ) {
+                Utils.promptRestart()
+            }
         }
 
         addDivider(ctx)
@@ -63,16 +64,25 @@ class AliucordPage : SettingsPage() {
         addLink(ctx, "Support Server", R.e.ic_help_24dp) {
             Utils.joinSupportServer(it.context)
         }
-        addLink(ctx, "Support us on GitHub Sponsors", R.e.ic_heart_24dp) {
-            Utils.launchUrl("https://github.com/sponsors/Juby210")
+        addLink(ctx, "Support us with a donation!", R.e.ic_heart_24dp) {
+            val user = arrayOf("Juby210", "rushiiMachine").random()
+            Utils.launchUrl("https://github.com/sponsors/$user")
         }
     }
 
-    private fun addSwitch(ctx: Context, setting: String, title: String, subtitle: String?, default: Boolean = false) {
+    private fun addSwitch(
+        ctx: Context,
+        setting: String,
+        title: String,
+        subtitle: String?,
+        default: Boolean = false,
+        onToggled: ((checked: Boolean) -> Unit)? = null,
+    ) {
         Utils.createCheckedSetting(ctx, CheckedSetting.ViewType.SWITCH, title, subtitle).run {
             isChecked = Main.settings.getBool(setting, default)
             setOnCheckedListener {
                 Main.settings.setBool(setting, it)
+                onToggled?.invoke(it)
             }
             linearLayout.addView(this)
         }

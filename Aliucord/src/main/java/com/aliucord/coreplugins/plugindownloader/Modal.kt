@@ -6,7 +6,6 @@
 
 package com.aliucord.coreplugins.plugindownloader
 
-import android.annotation.SuppressLint
 import android.view.View
 import com.aliucord.fragments.SettingsPage
 import android.widget.TextView
@@ -27,7 +26,6 @@ internal class Modal(private val author: String, private val repo: String) : Set
     private var throwable = null as Throwable?
     private var plugins = null as Map<String, PluginInfo>?
 
-    @SuppressLint("SetTextI18n")
     override fun onViewBound(view: View) {
         super.onViewBound(view)
 

@@ -10,9 +10,12 @@ import android.content.Context
 import android.view.View
 import com.aliucord.api.rn.user.RNUserProfile
 import com.aliucord.patcher.*
+import com.aliucord.wrappers.embeds.MessageEmbedWrapper.Companion.rawVideo
 import com.aliucord.wrappers.users.globalName
 import com.discord.api.channel.Channel
 import com.discord.api.channel.`ChannelUtils$getDisplayName$1`
+import com.discord.api.message.embed.EmbedType
+import com.discord.api.message.embed.MessageEmbed
 import com.discord.api.role.GuildRoleColors
 import com.discord.api.sticker.Sticker
 import com.discord.api.sticker.StickerFormatType
@@ -33,6 +36,7 @@ import com.discord.utilities.mg_recycler.MGRecyclerDataPayload
 import com.discord.utilities.mg_recycler.SingleTypePayload
 import com.discord.utilities.search.suggestion.entries.UserSuggestion
 import com.discord.utilities.user.UserUtils
+import com.discord.views.user.SettingsMemberView
 import com.discord.widgets.chat.input.autocomplete.UserAutocompletable
 import com.discord.widgets.friends.FriendsListViewModel
 import com.discord.widgets.friends.WidgetFriendsListAdapter
@@ -45,10 +49,9 @@ import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonToken
 import de.robv.android.xposed.XC_MethodHook
-import okhttp3.*
 import rx.Observable
 import java.lang.reflect.Type
-import java.util.Collections
+import java.util.*
 import com.discord.models.user.User as ModelUser
 
 fun patchNextCallAdapter() {
@@ -167,6 +170,16 @@ fun patchGlobalName() {
             }
         }
     })
+
+    Patcher.addPatch(SettingsMemberView::class.java.getDeclaredMethod("a", modelUser, guildMember), Hook {
+        if ((it.args[1] as GuildMember?)?.nick != null) return@Hook
+        (it.args[0] as ModelUser).globalName?.let { name ->
+            (it.thisObject as SettingsMemberView).j.apply {
+                d.j.c.text = name
+                c.visibility = View.VISIBLE
+            }
+        }
+    })
 }
 
 fun patchDefaultAvatars() {
@@ -232,11 +245,30 @@ fun patchStickers() {
     }
     Patcher.addPatch(Sticker::class.java.getDeclaredMethod("a"), hook)
     Patcher.addPatch(StickerPartial::class.java.getDeclaredMethod("a"), hook)
+    val hook2 = Hook {
+        if (it.result == "") it.result = ".gif"
+    }
+    Patcher.addPatch(Sticker::class.java.getDeclaredMethod("b"), hook2)
+    Patcher.addPatch(StickerPartial::class.java.getDeclaredMethod("b"), hook2)
 }
 
 fun patchVoice() {
     // don't send heartbeat ("op": 3) on connect
     Patcher.addPatch(b.a.q.n0.a::class.java.getDeclaredMethod("k"), InsteadHook.DO_NOTHING)
+}
+
+fun patchMessageEmbeds() {
+    val fEmbedType = MessageEmbed::class.java.getDeclaredField("type")
+        .apply { isAccessible = true }
+
+    // Set RICH embeds with videos as VIDEO embeds
+    Patcher.addPatch(MessageEmbed::class.java.getDeclaredMethod("k"), Hook {
+        val embed = it.thisObject as MessageEmbed
+        if (it.result == EmbedType.RICH && embed.rawVideo != null) {
+            it.result = EmbedType.VIDEO
+            fEmbedType[embed] = EmbedType.VIDEO
+        }
+    })
 }
 
 // TODO: display gradient changes for role colors

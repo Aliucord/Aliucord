@@ -11,18 +11,13 @@ import com.aliucord.api.CommandsAPI
 import com.aliucord.api.CommandsAPI.CommandResult
 import com.aliucord.entities.CorePlugin
 import com.aliucord.entities.Plugin
+import com.aliucord.updater.ManagerBuild
 import com.discord.api.commands.ApplicationCommandType
 import java.io.File
 
 internal class CoreCommands : CorePlugin(Manifest("CoreCommands")) {
     init {
         manifest.description = "Adds basic slash commands to Aliucord for debugging purposes"
-    }
-
-    private fun visiblePlugins(): Sequence<Plugin> {
-        return PluginManager.plugins
-            .values.asSequence()
-            .filter { it !is CorePlugin || !it.isHidden }
     }
 
     override fun start(context: Context) {
@@ -51,10 +46,19 @@ internal class CoreCommands : CorePlugin(Manifest("CoreCommands")) {
             )
         ) {
             val showVersions = it.getBoolOrDefault("versions", false)
-            val (enabled, disabled) = visiblePlugins().partition(PluginManager::isPluginEnabled)
+            val (enabled, disabled) = PluginManager.getVisiblePlugins().values.partition(PluginManager::isPluginEnabled)
 
-            fun formatPlugins(plugins: List<Plugin>): String =
-                plugins.joinToString { p -> if (showVersions && p !is CorePlugin) "${p.name} (${p.manifest.version})" else p.name }
+            fun formatPlugins(plugins: List<Plugin>): String {
+                return plugins.joinToString { p ->
+                    if (showVersions && p !is CorePlugin) {
+                        "${p.name} (${p.manifest.version})"
+                    } else if (p is CorePlugin) {
+                        "*${p.name}*"
+                    } else {
+                        p.name
+                    }
+                }
+            }
 
             if (enabled.isEmpty() && disabled.isEmpty())
                 CommandResult("No plugins installed", null, false)
@@ -72,24 +76,27 @@ ${if (disabled.isEmpty()) "None" else "> ${formatPlugins(disabled)}"}
         }
 
         commands.registerCommand("debug", "Posts debug info") {
-            val customPluginCount = PluginManager.plugins.values.count { it !is CorePlugin }
-            val enabledPluginCount = visiblePlugins().count(PluginManager::isPluginEnabled)
-
             // .trimIndent() is broken sadly due to collision with Discord's Kotlin
+            val managerBuildInfo = ManagerBuild.metadata?.run {
+                """- Built with **Manager** $managerVersion ${if (customManager) "(Custom)" else ""}
+> **Injector**: $injectorVersion
+> **Patches**: $patchesVersion"""
+            } ?: ""
+
             var str = """
 **Debug Info:**
-> Discord: ${Constants.DISCORD_VERSION}
-> Aliucord: ${BuildConfig.VERSION} ${if (BuildConfig.RELEASE) "" else "(Custom)"}
-> Plugins: $customPluginCount installed, $enabledPluginCount total enabled
-> System: Android ${Build.VERSION.RELEASE} (SDK v${Build.VERSION.SDK_INT}) - ${getArchitecture()}
-> Rooted: ${getIsRooted() ?: "Unknown"}
+> **Discord**: ${Constants.DISCORD_VERSION}
+> **Aliucord**: ${BuildConfig.VERSION} ${if (BuildConfig.RELEASE) "" else "(Custom)"} $managerBuildInfo
+> **Plugins**: ${PluginManager.getPluginsInfo()}
+> **Android**: ${Build.VERSION.RELEASE} (SDK v${Build.VERSION.SDK_INT}) - ${getArchitecture()} - ${Build.PRODUCT}
+> **Rooted**: ${getIsRooted() ?: "Unknown"}
             """
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 val manifest = File("/apex/com.android.art/apex_manifest.pb").takeIf { it.exists() }
                     ?.readBytes()
 
-                str += "> ART manifest version: ${manifest?.let { ProtobufParser.getField2(it) } ?: "Unknown"}"
+                str += "> **ART manifest version**: ${manifest?.let { ProtobufParser.getField2(it) } ?: "Unknown"}"
             }
 
             CommandResult(str)

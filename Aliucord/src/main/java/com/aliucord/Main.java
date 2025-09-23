@@ -7,7 +7,6 @@
 package com.aliucord;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -36,15 +35,15 @@ import com.aliucord.utils.ChangelogUtils;
 import com.aliucord.utils.ReflectUtils;
 import com.aliucord.views.Divider;
 import com.aliucord.views.ToolbarButton;
+import com.aliucord.widgets.SideloadingBlockWarning;
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper;
 import com.discord.api.message.embed.EmbedField;
 import com.discord.app.*;
 import com.discord.databinding.WidgetChangeLogBinding;
 import com.discord.databinding.WidgetDebuggingAdapterItemBinding;
-import com.discord.models.domain.Model;
-import com.discord.models.domain.ModelUserSettings;
+import com.discord.models.domain.*;
 import com.discord.models.domain.emoji.ModelEmojiUnicode;
-import com.discord.stores.StoreStream;
+import com.discord.stores.*;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.utilities.guildautomod.AutoModUtils;
 import com.discord.utilities.user.UserUtils;
@@ -57,6 +56,7 @@ import com.discord.widgets.chat.list.entries.ChatListEntry;
 import com.discord.widgets.debugging.WidgetDebugging;
 import com.discord.widgets.guilds.profile.WidgetChangeGuildIdentity;
 import com.discord.widgets.guilds.profile.WidgetGuildProfileSheet$configureGuildActions$$inlined$apply$lambda$4;
+import com.discord.widgets.home.WidgetHome;
 import com.discord.widgets.settings.WidgetSettings;
 import com.discord.widgets.settings.profile.WidgetEditUserOrGuildMemberProfile;
 import com.lytefast.flexinput.R;
@@ -127,7 +127,6 @@ public final class Main {
      * Aliucord's init hook. Plugins are started here
      * @noinspection unused
      */
-    @SuppressLint("SetTextI18n")
     public static void init(AppActivity activity) {
         if (initialized) return;
         initialized = true;
@@ -177,6 +176,10 @@ public final class Main {
             TextView uploadLogs = layout.findViewById(Utils.getResId("upload_debug_logs", "id"));
             uploadLogs.setText("Aliucord Support Server");
             uploadLogs.setOnClickListener(e -> Utils.joinSupportServer(e.getContext()));
+
+            // Remove Discord changelog button
+            TextView changelogBtn = layout.findViewById(Utils.getResId("changelog", "id"));
+            changelogBtn.setVisibility(View.GONE);
         }));
 
         // Patch to repair built-in emotes is needed because installer doesn't recompile resources,
@@ -308,10 +311,41 @@ public final class Main {
             }
         }
 
+        // Disable the Discord changelog page
+        Patcher.addPatch(StoreChangeLog.class,
+            "shouldShowChangelog",
+            new Class[]{ Context.class, long.class, String.class, Integer.class },
+            new InsteadHook(param -> false)
+        );
+
+        // Disable the google play rating request dialog
+        Patcher.addPatch(StoreReviewRequest.class,
+            "handleConnectionOpen",
+            new Class[]{ ModelPayload.class },
+            new InsteadHook(param -> null)
+        );
+
+        // Disable school hubs dialog upon login
+        Patcher.addPatch(StoreNotices.class,
+            "hasBeenSeen",
+            new Class[]{ String.class },
+            new PreHook(param -> {
+                if ("WidgetHubEmailFlow".equals((String) param.args[0]))
+                    param.setResult(true);
+            })
+        );
+        Patcher.addPatch(WidgetHome.class,
+            "maybeShowHubEmailUpsell",
+            null,
+            new InsteadHook(param -> null)
+        );
+
         if (loadedPlugins) {
             PluginManager.startCorePlugins();
             startAllPlugins();
         }
+
+        SideloadingBlockWarning.INSTANCE.maybeOpenDialog();
     }
 
     private static void crashHandler(Thread thread, Throwable throwable) {

@@ -1,6 +1,5 @@
 package com.aliucord.coreplugins;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
@@ -54,8 +53,9 @@ public class ForwardedMessages extends CorePlugin {
         return true;
     }
 
+    @SuppressWarnings("unchecked")
     public Object writeSnapshotFields(Object source, Object destination, boolean isApiMessage) throws NoSuchFieldException, IllegalAccessException {
-        // noinspection unchecked - we only ever call this method on objects that have this field
+        // We only ever call this method on objects that have this field
         var snapshots = (ArrayList<MessageSnapshot>) (isApiMessage ? f_apiMessage_messageSnapshots : f_modelMessage_messageSnapshots).get(source);
 
         if (snapshots == null || snapshots.isEmpty()) return destination;
@@ -72,7 +72,6 @@ public class ForwardedMessages extends CorePlugin {
     }
 
     @Override
-    @SuppressLint("SetTextI18n")
     @SuppressWarnings("unchecked")
     public void start(Context context) throws Throwable {
         if (!ManagerBuild.hasInjector("2.1.0") || !ManagerBuild.hasPatches("1.1.0")) {

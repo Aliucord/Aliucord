@@ -1,4 +1,4 @@
-version = "2.1.2"
+version = "2.2.0"
 
 plugins {
     alias(libs.plugins.aliucord.injector)

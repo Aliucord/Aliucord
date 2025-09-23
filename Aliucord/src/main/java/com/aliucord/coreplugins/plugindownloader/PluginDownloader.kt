@@ -6,21 +6,19 @@
 
 package com.aliucord.coreplugins.plugindownloader
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import com.aliucord.*
 import com.aliucord.Constants.*
-import com.aliucord.Logger
-import com.aliucord.Utils
 import com.aliucord.entities.CorePlugin
-import com.aliucord.patcher.Hook
-import com.aliucord.patcher.component1
-import com.aliucord.patcher.component2
+import com.aliucord.patcher.*
 import com.aliucord.wrappers.messages.AttachmentWrapper.Companion.filename
 import com.aliucord.wrappers.messages.AttachmentWrapper.Companion.url
+import com.discord.models.message.Message
+import com.discord.stores.StoreStream
 import com.discord.utilities.color.ColorCompat
 import com.discord.widgets.chat.list.actions.WidgetChatListActions
 import com.lytefast.flexinput.R
@@ -31,7 +29,7 @@ internal val logger = Logger("PluginDownloader")
 private val viewId = View.generateViewId()
 private val repoPattern = Pattern.compile("https?://github\\.com/([A-Za-z0-9\\-_.]+)/([A-Za-z0-9\\-_.]+)")
 private val zipPattern =
-    Pattern.compile("https?://(?:github|raw\\.githubusercontent)\\.com/([A-Za-z0-9\\-_.]+)/([A-Za-z0-9\\-_.]+)/(?:raw|blob)?/?\\w+/(\\w+).zip")
+    Pattern.compile("https?://(?:github|raw\\.githubusercontent)\\.com/([A-Za-z0-9\\-_.]+)/([A-Za-z0-9\\-_.]+)/(?:raw|blob)?/?(\\w+)/(\\w+).zip")
 
 internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
     override val isRequired = true
@@ -47,7 +45,6 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
         }
     }
 
-    @SuppressLint("SetTextI18n")
     override fun start(context: Context) {
         patcher.patch(
             WidgetChatListActions::class.java.getDeclaredMethod("configureUI", WidgetChatListActions.Model::class.java),
@@ -60,40 +57,23 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
                 val msg = model.message
                 val content = msg?.content ?: return@Hook
 
-                if (msg.channelId == PLUGIN_DEVELOPMENT_CHANNEL_ID && msg.hasAttachments()) {
-                    msg.attachments.forEach { attachment ->
-                        val parts = attachment.filename.split('.')
-                        if (parts.size == 2 && parts[1] == "zip" && parts[0] != "Aliucord") {
-                            val plugin = PluginFile(parts[0])
-                            addEntry(layout, "${if (plugin.isInstalled) "Reinstall" else "Install"} ${plugin.name}") {
-                                plugin.install(attachment.url)
-                                actions.dismiss()
-                            }
-                        }
-                    }
-                }
-
                 when (msg.channelId) {
-                    PLUGIN_LINKS_UPDATES_CHANNEL_ID, PLUGIN_SUPPORT_CHANNEL_ID, PLUGIN_DEVELOPMENT_CHANNEL_ID -> {
-                        zipPattern.matcher(content).run {
-                            while (find()) {
-                                val author = group(1)!!
-                                val repo = group(2)!!
-                                val name = group(3)!!
-                                val plugin = PluginFile(name)
-                                addEntry(layout, "${if (plugin.isInstalled) "Reinstall" else "Install"} $name") {
-                                    plugin.install(author, repo)
-                                    actions.dismiss()
-                                }
-                            }
-                        }
+                    PLUGIN_LINKS_UPDATES_CHANNEL_ID, PLUGIN_DEVELOPMENT_CHANNEL_ID ->
+                        handlePluginZipMessage(msg, layout, actions)
+
+                    SUPPORT_CHANNEL_ID, PLUGIN_SUPPORT_CHANNEL_ID -> {
+                        val member = StoreStream.getGuilds().getMember(ALIUCORD_GUILD_ID, msg.author.id)
+                        val isTrusted = member?.roles?.any { it in arrayOf(SUPPORT_HELPER_ROLE_ID, PLUGIN_DEVELOPER_ROLE_ID) } ?: false
+
+                        if (isTrusted) handlePluginZipMessage(msg, layout, actions)
                     }
+
                     PLUGIN_LINKS_CHANNEL_ID -> {
                         repoPattern.matcher(content).takeIf { it.find() }?.run {
                             val author = group(1)!!
                             val repo = group(2)!!
 
-                            addEntry(layout, "Open PluginDownloader") {
+                            addEntry(layout, "Open Plugin Downloader") {
                                 Utils.openPageWithProxy(it.context, Modal(author, repo))
                                 actions.dismiss()
                             }
@@ -105,6 +85,40 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
     }
 
     override fun stop(context: Context) {}
+
+    private fun handlePluginZipMessage(msg: Message, layout: ViewGroup, actions: WidgetChatListActions) {
+        zipPattern.matcher(msg.content).run {
+            while (find()) {
+                val author = group(1)!!
+                val repo = group(2)!!
+				val commit = group(3)!!
+                val name = group(4)!!
+
+                // Don't accidentally install core as a plugin
+                if (name == "Aliucord") continue
+
+                val plugin = PluginFile(name)
+                addEntry(layout, "${if (plugin.isInstalled) "Reinstall" else "Install"} $name") {
+                    plugin.install("https://github.com/$author/$repo/raw/$commit/$name.zip")
+                    actions.dismiss()
+                }
+            }
+        }
+
+        for (attachment in msg.attachments) {
+            if (attachment.filename.run { !endsWith(".zip") || equals("Aliucord.zip") }) continue
+
+            val name = attachment.filename.removeSuffix(".zip")
+            val isInstalled = PluginManager.plugins.containsKey(name)
+
+            addEntry(layout, "${if (isInstalled) "Reinstall" else "Install"} $name") {
+                PluginFile(name).install(
+                    url = attachment.url,
+                    callback = actions::dismiss,
+                )
+            }
+        }
+    }
 
     private fun addEntry(layout: ViewGroup, text: String, onClick: View.OnClickListener) {
         val replyView =

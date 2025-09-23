@@ -1,6 +1,5 @@
 package com.aliucord.coreplugins.forwardedmessages
 
-import android.annotation.SuppressLint
 import android.os.Build
 import android.text.Spannable
 import android.text.SpannableStringBuilder
@@ -56,20 +55,15 @@ internal class WidgetChatListAdapterItemForwardSource(
         /* color = */ 0
     ).mutate().also { it.setBounds(0, 0, 16.dp, 16.dp) }
 
-    @SuppressLint("SetTextI18n")
     override fun onConfigure(i: Int, data: ChatListEntry) {
         super.onConfigure(i, data)
         if (data !is ForwardSourceChatEntry) return
         gutter.visibility = View.GONE // This is visible by default for some reason
 
-        // If I don't do this and add view on constructor, it crashes the app for some reason
-        if ((content.parent as ConstraintLayout).findViewById<SimpleDraweeView>(sourceIconId) == null) {
-            (content.parent as ConstraintLayout).addView(sourceIcon, 0)
-        }
-
-        val isDm = data.reference.b() == null // No guild means the message is from a DM or GDM
         val channel = StoreStream.getChannels().getChannel(data.reference.a())
-        val guild = if (!isDm) StoreStream.getGuilds().getGuild(data.reference.b()) else null
+        val guildId = data.reference.b()
+        val guild = guildId?.let { StoreStream.getGuilds().getGuild(it) ?: return }
+        val isDm = guild == null // No guild means the message is from a DM or GDM
         val timestamp = SnowflakeUtils.toTimestamp(data.reference.c())
 
         val shouldShowIcon = isDm || (guild!!.id != adapter.data.guildId && guild.icon != null)
@@ -83,6 +77,11 @@ internal class WidgetChatListAdapterItemForwardSource(
             setOnClickListener {
                 StoreStream.getMessagesLoader().jumpToMessage(channel.id, data.reference.c())
             }
+        }
+
+        // If I don't do this and add view on constructor, it crashes the app for some reason
+        if ((content.parent as ConstraintLayout).findViewById<SimpleDraweeView>(sourceIconId) == null) {
+            (content.parent as ConstraintLayout).addView(sourceIcon, 0)
         }
 
         sourceIcon.apply {
