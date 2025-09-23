@@ -1,5 +1,3 @@
-@file:Suppress("UnstableApiUsage")
-
 version = "2.1.2"
 
 plugins {
@@ -44,10 +42,8 @@ kotlin {
 }
 
 dependencies {
-    val discord by configurations
-
-    discord(libs.discord)
     compileOnly(libs.aliuhook)
     compileOnly(libs.appcompat)
+    compileOnly(libs.discord)
     compileOnly(libs.kotlin.stdlib)
 }

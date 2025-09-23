@@ -1,5 +1,3 @@
-@file:Suppress("UnstableApiUsage")
-
 plugins {
     alias(libs.plugins.aliucord.core) apply false
     alias(libs.plugins.aliucord.injector) apply false

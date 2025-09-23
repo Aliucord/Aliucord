@@ -1,5 +1,3 @@
-@file:Suppress("UnstableApiUsage")
-
 plugins {
     `maven-publish`
     alias(libs.plugins.aliucord.core)
@@ -54,12 +52,10 @@ kotlin {
 }
 
 dependencies {
-    val discord by configurations
-
-    discord(libs.discord)
     compileOnly(libs.aliuhook)
     compileOnly(libs.appcompat)
     compileOnly(libs.constraintlayout)
+    compileOnly(libs.discord)
     compileOnly(libs.kotlin.stdlib)
     compileOnly(libs.material)
     compileOnly(project(":Injector")) // Needed to access certain stubs
