@@ -71,6 +71,14 @@ abstract class Plugin internal constructor(manifest: Manifest? = null) {
             this.name = name
         }
 
+        /**
+         * This is only used by coreplugins.
+         */
+        internal constructor(name: String, description: String) {
+            this.name = name
+            this.description = description
+        }
+
         internal constructor()
     }
 
@@ -82,7 +90,7 @@ abstract class Plugin internal constructor(manifest: Manifest? = null) {
         }
 
         interface SettingsPage {
-            fun onViewBound(view: View?)
+            fun onViewBound(view: View)
         }
 
         /** The [Type] of this SettingsTab */
@@ -119,11 +127,12 @@ abstract class Plugin internal constructor(manifest: Manifest? = null) {
         constructor(settings: Class<*>, type: Type) {
             this.type = type
             when (type) {
-                Type.PAGE ->
+                Type.PAGE -> {
                     page = settings as Class<out AppFragment>
-
-                Type.BOTTOM_SHEET ->
+                }
+                Type.BOTTOM_SHEET -> {
                     bottomSheet = settings as Class<AppBottomSheet>
+                }
             }
         }
 
@@ -155,24 +164,25 @@ abstract class Plugin internal constructor(manifest: Manifest? = null) {
         return annotation != null && annotation.requiresRestart
     }
 
+    /**
+     * Returns the `@AliucordPlugin` on this class annotation if it exists.
+     */
     val annotation: AliucordPlugin?
-        /**
-         * Returns the `@AliucordPlugin` annotation if exists
-         */
         @JvmName("getAnnotation")
         get() = this.javaClass.getAnnotation(AliucordPlugin::class.java)
 
     /**
      * Called when your Plugin is loaded
-     * @param context Context
+     * @param context An activity Android context.
      */
     @Throws(Throwable::class)
     open fun load(context: Context) {
+        annotation
     }
 
     /**
      * Called when your Plugin is unloaded
-     * @param context Context
+     * @param context An activity Android context
      */
     @Throws(Throwable::class)
     open fun unload(context: Context) {
@@ -180,7 +190,7 @@ abstract class Plugin internal constructor(manifest: Manifest? = null) {
 
     /**
      * Called when your Plugin is started
-     * @param context Context
+     * @param context An activity Android context
      */
     @Throws(Throwable::class)
     open fun start(context: Context) {
@@ -188,7 +198,7 @@ abstract class Plugin internal constructor(manifest: Manifest? = null) {
 
     /**
      * Called when your Plugin is stopped
-     * @param context Context
+     * @param context An activity Android context
      */
     @Throws(Throwable::class)
     open fun stop(context: Context) {
@@ -210,7 +220,7 @@ abstract class Plugin internal constructor(manifest: Manifest? = null) {
     @JvmField
     var settingsTab: SettingsTab? = null
 
-    /** The resources of your plugin. You need to set [.needsResources] to true to use this */
+    /** The resources of your plugin. You need to set [needsResources] to true to use this */
     @JvmField
     var resources: Resources? = null
 
