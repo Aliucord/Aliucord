@@ -16,7 +16,7 @@ internal class RNAPI : CorePlugin(Manifest("RNAPI")) {
     override val isHidden = true
     override val isRequired = true
 
-    override fun load(context: Context?) {
+    override fun load(context: Context) {
         XposedBridge.makeClassInheritable(UserProfile::class.java)
 
         if (ManagerBuild.hasPatches("1.1.1")) patchGlobalName()
@@ -34,6 +34,6 @@ internal class RNAPI : CorePlugin(Manifest("RNAPI")) {
         else logger.warn("Base app outdated, cannot patch audit log")
     }
 
-    override fun start(context: Context?) {}
-    override fun stop(context: Context?) {}
+    override fun start(context: Context) {}
+    override fun stop(context: Context) {}
 }

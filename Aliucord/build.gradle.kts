@@ -65,29 +65,6 @@ dependencies {
     compileOnly(project(":Injector")) // Needed to access certain stubs
 }
 
-tasks {
-    register("pushDebuggable") {
-        group = "aliucord"
-
-        val aliucordPath = "/storage/emulated/0/Aliucord/"
-
-        doLast {
-            providers.exec {
-                commandLine(android.adbExecutable, "shell", "touch", "$aliucordPath.debuggable")
-            }
-
-            providers.exec {
-                commandLine(
-                    android.adbExecutable,
-                    "push",
-                    rootProject.file(".assets/AndroidManifest-debuggable.xml"),
-                    "${aliucordPath}AndroidManifest.xml"
-                )
-            }
-        }
-    }
-}
-
 afterEvaluate {
     publishing {
         publications {
