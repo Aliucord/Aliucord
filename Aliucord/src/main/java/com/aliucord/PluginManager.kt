@@ -85,7 +85,9 @@ object PluginManager {
             }
 
             pluginInstance.__filename = fileName
-            if (pluginInstance.needsResources) { // based on https://stackoverflow.com/questions/7483568/dynamic-resource-loading-from-other-apk
+
+            if (loader.getResource("resources.arsc") != null) {
+                // Based on https://stackoverflow.com/questions/7483568/dynamic-resource-loading-from-other-apk
                 val assetManager = AssetManager::class.java
                 val assets = assetManager.newInstance()
                 assetManager.getMethod("addAssetPath", String::class.java)(assets, file.absolutePath)

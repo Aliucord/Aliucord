@@ -220,12 +220,17 @@ abstract class Plugin internal constructor(manifest: Manifest? = null) {
     @JvmField
     var settingsTab: SettingsTab? = null
 
-    /** The resources of your plugin. You need to set [needsResources] to true to use this */
+    /** The resources of your plugin. */
     @JvmField
     var resources: Resources? = null
 
     /** Whether your plugin has resources that need to be loaded */
     @JvmField
+    @Deprecated(
+        message = "Resources are now loaded automatically.",
+        replaceWith = ReplaceWith(""),
+        level = DeprecationLevel.WARNING,
+    )
     var needsResources: Boolean = false
 
     /** The filename of the zip this plugin was loaded from */
