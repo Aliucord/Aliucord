@@ -49,8 +49,8 @@ jobs:
           name: build
           if-no-files-found: error
           path: |
-            ${{ github.workspace }}/Aliucord/build/Aliucord.zip
-            ${{ github.workspace }}/Injector/build/Injector.dex
+            ${{ github.workspace }}/Aliucord/build/outputs/Aliucord.zip
+            ${{ github.workspace }}/Injector/build/outputs/Injector.dex
             ${{ github.workspace }}/patches/build/patches.zip
 
   deploy:
