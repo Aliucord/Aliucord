@@ -37,6 +37,10 @@ android {
     publishing {
         singleVariant("debug") {}
     }
+
+    lint {
+        disable += "SetTextI18n"
+    }
 }
 
 kotlin {

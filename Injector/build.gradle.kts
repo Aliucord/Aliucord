@@ -27,6 +27,10 @@ android {
     buildFeatures {
         buildConfig = false
     }
+
+    lint {
+        disable += "SetTextI18n"
+    }
 }
 
 kotlin {
