@@ -1,28 +1,40 @@
-import com.android.build.gradle.LibraryExtension
+import com.aliucord.gradle.task.adb.DeployComponentTask
 import java.io.ByteArrayOutputStream
 
 version = "1.2.0"
 
+// --- Android --- //
+
+plugins {
+    alias(libs.plugins.android.library)
+}
+
+android {
+    namespace = "com.aliucord.patches"
+    compileSdk = 36
+}
+
+// --- Dependencies --- //
+
 // Make dependency configuration for build tools
 val buildTools: Configuration by configurations.creating
-
-repositories {
-    mavenCentral()
-    google()
-}
+val discord: Configuration by configurations.creating
 
 dependencies {
     buildTools(libs.smali)
     buildTools(libs.smali.baksmali)
+    discord(libs.discord)
 }
+
+// --- Shared files --- //
 
 val patchesDir = projectDir.resolve("src")
 val smaliDir = projectDir.resolve("smali")
 val smaliOriginalDir = layout.buildDirectory.file("smali_original").get().asFile
-val discordApk = project.gradle.gradleUserHomeDir
-    .resolve("caches/aliucord/discord/discord-${libs.discord.get().version}.apk")
+val patchesBundle = layout.buildDirectory.file("patches.zip").get().asFile
 
 // --- Public tasks --- //
+
 val packageTask = tasks.register<Zip>("package") {
     group = "aliucord"
     archiveFileName = "patches.zip"
@@ -35,20 +47,12 @@ val packageTask = tasks.register<Zip>("package") {
     include("**/*.patch")
 }
 
-tasks.register("deployWithAdb") {
+tasks.register<DeployComponentTask>("deployWithAdb") {
     group = "aliucord"
+    componentType = "patches"
+    componentVersion = project.version.toString()
+    componentFile.set(patchesBundle)
     dependsOn(packageTask)
-
-    val patchesPath = layout.buildDirectory.files("patches.zip").asPath
-    val remotePatchesDir = "/storage/emulated/0/Android/data/com.aliucord.manager/cache/patches"
-
-    doLast {
-        val android = project(":Aliucord").extensions
-            .getByName<LibraryExtension>("android")
-
-        providers.exec { commandLine(android.adbExecutable, "shell", "mkdir", "-p", remotePatchesDir) }.result.get()
-        providers.exec { commandLine(android.adbExecutable, "push", patchesPath, "$remotePatchesDir/$version.custom.zip") }.result.get()
-    }
 }
 
 tasks.register("disassembleWithPatches") {
@@ -159,7 +163,7 @@ tasks.register("writePatches") {
     }
 }
 
-tasks.register<Delete>("clean") {
+tasks.named<Delete>("clean") {
     delete(layout.buildDirectory)
     delete(smaliDir)
 }
@@ -177,6 +181,11 @@ val disassembleInternal by tasks.registering(JavaExec::class) {
     }
 
     doFirst {
+        // Resolve the Discord APK as a dependency
+        val discordApk = discord.incoming
+            .artifactView { attributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "apk") }
+            .files.singleFile
+
         zipTree(discordApk.absolutePath).matching { include("classes*.dex") }.visit {
             logger.lifecycle("Disassembling $name")
             providers.javaexec {
