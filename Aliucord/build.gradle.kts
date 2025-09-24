@@ -50,27 +50,6 @@ tasks {
             }
         }
     }
-
-    create("pushDebuggable") {
-        group = "aliucord"
-
-        val aliucordPath = "/storage/emulated/0/Aliucord/"
-
-        doLast {
-            exec {
-                commandLine(android.adbExecutable, "shell", "touch", "$aliucordPath.debuggable")
-            }
-
-            exec {
-                commandLine(
-                    android.adbExecutable,
-                    "push",
-                    rootProject.file(".assets/AndroidManifest-debuggable.xml"),
-                    "${aliucordPath}AndroidManifest.xml"
-                )
-            }
-        }
-    }
 }
 
 afterEvaluate {

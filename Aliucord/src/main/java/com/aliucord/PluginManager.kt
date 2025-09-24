@@ -67,14 +67,14 @@ object PluginManager {
                     gson.fromJson(it, Plugin.Manifest::class.java)
                 }
             }
-            val name = manifest.name
+            val name = requireNotNull(manifest.name)
             val pluginClass = loader.loadClass(manifest.pluginClassName) as Class<out Plugin>
 
             Patcher.addPatch(pluginClass.getDeclaredConstructor(), PreHook {
                 try {
-                    ReflectUtils.setField(Plugin::class.java, it.thisObject, "manifest", manifest)
-                } catch (_: Exception) {
-                    logger.errorToast("Failed to set manifest for " + manifest.name)
+                    ReflectUtils.setField(Plugin::class.java, it.thisObject, "_manifest", manifest)
+                } catch (e: Exception) {
+                    logger.errorToast("Failed to set manifest for " + manifest.name, e)
                 }
             })
 
@@ -85,7 +85,9 @@ object PluginManager {
             }
 
             pluginInstance.__filename = fileName
-            if (pluginInstance.needsResources) { // based on https://stackoverflow.com/questions/7483568/dynamic-resource-loading-from-other-apk
+
+            if (loader.getResource("resources.arsc") != null) {
+                // Based on https://stackoverflow.com/questions/7483568/dynamic-resource-loading-from-other-apk
                 val assetManager = AssetManager::class.java
                 val assets = assetManager.newInstance()
                 assetManager.getMethod("addAssetPath", String::class.java)(assets, file.absolutePath)
