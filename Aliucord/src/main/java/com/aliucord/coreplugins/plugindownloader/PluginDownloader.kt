@@ -29,7 +29,7 @@ internal val logger = Logger("PluginDownloader")
 private val viewId = View.generateViewId()
 private val repoPattern = Pattern.compile("https?://github\\.com/([A-Za-z0-9\\-_.]+)/([A-Za-z0-9\\-_.]+)")
 private val zipPattern =
-    Pattern.compile("https?://(?:github|raw\\.githubusercontent)\\.com/([A-Za-z0-9\\-_.]+)/([A-Za-z0-9\\-_.]+)/(?:raw|blob)?/?\\w+/(\\w+).zip")
+    Pattern.compile("https?://(?:github|raw\\.githubusercontent)\\.com/([A-Za-z0-9\\-_.]+)/([A-Za-z0-9\\-_.]+)/(?:raw|blob)?/?(\\w+)/(\\w+).zip")
 
 internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
     override val isRequired = true
@@ -56,19 +56,6 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
 
                 val msg = model.message
                 val content = msg?.content ?: return@Hook
-
-                if (msg.channelId == PLUGIN_DEVELOPMENT_CHANNEL_ID && msg.hasAttachments()) {
-                    msg.attachments.forEach { attachment ->
-                        val parts = attachment.filename.split('.')
-                        if (parts.size == 2 && parts[1] == "zip" && parts[0] != "Aliucord") {
-                            val plugin = PluginFile(parts[0])
-                            addEntry(layout, "${if (plugin.isInstalled) "Reinstall" else "Install"} ${plugin.name}") {
-                                plugin.install(attachment.url)
-                                actions.dismiss()
-                            }
-                        }
-                    }
-                }
 
                 when (msg.channelId) {
                     PLUGIN_LINKS_UPDATES_CHANNEL_ID, PLUGIN_DEVELOPMENT_CHANNEL_ID ->
@@ -104,14 +91,15 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
             while (find()) {
                 val author = group(1)!!
                 val repo = group(2)!!
-                val name = group(3)!!
+				val commit = group(3)!!
+                val name = group(4)!!
 
                 // Don't accidentally install core as a plugin
                 if (name == "Aliucord") continue
 
                 val plugin = PluginFile(name)
                 addEntry(layout, "${if (plugin.isInstalled) "Reinstall" else "Install"} $name") {
-                    plugin.install(author, repo)
+                    plugin.install("https://github.com/$author/$repo/raw/$commit/$name.zip")
                     actions.dismiss()
                 }
             }

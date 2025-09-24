@@ -48,6 +48,7 @@ public final class Constants {
     public static final long SUPPORT_HELPER_ROLE_ID = 1397067198761144361L; // @support-helper
 
     /** Path of Aliucord folder */
+    @SuppressWarnings("deprecation")
     public static final String BASE_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Aliucord";
     /** Path of Plugin folder */
     public static final String PLUGINS_PATH = BASE_PATH + "/plugins";

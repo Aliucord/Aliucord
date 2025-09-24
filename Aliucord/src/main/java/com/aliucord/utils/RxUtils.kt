@@ -172,6 +172,22 @@ object RxUtils {
     @JvmStatic
     fun <T, R> Observable<T>.switchMap(func: (T) -> Observable<R>): Observable<R> = Y { func(it) }
 
+    /**
+     * Creates a new cold Observable. When the observable is subscribed to, [onSubscribe] is called
+     * with the subscriber as a parameter, and should start emitting to the subscriber using [Subscriber.onNext].
+     *
+     * [onSubscribe] should always end with either [Subscriber.onError] or [Subscriber.onCompleted].
+     *
+     * Note that the resulting Observable is *not* backpressure-aware.
+     *
+     * @param T the type of data that the subscriber will receive
+     * @param onSubscribe a function that is called when the observable is subscribed to
+     * @return a cold Observable
+     * @see [Observable.unsafeCreate in RxJava docs](https://reactivex.io/RxJava/javadoc/rx/Observable.html#unsafeCreate-rx.Observable.OnSubscribe-)
+     */
+    @JvmStatic
+    fun <T> create(onSubscribe: (subscriber: Subscriber<in T>) -> Unit): Observable<T> = Observable.h0(onSubscribe)
+
     @JvmStatic
     val empty: Observable<Any> = c.k
 }

@@ -48,8 +48,17 @@ internal class CoreCommands : CorePlugin(Manifest("CoreCommands")) {
             val showVersions = it.getBoolOrDefault("versions", false)
             val (enabled, disabled) = PluginManager.getVisiblePlugins().values.partition(PluginManager::isPluginEnabled)
 
-            fun formatPlugins(plugins: List<Plugin>): String =
-                plugins.joinToString { p -> if (showVersions && p !is CorePlugin) "${p.name} (${p.manifest.version})" else p.name }
+            fun formatPlugins(plugins: List<Plugin>): String {
+                return plugins.joinToString { p ->
+                    if (showVersions && p !is CorePlugin) {
+                        "${p.name} (${p.manifest.version})"
+                    } else if (p is CorePlugin) {
+                        "*${p.name}*"
+                    } else {
+                        p.name
+                    }
+                }
+            }
 
             if (enabled.isEmpty() && disabled.isEmpty())
                 CommandResult("No plugins installed", null, false)

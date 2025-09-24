@@ -9,6 +9,7 @@ package com.aliucord.coreplugins.plugindownloader
 import com.aliucord.*
 import java.io.File
 import java.io.IOException
+import com.aliucord.entities.CorePlugin
 
 internal class PluginFile(val plugin: String) : File("${Constants.PLUGINS_PATH}/$plugin.zip") {
     val isInstalled
@@ -21,7 +22,11 @@ internal class PluginFile(val plugin: String) : File("${Constants.PLUGINS_PATH}/
     fun install(url: String, callback: Runnable? = null) {
         Utils.threadPool.execute {
             val isReinstall = isInstalled
-
+            if (PluginManager.plugins[plugin] is CorePlugin) {
+                Utils.showToast("External plugins are not able to override built-in coreplugins!")
+                throw IOException("External plugins are not able to override built-in coreplugins")
+            }
+            
             try {
                 Http.simpleDownload(url, this)
                 // Plugins are started on the main thread.

@@ -273,7 +273,7 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
     @JvmOverloads
     @JvmStatic
     @Suppress("unused")
-    fun showToast(ctx: Context, message: String, showLonger: Boolean = false) {
+    fun showToast(_ctx: Context, message: String, showLonger: Boolean = false) {
         showToast(message, showLonger)
     }
 

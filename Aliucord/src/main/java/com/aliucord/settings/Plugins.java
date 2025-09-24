@@ -87,6 +87,7 @@ public class Plugins extends SettingsPage {
         private List<Plugin> data;
         public boolean showBuiltIn = false;
 
+        @SuppressWarnings("unchecked")
         public Adapter(AppFragment fragment, Collection<Plugin> plugins) {
             super();
 
