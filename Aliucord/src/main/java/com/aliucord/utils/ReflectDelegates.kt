@@ -18,10 +18,16 @@ import kotlin.reflect.KProperty
  * @param fieldName The name of the field.
  */
 class LazyField<T>(private val clazz: Class<*>, private val fieldName: String?) : ReadOnlyProperty<T, Field> {
-    private var v = null as Field?
-    override fun getValue(thisRef: T, property: KProperty<*>) = v ?: clazz.getDeclaredField(fieldName ?: property.name.replace("Field", "")).apply {
-        isAccessible = true
-        v = this
+    private var field: Field? = null
+
+    override fun getValue(thisRef: T, property: KProperty<*>): Field {
+        return field
+            ?: clazz.getDeclaredField(
+                fieldName ?: property.name.removeSuffix("Field")
+            ).apply {
+                isAccessible = true
+                field = this
+            }
     }
 }
 
@@ -32,62 +38,68 @@ class LazyField<T>(private val clazz: Class<*>, private val fieldName: String?) 
  * @param methodName The name of the method.
  */
 class LazyMethod<T>(private val clazz: Class<*>, private val methodName: String?) : ReadOnlyProperty<T, Method> {
-    private var v = null as Method?
-    override fun getValue(thisRef: T, property: KProperty<*>) = v ?: clazz.getDeclaredMethod(methodName ?: property.name).apply {
-        isAccessible = true
-        v = this
+    private var method: Method? = null
+
+    override fun getValue(thisRef: T, property: KProperty<*>): Method {
+        return method
+            ?: clazz.getDeclaredMethod(
+                methodName ?: property.name
+            ).apply {
+                isAccessible = true
+                method = this
+            }
     }
 }
 
 /**
  * A delegate that provides efficient accessing of a field via reflection.
  *
- * @param T The type of the class holding the field.
- * @param U The type of the field.
- * @param clazz The class holding the field.
+ * @param T The type of the field.
  * @param fieldName The name of the field. If null, will use the property name.
  */
-class FieldAccessor<T, U>(private val clazz: Class<T>, private val fieldName: String?): ReadWriteProperty<T, U> {
-    private var field: Field? = null
-    private fun field(property: KProperty<*>): Field {
-        field?.let { return it }
+class FieldAccessor<T>(private val fieldName: String?): ReadWriteProperty<Any, T> {
+    private val fields = mutableListOf<Field>()
 
-        return clazz.getDeclaredField(
-            fieldName ?: property.name.replace("Field", "")
-        ).apply {
-            isAccessible = true
-            field = this
-        }
+    private fun field(thisRef: Any, property: KProperty<*>): Field {
+        val clazz = thisRef::class.java
+        return fields.find { it.declaringClass == clazz }
+            ?: clazz.getDeclaredField(
+                fieldName ?: property.name.removeSuffix("Field")
+            ).apply {
+                isAccessible = true
+                fields.add(this)
+            }
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun getValue(thisRef: T, property: KProperty<*>) = field(property)[thisRef] as U
-    override fun setValue(thisRef: T, property: KProperty<*>, value: U) = field(property).set(thisRef, value)
+    override fun getValue(thisRef: Any, property: KProperty<*>) = field(thisRef, property)[thisRef] as T
+    override fun setValue(thisRef: Any, property: KProperty<*>, value: T) = field(thisRef, property).set(thisRef, value)
 }
 
 /**
  * A delegate that provides efficient accessing of a no-args getter via reflection.
  *
- * @param T The type of the class holding the getter.
- * @param U The type of the value returned by the getter.
- * @param clazz The class holding the getter.
+ * @param T The type of the value returned by the getter.
  * @param methodName The name of the getter. If null, will use the property name to form `getName`.
  */
-class GetterAccessor<T, U>(private val clazz: Class<T>, private val methodName: String?) : ReadOnlyProperty<T, U> {
-    private var method = null as Method?
-    private fun method(property: KProperty<*>): Method {
-        method?.let { return it }
+class GetterAccessor<T>(private val methodName: String?) : ReadOnlyProperty<Any, T> {
+    private val methods = mutableListOf<Method>()
 
-        return clazz.getDeclaredMethod(
-            methodName ?: "get${property.name.replaceFirstChar { it.uppercaseChar() }}"
-        ).apply {
-            isAccessible = true
-            method = this
-        }
+    private fun method(thisRef: Any, property: KProperty<*>): Method {
+        val clazz = thisRef::class.java
+        return methods.find { it.declaringClass == clazz }
+            ?: clazz.getDeclaredMethod(
+                methodName ?: "get${property.name.replaceFirstChar { it.uppercaseChar() }}"
+            ).apply {
+                isAccessible = true
+                methods.add(this)
+            }
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun getValue(thisRef: T, property: KProperty<*>) = method(property).invoke(thisRef) as U
+    override fun getValue(thisRef: Any, property: KProperty<*>): T {
+        return method(thisRef, property).invoke(thisRef) as T
+    }
 }
 
 /**
@@ -107,17 +119,15 @@ inline fun <reified T> lazyMethod(methodName: String? = null) = LazyMethod<Any>(
 /**
  * A delegate that provides efficient accessing of a field via reflection.
  *
- * @param T The type of the class holding the getter.
- * @param U The type of the value returned by the getter.
+ * @param T The type of the field to be accessed.
  * @param fieldName The name of the field. If null, will use the property name.
  */
-inline fun <reified T, U> accessField(fieldName: String? = null) = FieldAccessor<T, U>(T::class.java, fieldName)
+fun <T> accessField(fieldName: String? = null) = FieldAccessor<T>(fieldName)
 
 /**
  * A delegate that provides efficient accessing of a no-args getter via reflection.
  *
- * @param T The type of the class holding the getter.
- * @param U The type of the value returned by the getter.
+ * @param T The type of the value returned by the getter.
  * @param methodName The name of the getter. If null, will use the property name to form `getName`.
  */
-inline fun <reified T, U> accessGetter(methodName: String? = null) = GetterAccessor<T, U>(T::class.java, methodName)
+fun <T> accessGetter(methodName: String? = null) = GetterAccessor<T>(methodName)
