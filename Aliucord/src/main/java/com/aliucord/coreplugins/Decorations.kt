@@ -15,7 +15,7 @@ import com.discord.api.guildmember.GuildMember as ApiGuildMember
 
 internal class Decorations : CorePlugin(Manifest().apply {
     name = "Decorations"
-    description = "Adds support for various user decorations"
+    description = "Adds support for various user profile decorations"
 }) {
     // TODO: make visible once plugin is ready
     override val isHidden = true
