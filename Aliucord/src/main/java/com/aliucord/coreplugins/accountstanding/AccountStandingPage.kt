@@ -35,7 +35,6 @@ class AccountStandingPage : SettingsPage() {
         setActionBarTitle("Checking account standing..")
 
         val context = view.context
-        val padding = DimenUtils.defaultPadding
 
         Utils.threadPool.execute {
             try {
