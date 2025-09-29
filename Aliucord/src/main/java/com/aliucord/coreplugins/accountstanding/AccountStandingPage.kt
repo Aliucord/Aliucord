@@ -26,8 +26,13 @@ import com.aliucord.Http.*
 import com.aliucord.utils.*
 import com.aliucord.Logger
 
-data class accountStandingState(var state: Int)
-data class ApiResponse(var account_standing: accountStandingState)
+data class ApiResponse(
+    var account_standing: accountStandingState,
+    var classifications: List<userClassifications>
+) {
+    data class userClassifications(val description: String)
+    data class accountStandingState(val state: Int)
+}
 
 class AccountStandingPage : SettingsPage() {
     override fun onViewBound(view: View) {
@@ -43,6 +48,9 @@ class AccountStandingPage : SettingsPage() {
                 val json = res.json(GsonUtils.gsonRestApi, ApiResponse::class.java)
                 val number = json.account_standing.state
                 var string: String? = null
+                var classificationsareEmpty = if (json.classifications.isEmpty()) true else false
+                var user_classifications = if (!classificationsareEmpty) json.classifications.first() else null
+                var violation = if (!classificationsareEmpty) user_classifications!!.description else null
                 when (number) {
                     100 -> string = "No violations found :)"
                     200 -> string = "Your account seems limited :|"
@@ -54,7 +62,7 @@ class AccountStandingPage : SettingsPage() {
                 Utils.mainThread.post {
                     setActionBarTitle("Account Standing")
                     TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).run {
-                        text = string
+                        if (!classificationsareEmpty) text = string + " You've broke the rules for $violation (there might be some more aswell)" else text = string
                         typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
                         gravity = Gravity.CENTER
                         linearLayout.addView(this)
