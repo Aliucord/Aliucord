@@ -38,7 +38,8 @@ class AccountStandingPage : SettingsPage() {
     override fun onViewBound(view: View) {
         super.onViewBound(view)
         setActionBarTitle("Checking account standing..")
-
+        setActionBarSubtitle("User Settings")
+        
         val context = view.context
 
         Utils.threadPool.execute {
@@ -52,17 +53,17 @@ class AccountStandingPage : SettingsPage() {
                 var user_classifications = if (!classificationsareEmpty) json.classifications.first() else null
                 var violation = if (!classificationsareEmpty) user_classifications!!.description else null
                 when (number) {
-                    100 -> string = "No violations found :)"
-                    200 -> string = "Your account seems limited :|"
-                    300 -> string = "Your account is very limited :|"
-                    400 -> string = "Your account is at risk of getting banned :P"
-                    500 -> string = "Your account is banned :("
-                    else -> string = "Failed to check :|"
+                    100 -> string = "No violations found."
+                    200 -> string = "Your account seems limited,"
+                    300 -> string = "Your account is very limited,"
+                    400 -> string = "Your account is at risk of getting banned,"
+                    500 -> string = "Your account is banned,"
+                    else -> string = "Failed to check."
                 }
                 Utils.mainThread.post {
                     setActionBarTitle("Account Standing")
                     TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).run {
-                        if (!classificationsareEmpty) text = string + " You've broke the rules for $violation (there might be some more aswell)" else text = string
+                        if (!classificationsareEmpty) text = string + " You've broke the rules for $violation (there might be some more aswell)." else text = string
                         typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
                         gravity = Gravity.CENTER
                         linearLayout.addView(this)
