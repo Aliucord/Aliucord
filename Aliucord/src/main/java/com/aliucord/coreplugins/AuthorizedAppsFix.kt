@@ -16,21 +16,19 @@ internal class AuthorizedAppsFix : CorePlugin(Manifest("AuthorizedAppsFix")) {
     }
 
     override fun start(context: Context) {
-        patcher.patch(OAuthPermissionViews::class.java.getMethod("a", TextView::class.java, OAuthScope::class.java), Hook {
-            val exc = it.throwable
-            if (exc is OAuthPermissionViews.InvalidScopeException) {
-                // Label the scopes that aren't recognized by Discord
-                when (val scope = exc.a()) {
-                    "role_connections.write" -> (it.args[0] as TextView).text = "Update your connection and metadata for this application"
+        patcher.patch(OAuthPermissionViews::class.java.getMethod("a", TextView::class.java, OAuthScope::class.java), PreHook { (param, view: TextView, scope: OAuthScope) ->
+            if (scope is OAuthScope.Invalid) {
+                param.throwable = null
+                val unrecognized_scope = scope.b()
+                when (unrecognized_scope) {
+                    "role_connections.write" -> (param.args[0] as TextView).text = "Update your connection and metadata for this application"
                     // Some scopes are expanded to multiple scopes internally, so you can't really determine whether the user has each of one of these scopes or not..
-                    "sdk.social_layer" -> (it.args[0] as TextView).text = "This scope expands to multiple scopes internally ($scope)"
-                    "sdk.social_layer_presence" -> (it.args[0] as TextView).text = "This scope expands to multiple scopes internally ($scope)"
-                    else -> (it.args[0] as TextView).text = "Scope not recognized ($scope)"
+                    "sdk.social_layer" -> (param.args[0] as TextView).text = "This scope expands to multiple scopes internally ($scope)"
+                    "sdk.social_layer_presence" -> (param.args[0] as TextView).text = "This scope expands to multiple scopes internally ($scope)"
+                    else -> (param.args[0] as TextView).text = "Scope not recognized ($scope)"
                 }
-                it.throwable = null
             }
-        }
-        )
+        })
     }
 
     override fun stop(context: Context) = patcher.unpatchAll()
