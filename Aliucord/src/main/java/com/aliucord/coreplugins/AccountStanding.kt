@@ -19,11 +19,14 @@ import com.discord.widgets.settings.WidgetSettings
 import com.lytefast.flexinput.R
 
 internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
+    override val isHidden = true
+    
     init {
         manifest.description = "Adds account standing to Aliucord"
     }
 
     override fun start(context: Context) {
+       // Patches the settings menu for the authorized apps page
        patcher.after<WidgetSettings>("onViewBound", View::class.java) { (_, view: CoordinatorLayout) ->
             val layout = (view.getChildAt(1) as NestedScrollView).getChildAt(0) as LinearLayoutCompat
             val ctx = layout.context
