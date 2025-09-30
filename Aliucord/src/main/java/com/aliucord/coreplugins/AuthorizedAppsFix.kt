@@ -21,11 +21,11 @@ internal class AuthorizedAppsFix : CorePlugin(Manifest("AuthorizedAppsFix")) {
                 param.throwable = null
                 val unrecognized_scope = scope.b()
                 when (unrecognized_scope) {
-                    "role_connections.write" -> (param.args[0] as TextView).text = "Update your connection and metadata for this application"
+                    "role_connections.write" -> view.text = "Update your connection and metadata for this application"
                     // Some scopes are expanded to multiple scopes internally, so you can't really determine whether the user has each of one of these scopes or not..
-                    "sdk.social_layer" -> (param.args[0] as TextView).text = "This scope expands to multiple scopes internally ($scope)"
-                    "sdk.social_layer_presence" -> (param.args[0] as TextView).text = "This scope expands to multiple scopes internally ($scope)"
-                    else -> (param.args[0] as TextView).text = "Scope not recognized ($scope)"
+                    "sdk.social_layer" -> view.text = "This scope expands to multiple scopes internally ($scope)"
+                    "sdk.social_layer_presence" -> view.text = "This scope expands to multiple scopes internally ($scope)"
+                    else -> view.text = "Scope not recognized ($scope)"
                 }
             }
         })
