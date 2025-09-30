@@ -276,6 +276,7 @@ object PluginManager {
             ButtonsAPI(),
             CommandHandler(),
             CoreCommands(),
+            Decorations(),
             DefaultStickers(),
             ExperimentDefaults(),
             ForwardedMessages(),
