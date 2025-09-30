@@ -9,6 +9,7 @@ import com.discord.views.OAuthPermissionViews
 
 internal class AuthorizedAppsFix : CorePlugin(Manifest("AuthorizedAppsFix")) {
     override val isHidden = true
+    override val isRequired = true
 
     init {
         manifest.description = "Fixes the Authorized apps page crashing."
@@ -30,9 +31,9 @@ internal class AuthorizedAppsFix : CorePlugin(Manifest("AuthorizedAppsFix")) {
                         when (scope) {
                             "role_connections.write" -> (it.args[0] as TextView).text = "Update your connection and metadata for this application"
                             // Some scopes are expanded to multiple scopes internally, so you can't really determine whether the user has each of one of these scopes or not..
-                            "sdk.social_layer" -> (it.args[0] as TextView).text = "This scope expands to multiple scopes internally :| ($scope)"
-                            "sdk.social_layer_presence" -> (it.args[0] as TextView).text = "This scope expands to multiple scopes internally :| ($scope)"
-                            else -> (it.args[0] as TextView).text = "Scope not recognized :( ($scope)"
+                            "sdk.social_layer" -> (it.args[0] as TextView).text = "This scope expands to multiple scopes internally ($scope)"
+                            "sdk.social_layer_presence" -> (it.args[0] as TextView).text = "This scope expands to multiple scopes internally ($scope)"
+                            else -> (it.args[0] as TextView).text = "Scope not recognized ($scope)"
                         }
                         it.throwable = null
                     }
