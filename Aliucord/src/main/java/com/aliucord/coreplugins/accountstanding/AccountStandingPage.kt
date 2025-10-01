@@ -50,7 +50,7 @@ class AccountStandingPage : SettingsPage() {
                 val res = req.execute()
                 val json = res.json(GsonUtils.gsonRestApi, ApiResponse::class.java)
                 val number = json.account_standing.state
-                var string: String? = null
+                var string: String?
                 // Check if theres any violations or not
                 var classificationsareEmpty = if (json.classifications.isEmpty()) true else false
                 var user_classifications = if (!classificationsareEmpty) json.classifications.first() else null
