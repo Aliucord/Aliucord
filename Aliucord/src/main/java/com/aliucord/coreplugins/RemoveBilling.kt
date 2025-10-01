@@ -31,9 +31,11 @@ internal class RemoveBilling : CorePlugin(Manifest("RemoveBilling")) {
         // Remove Billing settings
         patcher.after<WidgetSettings>("onViewBound", View::class.java) { (_, view: View) ->
             var container = view.findViewById<LinearLayout>(Utils.getResId("nitro_settings_container", "id"))
-            for (id in arrayOf("settings_nitro", "nitro_boosting")) {
+            for (id in arrayOf("settings_nitro", "nitro_boosting", "nitro_header")) {
                 container.removeView(view.findViewById(Utils.getResId(id, "id")))
             }
+            // Remove Billing settings divider
+            container.removeViewAt(0)
         }
 
         // Remove Gift button
