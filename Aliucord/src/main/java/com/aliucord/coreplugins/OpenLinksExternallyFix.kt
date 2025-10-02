@@ -10,8 +10,11 @@ import com.aliucord.patcher.before
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
 internal class OpenLinksExternallyFix : CorePlugin(Manifest("OpenLinksExternallyFix")) {
+    override val isHidden = true
+
     init {
-        manifest.description = "Forces app links to always open in a separate window, except for custom tabs"
+        manifest.description = "Forces app links to always open in a separate window, except for custom tab. " +
+            "This addresses an issue where some links are opened internally on certain ROMs"
     }
 
     override fun start(context: Context) {
