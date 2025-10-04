@@ -69,7 +69,7 @@ class AccountStandingPage : SettingsPage() {
                 Utils.mainThread.post {
                     setActionBarTitle("Account Standing")
                     // Create the progress indicator
-                    val progressContainer = createAccountStandingIndicator(context, number)
+                    val progressContainer = createIndicator(context, number)
                     linearLayout.addView(progressContainer)
                     // Creates the TextView for the user to see their account standing/status
                     TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).run {
