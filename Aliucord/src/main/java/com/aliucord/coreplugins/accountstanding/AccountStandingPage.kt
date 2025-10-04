@@ -24,6 +24,8 @@ import com.aliucord.utils.*
 import com.aliucord.utils.DimenUtils
 import com.lytefast.flexinput.R
 import java.util.*
+import android.content.Context
+import com.discord.utilities.color.ColorCompat
 
 data class ApiResponse(
         var account_standing: accountStandingState,
@@ -56,12 +58,10 @@ class AccountStandingPage : SettingsPage() {
 
                 Utils.mainThread.post {
                     setActionBarTitle("Account Standing")
-
                     // Create the progress indicator
-                    val progressContainer = createAccountStandingIndicator(context, number)
+                    val progressContainer = createIndicator(context, number)
                     linearLayout.addView(progressContainer)
-
-                    // Add description text below
+                    // Creates the TextView for the user to see their account standing/status
                     TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).run {
                         val statusText =
                                 when (number) {
@@ -96,117 +96,32 @@ class AccountStandingPage : SettingsPage() {
         }
     }
 
-    private fun createAccountStandingIndicator(
-            context: android.content.Context,
-            currentState: Int
-    ): LinearLayout {
-        val container =
-                LinearLayout(context).apply {
-                    orientation = LinearLayout.VERTICAL
-                    setPadding(
-                            DimenUtils.dpToPx(24),
-                            DimenUtils.dpToPx(24),
-                            DimenUtils.dpToPx(24),
-                            DimenUtils.dpToPx(16)
-                    )
-                }
-
-        // State definitions
-        val states =
-                listOf(
-                        Triple(100, "All good!", Color.parseColor("#3BA55C")),
-                        Triple(200, "Limited", Color.parseColor("#FAA61A")),
-                        Triple(300, "Very limited", Color.parseColor("#FAA61A")),
-                        Triple(400, "At risk", Color.parseColor("#ED4245")),
-                        Triple(500, "Suspended", Color.parseColor("#747F8D"))
-                )
-
-        // Create progress bar with circles
-        val progressBar =
-                LinearLayout(context).apply {
-                    orientation = LinearLayout.HORIZONTAL
-                    gravity = Gravity.CENTER_VERTICAL
-                }
-
+    // Creates the account standing indicator, adds circles and a line for it
+    private fun createIndicator(context: Context, currentState: Int): LinearLayout {
+        val container = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; setPadding(DimenUtils.dpToPx(24), DimenUtils.dpToPx(24), DimenUtils.dpToPx(24), DimenUtils.dpToPx(24)) }
+        val states = listOf(Triple(100, "All good!", Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_green)), Triple(200, "Limited", Utils.appContext.getColor(R.c.status_yellow)), Triple(300, "Very limited", Utils.appContext.getColor(R.c.status_yellow)), Triple(400, "At risk", Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_red)), Triple(500, "Suspended", Utils.appContext.getColor(R.c.status_grey_200)))
+        val progressBar = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL}
         states.forEachIndexed { index, (state, _, color) ->
-            // Add circle
-            val circle =
-                    FrameLayout(context).apply {
-                        layoutParams =
-                                LinearLayout.LayoutParams(
-                                        DimenUtils.dpToPx(32),
-                                        DimenUtils.dpToPx(32)
-                                )
-
-                        val circleDrawable =
-                                GradientDrawable().apply {
-                                    shape = GradientDrawable.OVAL
-                                    if (currentState >= state) {
-                                        setColor(color)
-                                    } else {
-                                        setColor(Color.parseColor("#4F545C"))
-                                    }
-                                }
-                        background = circleDrawable
-
-                        // Add checkmark for completed states
-                        if (currentState >= state) {
-                            addView(
-                                    TextView(context).apply {
-                                        text = "✓"
-                                        setTextColor(Color.WHITE)
-                                        textSize = 16f
-                                        gravity = Gravity.CENTER
-                                        layoutParams =
-                                                FrameLayout.LayoutParams(
-                                                        FrameLayout.LayoutParams.MATCH_PARENT,
-                                                        FrameLayout.LayoutParams.MATCH_PARENT
-                                                )
-                                    }
-                            )
-                        }
-                    }
+            val circle = FrameLayout(context).apply {
+                    layoutParams = LinearLayout.LayoutParams(DimenUtils.dpToPx(16), DimenUtils.dpToPx(16))
+                    val circleDrawable = GradientDrawable().apply { shape = GradientDrawable.OVAL; if (currentState >= state) setColor(color) else setColor(Utils.appContext.getColor(R.c.status_grey_200)) }
+                    background = circleDrawable
+            }
             progressBar.addView(circle)
-
-            // Add connecting line (except after last circle)
             if (index < states.size - 1) {
-                val line =
-                        View(context).apply {
-                            layoutParams = LinearLayout.LayoutParams(0, DimenUtils.dpToPx(4), 1f)
-                            setBackgroundColor(
-                                    if (currentState > state) color else Color.parseColor("#4F545C")
-                            )
-                        }
+                val line = View(context).apply {
+                        layoutParams = LinearLayout.LayoutParams(0, DimenUtils.dpToPx(4), 1f)
+                        setBackgroundColor(
+                            if (currentState > state) color else ColorCompat.getThemedColor(context, R.b.colorPrimaryDivider)
+                        )
+                    }
                 progressBar.addView(line)
             }
         }
-
         container.addView(progressBar)
-
-        // Create labels row
-        val labelsRow =
-                LinearLayout(context).apply {
-                    orientation = LinearLayout.HORIZONTAL
-                    setPadding(0, DimenUtils.dpToPx(8), 0, 0)
-                }
-
+        val labelsRow = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, DimenUtils.dpToPx(6), 0, 0) }
         states.forEach { (state, label, _) ->
-            val labelView =
-                    TextView(context).apply {
-                        text = label
-                        textSize = 12f
-                        setTextColor(
-                                if (currentState == state) Color.WHITE
-                                else Color.parseColor("#B9BBBE")
-                        )
-                        gravity = Gravity.CENTER
-                        layoutParams =
-                                LinearLayout.LayoutParams(
-                                        0,
-                                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                                        1f
-                                )
-                    }
+            val labelView = TextView(context).apply { text = label; setTextColor(ColorCompat.getThemedColor(context, R.b.primary_300)); textSize = 12f; setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)); gravity = Gravity.CENTER; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }
             labelsRow.addView(labelView)
         }
 
@@ -214,3 +129,4 @@ class AccountStandingPage : SettingsPage() {
         return container
     }
 }
+
