@@ -22,7 +22,7 @@ internal class RemoveBilling : CorePlugin(Manifest("RemoveBilling")) {
     override val isHidden = true
 
     init {
-        manifest.description = "Removes all references to billing and nitro (doesn't remove when the user has nitro)"
+        manifest.description = "Removes references to billing/nitro when user doesn't have nitro"
     }
 
     override fun start(context: Context) {
