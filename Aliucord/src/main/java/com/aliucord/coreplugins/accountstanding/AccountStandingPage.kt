@@ -111,7 +111,7 @@ class AccountStandingPage : SettingsPage() {
         }
         container.addView(progressBar)
         val labelsRow = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, DimenUtils.dpToPx(6), 0, 0) }
-        states.forEach { (state, label, _) ->
+        states.forEach { (_, label, _) ->
             val labelView = TextView(context).apply { text = label; setTextColor(ColorCompat.getThemedColor(context, R.b.primary_300)); textSize = 12f; setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)); gravity = Gravity.CENTER; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }
             labelsRow.addView(labelView)
         }
