@@ -1,5 +1,3 @@
-@file:Suppress("MISSING_DEPENDENCY_CLASS", "MISSING_DEPENDENCY_SUPERCLASS")
-
 package com.aliucord.coreplugins.polls.creation
 
 import android.text.Editable
