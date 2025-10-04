@@ -29,8 +29,6 @@ internal class OpenLinksExternallyFix : CorePlugin(Manifest("OpenLinksExternally
 
         patcher.before<Activity>("startActivity", Intent::class.java) { param -> handleIntent(param) }
         patcher.before<Activity>("startActivityForResult", Intent::class.java, Int::class.javaPrimitiveType!!, Bundle::class.java) { param -> handleIntent(param) }
-        patcher.before<Context>("startActivity", Intent::class.java) { param -> handleIntent(param) }
-        patcher.before<Context>("startActivity", Intent::class.java, Bundle::class.java) { param -> handleIntent(param) }
     }
     override fun stop(context: Context) {}
 }
