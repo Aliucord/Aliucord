@@ -2,6 +2,7 @@ package com.aliucord.coreplugins
 
 import android.content.Context
 import com.aliucord.coreplugins.decorations.DecorationsSettings
+import com.aliucord.coreplugins.decorations.guildtags.GuildTags
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.updater.ManagerBuild
@@ -17,21 +18,18 @@ internal class Decorations : CorePlugin(Manifest().apply {
     name = "Decorations"
     description = "Adds support for various user profile decorations"
 }) {
-    // TODO: make visible once plugin is ready
-    override val isHidden = true
-
     init {
         settingsTab = SettingsTab(DecorationsSettings.Sheet::class.java, SettingsTab.Type.BOTTOM_SHEET)
     }
 
     override fun start(context: Context) {
-        if (!DecorationsSettings.enable) return
         if (!ManagerBuild.hasInjector("2.3.0") || !ManagerBuild.hasPatches("1.3.0")) {
             logger.warn("Base app outdated, cannot enable Decorations")
             return
         }
 
         patchFields()
+        GuildTags.patch(patcher)
     }
 
     override fun stop(context: Context) {
