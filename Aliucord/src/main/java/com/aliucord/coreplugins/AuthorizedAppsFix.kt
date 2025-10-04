@@ -17,16 +17,14 @@ internal class AuthorizedAppsFix : CorePlugin(Manifest("AuthorizedAppsFix")) {
 
     override fun start(context: Context) {
         patcher.patch(OAuthPermissionViews::class.java.getMethod("a", TextView::class.java, OAuthScope::class.java), PreHook { (param, view: TextView, scope: OAuthScope) ->
-            if (scope is OAuthScope.Invalid) {
-                param.throwable = null
-                val unrecognized_scope = scope.b()
-                when (unrecognized_scope) {
-                    "role_connections.write" -> view.text = "Update your connection and metadata for this application"
-                    // Some scopes are expanded to multiple scopes internally, so you can't really determine whether the user has each of one of these scopes or not..
-                    "sdk.social_layer" -> view.text = "This scope expands to multiple scopes internally ($scope)"
-                    "sdk.social_layer_presence" -> view.text = "This scope expands to multiple scopes internally ($scope)"
-                    else -> view.text = "Scope not recognized ($scope)"
-                }
+            if (scope !is OAuthScope.Invalid) return@PreHook
+            param.throwable = null
+            when (val unrecognized_scope = scope.b()) {
+                "role_connections.write" -> view.text = "Update your connection and metadata for this application"
+                // Some scopes are expanded to multiple scopes internally, so you can't really determine whether the user has each of one of these scopes or not..
+                "sdk.social_layer" -> view.text = "This scope expands to multiple scopes internally ($scope)"
+                "sdk.social_layer_presence" -> view.text = "This scope expands to multiple scopes internally ($scope)"
+                else -> view.text = "Scope not recognized ($scope)"
             }
         })
     }
