@@ -30,6 +30,9 @@ internal class RemoveBilling : CorePlugin(Manifest("RemoveBilling")) {
         val userUtils = UserUtils.INSTANCE
         val hasNitro = userUtils.isPremium(meUser)
 
+        // Don't patch if the user has nitro, Theres some functionallities like unsubscribing/seeing nitro status that still work.
+        if (hasNitro) return
+        
         // Remove Billing settings
         patcher.after<WidgetSettings>("onViewBound", View::class.java) { (_, view: View) ->
             var container = view.findViewById<LinearLayout>(Utils.getResId("nitro_settings_container", "id"))
@@ -81,9 +84,6 @@ internal class RemoveBilling : CorePlugin(Manifest("RemoveBilling")) {
         patcher.after<`WidgetSettingsGifting$binding$2`>("invoke", View::class.java) { (_, view: View) ->
             val textview = view.findViewById<LinearLayout>(Utils.getResId("settings_gifting_purchase_gift_section", "id")); textview.setVisibility(View.GONE)
         }
-
-        // Unpatch all if the user has nitro, Theres some functionallities like unsubscribing/seeing nitro status that still work.
-        if (hasNitro) patcher.unpatchAll()
     }
 
     override fun stop(context: Context) = patcher.unpatchAll()
