@@ -25,16 +25,20 @@ internal class DiscordBadges : CorePlugin(MANIFEST) {
             val profile = state.userProfile as? RNUserProfile ?: return@after
             val badges = profile.badges ?: return@after
 
+            val excludedBadgeIds = setOf(
+                "guild_booster",
+                "hypesquad",
+                "premium",
+                "bug_hunter",
+                "verified_developer",
+                "staff",
+                "early_supporter",
+                "partner"
+            )
+
             // Exclude badges that are already in aliucord
             val discordBadges = badges
-                .filter { !it.id.contains("guild_booster") &&
-                    !it.id.contains("hypesquad") &&
-                    !it.id.contains("premium") &&
-                    !it.id.contains("bug_hunter") &&
-                    !it.id.contains("verified_developer") &&
-                    !it.id.contains("staff") &&
-                    !it.id.contains("early_supporter") &&
-                    !it.id.contains("partner") }
+                .filter { badge -> excludedBadgeIds.none { excluded -> badge.id.contains(excluded) } }
                 .map { badgeData ->
                     val iconUrl = "https://cdn.discordapp.com/badge-icons/${badgeData.icon}.png"
                     Badge(0, null, badgeData.description, false, iconUrl)
