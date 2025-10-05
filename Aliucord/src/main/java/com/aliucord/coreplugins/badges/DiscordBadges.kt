@@ -38,7 +38,7 @@ internal class DiscordBadges : CorePlugin(MANIFEST) {
 
             // Exclude badges that are already in aliucord
             val discordBadges = badges
-                .filter { badge -> excludedBadgeIds.none { excluded -> badge.id.contains(excluded) } }
+                .filterNot { badge -> badge.id in excludedBadgeIds }
                 .map { badgeData ->
                     val iconUrl = "https://cdn.discordapp.com/badge-icons/${badgeData.icon}.png"
                     Badge(0, null, badgeData.description, false, iconUrl)
