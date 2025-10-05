@@ -284,6 +284,7 @@ object PluginManager {
             MembersListFix(),
             NewPins(),
             NoTrack(),
+            OpenLinksExternallyFix(),
             PluginDownloader(),
             Polls(),
             PrivateChannelsListScroll(),
