@@ -68,7 +68,7 @@ class AccountStandingPage : SettingsPage() {
                 // Replaces the previous action bar title so its no longer checking
                 Utils.mainThread.post {
                     setActionBarTitle("Account Standing")
-                    // Create the progress indicator
+                    // Create the indicator
                     val progressContainer = createIndicator(context, number)
                     linearLayout.addView(progressContainer)
                     // Creates the TextView for the user to see their account standing/status
@@ -89,8 +89,10 @@ class AccountStandingPage : SettingsPage() {
 
     // Creates the account standing indicator, adds circles and a line for it
     private fun createIndicator(context: Context, currentState: Int): LinearLayout {
+        // Creates the container and circles for the indicator
         val container = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; setPadding(DimenUtils.dpToPx(24), DimenUtils.dpToPx(24), DimenUtils.dpToPx(24), DimenUtils.dpToPx(24)) }
-        val states = listOf(Triple(100, "All good!", Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_green)), Triple(200, "Limited", Utils.appContext.getColor(R.c.status_yellow)), Triple(300, "Very limited", Utils.appContext.getColor(R.c.status_yellow)), Triple(400, "At risk", Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_red)), Triple(500, "Suspended", Utils.appContext.getColor(R.c.status_grey_200)))
+        val states = listOf(Triple(100, "All good", Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_green)), Triple(200, "Limited", Utils.appContext.getColor(R.c.status_yellow)), Triple(300, "Very limited", Utils.appContext.getColor(R.c.status_yellow)), Triple(400, "At risk", Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_red)), Triple(500, "Suspended", Utils.appContext.getColor(R.c.status_grey_200)))
+        // Creates a bar that goes along the indicator
         val progressBar = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL}
         states.forEachIndexed { index, (state, _, color) ->
             val circle = FrameLayout(context).apply {
@@ -98,8 +100,10 @@ class AccountStandingPage : SettingsPage() {
                     val circleDrawable = GradientDrawable().apply { shape = GradientDrawable.OVAL; if (currentState >= state) setColor(color) else setColor(Utils.appContext.getColor(R.c.status_grey_200)) }
                     background = circleDrawable
             }
+            // Add the circles
             progressBar.addView(circle)
             if (index < states.size - 1) {
+                // Sets the background color of the bar and add it
                 val line = View(context).apply {
                         layoutParams = LinearLayout.LayoutParams(0, DimenUtils.dpToPx(4), 1f)
                         setBackgroundColor(
@@ -109,13 +113,14 @@ class AccountStandingPage : SettingsPage() {
                 progressBar.addView(line)
             }
         }
+        // Adds both the progressbar and labels
         container.addView(progressBar)
         val labelsRow = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, DimenUtils.dpToPx(6), 0, 0) }
         states.forEach { (_, label, _) ->
             val labelView = TextView(context).apply { text = label; setTextColor(ColorCompat.getThemedColor(context, R.b.primary_300)); textSize = 12f; setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)); gravity = Gravity.CENTER; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }
             labelsRow.addView(labelView)
         }
-
+        // Returns the view
         container.addView(labelsRow)
         return container
     }
