@@ -41,7 +41,7 @@ class AccountStandingPage : SettingsPage() {
         // Set both the action bar and subtitle
         setActionBarTitle("Checking account standing..")
         setActionBarSubtitle("User Settings")
-        
+
         val context = view.context
 
         Utils.threadPool.execute {
@@ -58,11 +58,11 @@ class AccountStandingPage : SettingsPage() {
                 var violation = if (!classificationsareEmpty) user_classifications!!.description else null
                 // Check to see whether the account is limited, very limited, at risk or banned (or just with no violations)
                 when (number) {
-                    100 -> string = "No violations found."
-                    200 -> string = "Your account seems limited,"
-                    300 -> string = "Your account is very limited,"
-                    400 -> string = "Your account is at risk of getting banned,"
-                    500 -> string = "Your account is banned,"
+                    100 -> string = "No current violations found."
+                    200 -> string = "Your account seems limited."
+                    300 -> string = "Your account is very limited."
+                    400 -> string = "Your account is at risk of getting banned."
+                    500 -> string = "Your account is banned."
                     else -> string = "Failed to check."
                 }
                 // Replaces the previous action bar title so its no longer checking
@@ -73,7 +73,7 @@ class AccountStandingPage : SettingsPage() {
                     linearLayout.addView(progressContainer)
                     // Creates the TextView for the user to see their account standing/status
                     TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).run {
-                        if (!classificationsareEmpty) text = string + " You've broke the rules for $violation (there might be some more aswell)." else text = string
+                        if (!classificationsareEmpty) text = string + " You've broke (or previously broken) the rules for $violation." else text = string
                         typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
                         gravity = Gravity.CENTER
                         linearLayout.addView(this)
@@ -106,10 +106,8 @@ class AccountStandingPage : SettingsPage() {
                 // Sets the background color of the bar and add it
                 val line = View(context).apply {
                         layoutParams = LinearLayout.LayoutParams(0, DimenUtils.dpToPx(4), 1f)
-                        setBackgroundColor(
-                            if (currentState > state) color else ColorCompat.getThemedColor(context, R.b.colorPrimaryDivider)
-                        )
-                    }
+                        setBackgroundColor(if (currentState > state) color else ColorCompat.getThemedColor(context, R.b.colorPrimaryDivider))
+                }
                 progressBar.addView(line)
             }
         }
