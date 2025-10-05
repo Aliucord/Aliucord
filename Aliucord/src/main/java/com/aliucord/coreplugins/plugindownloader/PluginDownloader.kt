@@ -35,6 +35,7 @@ import com.discord.widgets.chat.list.entries.ChatListEntry
 import com.discord.widgets.chat.list.entries.MessageEntry
 import com.discord.widgets.chat.WidgetUrlActions
 import com.lytefast.flexinput.R
+import java.util.WeakHashMap
 
 internal val logger = Logger("PluginDownloader")
 
@@ -43,8 +44,8 @@ private val urlViewId = View.generateViewId()
 private val repoPattern = Regex("https?://github\\.com/([A-Za-z0-9\\-_.]+)/([A-Za-z0-9\\-_.]+)")
 private val zipPattern =
     Regex("https?://(?:github|raw\\.githubusercontent)\\.com/([A-Za-z0-9\\-_.]+)/([A-Za-z0-9\\-_.]+)/(?:raw|blob)?/?(\\w+)/(\\w+).zip")
-private val fUrlSource = ExtField(WidgetChatListAdapterItemMessage::class.java)
-private val fUrlSource2 = ExtField(WidgetUrlActions::class.java)
+private val mUrlSource = WeakHashMap<WidgetChatListAdapterItemMessage, Message?>()
+private val mUrlSource2 = WeakHashMap<WidgetUrlActions, Message?>()
 
 internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
     override val isRequired = true
@@ -65,14 +66,14 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
     //allow passing URL's source message for context
     fun sourcedLaunch(fragmentManager: FragmentManager, str: String, source: Message) {
         val widgetUrlActions = WidgetUrlActions()
-        widgetUrlActions.setExt(fUrlSource2, source)
-        val bundle = Bundle();
+        mUrlSource2[widgetUrlActions] = source
+        val bundle = Bundle()
         bundle.putString("INTENT_URL", str)
-        widgetUrlActions.setArguments(bundle);
-        widgetUrlActions.show(fragmentManager, WidgetUrlActions::class.java.getName());
+        widgetUrlActions.setArguments(bundle)
+        widgetUrlActions.show(fragmentManager, WidgetUrlActions::class.java.getName())
     }
     fun WidgetChatListAdapterEventsHandler.onSourcedUrlLongClicked(str: String, source: Message) {
-        sourcedLaunch(WidgetChatListAdapterEventsHandler.`access$getFragmentManager$p`(this), str, source);
+        sourcedLaunch(WidgetChatListAdapterEventsHandler.`access$getFragmentManager$p`(this), str, source)
     }
 
     override fun start(context: Context) {
@@ -89,26 +90,26 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
         //also for link context menu
         patcher.patch(
             WidgetChatListAdapterItemMessage::class.java.getDeclaredMethod("onConfigure", Int::class.java, ChatListEntry::class.java),
-            Hook { (param, i: Int, chatListEntry: ChatListEntry) ->
+            Hook { (param, _: Int, chatListEntry: ChatListEntry) ->
                 val messageEntry = chatListEntry as MessageEntry
                 val message = messageEntry.message as Message
-                (param.thisObject as WidgetChatListAdapterItemMessage).setExt(fUrlSource, message)
+                mUrlSource[(param.thisObject as WidgetChatListAdapterItemMessage)] = message
             }
         )
         patcher.patch(
             `WidgetChatListAdapterItemMessage$getMessageRenderContext$2`::class.java.getDeclaredMethod("invoke", String::class.java),
             InsteadHook { (param, str: String) ->
                 val t = (param.thisObject as `WidgetChatListAdapterItemMessage$getMessageRenderContext$2`).`this$0` as WidgetChatListAdapterItemMessage
-                val urlSource = t.getExt(fUrlSource) as Message
+                val urlSource = mUrlSource[t] as Message
                 val eventHandler = WidgetChatListAdapterItemMessage.`access$getAdapter$p`(t).getEventHandler() as WidgetChatListAdapterEventsHandler
                 eventHandler.onSourcedUrlLongClicked(str, urlSource)
             }
         )
         patcher.patch(
             WidgetUrlActions::class.java.getDeclaredMethod("onViewCreated", View::class.java, Bundle::class.java),
-            Hook { (param, view: View, bundle: Bundle) ->
+            Hook { param ->
                 val actions = param.thisObject as WidgetUrlActions
-                val msg = actions.getExt(fUrlSource2) as Message
+                val msg = mUrlSource2[actions] as Message
 
                 addPluginDownloadOptions(msg, actions)
             }
