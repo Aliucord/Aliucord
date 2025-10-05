@@ -97,7 +97,7 @@ class AccountStandingPage : SettingsPage() {
         states.forEachIndexed { index, (state, _, color) ->
             val circle = FrameLayout(context).apply {
                     layoutParams = LinearLayout.LayoutParams(DimenUtils.dpToPx(16), DimenUtils.dpToPx(16))
-                    val circleDrawable = GradientDrawable().apply { shape = GradientDrawable.OVAL; if (currentState >= state) setColor(color) else setColor(Utils.appContext.getColor(R.c.status_grey_200)) }
+                    val circleDrawable = GradientDrawable().apply { shape = GradientDrawable.OVAL; if (currentState == state) setColor(color) else setColor(Utils.appContext.getColor(R.c.status_grey_200)) }
                     background = circleDrawable
             }
             // Add the circles
