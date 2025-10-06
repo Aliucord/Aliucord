@@ -73,7 +73,7 @@ class AccountStandingPage : SettingsPage() {
                     linearLayout.addView(progressContainer)
                     // Creates the TextView for the user to see their account standing/status
                     TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).run {
-                        if (!classificationsareEmpty) text = string + " You've broke (or previously broken) the rules for $violation." else text = string
+                        if (!classificationsareEmpty) text = string + " You've broken (or previously broken) the rules for $violation. (there may be more as well)" else text = string
                         typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
                         gravity = Gravity.CENTER
                         linearLayout.addView(this)
