@@ -1,0 +1,15 @@
+--- smali_original/com/discord/widgets/friends/WidgetFriendsAddById$Companion$UserNameDiscriminator.smali
++++ smali/com/discord/widgets/friends/WidgetFriendsAddById$Companion$UserNameDiscriminator.smali
+@@ -78,6 +78,12 @@ .method public constructor <init>(Ljava/
+ 
+     iput-object p1, p0, Lcom/discord/widgets/friends/WidgetFriendsAddById$Companion$UserNameDiscriminator;->username:Ljava/lang/String;
+ 
++    const/4 p2, 0x0
++
++    invoke-static {p2}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
++
++    move-result-object p2
++
+     iput-object p2, p0, Lcom/discord/widgets/friends/WidgetFriendsAddById$Companion$UserNameDiscriminator;->discriminator:Ljava/lang/Integer;
+ 
+     return-void
