@@ -1,7 +1,7 @@
 import com.android.build.gradle.LibraryExtension
 import java.io.ByteArrayOutputStream
 
-version = "1.2.0"
+version = "1.3.0"
 
 // Make dependency configuration for build tools
 val buildTools: Configuration by configurations.creating
