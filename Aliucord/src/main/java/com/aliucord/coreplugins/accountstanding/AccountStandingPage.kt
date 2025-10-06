@@ -91,7 +91,13 @@ class AccountStandingPage : SettingsPage() {
     private fun createIndicator(context: Context, currentState: Int): LinearLayout {
         // Creates the container and circles for the indicator
         val container = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; setPadding(DimenUtils.dpToPx(24), DimenUtils.dpToPx(24), DimenUtils.dpToPx(24), DimenUtils.dpToPx(24)) }
-        val states = listOf(Triple(100, "All good", Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_green)), Triple(200, "Limited", Utils.appContext.getColor(R.c.status_yellow)), Triple(300, "Very limited", Utils.appContext.getColor(R.c.status_yellow)), Triple(400, "At risk", Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_red)), Triple(500, "Suspended", Utils.appContext.getColor(R.c.status_grey_200)))
+        val states = listOf(
+            Triple(100, "All good", Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_green)), 
+            Triple(200, "Limited", Utils.appContext.getColor(R.c.status_yellow)), 
+            Triple(300, "Very limited", Utils.appContext.getColor(R.c.status_yellow)), 
+            Triple(400, "At risk", Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_red)), 
+            Triple(500, "Suspended", Utils.appContext.getColor(R.c.status_grey_200))
+        )
         // Creates a bar that goes along the indicator
         val progressBar = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL}
         states.forEachIndexed { index, (state, _, color) ->
@@ -103,19 +109,29 @@ class AccountStandingPage : SettingsPage() {
             // Add the circles
             progressBar.addView(circle)
             if (index < states.size - 1) {
-                // Sets the background color of the bar and add it
+                // Sets the background color of the bar and adds it
                 val line = View(context).apply {
                         layoutParams = LinearLayout.LayoutParams(0, DimenUtils.dpToPx(4), 1f)
-                        setBackgroundColor(if (currentState > state) color else ColorCompat.getThemedColor(context, R.b.colorPrimaryDivider))
+                        setBackgroundColor(ColorCompat.getThemedColor(context, R.b.colorPrimaryDivider))
                 }
                 progressBar.addView(line)
             }
         }
         // Adds both the progressbar and labels
         container.addView(progressBar)
-        val labelsRow = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, DimenUtils.dpToPx(6), 0, 0) }
+        val labelsRow = LinearLayout(context).apply { 
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, DimenUtils.dpToPx(6), 0, 0) // Sets padding for each label
+        }
         states.forEach { (_, label, _) ->
-            val labelView = TextView(context).apply { text = label; setTextColor(ColorCompat.getThemedColor(context, R.b.primary_300)); textSize = 12f; setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)); gravity = Gravity.CENTER; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }
+            val labelView = TextView(context).apply { 
+                text = label // Adds the labels here, (e.g "All good", "Limited", "Suspended", etc)
+                setTextColor(ColorCompat.getThemedColor(context, R.b.primary_300)) // Sets the text color (and also font size and font below)
+                textSize = 12f
+                setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium))
+                gravity = Gravity.CENTER
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            }
             labelsRow.addView(labelView)
         }
         // Returns the view
