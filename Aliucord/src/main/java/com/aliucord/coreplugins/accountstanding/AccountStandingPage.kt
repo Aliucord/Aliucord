@@ -4,28 +4,21 @@
  * Licensed under the Open Software License version 3.0
  */
 
-package com.aliucord.coreplugins
+package com.aliucord.coreplugins.accountstanding
 
-import android.graphics.Color
+import android.content.Context
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
-import android.widget.FrameLayout
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.widget.*
 import androidx.core.content.res.ResourcesCompat
-import com.aliucord.Constants
-import com.aliucord.Http
-import com.aliucord.Http.*
-import com.aliucord.Logger
-import com.aliucord.Utils
+import com.aliucord.*
 import com.aliucord.fragments.SettingsPage
-import com.aliucord.utils.*
 import com.aliucord.utils.DimenUtils
-import com.lytefast.flexinput.R
-import java.util.*
-import android.content.Context
+import com.aliucord.utils.GsonUtils
+import com.aliucord.utils.ViewUtils.addTo
 import com.discord.utilities.color.ColorCompat
+import com.lytefast.flexinput.R
 
 data class ApiResponse(
     var account_standing: accountStandingState,
@@ -68,16 +61,13 @@ class AccountStandingPage : SettingsPage() {
                 // Replaces the previous action bar title so its no longer checking
                 Utils.mainThread.post {
                     setActionBarTitle("Account Standing")
-                    // Create the indicator
-                    val progressContainer = createIndicator(context, number)
-                    linearLayout.addView(progressContainer)
+                    createIndicator(context, number).addTo(linearLayout)
                     // Creates the TextView for the user to see their account standing/status
-                    TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).run {
+                    TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
                         if (!classificationsareEmpty) text = string + " You've broken (or previously broken) the rules for $violation. (there may be more as well)" else text = string
                         typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
                         gravity = Gravity.CENTER
-                        linearLayout.addView(this)
-                    }
+                    }.addTo(linearLayout)
                 }
             } catch (e: Exception) {
                 // Log error and set the action bar title to failed (if theres an actual error)
@@ -92,51 +82,48 @@ class AccountStandingPage : SettingsPage() {
         // Creates the container and circles for the indicator
         val container = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; setPadding(DimenUtils.dpToPx(24), DimenUtils.dpToPx(24), DimenUtils.dpToPx(24), DimenUtils.dpToPx(24)) }
         val states = listOf(
-            Triple(100, "All good", Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_green)), 
-            Triple(200, "Limited", Utils.appContext.getColor(R.c.status_yellow)), 
-            Triple(300, "Very limited", Utils.appContext.getColor(R.c.status_yellow)), 
-            Triple(400, "At risk", Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_red)), 
+            Triple(100, "All good", Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_green)),
+            Triple(200, "Limited", Utils.appContext.getColor(R.c.status_yellow)),
+            Triple(300, "Very limited", Utils.appContext.getColor(R.c.status_yellow)),
+            Triple(400, "At risk", Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_red)),
             Triple(500, "Suspended", Utils.appContext.getColor(R.c.status_grey_200))
         )
         // Creates a bar that goes along the indicator
         val progressBar = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL}
         states.forEachIndexed { index, (state, _, color) ->
-            val circle = FrameLayout(context).apply {
+            FrameLayout(context).apply {
                     layoutParams = LinearLayout.LayoutParams(DimenUtils.dpToPx(16), DimenUtils.dpToPx(16))
                     val circleDrawable = GradientDrawable().apply { shape = GradientDrawable.OVAL; if (currentState == state) setColor(color) else setColor(Utils.appContext.getColor(R.c.status_grey_200)) }
                     background = circleDrawable
-            }
+            }.addTo(progressBar)
+
             // Add the circles
-            progressBar.addView(circle)
             if (index < states.size - 1) {
                 // Sets the background color of the bar and adds it
-                val line = View(context).apply {
-                        layoutParams = LinearLayout.LayoutParams(0, DimenUtils.dpToPx(4), 1f)
-                        setBackgroundColor(ColorCompat.getThemedColor(context, R.b.colorPrimaryDivider))
-                }
-                progressBar.addView(line)
+                View(context).apply {
+                    layoutParams = LinearLayout.LayoutParams(0, DimenUtils.dpToPx(4), 1f)
+                    setBackgroundColor(ColorCompat.getThemedColor(context, R.b.colorPrimaryDivider))
+                }.addTo(progressBar)
             }
         }
         // Adds both the progressbar and labels
         container.addView(progressBar)
-        val labelsRow = LinearLayout(context).apply { 
+        val labelsRow = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(0, DimenUtils.dpToPx(6), 0, 0) // Sets padding for each label
         }
         states.forEach { (_, label, _) ->
-            val labelView = TextView(context).apply { 
+            TextView(context).apply {
                 text = label // Adds the labels here, (e.g "All good", "Limited", "Suspended", etc)
                 setTextColor(ColorCompat.getThemedColor(context, R.b.primary_300)) // Sets the text color (and also font size and font below)
                 textSize = 12f
-                setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium))
+                typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
                 gravity = Gravity.CENTER
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            }
-            labelsRow.addView(labelView)
+            }.addTo(labelsRow)
         }
         // Returns the view
         container.addView(labelsRow)
         return container
     }
 }
-
