@@ -64,7 +64,6 @@ class AccountStandingPage : SettingsPage() {
                     }.addTo(linearLayout)
                 }
             } catch (e: Exception) {
-                // Log error and set the action bar title to failed (if theres an actual error)
                 Logger("AccountStanding").errorToast("Failed to check account standing", e)
             }
         }
@@ -90,7 +89,6 @@ class AccountStandingPage : SettingsPage() {
             setPadding(24.dp, 24.dp, 24.dp, 24.dp)
         }
 
-        // Add the array of states, strings and colors to be used
         val states = arrayOf(
             ClassificationState(100, "All good", Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_green)),
             ClassificationState(200, "Limited", Utils.appContext.getColor(R.c.status_yellow)),
