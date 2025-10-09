@@ -53,9 +53,7 @@ class AccountStandingPage : SettingsPage() {
                 var classificationsareEmpty = if (json.classifications.isEmpty()) true else false; var user_classifications = if (!classificationsareEmpty) json.classifications.first() else null
                 var violation = if (!classificationsareEmpty) user_classifications!!.description else null
 
-                // Replaces the previous action bar title so its no longer checking
                 Utils.mainThread.post {
-                    setActionBarTitle("Account Standing")
                     createIndicator(context, json.accountStanding.state).addTo(linearLayout)
 
                     // Creates the TextView for the user to see their account standing/status
