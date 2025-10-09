@@ -17,28 +17,32 @@ internal class DiscordBadges : CorePlugin(MANIFEST) {
     private val f_recyclerAdapterData by lazyField<SimpleRecyclerAdapter<*, *>>("data")
     private val f_badgeViewHolderBinding by lazyField<UserProfileHeaderView.BadgeViewHolder>("binding")
 
+    private val excludedBadgeIds = arrayOf(
+        "guild_booster",
+        "hypesquad",
+        "premium",
+        "bug_hunter",
+        "verified_developer",
+        "staff",
+        "early_supporter",
+        "partner"
+    )
+
     @Suppress("UNCHECKED_CAST")
     override fun start(context: Context) {
         // Add profile badges to the RecyclerView
-        patcher.after<UserProfileHeaderView>("updateViewState", UserProfileHeaderViewModel.ViewState.Loaded::class.java)
-        { (_, state: UserProfileHeaderViewModel.ViewState.Loaded) ->
+        patcher.after<UserProfileHeaderView>(
+            "updateViewState", 
+            UserProfileHeaderViewModel.ViewState.Loaded::class.java,
+        ) { (_, state: UserProfileHeaderViewModel.ViewState.Loaded) ->
             val profile = state.userProfile as? RNUserProfile ?: return@after
             val badges = profile.badges ?: return@after
 
-            val excludedBadgeIds = setOf(
-                "guild_booster",
-                "hypesquad",
-                "premium",
-                "bug_hunter",
-                "verified_developer",
-                "staff",
-                "early_supporter",
-                "partner"
-            )
-
             // Exclude badges that are already in aliucord
             val discordBadges = badges
-                .filterNot { badge -> badge.id in excludedBadgeIds }
+                .filterNot { badgeData -> 
+                    excludedBadgeIds.any { excludedId -> badgeData.id.contains(excludedId) }
+                }
                 .map { badgeData ->
                     val iconUrl = "https://cdn.discordapp.com/badge-icons/${badgeData.icon}.png"
                     Badge(0, null, badgeData.description, false, iconUrl)
