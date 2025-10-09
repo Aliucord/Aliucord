@@ -273,8 +273,8 @@ object PluginManager {
     @JvmStatic
     fun loadCorePlugins(context: Context) {
         val corePlugins = arrayOf(
-            AlignThreads(),
             AccountStanding(),
+            AlignThreads(),
             ButtonsAPI(),
             CommandHandler(),
             CoreCommands(),

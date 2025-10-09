@@ -20,9 +20,11 @@ import com.aliucord.utils.ViewUtils.addTo
 import com.discord.utilities.color.ColorCompat
 import com.lytefast.flexinput.R
 import com.aliucord.utils.DimenUtils.dp
+import com.aliucord.utils.SerializedName
 
 data class SafetyHubResponse(
-    var account_standing: AccountStandingState,
+    @SerializedName("account_standing")
+    var accountStanding: AccountStandingState,
     var classifications: List<UserClassifications>
 ) {
     data class UserClassifications(val description: String)
@@ -45,7 +47,7 @@ class AccountStandingPage : SettingsPage() {
                 // Fetch the safety hub/account standing data
                 val json = Http.Request.newDiscordRNRequest("/safety-hub/@me", "GET").execute()
                     .json(GsonUtils.gsonRestApi, SafetyHubResponse::class.java)
-                var string = determineString(json.account_standing.state)
+                var string = determineString(json.accountStanding.state)
 
                 // Check if theres any violations or not (and also check if classifications are empty)
                 var classificationsareEmpty = if (json.classifications.isEmpty()) true else false; var user_classifications = if (!classificationsareEmpty) json.classifications.first() else null
@@ -54,11 +56,11 @@ class AccountStandingPage : SettingsPage() {
                 // Replaces the previous action bar title so its no longer checking
                 Utils.mainThread.post {
                     setActionBarTitle("Account Standing")
-                    createIndicator(context, json.account_standing.state).addTo(linearLayout)
+                    createIndicator(context, json.accountStanding.state).addTo(linearLayout)
 
                     // Creates the TextView for the user to see their account standing/status
                     TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
-                        text = if (!classificationsareEmpty) string + " You've broken (or previously broken) the rules for $violation. (there may be more as well)" else string
+                        text = if (!classificationsareEmpty) string + " You've broke (or previously broken) Discord's rules for $violation. (there may be more as well)" else string
                         typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
                         gravity = Gravity.CENTER
                     }.addTo(linearLayout)
