@@ -60,7 +60,7 @@ class AccountStandingPage : SettingsPage() {
 
                     // Creates the TextView for the user to see their account standing/status
                     TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
-                        text = if (!classificationsareEmpty) string + " You've broke (or previously broken) Discord's rules for $violation. (there may be more as well)" else string
+                        text = if (!classificationsareEmpty) string + " You broke (or previously broke) Discord's rules for $violation. (there may be more as well)" else string
                         typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
                         gravity = Gravity.CENTER
                     }.addTo(linearLayout)
