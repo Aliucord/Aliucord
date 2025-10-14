@@ -1,6 +1,5 @@
 package com.aliucord.api.rn.user
 
-@Suppress("unused")
 data class ProfileBadge(
     val id: String,
     val description: String,

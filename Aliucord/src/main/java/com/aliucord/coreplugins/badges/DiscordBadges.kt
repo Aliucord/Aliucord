@@ -11,11 +11,11 @@ import com.discord.widgets.user.Badge
 import com.discord.widgets.user.profile.UserProfileHeaderView
 import com.discord.widgets.user.profile.UserProfileHeaderViewModel
 
-internal class DiscordBadges : CorePlugin(MANIFEST) {
+internal class DiscordBadges : CorePlugin(Manifest("DiscordBadges")) {
     // Cached fields
-    private val f_badgesAdapter by lazyField<UserProfileHeaderView>("badgesAdapter")
-    private val f_recyclerAdapterData by lazyField<SimpleRecyclerAdapter<*, *>>("data")
-    private val f_badgeViewHolderBinding by lazyField<UserProfileHeaderView.BadgeViewHolder>("binding")
+    private val badgesAdapter by lazyField<UserProfileHeaderView>("badgesAdapter")
+    private val recyclerAdapterData by lazyField<SimpleRecyclerAdapter<*, *>>("data")
+    private val badgeViewHolderBinding by lazyField<UserProfileHeaderView.BadgeViewHolder>("binding")
 
     private val excludedBadgeIds = arrayOf(
         "guild_booster",
@@ -41,15 +41,15 @@ internal class DiscordBadges : CorePlugin(MANIFEST) {
             // Exclude badges that are already in aliucord
             val discordBadges = badges
                 .filterNot { badgeData -> 
-                    excludedBadgeIds.any { excludedId -> badgeData.id.contains(excludedId) }
+                    excludedBadgeIds.any { excludedId -> excludedId in badgeData.id }
                 }
                 .map { badgeData ->
                     val iconUrl = "https://cdn.discordapp.com/badge-icons/${badgeData.icon}.png"
                     Badge(0, null, badgeData.description, false, iconUrl)
                 }
 
-            val adapter = f_badgesAdapter[this] as SimpleRecyclerAdapter<Badge, UserProfileHeaderView.BadgeViewHolder>
-            val data = f_recyclerAdapterData[adapter] as MutableList<Badge>
+            val adapter = badgesAdapter[this] as SimpleRecyclerAdapter<Badge, UserProfileHeaderView.BadgeViewHolder>
+            val data = recyclerAdapterData[adapter] as MutableList<Badge>
             data.addAll(discordBadges)
         }
 
@@ -61,18 +61,10 @@ internal class DiscordBadges : CorePlugin(MANIFEST) {
             // Check that badge is ours (has icon = 0 and url set)
             if (badge.icon != 0 || url == null) return@after
 
-            val binding = f_badgeViewHolderBinding[this] as UserProfileHeaderBadgeBinding
-            val imageView = binding.b
-            imageView.setCacheableImage(url)
+            val binding = badgeViewHolderBinding[this] as UserProfileHeaderBadgeBinding
+            binding.b.setCacheableImage(url)
         }
     }
 
     override fun stop(context: Context) = patcher.unpatchAll()
-
-    private companion object {
-        val MANIFEST = Manifest(
-            name = "DiscordBadges",
-            description = "Displays newly added Discord profile badges",
-        )
-    }
 }
