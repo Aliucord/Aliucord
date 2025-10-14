@@ -54,8 +54,7 @@ internal class DiscordBadges : CorePlugin(Manifest("DiscordBadges")) {
         }
 
         // Set image url for badge
-        patcher.after<UserProfileHeaderView.BadgeViewHolder>("bind", Badge::class.java)
-        { (_, badge: Badge) ->
+        patcher.after<UserProfileHeaderView.BadgeViewHolder>("bind", Badge::class.java) { (_, badge: Badge) ->
             val url = badge.objectType
 
             // Check that badge is ours (has icon = 0 and url set)
