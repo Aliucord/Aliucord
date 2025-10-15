@@ -59,40 +59,41 @@ internal class RemoveBilling : CorePlugin(Manifest("RemoveBilling")) {
         patcher.after<WidgetGuildBoost>("onViewBound", View::class.java) { (_, view: View) ->
             val ids = arrayOf("boost_status_subscribe_button", "boost_status_protip", "boost_status_subscribe_button2", "view_premium_marketing_learn_more", "menu_premium_guild")
             for (i in ids) {
-                val textview = view.findViewById<TextView>(i); textview.visibility = View.GONE
+                view.findViewById<TextView>(i).apply { visibility = View.GONE }
             }
         }
 
         // Remove the "Get Nitro" button from when trying to upload a custom banner
         patcher.after<d>("onViewBound", View::class.java) { (_, view: View) ->
-            val textview = view.findViewById<RelativeLayout>("get_premium_button"); textview.visibility = View.GONE
+            view.findViewById<RelativeLayout>("get_premium_button").apply { visibility = View.GONE }
         }
 
         // Remove the "Get Nitro" button from when trying to use an emoji from another server
         patcher.after<c>("onViewBound", View::class.java) { (_, view: View) ->
-            val textview = view.findViewById<View>("premium_upsell_get_premium"); textview.visibility = View.GONE
+            view.findViewById<View>("premium_upsell_get_premium").apply { visibility = View.GONE }
             // Remove the "Learn more" button from when trying to use an animated avatar
-            val textview2 = view.findViewById<View>("premium_upsell_learn_more"); textview2.visibility = View.GONE
+            view.findViewById<View>("premium_upsell_learn_more").apply { visibility = View.GONE }
         }
 
         // Remove the "Subscribe" button from when trying to use a sticker from another server
         patcher.after<UnsendableStickerPremiumUpsellDialog>("onViewBound", View::class.java) { (_, view: View) ->
-            val textview = view.findViewById<View>("sticker_premium_upsell_subscribe_button"); textview.visibility = View.GONE
+            view.findViewById<View>("sticker_premium_upsell_subscribe_button").apply { visibility = View.GONE }
         }
 
         // Remove the Nitro advertisement on the "Auto-compress Images" toggle
         patcher.after<WidgetSettingsMedia>("onViewBound", View::class.java) { (_, view: View) ->
-            val textview = view.findViewById<TextView>("compression_toggle_subtext"); textview.visibility = View.GONE
+            view.findViewById<TextView>("compression_toggle_subtext").apply { visibility = View.GONE }
         }
 
         // Remove some nonfunctional elements in the Gifting page
         patcher.after<`WidgetSettingsGifting$binding$2`>("invoke", View::class.java) { (_, view: View) ->
-            val textview = view.findViewById<LinearLayout>("settings_gifting_purchase_gift_section"); textview.visibility = View.GONE
+            view.findViewById<LinearLayout>("settings_gifting_purchase_gift_section").apply { visibility = View.GONE }
         }
 
         // Remove the "Learn about Nitro" button when a huge file is uploaded
         patcher.after<ImageUploadFailedView>("onViewBound", View::class.java) { (_, view: View) ->
-            val textview = view.findViewById<RelativeLayout>("image_upload_failed_nitro_wrapper"); textview.visibility = View.GONE
+            view.findViewById<RelativeLayout>("image_upload_failed_nitro_wrapper")
+                .apply { visibility = View.GONE }
         }
 
         // Remove "Get Nitro" button when holding down on emojis
@@ -100,8 +101,7 @@ internal class RemoveBilling : CorePlugin(Manifest("RemoveBilling")) {
         getBinding.isAccessible = true
 
         patcher.after<WidgetEmojiSheet>("configureButtons", Boolean::class.java, Boolean::class.java, Guild::class.java) { param ->
-            val obj = param.thisObject
-            val binding = getBinding.invoke(obj) as WidgetEmojiSheetBinding
+            val binding = getBinding.invoke(param.thisObject) as WidgetEmojiSheetBinding
             val root = binding.root as ViewGroup
             val rootLayout = root.getChildAt(0) as LinearLayout
             rootLayout.removeViewAt(1)
