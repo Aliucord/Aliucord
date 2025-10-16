@@ -98,7 +98,7 @@ internal class RemoveBilling : CorePlugin(Manifest("RemoveBilling")) {
 
         // Remove "Get Nitro" button when holding down on emojis
         val getBinding = WidgetEmojiSheet::class.java.getDeclaredMethod("getBinding")
-        getBinding.isAccessible = true
+            .apply { isAccessible = true }
 
         patcher.after<WidgetEmojiSheet>("configureButtons", Boolean::class.java, Boolean::class.java, Guild::class.java) { param ->
             val binding = getBinding.invoke(param.thisObject) as WidgetEmojiSheetBinding
