@@ -85,7 +85,7 @@ class AccountStandingPage : SettingsPage() {
     private fun createIndicator(context: Context, currentState: Int): LinearLayout {
         // Creates the container and circles for the indicator
         val container = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL // Sets both the orientation and padding to 24xp
+            orientation = LinearLayout.VERTICAL 
             setPadding(24.dp, 24.dp, 24.dp, 24.dp)
         }
 
@@ -112,10 +112,8 @@ class AccountStandingPage : SettingsPage() {
                     }
                     background = circleDrawable
             }.addTo(progressBar)
-
-            // Add the circles
+            
             if (index < states.size - 1) {
-                // Sets the background color of the bar and adds it
                 View(context).apply {
                     layoutParams = LinearLayout.LayoutParams(0, 4.dp, 1f)
                     setBackgroundColor(ColorCompat.getThemedColor(context, R.b.colorPrimaryDivider))
