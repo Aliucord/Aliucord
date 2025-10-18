@@ -35,14 +35,14 @@ import com.aliucord.wrappers.embeds.MessageEmbedWrapper.Companion.rawFields
 import com.aliucord.wrappers.messages.poll
 import com.aliucord.wrappers.users.globalName
 import com.discord.api.channel.Channel
+import com.discord.api.channel.ChannelUtils
 import com.discord.gateway.GatewaySocket
 import com.discord.models.domain.ModelMessageDelete
 import com.discord.models.member.GuildMember
 import com.discord.models.user.MeUser
 import com.discord.stores.*
 import com.discord.utilities.color.ColorCompat
-import com.discord.utilities.permissions.ManageMessageContext
-import com.discord.utilities.permissions.PermissionsContextsKt
+import com.discord.utilities.permissions.*
 import com.discord.utilities.spans.ClickableSpan
 import com.discord.views.CheckedSetting
 import com.discord.widgets.chat.input.*
@@ -66,6 +66,7 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
 
     companion object {
         const val POLL_RESULT_MESSAGE_TYPE = 46
+        private const val SEND_POLLS_PERMISSION = 1L shl 49
     }
 
     // Show a confirmation dialog when ending polls
@@ -346,6 +347,17 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             val flexInputFragment = WidgetChatInputAttachments.`access$getFlexInputFragment$p`(this.`this$0`)
             val ctx = flexInputFragment.requireContext()
             val pages = flexInputFragment.r.toMutableList()
+
+            val channel = StoreStream.getChannelsSelected().selectedChannel
+                ?: return@after
+            val isPrivate = ChannelUtils.B(channel)
+            val isSystem = ChannelUtils.E(channel)
+            val permissions = StoreStream.getPermissions().permissionsByChannel[channel.id]
+            val hasPermission = PermissionUtils.can(SEND_POLLS_PERMISSION, permissions)
+            val permitted = (isPrivate && !isSystem) || hasPermission
+
+            if (!permitted) return@after
+
             val page = `WidgetChatInputAttachments$configureFlexInputContentPages$1$page$1`(ctx, R.e.ic_sort_white_24dp, pollStringId)
             @Suppress("CAST_NEVER_SUCCEEDS")
             pages.add(page as b.b.a.d.d.a) // Cast required because of missing superclass issue
