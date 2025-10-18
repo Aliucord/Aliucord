@@ -14,7 +14,6 @@ import android.widget.*
 import androidx.core.content.res.ResourcesCompat
 import com.aliucord.*
 import com.aliucord.fragments.SettingsPage
-import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.GsonUtils
 import com.aliucord.utils.ViewUtils.addTo
 import com.discord.utilities.color.ColorCompat
@@ -33,6 +32,7 @@ data class SafetyHubResponse(
 
 private data class ClassificationState(val state: Int, val string: String, val color: Int)
 
+@Suppress("MISSING_DEPENDENCY_SUPERCLASS")
 class AccountStandingPage : SettingsPage() {
     override fun onViewBound(view: View) {
         super.onViewBound(view)
@@ -47,18 +47,18 @@ class AccountStandingPage : SettingsPage() {
                 // Fetch the safety hub/account standing data
                 val json = Http.Request.newDiscordRNRequest("/safety-hub/@me", "GET").execute()
                     .json(GsonUtils.gsonRestApi, SafetyHubResponse::class.java)
-                var string = determineString(json.accountStanding.state)
+                val string = determineString(json.accountStanding.state)
 
                 // Check if theres any violations or not (and also check if classifications are empty)
-                var classificationsareEmpty = if (json.classifications.isEmpty()) true else false; var user_classifications = if (!classificationsareEmpty) json.classifications.first() else null
-                var violation = if (!classificationsareEmpty) user_classifications!!.description else null
+                val classificationsareEmpty = json.classifications.isEmpty(); val userClassifications = if (!classificationsareEmpty) json.classifications.first() else null
+                val violation = if (!classificationsareEmpty) userClassifications!!.description else null
 
                 Utils.mainThread.post {
                     createIndicator(context, json.accountStanding.state).addTo(linearLayout)
 
                     // Creates the TextView for the user to see their account standing/status
                     TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
-                        text = if (!classificationsareEmpty) string + " You broke (or previously broke) Discord's rules for $violation. (there may be more as well)" else string
+                        text = if (!classificationsareEmpty) "$string You broke (or previously broke) Discord's rules for $violation. (there may be more as well)" else string
                         typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
                         gravity = Gravity.CENTER
                     }.addTo(linearLayout)
@@ -99,7 +99,7 @@ class AccountStandingPage : SettingsPage() {
 
         // Creates a bar that goes along the indicator
         val progressBar = LinearLayout(context).apply {
-            orientation = LinearLayout.HORIZONTAL;
+            orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
 
