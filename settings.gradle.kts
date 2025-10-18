@@ -2,12 +2,27 @@ pluginManagement {
     repositories {
         google()
         gradlePluginPortal()
-        maven("https://jitpack.io")
-        maven("https://maven.aliucord.com/snapshots")
+        maven {
+            name = "aliucord"
+            url = uri("https://maven.aliucord.com/releases")
+        }
+    }
+}
+
+@Suppress("UnstableApiUsage")
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            name = "aliucord"
+            url = uri("https://maven.aliucord.com/releases")
+        }
     }
 }
 
 include(":Aliucord")
 include(":Injector")
 include(":patches")
+
 rootProject.name = "Aliucord"

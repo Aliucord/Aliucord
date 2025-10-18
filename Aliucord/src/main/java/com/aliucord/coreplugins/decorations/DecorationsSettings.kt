@@ -16,7 +16,6 @@ internal object DecorationsSettings {
     // This exists to allow enabling for testing by manually editing the json settings
     val enable by settings.delegate(false)
 
-    @Suppress("MISSING_DEPENDENCY_CLASS", "MISSING_DEPENDENCY_SUPERCLASS")
     class Sheet : BottomSheet() {
         override fun onViewCreated(view: View, bundle: Bundle?) {
             super.onViewCreated(view, bundle)

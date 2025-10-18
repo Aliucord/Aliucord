@@ -119,7 +119,7 @@ object Utils {
      */
     @JvmStatic
     fun joinSupportServer(ctx: Context) {
-        (WidgetGuildInvite.Companion).launch(ctx, StoreInviteSettings.InviteCode(Constants.ALIUCORD_SUPPORT, "", null))
+        WidgetGuildInvite.Companion!!.launch(ctx, StoreInviteSettings.InviteCode(Constants.ALIUCORD_SUPPORT, "", null))
     }
 
     /**
