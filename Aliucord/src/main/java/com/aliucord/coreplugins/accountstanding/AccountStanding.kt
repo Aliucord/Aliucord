@@ -34,7 +34,7 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
     }
 
     override fun start(context: Context) {
-        // Patches the settings menu for the authorized apps page
+        // Patches the settings menu for the account standing page
         patcher.after<WidgetSettings>("onViewBound", View::class.java) { (_, view: CoordinatorLayout) ->
             val layout = (view.getChildAt(1) as NestedScrollView).getChildAt(0) as LinearLayoutCompat
             val baseIndex = layout.indexOfChild(layout.findViewById<TextView>("qr_scanner"))
