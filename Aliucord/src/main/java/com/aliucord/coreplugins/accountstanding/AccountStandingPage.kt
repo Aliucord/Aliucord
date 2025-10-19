@@ -50,15 +50,15 @@ class AccountStandingPage : SettingsPage() {
                 val string = determineString(json.accountStanding.state)
 
                 // Check if theres any violations or not (and also check if classifications are empty)
-                val classificationsareEmpty = json.classifications.isEmpty(); val userClassifications = if (!classificationsareEmpty) json.classifications.first() else null
-                val violation = if (!classificationsareEmpty) userClassifications!!.description else null
+                val userClassifications = if (json.classifications.isNotEmpty()) json.classifications.first() else null
+                val violation = if (json.classifications.isNotEmpty()) userClassifications!!.description else null
 
                 Utils.mainThread.post {
                     createIndicator(context, json.accountStanding.state).addTo(linearLayout)
 
                     // Creates the TextView for the user to see their account standing/status
                     TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
-                        text = if (!classificationsareEmpty) "$string You broke (or previously broke) Discord's rules for $violation. (there may be more as well)" else string
+                        text = if (json.classifications.isNotEmpty()) "$string You broke (or previously broke) Discord's rules for $violation. (there may be more as well)" else string
                         typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
                         gravity = Gravity.CENTER
                     }.addTo(linearLayout)
@@ -85,7 +85,7 @@ class AccountStandingPage : SettingsPage() {
     private fun createIndicator(context: Context, currentState: Int): LinearLayout {
         // Creates the container and circles for the indicator
         val container = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL 
+            orientation = LinearLayout.VERTICAL
             setPadding(24.dp, 24.dp, 24.dp, 24.dp)
         }
 
@@ -112,7 +112,7 @@ class AccountStandingPage : SettingsPage() {
                     }
                     background = circleDrawable
             }.addTo(progressBar)
-            
+
             if (index < states.size - 1) {
                 View(context).apply {
                     layoutParams = LinearLayout.LayoutParams(0, 4.dp, 1f)
