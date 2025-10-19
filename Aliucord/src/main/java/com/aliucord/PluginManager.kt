@@ -272,6 +272,7 @@ object PluginManager {
     @JvmStatic
     fun loadCorePlugins(context: Context) {
         val corePlugins = arrayOf(
+            AppBarFix(),
             AlignThreads(),
             ButtonsAPI(),
             CommandHandler(),
@@ -299,7 +300,6 @@ object PluginManager {
             SupporterBadges(),
             TokenLogin(),
             UploadSize(),
-            AppBarFix()
         )
 
         corePlugins.forEach { p ->
