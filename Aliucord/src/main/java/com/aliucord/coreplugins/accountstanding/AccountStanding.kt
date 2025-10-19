@@ -6,6 +6,7 @@
 
 package com.aliucord.coreplugins.accountstanding
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.view.View
 import android.widget.TextView
@@ -33,8 +34,8 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
         manifest.description = "Adds account standing to Aliucord"
     }
 
+    @SuppressLint("UseCompatLoadingForDrawables")
     override fun start(context: Context) {
-        // Patches the settings menu for the account standing page
         patcher.after<WidgetSettings>("onViewBound", View::class.java) { (_, view: CoordinatorLayout) ->
             val layout = (view.getChildAt(1) as NestedScrollView).getChildAt(0) as LinearLayoutCompat
             val baseIndex = layout.indexOfChild(layout.findViewById<TextView>("qr_scanner"))
@@ -49,7 +50,6 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
             }.addTo(layout, baseIndex + 1)
         }
 
-        // Checks the user's flags to determine if they have a violation or not
         val notificationData: NotificationData = NotificationData()
             .setTitle("Account Standing")
             .setAutoDismissPeriodSecs(10)

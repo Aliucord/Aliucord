@@ -36,7 +36,7 @@ private data class ClassificationState(val state: Int, val string: String, val c
 class AccountStandingPage : SettingsPage() {
     override fun onViewBound(view: View) {
         super.onViewBound(view)
-        // Set both the action bar and subtitle
+
         setActionBarTitle("Account Standing")
         setActionBarSubtitle("User Settings")
 
@@ -44,21 +44,17 @@ class AccountStandingPage : SettingsPage() {
 
         Utils.threadPool.execute {
             try {
-                // Fetch the safety hub/account standing data
                 val json = Http.Request.newDiscordRNRequest("/safety-hub/@me", "GET").execute()
                     .json(GsonUtils.gsonRestApi, SafetyHubResponse::class.java)
-                val string = determineString(json.accountStanding.state)
 
-                // Check if theres any violations or not (and also check if classifications are empty)
                 val userClassifications = if (json.classifications.isNotEmpty()) json.classifications.first() else null
                 val violation = if (json.classifications.isNotEmpty()) userClassifications!!.description else null
 
                 Utils.mainThread.post {
                     createIndicator(context, json.accountStanding.state).addTo(linearLayout)
 
-                    // Creates the TextView for the user to see their account standing/status
                     TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
-                        text = if (json.classifications.isNotEmpty()) "$string You broke (or previously broke) Discord's rules for $violation. (there may be more as well)" else string
+                        text = if (json.classifications.isNotEmpty()) "${determineString(json.accountStanding.state)} You broke (or previously broke) Discord's rules for $violation. (there may be more as well)" else determineString(json.accountStanding.state)
                         typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
                         gravity = Gravity.CENTER
                     }.addTo(linearLayout)
@@ -69,7 +65,6 @@ class AccountStandingPage : SettingsPage() {
         }
     }
 
-    // Check to see whether the account is limited, very limited, at risk or banned (or just with no violations)
     private fun determineString(state: Int): String {
         return when (state) {
             100 -> "No current violations found."
@@ -81,9 +76,7 @@ class AccountStandingPage : SettingsPage() {
         }
     }
 
-    // Creates the account standing indicator, adds circles and a line for it
     private fun createIndicator(context: Context, currentState: Int): LinearLayout {
-        // Creates the container and circles for the indicator
         val container = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(24.dp, 24.dp, 24.dp, 24.dp)
@@ -97,7 +90,6 @@ class AccountStandingPage : SettingsPage() {
             ClassificationState(500, "Suspended", Utils.appContext.getColor(R.c.status_grey_200))
         )
 
-        // Creates a bar that goes along the indicator
         val progressBar = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -121,17 +113,16 @@ class AccountStandingPage : SettingsPage() {
             }
         }
 
-        // Adds both the progressbar and labels
         container.addView(progressBar)
         val labelsRow = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
-            setPadding(0, 6.dp, 0, 0) // Sets padding for each label
+            setPadding(0, 6.dp, 0, 0)
         }
 
         states.forEach { (_, label, _) ->
             TextView(context).apply {
-                text = label // Adds the labels here, (e.g "All good", "Limited", "Suspended", etc)
-                setTextColor(ColorCompat.getThemedColor(context, R.b.primary_300)) // Sets the text color (and also font size and font below)
+                text = label
+                setTextColor(ColorCompat.getThemedColor(context, R.b.primary_300))
                 textSize = 12f
                 typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
                 gravity = Gravity.CENTER
@@ -139,7 +130,6 @@ class AccountStandingPage : SettingsPage() {
             }.addTo(labelsRow)
         }
 
-        // Returns the view
         container.addView(labelsRow)
         return container
     }
