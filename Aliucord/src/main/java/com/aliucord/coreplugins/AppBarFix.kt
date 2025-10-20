@@ -6,10 +6,7 @@ import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.instead
 import com.discord.widgets.chat.input.SmoothKeyboardReactionHelper
 
-
 internal class AppBarFix : CorePlugin(Manifest("AppBarFix")) {
-    override val isHidden = true
-
     init {
         manifest.description = "Fixes erratic AppBarLayout behavior by disabling 'smooth keyboard' animation"
     }
@@ -18,7 +15,5 @@ internal class AppBarFix : CorePlugin(Manifest("AppBarFix")) {
         patcher.instead<SmoothKeyboardReactionHelper>("install", View::class.java) {}
     }
 
-    override fun stop(context: Context) {
-        patcher.unpatchAll()
-    }
+    override fun stop(context: Context) = patcher.unpatchAll()
 }

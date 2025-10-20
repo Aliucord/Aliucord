@@ -272,8 +272,8 @@ object PluginManager {
     @JvmStatic
     fun loadCorePlugins(context: Context) {
         val corePlugins = arrayOf(
-            AppBarFix(),
             AlignThreads(),
+            AppBarFix(),
             ButtonsAPI(),
             CommandHandler(),
             CoreCommands(),
