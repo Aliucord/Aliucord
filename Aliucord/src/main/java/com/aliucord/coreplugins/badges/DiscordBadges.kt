@@ -13,9 +13,9 @@ import com.discord.widgets.user.profile.UserProfileHeaderViewModel
 
 internal class DiscordBadges : CorePlugin(Manifest("DiscordBadges")) {
     // Cached fields
-    private val badgesAdapter by lazyField<UserProfileHeaderView>("badgesAdapter")
-    private val recyclerAdapterData by lazyField<SimpleRecyclerAdapter<*, *>>("data")
-    private val badgeViewHolderBinding by lazyField<UserProfileHeaderView.BadgeViewHolder>("binding")
+    private val f_badgesAdapter by lazyField<UserProfileHeaderView>("badgesAdapter")
+    private val f_recyclerAdapterData by lazyField<SimpleRecyclerAdapter<*, *>>("data")
+    private val f_badgeViewHolderBinding by lazyField<UserProfileHeaderView.BadgeViewHolder>("binding")
 
     private val excludedBadgePrefixes = arrayOf(
         "guild_booster",
@@ -46,8 +46,8 @@ internal class DiscordBadges : CorePlugin(Manifest("DiscordBadges")) {
                     Badge(0, null, badgeData.description, false, iconUrl)
                 }
 
-            val adapter = badgesAdapter[this] as SimpleRecyclerAdapter<Badge, UserProfileHeaderView.BadgeViewHolder>
-            val data = recyclerAdapterData[adapter] as MutableList<Badge>
+            val adapter = f_badgesAdapter[this] as SimpleRecyclerAdapter<Badge, UserProfileHeaderView.BadgeViewHolder>
+            val data = f_recyclerAdapterData[adapter] as MutableList<Badge>
             data.addAll(discordBadges)
         }
 
@@ -58,7 +58,7 @@ internal class DiscordBadges : CorePlugin(Manifest("DiscordBadges")) {
             // Check that badge is ours (has icon = 0 and url set)
             if (badge.icon != 0 || url == null) return@after
 
-            val binding = badgeViewHolderBinding[this] as UserProfileHeaderBadgeBinding
+            val binding = f_badgeViewHolderBinding[this] as UserProfileHeaderBadgeBinding
             binding.b.setCacheableImage(url)
         }
     }
