@@ -17,11 +17,29 @@ internal class DiscordBadges : CorePlugin(Manifest("DiscordBadges")) {
     private val f_recyclerAdapterData by lazyField<SimpleRecyclerAdapter<*, *>>("data")
     private val f_badgeViewHolderBinding by lazyField<UserProfileHeaderView.BadgeViewHolder>("binding")
 
-    private val excludedBadgePrefixes = arrayOf(
-        "guild_booster",
-        "hypesquad",
-        "premium",
-        "bug_hunter",
+    private val excludedBadgePrefixes = setOf(
+        "guild_booster_lvl1",
+        "guild_booster_lvl2",
+        "guild_booster_lvl3",
+        "guild_booster_lvl4",
+        "guild_booster_lvl5",
+        "guild_booster_lvl6",
+        "guild_booster_lvl7",
+        "guild_booster_lvl8",
+        "guild_booster_lvl9",
+        "hypesquad_house_3",
+        "hypesquad_house_2",
+        "hypesquad_house_1",
+        "premium_tenure_72_month_v2",
+        "premium_tenure_60_month_v2",
+        "premium_tenure_36_month_v2",
+        "premium_tenure_24_month_v2",
+        "premium_tenure_12_month_v2",
+        "premium_tenure_6_month_v2",
+        "premium_tenure_3_month_v2",
+        "premium_tenure_1_month_v2",
+        "bug_hunter_level_1",
+        "bug_hunter_level_2",
         "verified_developer",
         "staff",
         "early_supporter",
@@ -40,7 +58,7 @@ internal class DiscordBadges : CorePlugin(Manifest("DiscordBadges")) {
 
             // Exclude badges that are already in aliucord
             val discordBadges = badges
-                .filter { badge -> excludedBadgePrefixes.none { badge.id.startsWith(it) } }
+                .filter { badge -> badge.id !in excludedBadgePrefixes }
                 .map { badgeData ->
                     val iconUrl = "https://cdn.discordapp.com/badge-icons/${badgeData.icon}.png"
                     Badge(0, null, badgeData.description, false, iconUrl)
