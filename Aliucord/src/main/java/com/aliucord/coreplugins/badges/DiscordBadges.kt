@@ -38,6 +38,7 @@ internal class DiscordBadges : CorePlugin(Manifest("DiscordBadges")) {
         "premium_tenure_6_month_v2",
         "premium_tenure_3_month_v2",
         "premium_tenure_1_month_v2",
+        "premium",
         "bug_hunter_level_1",
         "bug_hunter_level_2",
         "verified_developer",
