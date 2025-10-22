@@ -1,0 +1,57 @@
+/*
+ * This file is part of Aliucord, an Android Discord client mod.
+ * Copyright (c) 2021 Juby210 & Vendicated
+ * Licensed under the Open Software License version 3.0
+ */
+
+package com.aliucord.coreplugins.accountstanding
+
+import android.annotation.SuppressLint
+import android.content.Context
+import android.text.method.LinkMovementMethod
+import android.view.Gravity
+import android.widget.*
+import androidx.core.content.res.ResourcesCompat
+import com.aliucord.Constants
+import com.aliucord.utils.DimenUtils.defaultPadding
+import com.aliucord.utils.ViewUtils.setDefaultMargins
+import com.discord.utilities.color.ColorCompat
+import com.google.android.material.card.MaterialCardView
+import com.lytefast.flexinput.R
+
+@SuppressLint("ViewConstructor")
+class ViolationCard(ctx: Context, violation: String, flaggedContent: String?, actions: List<String>) : MaterialCardView(ctx) {
+    var title: TextView
+
+    init {
+        setCardBackgroundColor(ColorCompat.getThemedColor(ctx, R.b.colorBackgroundSecondary))
+        layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+
+        setDefaultMargins(false, true, false, false)
+
+        LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+
+        val p = defaultPadding
+
+        setPadding(p, p, p, p)
+        setBackgroundColor(ColorCompat.getThemedColor(ctx, R.b.colorBackgroundSecondaryAlt))
+
+        var actionsText = ""
+        for (i in actions) {
+            if (actions !== listOf("Not provided")) actionsText += "$i\n" else actionsText = "Not provided"
+        }
+
+        // The card will explode if i create more than one TextView.. :|
+        title = TextView(ctx, null, 0, R.i.UiKit_Settings_Item).apply {
+            text = "You broke Discord's rules for $violation\n Flagged content: $flaggedContent\n Actions taken:\n $actionsText"
+            textSize = 14f
+            typeface = ResourcesCompat.getFont(ctx, Constants.Fonts.whitney_semibold)
+            movementMethod = LinkMovementMethod.getInstance()
+        }
+
+        addView(title)
+    }
+}

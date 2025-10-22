@@ -20,17 +20,27 @@ import com.discord.utilities.color.ColorCompat
 import com.lytefast.flexinput.R
 import com.aliucord.utils.DimenUtils.dp
 import com.aliucord.utils.SerializedName
+import com.discord.stores.StoreStream
+import com.discord.utilities.images.MGImages
+import com.facebook.drawee.view.SimpleDraweeView
 
 data class SafetyHubResponse(
     @SerializedName("account_standing")
     var accountStanding: AccountStandingState,
     var classifications: List<UserClassifications>
 ) {
-    data class UserClassifications(val description: String)
+    data class UserClassifications(
+        val description: String,
+        @SerializedName("flagged_content")
+        var flaggedContent: List<FlaggedContent>,
+        var actions: List<Actions>
+    )
+    data class Actions(var descriptions: List<String>)
+    data class FlaggedContent(var content: String)
     data class AccountStandingState(val state: Int)
 }
 
-private data class ClassificationState(val state: Int, val string: String, val color: Int)
+private data class ClassificationState(val state: Int, val color: Int)
 
 @Suppress("MISSING_DEPENDENCY_SUPERCLASS")
 class AccountStandingPage : SettingsPage() {
@@ -47,17 +57,38 @@ class AccountStandingPage : SettingsPage() {
                 val json = Http.Request.newDiscordRNRequest("/safety-hub/@me", "GET").execute()
                     .json(GsonUtils.gsonRestApi, SafetyHubResponse::class.java)
 
-                val userClassifications = if (json.classifications.isNotEmpty()) json.classifications.first() else null
-                val violation = if (json.classifications.isNotEmpty()) userClassifications!!.description else null
-
                 Utils.mainThread.post {
-                    createIndicator(context, json.accountStanding.state).addTo(linearLayout)
+                    SimpleDraweeView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
+                        val me = StoreStream.getUsers().me
+                        layoutParams = LinearLayout.LayoutParams(100.dp, 100.dp).apply {
+                            gravity = Gravity.CENTER
+                        }
+                        MGImages.setImage(this, "https://cdn.discordapp.com/avatars/${me.id}/${me.avatar}.png?size=100")
+                        MGImages.setRoundingParams(this, 100f * 100, false, null, null, 0f)
+                    }.addTo(linearLayout)
+
+                    TextView(context, null, 0, R.i.UiKit_Settings_Item).apply {
+                        text = determineHeaderString(json.accountStanding.state)
+                        typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
+                        textSize = 18f
+                        gravity = Gravity.CENTER
+                        setPadding(1.dp, 1.dp, 1.dp, 1.dp)
+                    }.addTo(linearLayout)
 
                     TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
-                        text = if (json.classifications.isNotEmpty()) "${determineString(json.accountStanding.state)} You broke (or previously broke) Discord's rules for $violation. (there may be more as well)" else determineString(json.accountStanding.state)
+                        text = determineString(json.accountStanding.state)
                         typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
+                        textSize = 12f
                         gravity = Gravity.CENTER
                     }.addTo(linearLayout)
+
+                    createIndicator(context, json.accountStanding.state).addTo(linearLayout)
+
+                    if (json.classifications.isNotEmpty()) for (i in json.classifications) {
+                        val actions = if (json.classifications.first().actions.isNotEmpty()) i.actions.first().descriptions else listOf("Not provided")
+                        val message = if (json.classifications.first().flaggedContent.isNotEmpty()) i.flaggedContent.first().content else "Not provided"
+                        addView(ViolationCard(context, i.description, message, actions))
+                    }
                 }
             } catch (e: Exception) {
                 Logger("AccountStanding").errorToast("Failed to check account standing", e)
@@ -65,13 +96,24 @@ class AccountStandingPage : SettingsPage() {
         }
     }
 
+    private fun determineHeaderString(state: Int): String {
+        return when (state) {
+            100 -> "Your account is all good"
+            200 -> "Your account is limited"
+            300 -> "Your account is very limited."
+            400 -> "Your account is at risk"
+            500 -> "Your account is suspended."
+            else -> "Unknown"
+        }
+    }
+
     private fun determineString(state: Int): String {
         return when (state) {
-            100 -> "No current violations found."
-            200 -> "Your account seems limited."
-            300 -> "Your account is very limited."
-            400 -> "Your account is at risk of getting banned."
-            500 -> "Your account is banned."
+            100 -> "Thank you for upholding Discord's Terms of Service and Community Guidelines. If you break the rules, it will show up here."
+            200 -> "You may lose access to some parts of Discord if you break the rules again."
+            300 -> "You can't use some parts of Discord, You may be suspended if you break the rules again."
+            400 -> "You broke Discord's rules. You will be permanently suspended if you break them again."
+            500 -> "Due to serious policy violations, your account is permanently suspended, You can no longer use Discord."
             else -> "Unknown"
         }
     }
@@ -83,11 +125,11 @@ class AccountStandingPage : SettingsPage() {
         }
 
         val states = arrayOf(
-            ClassificationState(100, "All good", Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_green)),
-            ClassificationState(200, "Limited", Utils.appContext.getColor(R.c.status_yellow)),
-            ClassificationState(300, "Very limited", Utils.appContext.getColor(R.c.status_yellow)),
-            ClassificationState(400, "At risk", Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_red)),
-            ClassificationState(500, "Suspended", Utils.appContext.getColor(R.c.status_grey_200))
+            ClassificationState(100, Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_green)),
+            ClassificationState(200, Utils.appContext.getColor(R.c.status_yellow)),
+            ClassificationState(300, Utils.appContext.getColor(R.c.status_yellow)),
+            ClassificationState(400, Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_red)),
+            ClassificationState(500, Utils.appContext.getColor(R.c.status_grey_200))
         )
 
         val progressBar = LinearLayout(context).apply {
@@ -95,14 +137,14 @@ class AccountStandingPage : SettingsPage() {
             gravity = Gravity.CENTER_VERTICAL
         }
 
-        states.forEachIndexed { index, (state, _, color) ->
+        states.forEachIndexed { index, (state, color) ->
             FrameLayout(context).apply {
-                    layoutParams = LinearLayout.LayoutParams(16.dp, 16.dp)
-                    val circleDrawable = GradientDrawable().apply {
-                        shape = GradientDrawable.OVAL
-                        if (currentState == state) setColor(color) else setColor(Utils.appContext.getColor(R.c.status_grey_200))
-                    }
-                    background = circleDrawable
+                layoutParams = if (currentState == state) LinearLayout.LayoutParams(21.dp, 21.dp) else LinearLayout.LayoutParams(16.dp, 16.dp)
+                val circleDrawable = GradientDrawable().apply {
+                    shape = GradientDrawable.OVAL
+                    if (currentState == state) setColor(color) else setColor(Utils.appContext.getColor(R.c.status_grey_200))
+                }
+                background = circleDrawable
             }.addTo(progressBar)
 
             if (index < states.size - 1) {
@@ -114,23 +156,6 @@ class AccountStandingPage : SettingsPage() {
         }
 
         container.addView(progressBar)
-        val labelsRow = LinearLayout(context).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(0, 6.dp, 0, 0)
-        }
-
-        states.forEach { (_, label, _) ->
-            TextView(context).apply {
-                text = label
-                setTextColor(ColorCompat.getThemedColor(context, R.b.primary_300))
-                textSize = 12f
-                typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
-                gravity = Gravity.CENTER
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            }.addTo(labelsRow)
-        }
-
-        container.addView(labelsRow)
         return container
     }
 }
