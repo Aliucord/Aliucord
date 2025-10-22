@@ -1,5 +1,5 @@
 import com.aliucord.gradle.task.adb.DeployComponentTask
-import java.io.ByteArrayOutputStream
+import java.util.Properties
 
 version = "1.3.0"
 
@@ -17,13 +17,21 @@ android {
 // --- Dependencies --- //
 
 // Make dependency configuration for build tools
-val buildTools: Configuration by configurations.creating
+val smaliTools: Configuration by configurations.creating
 val discord: Configuration by configurations.creating
 
 dependencies {
-    buildTools(libs.smali)
-    buildTools(libs.smali.baksmali)
+    smaliTools(libs.smali)
+    smaliTools(libs.smali.baksmali)
     discord(libs.discord)
+}
+
+// --- Other --- //
+val localProperties = Properties().apply {
+    val file = project.rootProject.file("local.properties")
+    if (file.exists()) {
+        load(file.inputStream())
+    }
 }
 
 // --- Shared files --- //
@@ -35,7 +43,7 @@ val patchesBundle = layout.buildDirectory.file("patches.zip").get().asFile
 
 // --- Public tasks --- //
 
-val packageTask = tasks.register<Zip>("package") {
+val packageTask by tasks.registering(Zip::class) {
     group = "aliucord"
     archiveFileName = "patches.zip"
     destinationDirectory = layout.buildDirectory
@@ -73,9 +81,7 @@ tasks.register<JavaExec>("testPatches") {
             .absolutePath
     }
 
-    standardOutput = System.out
-    errorOutput = System.err
-    classpath = buildTools
+    classpath = smaliTools
     jvmArgs = listOf("-Xmx2G")
     mainClass = "com.android.tools.smali.smali.Main"
     args = listOf(
@@ -106,13 +112,12 @@ tasks.register("writePatches") {
             error("Smali directory does not exist! Run the disassembleWithPatches task")
         }
 
-        val stdout = ByteArrayOutputStream()
-        val result = providers.exec {
-            isIgnoreExitValue = true
-            standardOutput = stdout
-            errorOutput = System.err
-            workingDir = projectDir
-            executable = "diff"
+        val diffBin = localProperties.getProperty("diff.bin", null)
+            ?: project.findProperty("diff.bin") as String?
+            ?: "diff"
+
+        val output = providers.execIgnoreCode {
+            executable = diffBin
             args = listOf(
                 "--unified",
                 "--minimal",
@@ -123,13 +128,13 @@ tasks.register("writePatches") {
                 "./" + smaliOriginalDir.toRelativeString(projectDir).replace('\\', '/'),
                 "./" + smaliDir.toRelativeString(projectDir).replace('\\', '/'),
             )
-        }.result.get()
+        }
+        val result = output.result.get()
 
         // diff returns 1 if changes are present
         if (result.exitValue !in 0..1) result.assertNormalExitValue()
 
-        val diffs = stdout
-            .toString() // Convert bytes to string
+        val diffs = output.standardOutput.asText.get()
             .replace("\r\n", "\n") // Replace CRLF endings with LF
             .split("^diff --unified.+?\\R".toRegex(RegexOption.MULTILINE)) // Split by file diff header
             .filter(String::isNotBlank)
@@ -170,31 +175,27 @@ tasks.named<Delete>("clean") {
 
 // --- Internal tasks --- //
 
-val disassembleInternal by tasks.registering(JavaExec::class) {
-    classpath = buildTools
-    jvmArgs = listOf("-Xmx2G")
-    standardOutput = System.out
-    errorOutput = System.err
-
+val disassembleInternal by tasks.registering {
     outputs.upToDateWhen {
         smaliOriginalDir.exists()
     }
 
     doFirst {
-        // Resolve the Discord APK as a dependency
+        // Resolve Discord APK dependency to an apk file
         val discordApk = discord.incoming
             .artifactView { attributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "apk") }
             .files.singleFile
 
-        zipTree(discordApk.absolutePath).matching { include("classes*.dex") }.visit {
+        val classesFiles = zipTree(discordApk.absolutePath)
+            .matching { include("classes*.dex") }
+
+        classesFiles.visit {
             logger.lifecycle("Disassembling $name")
             providers.javaexec {
-                classpath = buildTools
+                classpath = smaliTools
                 jvmArgs = listOf("-Xmx2G")
-                standardOutput = System.out
-                errorOutput = System.err
-
                 systemProperty("line.separator", "\n") // Ensure smali output uses LF endings
+
                 mainClass.set("com.android.tools.smali.baksmali.Main")
                 args = listOf(
                     "disassemble",
@@ -202,7 +203,7 @@ val disassembleInternal by tasks.registering(JavaExec::class) {
                     "--output", smaliOriginalDir.absolutePath,
                     "${discordApk.absolutePath}/$name",
                 )
-            }
+            }.result.get()
         }
     }
 }
@@ -229,10 +230,12 @@ tasks.register("applyPatches") {
 
             logger.lifecycle("Applying smali patches to class $className")
 
-            providers.exec {
-                standardOutput = System.out
-                errorOutput = System.err
-                executable = "patch"
+            val patchBin = localProperties.getProperty("patch.bin", null)
+                ?: project.findProperty("patch.bin") as String?
+                ?: "patch"
+
+            providers.execIgnoreCode {
+                executable = patchBin
                 args = listOf(
                     "--verbose",
                     "--forward",
@@ -243,4 +246,22 @@ tasks.register("applyPatches") {
             }
         }
     }
+}
+
+private fun ProviderFactory.execIgnoreCode(block: ExecSpec.() -> Unit): ExecOutput = run {
+    val result = exec {
+        workingDir = projectDir
+        isIgnoreExitValue = true
+        block(this)
+    }
+
+    val stdout = result.standardOutput.asText.get().trim()
+    logger.info(stdout)
+
+    val stderr = result.standardError.asText.get().trim()
+    if (stderr.isNotEmpty()) {
+        logger.error(stderr)
+    }
+
+    result
 }
