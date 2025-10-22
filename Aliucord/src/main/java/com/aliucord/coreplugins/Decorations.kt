@@ -1,10 +1,10 @@
 package com.aliucord.coreplugins
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
 import com.aliucord.coreplugins.decorations.DecorationsSettings
 import com.aliucord.coreplugins.decorations.Decorator
+import com.aliucord.coreplugins.decorations.avatar.AvatarDecorator
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.updater.ManagerBuild
@@ -35,10 +35,9 @@ internal class Decorations : CorePlugin(Manifest().apply {
         settingsTab = SettingsTab(DecorationsSettings.Sheet::class.java, SettingsTab.Type.BOTTOM_SHEET)
     }
 
-    @SuppressLint("BuildListAdds") // remove when there's stuff to add
     @OptIn(ExperimentalStdlibApi::class)
     private val decorators = buildList<Decorator> {
-        // if (DecorationsSettings.enableAvatarDecoration) add(AvatarDecorator())
+        if (DecorationsSettings.enableAvatarDecoration) add(AvatarDecorator())
     }
 
     override fun start(context: Context) {
