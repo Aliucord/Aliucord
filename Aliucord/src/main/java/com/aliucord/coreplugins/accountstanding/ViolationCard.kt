@@ -41,7 +41,7 @@ class ViolationCard(ctx: Context, violation: String, flaggedContent: String?, ac
 
         var actionsText = ""
         for (i in actions) {
-            if (actions !== listOf("Not provided")) actionsText += "$i\n" else actionsText = "Not provided"
+            actionsText += "$i\n"
         }
 
         // The card will explode if i create more than one TextView.. :|
