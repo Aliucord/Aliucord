@@ -13,6 +13,7 @@ import android.view.Gravity
 import android.widget.*
 import androidx.core.content.res.ResourcesCompat
 import com.aliucord.Constants
+import com.aliucord.utils.DimenUtils.defaultCardRadius
 import com.aliucord.utils.DimenUtils.defaultPadding
 import com.aliucord.utils.ViewUtils.setDefaultMargins
 import com.discord.utilities.color.ColorCompat
@@ -36,8 +37,9 @@ class ViolationCard(ctx: Context, violation: String, flaggedContent: String?, ac
 
         val p = defaultPadding
 
+        setRadius(defaultCardRadius.toFloat())
         setPadding(p, p, p, p)
-        setBackgroundColor(ColorCompat.getThemedColor(ctx, R.b.colorBackgroundSecondaryAlt))
+        setCardBackgroundColor(ColorCompat.getThemedColor(ctx, R.b.colorBackgroundSecondaryAlt))
 
         var actionsText = ""
         for (i in actions) {
