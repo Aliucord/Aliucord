@@ -127,9 +127,9 @@ class AccountStandingPage : SettingsPage() {
         val states = arrayOf(
             ClassificationState(100, Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_green)),
             ClassificationState(200, Utils.appContext.getColor(R.c.status_yellow)),
-            ClassificationState(300, Utils.appContext.getColor(R.c.status_yellow)),
+            ClassificationState(300, Utils.appContext.getColor(R.c.status_orange)),
             ClassificationState(400, Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_red)),
-            ClassificationState(500, Utils.appContext.getColor(R.c.status_grey_200))
+            ClassificationState(500, Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_red))
         )
 
         val progressBar = LinearLayout(context).apply {

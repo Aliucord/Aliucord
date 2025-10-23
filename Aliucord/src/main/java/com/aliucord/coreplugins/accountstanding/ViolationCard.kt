@@ -48,7 +48,7 @@ class ViolationCard(ctx: Context, violation: String, flaggedContent: String?, ac
 
         // The card will explode if i create more than one TextView.. :|
         title = TextView(ctx, null, 0, R.i.UiKit_Settings_Item).apply {
-            text = "You broke Discord's rules for $violation\n Flagged content: $flaggedContent\n Actions taken:\n $actionsText"
+            text = "You broke Discord's rules for $violation\nFlagged content: $flaggedContent\nActions taken:\n$actionsText"
             textSize = 14f
             typeface = ResourcesCompat.getFont(ctx, Constants.Fonts.whitney_semibold)
             movementMethod = LinkMovementMethod.getInstance()
