@@ -39,14 +39,14 @@ val localProperties = Properties().apply {
 val patchesDir = projectDir.resolve("src")
 val smaliDir = projectDir.resolve("smali")
 val smaliOriginalDir = layout.buildDirectory.file("smali_original").get().asFile
-val patchesBundle = layout.buildDirectory.file("patches.zip").get().asFile
+val patchesBundle = layout.buildDirectory.file("outputs/patches.zip").get().asFile
 
 // --- Public tasks --- //
 
-val packageTask by tasks.registering(Zip::class) {
+val packageTask by tasks.register("package", Zip::class) {
     group = "aliucord"
-    archiveFileName = "patches.zip"
-    destinationDirectory = layout.buildDirectory
+    archiveFileName = patchesBundle.name
+    destinationDirectory = patchesBundle.parentFile
     isReproducibleFileOrder = true
     isPreserveFileTimestamps = false
 

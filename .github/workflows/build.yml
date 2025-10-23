@@ -51,7 +51,7 @@ jobs:
           path: |
             ${{ github.workspace }}/Aliucord/build/outputs/Aliucord.zip
             ${{ github.workspace }}/Injector/build/outputs/Injector.dex
-            ${{ github.workspace }}/patches/build/patches.zip
+            ${{ github.workspace }}/patches/build/outputs/patches.zip
 
   deploy:
     runs-on: ubuntu-latest

@@ -1,5 +1,5 @@
 [versions]
-aliucord-gradle = "2.0.0"
+aliucord-gradle = "2.1.0"
 aliuhook = "1.1.4"
 android-gradle = "8.13.0"
 discord = "126021"
