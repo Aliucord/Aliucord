@@ -6,7 +6,6 @@
 
 package com.aliucord.coreplugins.accountstanding
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.view.View
 import android.widget.TextView
@@ -26,7 +25,6 @@ import com.discord.stores.StoreStream
 import com.discord.widgets.settings.WidgetSettings
 import com.lytefast.flexinput.R
 
-@Suppress("MISSING_DEPENDENCY_SUPERCLASS")
 internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
     override val isHidden = true
 
@@ -34,7 +32,6 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
         manifest.description = "Adds account standing to Aliucord"
     }
 
-    @SuppressLint("UseCompatLoadingForDrawables")
     override fun start(context: Context) {
         patcher.after<WidgetSettings>("onViewBound", View::class.java) { (_, view: CoordinatorLayout) ->
             val layout = (view.getChildAt(1) as NestedScrollView).getChildAt(0) as LinearLayoutCompat

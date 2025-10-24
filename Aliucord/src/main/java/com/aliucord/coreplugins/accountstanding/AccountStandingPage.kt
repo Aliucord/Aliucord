@@ -42,7 +42,6 @@ data class SafetyHubResponse(
 
 private data class ClassificationState(val state: Int, val color: Int)
 
-@Suppress("MISSING_DEPENDENCY_SUPERCLASS")
 class AccountStandingPage : SettingsPage() {
     override fun onViewBound(view: View) {
         super.onViewBound(view)
