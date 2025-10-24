@@ -2,7 +2,8 @@ plugins {
     `maven-publish`
     alias(libs.plugins.aliucord.core)
     alias(libs.plugins.android.library)
-    alias(libs.plugins.dokka)
+    alias(libs.plugins.dokka.html)
+    alias(libs.plugins.dokka.javadoc)
     alias(libs.plugins.kotlin)
 }
 
