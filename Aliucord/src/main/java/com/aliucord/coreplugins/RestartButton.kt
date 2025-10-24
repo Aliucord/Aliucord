@@ -16,7 +16,7 @@ internal class RestartButton : CorePlugin(Manifest("RestartButton")) {
         manifest.description = "Adds a restart button for Aliucord to the settings page"
     }
 
-    override fun start(ctx: Context) {
+    override fun start(context: Context) {
         patcher.after<WidgetSettings>("configureToolbar") {
             val activity = this.requireAppActivity()
             val toolbar = activity.u

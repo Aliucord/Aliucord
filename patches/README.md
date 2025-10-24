@@ -16,14 +16,32 @@ installing Aliucord.
 
 ## Tooling
 
-1. Ensure you have diffutils (`diff`/`patch`) installed (on windows: [via chocolatey](https://community.chocolatey.org/packages/diffutils))
+1. Ensure you have `diffutils` (`diff`/`patch`) installed (on Windows: [via chocolatey](https://community.chocolatey.org/packages/diffutils))
+
+> [!IMPORTANT]
+> `diff`/`patch` from StrawberryPerl have bugs that cause weird errors when running the `applyPatches` and `writePatches` tasks.
+> If StrawberryPerl is the default on the `PATH`, then set the `patch.bin` and `diff.bin` variables in `local.properties` to the respective
+> paths of `diff`/`patch` binaries in a different installation of `diffutils`. For example,
+> ```properties
+> # local.properties
+>
+> patch.bin=C\:\\Program Files\\Git\\usr\\bin\\patch.exe
+> diff.bin=C\:\\Program Files\\Git\\usr\\bin\\diff.exe
+> ```
+
 2. Run the `:patches:disassembleWithPatches` task in order to disassemble and apply any existing patches in `./src`
 3. Perform any additional modifications necessary to the `./smali` directory
 4. Run the `:patches:writePatches` task in order to generate and write the patches back to `./src`
-5. Run the `:patches:testPatches` task in order to check that the `./smali` dir still successfully reassembles
+5. Run the `:patches:testPatches` task in order to check that the `./smali` dir still successfully reassembles.
    Note that this will only reassemble smali files with patches existing for them,
-   which is why running `:patches:writePatches` beforehand is necessary.
-6. Update the patches version in `build.gradle.kts` if necessary
-7. Commit changes to git
+   which is why running `:patches:writePatches` beforehand is necessary. This will not test whether your patches
+   work, only that it reassembles correctly.
+6. Connect your device installed with Aliucord Manager, and run the `:patches:deployWithAdb` task. Continue with the
+   Aliucord installation, and once patching/installation finishes, ensure your patches function correctly.
+7. Update the patches version in `build.gradle.kts` if necessary
+8. Commit changes to git
 
-Any changes made to `./src` after having run `:patches:disassembleWithPatches` will be discarded when generating patches!
+> [!NOTE]
+> Any changes made to the patches in `./src` after having run `:patches:disassembleWithPatches` will be discarded
+> upon running the `:patches:writePatches` task to generate *new* patches! Patches should not directly be modified,
+> but instead the smali file they are patching!

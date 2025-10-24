@@ -1,18 +1,29 @@
-@file:Suppress("UnstableApiUsage")
-
 plugins {
-    id("maven-publish")
-    id("org.jetbrains.dokka")
+    `maven-publish`
+    alias(libs.plugins.aliucord.core)
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.dokka.html)
+    alias(libs.plugins.dokka.javadoc)
+    alias(libs.plugins.kotlin)
 }
 
 group = "com.aliucord"
 version = "2.5.0"
 
-aliucord {
-    projectType.set(com.aliucord.gradle.ProjectType.CORE)
-}
-
 android {
+    namespace = "com.aliucord"
+    compileSdk = 36
+
+    defaultConfig {
+        minSdk = 24
+    }
+
+    buildTypes {
+        named("release") {
+            isMinifyEnabled = false
+        }
+    }
+
     defaultConfig {
         buildConfigField("String", "VERSION", "\"$version\"")
         buildConfigField("boolean", "RELEASE", System.getenv("RELEASE") ?: "false")
@@ -21,35 +32,45 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
+    }
+
+    publishing {
+        singleVariant("debug") {}
+    }
+
+    lint {
+        disable += "SetTextI18n"
+    }
+}
+
+kotlin {
+    jvmToolchain(21)
+
+    compilerOptions {
+        freeCompilerArgs.addAll(
+            "-Xno-call-assertions",
+            "-Xno-param-assertions",
+            "-Xno-receiver-assertions",
+            "-Xallow-kotlin-package", // Workaround to adding kotlin.enums.EnumEntries polyfill
+        )
     }
 }
 
 dependencies {
-    api(libs.appcompat)
-    api(libs.material)
-    api(libs.constraintlayout)
-    api(libs.aliuhook)
+    compileOnly(libs.aliuhook)
+    compileOnly(libs.appcompat)
+    compileOnly(libs.constraintlayout)
+    compileOnly(libs.discord)
+    compileOnly(libs.kotlin.stdlib)
+    compileOnly(libs.material)
     compileOnly(project(":Injector")) // Needed to access certain stubs
 }
 
-tasks {
-    dokkaHtml.configure {
-        dokkaSourceSets {
-            named("main") {
-                noAndroidSdkLink.set(false)
-                includeNonPublic.set(false)
-            }
-        }
-    }
-
-    dokkaJavadoc.configure {
-        dokkaSourceSets {
-            named("main") {
-                noAndroidSdkLink.set(false)
-                includeNonPublic.set(false)
-            }
-        }
-    }
+tasks.withType<JavaCompile> {
+    options.compilerArgs.addAll(arrayOf(
+        "-Xlint:deprecation",
+    ))
 }
 
 afterEvaluate {
