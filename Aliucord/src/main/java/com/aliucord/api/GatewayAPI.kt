@@ -1,7 +1,6 @@
 package com.aliucord.api
 
 import com.aliucord.Logger
-import com.aliucord.api.GatewayAPI.EventListener
 import com.aliucord.patcher.*
 import com.aliucord.utils.GsonUtils.fromJson
 import com.aliucord.utils.SerializedName

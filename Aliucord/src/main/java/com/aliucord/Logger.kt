@@ -2,7 +2,6 @@
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
-@file:Suppress("UNUSED_PARAMETER")
 
 package com.aliucord
 
@@ -15,7 +14,7 @@ import com.discord.app.AppLog
  * Logger that will log to both logcat and Discord's debug log
  * @param module Name of the module
  */
-@Suppress("unused", "MemberVisibilityCanBePrivate", "UNUSED_PARAMETER")
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 class Logger(var module: String = "Aliucord") {
     private fun format(msg: String) = "[$module] $msg"
 

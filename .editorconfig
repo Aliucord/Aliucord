@@ -26,12 +26,14 @@ ij_java_line_comment_add_space = true
 ij_java_line_comment_at_first_column = false
 ij_java_spaces_within_array_initializer_braces = true
 
-[*.kt]
+[*.{kt,kts}]
 ij_kotlin_name_count_to_use_star_import = 3
 ij_kotlin_name_count_to_use_star_import_for_members = 3
 ij_kotlin_keep_first_column_comment = false
 ij_kotlin_line_comment_add_space = true
 ij_kotlin_line_comment_at_first_column = false
+ij_kotlin_call_parameters_new_line_after_left_paren = false
+ij_kotlin_call_parameters_right_paren_on_new_line = false
 
 [*.{xml,yml}]
 indent_size = 2

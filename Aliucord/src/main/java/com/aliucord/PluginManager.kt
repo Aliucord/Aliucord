@@ -79,7 +79,19 @@ object PluginManager {
                 }
             })
 
-            val pluginInstance = pluginClass.newInstance()
+            val pluginConstructor = try {
+                pluginClass.getDeclaredConstructor()
+            } catch (e: NoSuchMethodException) {
+                logger.error("Plugin with name $name does not have a public constructor", e)
+                return
+            }
+            val pluginInstance = try {
+                pluginConstructor.newInstance()
+            } catch (t: Exception) {
+                logger.error("Failed to create plugin class for plugin with name $name", t)
+                return
+            }
+
             if (plugins.containsKey(name)) {
                 logger.error("Plugin with name $name already exists", null)
                 return
@@ -89,13 +101,20 @@ object PluginManager {
 
             if (loader.getResource("resources.arsc") != null) {
                 // Based on https://stackoverflow.com/questions/7483568/dynamic-resource-loading-from-other-apk
-                val assetManager = AssetManager::class.java
-                val assets = assetManager.newInstance()
-                assetManager.getMethod("addAssetPath", String::class.java)(assets, file.absolutePath)
-                with(context.resources) {
-                    @Suppress("DEPRECATION")
-                    pluginInstance.resources = Resources(assets, displayMetrics, configuration)
-                }
+                val assets = AssetManager::class.java
+                    .getDeclaredConstructor()
+                    .newInstance()
+
+                AssetManager::class.java
+                    .getMethod("addAssetPath", String::class.java)
+                    .invoke(assets, file.absolutePath)
+
+                @Suppress("DEPRECATION")
+                pluginInstance.resources = Resources(
+                    /* assets = */ assets,
+                    /* metrics = */ context.resources.displayMetrics,
+                    /* config = */ context.resources.configuration,
+                )
             }
 
             plugins[name] = pluginInstance

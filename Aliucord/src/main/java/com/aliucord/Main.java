@@ -226,6 +226,7 @@ public final class Main {
             WidgetChangeLog _this = (WidgetChangeLog) param.thisObject;
             WidgetChangeLogBinding binding = WidgetChangeLog.access$getBinding$p(_this);
 
+            @SuppressWarnings({"deprecation", "RedundantSuppression"})
             Parcelable[] actions = _this.getMostRecentIntent().getParcelableArrayExtra("INTENT_EXTRA_FOOTER_ACTIONS");
 
             if (actions == null) {

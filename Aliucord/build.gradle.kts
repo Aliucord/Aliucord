@@ -66,6 +66,12 @@ dependencies {
     compileOnly(project(":Injector")) // Needed to access certain stubs
 }
 
+tasks.withType<JavaCompile> {
+    options.compilerArgs.addAll(arrayOf(
+        "-Xlint:deprecation",
+    ))
+}
+
 afterEvaluate {
     publishing {
         publications {
