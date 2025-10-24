@@ -42,5 +42,6 @@ installing Aliucord.
 8. Commit changes to git
 
 > [!NOTE]
-> Any changes made to `./src` after having run `:patches:disassembleWithPatches` will be discarded
-> when generating patches with `:patches:writePatches`!
+> Any changes made to the patches in `./src` after having run `:patches:disassembleWithPatches` will be discarded
+> upon running the `:patches:writePatches` task to generate *new* patches! Patches should not directly be modified,
+> but instead the smali file they are patching!
