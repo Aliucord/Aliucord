@@ -11,6 +11,7 @@ import android.content.res.AssetManager
 import android.content.res.Resources
 import com.aliucord.Utils.appContext
 import com.aliucord.coreplugins.*
+import com.aliucord.coreplugins.badges.DiscordBadges
 import com.aliucord.coreplugins.badges.SupporterBadges
 import com.aliucord.coreplugins.plugindownloader.PluginDownloader
 import com.aliucord.coreplugins.rn.RNAPI
@@ -67,32 +68,53 @@ object PluginManager {
                     gson.fromJson(it, Plugin.Manifest::class.java)
                 }
             }
-            val name = manifest.name
+            val name = requireNotNull(manifest.name)
             val pluginClass = loader.loadClass(manifest.pluginClassName) as Class<out Plugin>
 
             Patcher.addPatch(pluginClass.getDeclaredConstructor(), PreHook {
                 try {
-                    ReflectUtils.setField(Plugin::class.java, it.thisObject, "manifest", manifest)
-                } catch (_: Exception) {
-                    logger.errorToast("Failed to set manifest for " + manifest.name)
+                    ReflectUtils.setField(Plugin::class.java, it.thisObject, "_manifest", manifest)
+                } catch (e: Exception) {
+                    logger.errorToast("Failed to set manifest for " + manifest.name, e)
                 }
             })
 
-            val pluginInstance = pluginClass.newInstance()
+            val pluginConstructor = try {
+                pluginClass.getDeclaredConstructor()
+            } catch (e: NoSuchMethodException) {
+                logger.error("Plugin with name $name does not have a public constructor", e)
+                return
+            }
+            val pluginInstance = try {
+                pluginConstructor.newInstance()
+            } catch (t: Exception) {
+                logger.error("Failed to create plugin class for plugin with name $name", t)
+                return
+            }
+
             if (plugins.containsKey(name)) {
                 logger.error("Plugin with name $name already exists", null)
                 return
             }
 
             pluginInstance.__filename = fileName
-            if (pluginInstance.needsResources) { // based on https://stackoverflow.com/questions/7483568/dynamic-resource-loading-from-other-apk
-                val assetManager = AssetManager::class.java
-                val assets = assetManager.newInstance()
-                assetManager.getMethod("addAssetPath", String::class.java)(assets, file.absolutePath)
-                with(context.resources) {
-                    @Suppress("DEPRECATION")
-                    pluginInstance.resources = Resources(assets, displayMetrics, configuration)
-                }
+
+            if (loader.getResource("resources.arsc") != null) {
+                // Based on https://stackoverflow.com/questions/7483568/dynamic-resource-loading-from-other-apk
+                val assets = AssetManager::class.java
+                    .getDeclaredConstructor()
+                    .newInstance()
+
+                AssetManager::class.java
+                    .getMethod("addAssetPath", String::class.java)
+                    .invoke(assets, file.absolutePath)
+
+                @Suppress("DEPRECATION")
+                pluginInstance.resources = Resources(
+                    /* assets = */ assets,
+                    /* metrics = */ context.resources.displayMetrics,
+                    /* config = */ context.resources.configuration,
+                )
             }
 
             plugins[name] = pluginInstance
@@ -271,16 +293,20 @@ object PluginManager {
     fun loadCorePlugins(context: Context) {
         val corePlugins = arrayOf(
             AlignThreads(),
+            AppBarFix(),
             ButtonsAPI(),
             CommandHandler(),
             CoreCommands(),
+            Decorations(),
             DefaultStickers(),
+            DiscordBadges(),
             ExperimentDefaults(),
             ForwardedMessages(),
             GifPreviewFix(),
             MembersListFix(),
             NewPins(),
             NoTrack(),
+            OpenLinksExternallyFix(),
             PluginDownloader(),
             Polls(),
             PrivateChannelsListScroll(),

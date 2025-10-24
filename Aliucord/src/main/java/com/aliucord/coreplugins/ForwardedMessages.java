@@ -53,8 +53,9 @@ public class ForwardedMessages extends CorePlugin {
         return true;
     }
 
+    @SuppressWarnings("unchecked")
     public Object writeSnapshotFields(Object source, Object destination, boolean isApiMessage) throws NoSuchFieldException, IllegalAccessException {
-        // noinspection unchecked - we only ever call this method on objects that have this field
+        // We only ever call this method on objects that have this field
         var snapshots = (ArrayList<MessageSnapshot>) (isApiMessage ? f_apiMessage_messageSnapshots : f_modelMessage_messageSnapshots).get(source);
 
         if (snapshots == null || snapshots.isEmpty()) return destination;

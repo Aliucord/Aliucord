@@ -1,5 +1,3 @@
-@file:Suppress("MISSING_DEPENDENCY_CLASS", "MISSING_DEPENDENCY_SUPERCLASS") // Just gets rid of the false error inspections
-
 package com.aliucord.coreplugins.forwardedmessages
 
 import android.os.Build

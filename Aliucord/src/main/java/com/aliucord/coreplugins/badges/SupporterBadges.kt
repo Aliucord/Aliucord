@@ -106,10 +106,10 @@ internal class SupporterBadges : CorePlugin(MANIFEST) {
     override fun stop(context: Context) {}
 
     private companion object {
-        val MANIFEST = Manifest().apply {
-            name = "SupporterBadges"
-            description = "Show badges in the profiles of contributors and donors ♡"
-        }
+        val MANIFEST = Manifest(
+            name = "SupporterBadges",
+            description = "Show badges in the profiles of contributors and donors ♡",
+        )
 
         val DEV_BADGE = Badge(R.e.ic_staff_badge_blurple_24dp, null, "Aliucord Developer", false, null)
         val DONOR_BADGE = Badge(0, null, "Aliucord Donor", false, "https://cdn.discordapp.com/emojis/859801776232202280.webp")

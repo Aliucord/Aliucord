@@ -6,6 +6,8 @@ import android.view.ViewGroup.MarginLayoutParams
 import android.widget.CompoundButton
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.aliucord.Utils
+import com.aliucord.utils.ViewUtils.findViewById
 import com.discord.views.CheckedSetting
 
 object ViewUtils {
@@ -39,6 +41,18 @@ object ViewUtils {
     }
 
     /**
+     * The same as [View.findViewById], but takes the name of the id instead.
+     *
+     * @param idName the name of the id resource
+     *
+     * @return a view with the given id in the layout, or `null` if it is not found
+     */
+    fun <T : View?> View.findViewById(idName: String): T {
+        val id = Utils.getResId(idName, "id")
+        return findViewById<T>(id)
+    }
+
+    /**
      * Adds default discord paddings as margins to a View. By default, margins are set for the
      * bottom, left, and right of the View, but not the top.
      *
@@ -49,7 +63,7 @@ object ViewUtils {
      *
      * @return The View
      */
-    fun <T: View> T.setDefaultMargins(
+    fun <T : View> T.setDefaultMargins(
         bottom: Boolean = true,
         top: Boolean = false,
         left: Boolean = true,

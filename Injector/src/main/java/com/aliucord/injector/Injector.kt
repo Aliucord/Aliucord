@@ -68,9 +68,17 @@ private fun init(appActivity: AppActivity) {
     Logger.d("Initializing Aliucord...")
 
     try {
-        val dexFile = File(appActivity.codeCacheDir, "Aliucord.zip")
+        val dexFile = appActivity.codeCacheDir.resolve("Aliucord.zip")
+        val customDexFile = appActivity.codeCacheDir.resolve("Aliucord.custom.zip")
+        val useCustomDex = useCustomDex(appActivity)
 
-        if (!useLocalDex(appActivity, dexFile) && !dexFile.exists()) {
+        // Copy core bundle from external storage to internal cache
+        if (useCustomDex) {
+            File(BASE_DIRECTORY, "Aliucord.zip").copyTo(customDexFile, overwrite = true)
+        }
+
+        // Download new core
+        if (!useCustomDex && !dexFile.exists()) {
             val successRef = AtomicBoolean(true)
             Thread {
                 try {
@@ -106,7 +114,7 @@ private fun init(appActivity: AppActivity) {
         }
 
         Logger.d("Adding Aliucord to the classpath...")
-        addDexToClasspath(dexFile, appActivity.classLoader)
+        addDexToClasspath(if (useCustomDex) customDexFile else dexFile, appActivity.classLoader)
         val c = Class.forName("com.aliucord.Main")
         val preInit = c.getDeclaredMethod("preInit", AppActivity::class.java)
         val init = c.getDeclaredMethod("init", AppActivity::class.java)
@@ -126,9 +134,10 @@ private fun init(appActivity: AppActivity) {
 }
 
 /**
- * Checks if app has permission for storage and if so checks settings and copies local dex to code cache
+ * Checks if app has permission for storage and if so checks settings as to whether
+ * using custom/local core bundle is enable .
  */
-private fun useLocalDex(appActivity: AppActivity, dexFile: File): Boolean {
+private fun useCustomDex(appActivity: AppActivity): Boolean {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
         if (!Environment.isExternalStorageManager())
             return false
@@ -145,7 +154,6 @@ private fun useLocalDex(appActivity: AppActivity, dexFile: File): Boolean {
     if (!useLocalDex) return false
 
     Logger.d("Loading dex from ${localDexFile.absolutePath}")
-    localDexFile.copyTo(dexFile, true)
     return true
 }
 

@@ -35,6 +35,7 @@ import com.aliucord.utils.ChangelogUtils;
 import com.aliucord.utils.ReflectUtils;
 import com.aliucord.views.Divider;
 import com.aliucord.views.ToolbarButton;
+import com.aliucord.widgets.SideloadingBlockWarning;
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper;
 import com.discord.api.message.embed.EmbedField;
 import com.discord.app.*;
@@ -55,6 +56,7 @@ import com.discord.widgets.chat.list.entries.ChatListEntry;
 import com.discord.widgets.debugging.WidgetDebugging;
 import com.discord.widgets.guilds.profile.WidgetChangeGuildIdentity;
 import com.discord.widgets.guilds.profile.WidgetGuildProfileSheet$configureGuildActions$$inlined$apply$lambda$4;
+import com.discord.widgets.home.WidgetHome;
 import com.discord.widgets.settings.WidgetSettings;
 import com.discord.widgets.settings.profile.WidgetEditUserOrGuildMemberProfile;
 import com.lytefast.flexinput.R;
@@ -224,6 +226,7 @@ public final class Main {
             WidgetChangeLog _this = (WidgetChangeLog) param.thisObject;
             WidgetChangeLogBinding binding = WidgetChangeLog.access$getBinding$p(_this);
 
+            @SuppressWarnings({"deprecation", "RedundantSuppression"})
             Parcelable[] actions = _this.getMostRecentIntent().getParcelableArrayExtra("INTENT_EXTRA_FOOTER_ACTIONS");
 
             if (actions == null) {
@@ -323,10 +326,27 @@ public final class Main {
             new InsteadHook(param -> null)
         );
 
+        // Disable school hubs dialog upon login
+        Patcher.addPatch(StoreNotices.class,
+            "hasBeenSeen",
+            new Class[]{ String.class },
+            new PreHook(param -> {
+                if ("WidgetHubEmailFlow".equals((String) param.args[0]))
+                    param.setResult(true);
+            })
+        );
+        Patcher.addPatch(WidgetHome.class,
+            "maybeShowHubEmailUpsell",
+            null,
+            new InsteadHook(param -> null)
+        );
+
         if (loadedPlugins) {
             PluginManager.startCorePlugins();
             startAllPlugins();
         }
+
+        SideloadingBlockWarning.INSTANCE.maybeOpenDialog();
     }
 
     private static void crashHandler(Thread thread, Throwable throwable) {

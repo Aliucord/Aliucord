@@ -6,37 +6,37 @@ on:
     branches:
       - main
     paths:
-      - .github/workflows/generate-dokka.yml
-      - Aliucord/**
+      - ".github/workflows/generate-dokka.yml"
+      - "Aliucord/**"
 
 jobs:
   dokka:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v4
 
-      - name: Setup JDK 11
-        uses: actions/setup-java@v1
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
         with:
-          java-version: 11
+          distribution: temurin
+          java-version: 21
 
-      - name: Generate Dokka
+      - name: Generate Docs with Dokka
         run: |
           chmod +x ./gradlew
-          ./gradlew Aliucord:dokkaHtml
-          ./gradlew Aliucord:dokkaJavadoc
+          ./gradlew :Aliucord:dokkaGenerate
 
-      - name: Push Dokka
+      - name: Deploy Docs
         shell: bash # GLOBIGNORE is a special bash variable so explicitly target bash
         env:
           API_TOKEN: ${{ secrets.API_PAT_GITHUB }}
           USERNAME: Github-Actions
-          REPO: Aliucord/dokka
+          DOCS_REPO: Aliucord/dokka
         run: |
           git config --global user.name "$USERNAME"
           git config --global user.email actions@github.com
 
-          git clone https://$USERNAME:$API_TOKEN@github.com/$REPO.git
+          git clone https://$USERNAME:$API_TOKEN@github.com/$DOCS_REPO.git
           cd dokka
 
           GLOBIGNORE=README.md:.git     # do not glob README and .git
@@ -46,4 +46,4 @@ jobs:
 
           git add .
           git commit -m "Generate dokka for https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA" || exit 0
-          git push https://$USERNAME:$API_TOKEN@github.com/$REPO.git
+          git push https://$USERNAME:$API_TOKEN@github.com/$DOCS_REPO.git

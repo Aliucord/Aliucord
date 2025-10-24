@@ -119,7 +119,7 @@ object Utils {
      */
     @JvmStatic
     fun joinSupportServer(ctx: Context) {
-        (WidgetGuildInvite.Companion).launch(ctx, StoreInviteSettings.InviteCode(Constants.ALIUCORD_SUPPORT, "", null))
+        WidgetGuildInvite.Companion!!.launch(ctx, StoreInviteSettings.InviteCode(Constants.ALIUCORD_SUPPORT, "", null))
     }
 
     /**
@@ -273,7 +273,7 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
     @JvmOverloads
     @JvmStatic
     @Suppress("unused")
-    fun showToast(ctx: Context, message: String, showLonger: Boolean = false) {
+    fun showToast(_ctx: Context, message: String, showLonger: Boolean = false) {
         showToast(message, showLonger)
     }
 

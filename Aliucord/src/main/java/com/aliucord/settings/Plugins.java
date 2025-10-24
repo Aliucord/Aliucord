@@ -40,6 +40,7 @@ import kotlin.comparisons.ComparisonsKt;
 
 public class Plugins extends SettingsPage {
     public static class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> implements Filterable {
+        @SuppressWarnings({"deprecation", "RedundantSuppression"})
         public static final class ViewHolder extends RecyclerView.ViewHolder {
             private final Adapter adapter;
             public final PluginCard card;
@@ -87,6 +88,7 @@ public class Plugins extends SettingsPage {
         private List<Plugin> data;
         public boolean showBuiltIn = false;
 
+        @SuppressWarnings("unchecked")
         public Adapter(AppFragment fragment, Collection<Plugin> plugins) {
             super();
 
@@ -225,16 +227,13 @@ public class Plugins extends SettingsPage {
 
         public void onSettingsClick(int position) throws Throwable {
             Plugin p = data.get(position);
+            if (p.settingsTab == null) return;
+
             if (p.settingsTab.type == Plugin.SettingsTab.Type.PAGE && p.settingsTab.page != null) {
-                Fragment page = p.settingsTab.args != null
-                    ? ReflectUtils.invokeConstructorWithArgs(p.settingsTab.page, p.settingsTab.args)
-                    : p.settingsTab.page.newInstance();
+                Fragment page = ReflectUtils.invokeConstructorWithArgs(p.settingsTab.page, p.settingsTab.args);
                 Utils.openPageWithProxy(ctx, page);
             } else if (p.settingsTab.type == Plugin.SettingsTab.Type.BOTTOM_SHEET && p.settingsTab.bottomSheet != null) {
-                AppBottomSheet sheet = p.settingsTab.args != null
-                    ? ReflectUtils.invokeConstructorWithArgs(p.settingsTab.bottomSheet, p.settingsTab.args)
-                    : p.settingsTab.bottomSheet.newInstance();
-
+                AppBottomSheet sheet = ReflectUtils.invokeConstructorWithArgs(p.settingsTab.bottomSheet, p.settingsTab.args);
                 sheet.show(fragment.getParentFragmentManager(), p.getName() + "Settings");
             }
         }
