@@ -6,10 +6,11 @@
 package com.aliucord.utils
 
 import com.aliucord.Utils.appContext
-import com.discord.utilities.dimen.DimenUtils
 
+@Suppress("NOTHING_TO_INLINE")
 object DimenUtils {
-    private val density = appContext.resources.displayMetrics.density
+    @PublishedApi
+    internal val density = appContext.resources.displayMetrics.density
 
     /**
      * The default padding for items (16 DP)
@@ -27,7 +28,14 @@ object DimenUtils {
      * Converts DP to PX
      * @return `DP` converted to PX
      */
-    val Int.dp: Int
+    inline val Int.dp: Int
+        get() = dpToPx(this)
+
+    /**
+     * Converts DP to PX
+     * @return `DP` converted to PX
+     */
+    inline val Float.dp: Int
         get() = dpToPx(this)
 
     /**
@@ -36,7 +44,7 @@ object DimenUtils {
      * @return `DP` converted to PX
      */
     @JvmStatic
-    fun dpToPx(dp: Int): Int = dpToPx(dp.toFloat())
+    inline fun dpToPx(dp: Int): Int = dpToPx(dp.toFloat())
 
     /**
      * Converts DP to PX.
@@ -44,14 +52,13 @@ object DimenUtils {
      * @return `DP` converted to PX
      */
     @JvmStatic
-    fun dpToPx(dp: Float): Int = (dp * density + 0.5f).toInt()
+    inline fun dpToPx(dp: Float): Int = (dp * density + 0.5f).toInt()
 
     /**
      * Converts PX to DP.
      * @param px PX value
      * @return `PX` converted to DP
-     * @see com.discord.utilities.dimen.DimenUtils.pixelsToDp
      */
     @JvmStatic
-    fun pxToDp(px: Int): Int = DimenUtils.pixelsToDp(px)
+    inline fun pxToDp(px: Int): Int = (px / density).toInt()
 }

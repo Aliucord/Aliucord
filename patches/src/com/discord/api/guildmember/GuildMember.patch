@@ -1,0 +1,12 @@
+--- smali_original/com/discord/api/guildmember/GuildMember.smali
++++ smali/com/discord/api/guildmember/GuildMember.smali
+@@ -120,6 +120,9 @@
+ 
+ .field private final userId:Ljava/lang/Long;
+ 
++.field public avatarDecorationData:Lcom/discord/api/user/AvatarDecoration;
++
++.field public collectibles:Lcom/discord/api/user/Collectibles;
+ 
+ # direct methods
+ .method public constructor <init>(JLcom/discord/api/user/User;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Lcom/discord/api/utcdatetime/UtcDateTime;ZLcom/discord/api/presence/Presence;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/discord/api/utcdatetime/UtcDateTime;)V

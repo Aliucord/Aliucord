@@ -252,11 +252,6 @@ fun patchStickers() {
     Patcher.addPatch(StickerPartial::class.java.getDeclaredMethod("b"), hook2)
 }
 
-fun patchVoice() {
-    // don't send heartbeat ("op": 3) on connect
-    Patcher.addPatch(b.a.q.n0.a::class.java.getDeclaredMethod("k"), InsteadHook.DO_NOTHING)
-}
-
 fun patchMessageEmbeds() {
     val fEmbedType = MessageEmbed::class.java.getDeclaredField("type")
         .apply { isAccessible = true }
