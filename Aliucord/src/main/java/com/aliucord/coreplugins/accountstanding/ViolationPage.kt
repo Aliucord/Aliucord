@@ -39,7 +39,7 @@ class ViolationPage(var violation: String, var flaggedContent: String?, var acti
             text = "Flagged content: $flaggedContent"
             textSize = 16f
             typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold)
-            setPadding(16.dp, 1.dp,1.dp, 1.dp)
+            setPadding(16.dp, 1.dp, 1.dp, 1.dp)
         }.addTo(linearLayout)
 
         var actionsText: String? = ""

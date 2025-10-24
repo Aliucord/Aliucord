@@ -35,6 +35,7 @@ data class SafetyHubResponse(
         var flaggedContent: List<FlaggedContent>,
         var actions: List<Actions>
     )
+
     data class Actions(var descriptions: List<String>)
     data class FlaggedContent(var content: String)
     data class AccountStandingState(val state: Int)
@@ -48,8 +49,6 @@ class AccountStandingPage : SettingsPage() {
 
         setActionBarTitle("Account Standing")
         setActionBarSubtitle("User Settings")
-
-        val context = view.context
 
         Utils.threadPool.execute {
             try {
@@ -81,7 +80,7 @@ class AccountStandingPage : SettingsPage() {
                         gravity = Gravity.CENTER
                     }.addTo(linearLayout)
 
-                    createIndicator(context, json.accountStanding.state).addTo(linearLayout)
+                    createIndicator(view.context, json.accountStanding.state).addTo(linearLayout)
 
                     if (json.classifications.isNotEmpty()) {
                         TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
@@ -89,14 +88,16 @@ class AccountStandingPage : SettingsPage() {
                             typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
                             textSize = 12f
                             gravity = Gravity.LEFT
-                            setPadding(1.dp, 1.dp, 1.dp,1.dp)
+                            setPadding(1.dp, 1.dp, 1.dp, 1.dp)
                         }.addTo(linearLayout)
 
                         for (i in json.classifications) {
-                            val actions = if (json.classifications.first().actions.isNotEmpty()) i.actions.first().descriptions else listOf("Not provided")
-                            val message = if (json.classifications.first().flaggedContent.isNotEmpty()) i.flaggedContent.first().content else "Not provided"
+                            val actions =
+                                if (json.classifications.first().actions.isNotEmpty()) i.actions.first().descriptions else listOf("Not provided")
+                            val message =
+                                if (json.classifications.first().flaggedContent.isNotEmpty()) i.flaggedContent.first().content else "Not provided"
 
-                            addView(ViolationCard(context, i.description, message, actions))
+                            addView(ViolationCard(view.context, i.description, message, actions))
                         }
                     }
 
@@ -143,7 +144,7 @@ class AccountStandingPage : SettingsPage() {
             ClassificationState(500, Utils.appContext.getColor(R.c.uikit_btn_bg_color_selector_red))
         )
 
-        val progressBar = LinearLayout(context).apply {
+        val indicator = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
@@ -156,17 +157,17 @@ class AccountStandingPage : SettingsPage() {
                     if (currentState == state) setColor(color) else setColor(Utils.appContext.getColor(R.c.status_grey_200))
                 }
                 background = circleDrawable
-            }.addTo(progressBar)
+            }.addTo(indicator)
 
             if (index < states.size - 1) {
                 View(context).apply {
                     layoutParams = LinearLayout.LayoutParams(0, 4.dp, 1f)
                     setBackgroundColor(ColorCompat.getThemedColor(context, R.b.colorPrimaryDivider))
-                }.addTo(progressBar)
+                }.addTo(indicator)
             }
         }
 
-        container.addView(progressBar)
+        container.addView(indicator)
         return container
     }
 }
