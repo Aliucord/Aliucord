@@ -16,13 +16,15 @@ installing Aliucord.
 
 ## Tooling
 
-1. Ensure you have diffutils (`diff`/`patch`) installed (on windows: [via chocolatey](https://community.chocolatey.org/packages/diffutils))
+1. Ensure you have `diffutils` (`diff`/`patch`) installed (on Windows: [via chocolatey](https://community.chocolatey.org/packages/diffutils))
 
 > [!IMPORTANT]
 > `diff`/`patch` from StrawberryPerl have bugs that cause weird errors when running the `applyPatches` and `writePatches` tasks.
 > If StrawberryPerl is the default on the `PATH`, then set the `patch.bin` and `diff.bin` variables in `local.properties` to the respective
 > paths of `diff`/`patch` binaries in a different installation of `diffutils`. For example,
 > ```properties
+> # local.properties
+>
 > patch.bin=C\:\\Program Files\\Git\\usr\\bin\\patch.exe
 > diff.bin=C\:\\Program Files\\Git\\usr\\bin\\diff.exe
 > ```
