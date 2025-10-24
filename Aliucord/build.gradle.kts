@@ -11,7 +11,7 @@ version = "2.4.0"
 
 android {
     namespace = "com.aliucord"
-    compileSdkVersion(36)
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 24

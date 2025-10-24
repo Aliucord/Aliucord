@@ -17,14 +17,15 @@ installing Aliucord.
 ## Tooling
 
 1. Ensure you have diffutils (`diff`/`patch`) installed (on windows: [via chocolatey](https://community.chocolatey.org/packages/diffutils))
-    - `diff`/`patch` from StrawberryPerl have bugs that cause weird errors.
-      If StrawberryPerl is the default on the `PATH`, then set the `patch.bin` and `diff.bin` variables in `local.properties` to the respective
-      paths of `diff`/`patch` binaries in a different installation of `diffutils`. For example,
 
-```properties
-patch.bin=C\:\\Program Files\\Git\\usr\\bin\\patch.exe
-diff.bin=C\:\\Program Files\\Git\\usr\\bin\\diff.exe
-   ```
+> [!IMPORTANT]
+> `diff`/`patch` from StrawberryPerl have bugs that cause weird errors when running the `applyPatches` and `writePatches` tasks.
+> If StrawberryPerl is the default on the `PATH`, then set the `patch.bin` and `diff.bin` variables in `local.properties` to the respective
+> paths of `diff`/`patch` binaries in a different installation of `diffutils`. For example,
+> ```properties
+> patch.bin=C\:\\Program Files\\Git\\usr\\bin\\patch.exe
+> diff.bin=C\:\\Program Files\\Git\\usr\\bin\\diff.exe
+> ```
 
 2. Run the `:patches:disassembleWithPatches` task in order to disassemble and apply any existing patches in `./src`
 3. Perform any additional modifications necessary to the `./smali` directory
@@ -38,5 +39,6 @@ diff.bin=C\:\\Program Files\\Git\\usr\\bin\\diff.exe
 7. Update the patches version in `build.gradle.kts` if necessary
 8. Commit changes to git
 
-Any changes made to `./src` after having run `:patches:disassembleWithPatches` will be discarded
-when generating patches with `:patches:writePatches`!
+> [!NOTE]
+> Any changes made to `./src` after having run `:patches:disassembleWithPatches` will be discarded
+> when generating patches with `:patches:writePatches`!
