@@ -4,7 +4,9 @@ aliuhook = "1.1.4"
 android-gradle = "8.13.0"
 discord = "126021"
 dokka = "1.8.10"
-kotlin = "2.2.0"
+kotlin = "2.2.20"
+#noinspection GradleDependency
+kotlin-stdlib = "1.5.21"
 smali = "3.0.9"
 
 #noinspection GradleDependency
@@ -19,7 +21,7 @@ aliuhook = { module = "com.aliucord:Aliuhook", version.ref = "aliuhook" }
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 discord = { module = "com.discord:discord", version.ref = "discord" }
-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin-stdlib" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
 smali = { module = "com.android.tools.smali:smali", version.ref = "smali" }
 smali-baksmali = { module = "com.android.tools.smali:smali-baksmali", version.ref = "smali" }
