@@ -18,8 +18,11 @@ internal class ExperimentDefaults : CorePlugin(Manifest("ExperimentDefaults")) {
         // Thanks Dolfies for helping with this
         // Full list of v126.21 experiments: https://discord.com/channels/811255666990907402/811262084968742932/1276337938661118062
         val newOverrides = arrayOf(
+            "2020-01_mobile_invite_suggestion_compact" to 0,
             "2020-09_threads" to 1,
+            "2020-12_android_guild_channel_invite_sheet" to 0,
             "2020-12_guild_delete_feedback" to 0, // Analytics are not sent anyway, this is useless
+            "2020-12_invite_to_gdm" to 0,
             "2021-02_view_threads" to 1,
             "2021-03_android_extend_invite_expiration" to 1, // This matches with desktop
             "2021-03_android_media_sink_wants" to 1,
@@ -27,12 +30,16 @@ internal class ExperimentDefaults : CorePlugin(Manifest("ExperimentDefaults")) {
             "2021-04_contact_sync_android_main" to 1, // This system is deprecated I think but still functional?
             "2021-06_desktop_school_hubs" to 1,
             "2021-06_hub_email_connection" to 1,
+            "2021-06_preview_promotions" to 1,
             "2021-06_reg_bailout_to_email_android" to 1, // Doesn't really matter
+            "2021-07_network_action_logging_android" to 0,
+            "2021-07_threads_only_channel" to 1,
             "2021-08_hub_multi_domain_mobile" to 1,
             "2021-08_threads_permissions" to 1,
             "2021-09_android_app_commands_frecency" to 1,
             "2021-09_android_sms_autofill" to 1,
             "2021-10_android_attachment_bottom_sheet" to 1,
+            "2021-10_premium_guild_member_profiles" to 1,
             "2021-10_study_group" to 1,
             "2021-11_guild_communication_disabled_guilds" to 1,
             "2021-11_guild_communication_disabled_users" to 1,
@@ -42,8 +49,6 @@ internal class ExperimentDefaults : CorePlugin(Manifest("ExperimentDefaults")) {
             "2022-03_android_forum_channel_redesign" to 1,
             "2022-03_highlights_settings" to 1,
             "2022-03_text_in_voice" to 1,
-
-            // 2021-10_premium_guild_member_profiles // We handle this manually
         )
 
         val experiments = StoreStream.getExperiments()
