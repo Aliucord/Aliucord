@@ -83,11 +83,23 @@ class AccountStandingPage : SettingsPage() {
 
                     createIndicator(context, json.accountStanding.state).addTo(linearLayout)
 
-                    if (json.classifications.isNotEmpty()) for (i in json.classifications) {
-                        val actions = if (json.classifications.first().actions.isNotEmpty()) i.actions.first().descriptions else listOf("Not provided")
-                        val message = if (json.classifications.first().flaggedContent.isNotEmpty()) i.flaggedContent.first().content else "Not provided"
-                        addView(ViolationCard(context, i.description, message, actions))
+                    if (json.classifications.isNotEmpty()) {
+                        TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
+                            text = "Active, or past violations"
+                            typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
+                            textSize = 12f
+                            gravity = Gravity.LEFT
+                            setPadding(1.dp, 1.dp, 1.dp,1.dp)
+                        }.addTo(linearLayout)
+
+                        for (i in json.classifications) {
+                            val actions = if (json.classifications.first().actions.isNotEmpty()) i.actions.first().descriptions else listOf("Not provided")
+                            val message = if (json.classifications.first().flaggedContent.isNotEmpty()) i.flaggedContent.first().content else "Not provided"
+
+                            addView(ViolationCard(context, i.description, message, actions))
+                        }
                     }
+
                 }
             } catch (e: Exception) {
                 Logger("AccountStanding").errorToast("Failed to check account standing", e)

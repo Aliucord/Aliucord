@@ -13,6 +13,7 @@ import android.view.Gravity
 import android.widget.*
 import androidx.core.content.res.ResourcesCompat
 import com.aliucord.Constants
+import com.aliucord.Utils
 import com.aliucord.utils.DimenUtils.defaultCardRadius
 import com.aliucord.utils.DimenUtils.defaultPadding
 import com.aliucord.utils.ViewUtils.setDefaultMargins
@@ -41,17 +42,15 @@ class ViolationCard(ctx: Context, violation: String, flaggedContent: String?, ac
         setPadding(p, p, p, p)
         setCardBackgroundColor(ColorCompat.getThemedColor(ctx, R.b.colorBackgroundSecondaryAlt))
 
-        var actionsText = ""
-        for (i in actions) {
-            actionsText += "$i\n"
-        }
-
         // The card will explode if i create more than one TextView.. :|
         title = TextView(ctx, null, 0, R.i.UiKit_Settings_Item).apply {
-            text = "You broke Discord's rules for $violation\nFlagged content: $flaggedContent\nActions taken:\n$actionsText"
+            text = "You broke Discord's rules for $violation"
             textSize = 14f
             typeface = ResourcesCompat.getFont(ctx, Constants.Fonts.whitney_semibold)
             movementMethod = LinkMovementMethod.getInstance()
+            setOnClickListener {
+                Utils.openPageWithProxy(ctx, ViolationPage(violation, flaggedContent, actions))
+            }
         }
 
         addView(title)
