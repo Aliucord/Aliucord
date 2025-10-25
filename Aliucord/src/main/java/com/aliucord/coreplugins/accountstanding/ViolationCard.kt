@@ -26,7 +26,6 @@ class ViolationCard(ctx: Context, violation: String, flaggedContent: String?, ac
     var title: TextView
 
     init {
-        setCardBackgroundColor(ColorCompat.getThemedColor(ctx, R.b.colorBackgroundSecondary))
         layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
 
         setDefaultMargins(false, true, false, false)
