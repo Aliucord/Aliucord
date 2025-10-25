@@ -110,6 +110,23 @@ jobs:
             git push
           fi
 
+      - name: Wait for GitHub Pages
+        run: sleep 2m
+
+      # TODO: purge only when content actually changed
+      - name: Purge Cloudflare cache
+        uses: jakejarvis/cloudflare-purge-action@v0.3.0
+        env:
+          CLOUDFLARE_ZONE: ${{ secrets.CLOUDFLARE_ZONE }}
+          CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_PURGE_TOKEN }}
+          PURGE_URLS: |
+            [
+              "https://builds.aliucord.com/data.json",
+              "https://builds.aliucord.com/Aliucord.zip",
+              "https://builds.aliucord.com/Injector.dex",
+              "https://builds.aliucord.com/patches.zip"
+            ]
+
   # Publish core to maven if not originating from a PR
   maven:
     runs-on: ubuntu-latest
