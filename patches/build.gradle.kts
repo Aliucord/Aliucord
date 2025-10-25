@@ -143,7 +143,7 @@ val applyPatches = tasks.register("applyPatches") {
     val patchesDir = patchesDir
     val smaliDir = smaliDir
 
-    // dependsOn(copyDisassembled)
+    dependsOn(copyDisassembled)
     outputs.upToDateWhen { false }
 
     val patchBin = localProperties.getProperty("patch.bin", null)

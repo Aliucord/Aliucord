@@ -46,9 +46,9 @@ jobs:
           injectorVersionOld="$(jq -r '.injectorVersion' $GITHUB_WORKSPACE/builds/data.json)"
 
           # Determine whether deployments are required
-          coreDeploy=$(expr "$coreVersion" != "$coreVersionOld")
-          patchesDeploy=$(expr "$patchesVersion" != "$patchesVersionOld")
-          injectorDeploy=$(expr "injectorVersion" != "injectorVersionOld")
+          coreDeploy=$([ "$coreVersion" != "$coreVersionOld" ] && echo true || echo false)
+          patchesDeploy=$([ "$patchesVersion" != "$patchesVersionOld" ] && echo true || echo false)
+          injectorDeploy=$([ "$injectorVersion" != "$injectorVersionOld" ] && echo true || echo false)
 
           # Write step output
           echo "coreDeploy=$coreDeploy" >> "$GITHUB_OUTPUT"
@@ -85,7 +85,7 @@ jobs:
 
       - name: Build project
         env:
-          RELEASE: ${{ needs.inspect.outputs.coreDeploy }}
+          RELEASE: ${{ needs.inspect.outputs.coreDeploy && true || false }}
         run: |
           chmod +x gradlew
           ./gradlew --stacktrace :Aliucord:make :Injector:make :patches:package :patches:disassembleWithPatches :patches:test
