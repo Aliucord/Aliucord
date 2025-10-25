@@ -248,7 +248,6 @@ tasks.register<DeployComponentTask>("deployWithAdb") {
     dependsOn(packageTask)
 }
 
-// FIXME: config cache
 tasks.register("writePatches") {
     group = TASK_GROUP
     mustRunAfter(applyPatches) // When applyPatches is also being run, it must come before

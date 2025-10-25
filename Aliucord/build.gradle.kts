@@ -1,10 +1,14 @@
+@file:Suppress("UnstableApiUsage")
+
+import com.vanniktech.maven.publish.AndroidMultiVariantLibrary
+
 plugins {
-    `maven-publish`
     alias(libs.plugins.aliucord.core)
     alias(libs.plugins.android.library)
     alias(libs.plugins.dokka.html)
     alias(libs.plugins.dokka.javadoc)
     alias(libs.plugins.kotlin)
+    alias(libs.plugins.publish)
 }
 
 group = "com.aliucord"
@@ -33,10 +37,6 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
-    }
-
-    publishing {
-        singleVariant("debug") {}
     }
 
     lint {
@@ -73,29 +73,29 @@ tasks.withType<JavaCompile> {
     ))
 }
 
-afterEvaluate {
-    publishing {
-        publications {
-            register<MavenPublication>(project.name) {
-                from(components["debug"])
-                artifact(tasks["debugSourcesJar"])
+mavenPublishing {
+    coordinates("com.aliucord", "Aliucord")
+    configure(AndroidMultiVariantLibrary(
+        includedBuildTypeValues = setOf("debug"),
+    ))
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "aliucord"
+            url = uri("https://maven.aliucord.com/releases")
+            credentials {
+                username = System.getenv("MAVEN_RELEASES_USERNAME")
+                password = System.getenv("MAVEN_RELEASES_PASSWORD")
             }
         }
-
-        repositories {
-            val username = System.getenv("MAVEN_USERNAME")
-            val password = System.getenv("MAVEN_PASSWORD")
-
-            if (username != null && password != null) {
-                maven {
-                    credentials {
-                        this.username = username
-                        this.password = password
-                    }
-                    setUrl("https://maven.aliucord.com/snapshots")
-                }
-            } else {
-                mavenLocal()
+        maven {
+            name = "aliucordSnapshots"
+            url = uri("https://maven.aliucord.com/snapshots")
+            credentials {
+                username = System.getenv("MAVEN_SNAPSHOTS_USERNAME")
+                password = System.getenv("MAVEN_SNAPSHOTS_PASSWORD")
             }
         }
     }
