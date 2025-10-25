@@ -16,18 +16,27 @@ installing Aliucord.
 
 ## Tooling
 
-1. Ensure you have `diffutils` (`diff`/`patch`) installed (on Windows: [via chocolatey](https://community.chocolatey.org/packages/diffutils))
+1. Ensure you have the `diff` and `patch` utilities installed
+
+[//]: # (@formatter:off)
+> [!NOTE]
+> On Windows, you can obtain `diff` and `patch` by either:
+> - Installing the [GnuWin32](https://gnuwin32.sourceforge.net/) project
+> - Installing [Git](https://git-scm.com/install/) with Git Bash, and then specifying the paths to the `diff`
+>   and `patch` binaries on your system by setting the `diff.bin` and `patch.bin` variables in the `local.properties`
+>   of this project. For example:
+>   ```properties
+>   # local.properties
+>
+>   patch.bin=C\:\\Program Files\\Git\\usr\\bin\\patch.exe
+>   diff.bin=C\:\\Program Files\\Git\\usr\\bin\\diff.exe
+>   ```
+[//]: # (@formatter:on)
 
 > [!IMPORTANT]
 > `diff`/`patch` from StrawberryPerl have bugs that cause weird errors when running the `applyPatches` and `writePatches` tasks.
 > If StrawberryPerl is the default on the `PATH`, then set the `patch.bin` and `diff.bin` variables in `local.properties` to the respective
-> paths of `diff`/`patch` binaries in a different installation of `diffutils`. For example,
-> ```properties
-> # local.properties
->
-> patch.bin=C\:\\Program Files\\Git\\usr\\bin\\patch.exe
-> diff.bin=C\:\\Program Files\\Git\\usr\\bin\\diff.exe
-> ```
+> paths of `diff`/`patch` binaries of a different installation.
 
 2. Run the `:patches:disassembleWithPatches` task in order to disassemble and apply any existing patches in `./src`
 3. Perform any additional modifications necessary to the `./smali` directory
