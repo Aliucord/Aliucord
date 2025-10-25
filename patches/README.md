@@ -42,6 +42,10 @@ installing Aliucord.
 8. Commit changes to git
 
 > [!NOTE]
+> If you encounter any errors while running the tasks listed above, please rerun them with the `--info` Gradle
+> flag to display more hidden output, including any stdout that was returned from `patch`/`diff`!
+
+> [!NOTE]
 > Any changes made to the patches in `./src` after having run `:patches:disassembleWithPatches` will be discarded
 > upon running the `:patches:writePatches` task to generate *new* patches! Patches should not directly be modified,
 > but instead the smali file they are patching!
