@@ -59,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [ inspect ]
-    if: ${{ always() }} # Allow build when `inspect` job skipped
+    if: ${{ !cancelled() }} # Allow build when `inspect` job skipped
     permissions:
       contents: read
     steps:
@@ -78,14 +78,14 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: ${{ github.event_name == 'pull_request' }} # Don't write cache for pull requests
-          cache-write-only: ${{ needs.inspect.outputs.coreDeploy }} # Disable using cache when deploying
+          cache-write-only: ${{ needs.inspect.outputs.coreDeploy == 'true' }} # Disable using cache when deploying
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
       - name: Build project
         env:
-          RELEASE: ${{ needs.inspect.outputs.coreDeploy && true || false }}
+          RELEASE: ${{ needs.inspect.outputs.coreDeploy == 'true' }}
         run: |
           chmod +x gradlew
           ./gradlew --stacktrace :Aliucord:make :Injector:make :patches:package :patches:disassembleWithPatches :patches:test
@@ -114,9 +114,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     needs: [ inspect, build ]
-    if: ${{ (needs.inspect.outputs.coreDeploy
-      || needs.inspect.outputs.injectorDeploy
-      || needs.inspect.outputs.patchesDeploy) }}
+    if: ${{ github.ref == 'refs/heads/main' && (
+      needs.inspect.outputs.coreDeploy == 'true' ||
+      needs.inspect.outputs.injectorDeploy == 'true' ||
+      needs.inspect.outputs.patchesDeploy == 'true' ) }}
     permissions:
       contents: write
     steps:
@@ -186,7 +187,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [ inspect ]
-    if: ${{ needs.inspect.outputs.coreDeploy }}
+    if: ${{ github.ref == 'refs/heads/main' && needs.inspect.outputs.coreDeploy == 'true' }}
     permissions:
       contents: read
     steps:
@@ -206,7 +207,7 @@ jobs:
         with:
           cache-write-only: true
 
-      - name: Build & Publish to Maven
+      - name: Build & Publish to Maven releases
         env:
           MAVEN_RELEASES_USERNAME: ${{ secrets.MAVEN_RELEASES_USERNAME }}
           MAVEN_RELEASES_PASSWORD: ${{ secrets.MAVEN_RELEASES_PASSWORD }}
