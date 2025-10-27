@@ -2,107 +2,106 @@
  * Copyright (c) 2021 Juby210 & Vendicated
  * Licensed under the Open Software License version 3.0
  */
+package com.aliucord.api
 
-package com.aliucord.api;
+import com.aliucord.Logger
+import com.aliucord.patcher.Hook
+import com.aliucord.patcher.MethodHookCallback
+import com.aliucord.patcher.Patcher.addPatch
+import de.robv.android.xposed.XC_MethodHook
+import de.robv.android.xposed.XC_MethodHook.Unhook
+import java.lang.reflect.Member
 
-import androidx.annotation.NonNull;
+typealias Unpatch = Runnable
 
-import com.aliucord.Logger;
-import com.aliucord.patcher.*;
+/**
+ * Runtime patching helper that wraps Xposed hooks and tracks created unpatch actions.
+ *
+ * Use instances to apply hooks via the `patch` methods. Each patch returns an [Unpatch]
+ * callback that will remove the applied hook when invoked. Call [unpatchAll] to
+ * run all registered unpatch actions and clear the internal registry.
+ *
+ * @param logger logger used for error reporting
+ */
+class PatcherAPI internal constructor(
+    @PublishedApi
+    internal val logger: Logger
+) {
+    private val unpatches: MutableList<Unpatch> = mutableListOf()
 
-import java.lang.reflect.Member;
-import java.util.ArrayList;
-import java.util.List;
-
-import de.robv.android.xposed.XC_MethodHook;
-import rx.functions.Action1;
-
-@SuppressWarnings({"unused"})
-public class PatcherAPI {
-    public final Logger logger;
-    public List<Runnable> unpatches = new ArrayList<>();
-
-    public PatcherAPI(Logger logger) {
-        this.logger = logger;
-    }
-
-    private Runnable createUnpatch(Runnable _unpatch) {
-        Runnable unpatch = new Runnable() {
-            @Override
-            public void run() {
-                _unpatch.run();
-                unpatches.remove(this);
-            }
-        };
-        unpatches.add(unpatch);
-        return unpatch;
-    }
-
-    private Runnable createUnpatch(XC_MethodHook.Unhook unhook) {
-        Runnable unpatch = new Runnable() {
-            @Override
-            public void run() {
-                unhook.unhook();
-                unpatches.remove(this);
-            }
-        };
-        unpatches.add(unpatch);
-        return unpatch;
+    private fun createUnpatch(unhook: Unhook?): Unpatch {
+        val unpatch = Unpatch { unhook?.unhook() }
+        unpatches += unpatch
+        return unpatch
     }
 
     /**
-     * Patches a method.
+     * Patch a method by class name.
      *
-     * @param forClass   Class to patch.
-     * @param fn         Method to patch.
-     * @param paramTypes Parameters of the <code>fn</code>. Useful for patching individual overloads.
-     * @param hook       Callback for the patch.
-     * @return A {@link Runnable} object.
+     * @param forClass full name of the class containing the method
+     * @param fn method name to patch
+     * @param paramTypes parameter types to select an overload
+     * @param hook the [XC_MethodHook] callback to apply
+     * @return an [Unpatch] that will remove the applied hook
      */
-    public Runnable patch(@NonNull String forClass, @NonNull String fn, @NonNull Class<?>[] paramTypes, @NonNull XC_MethodHook hook) {
-        return createUnpatch(Patcher.addPatch(forClass, fn, paramTypes, hook));
+    @JvmOverloads
+    fun patch(
+        forClass: String,
+        fn: String,
+        paramTypes: Array<Class<*>> = emptyArray(),
+        hook: XC_MethodHook
+    ): Unpatch {
+        return createUnpatch(addPatch(forClass, fn, paramTypes, hook))
     }
 
     /**
-     * Patches a method.
+     * Patch a method by [Class].
      *
-     * @param clazz      Class to patch.
-     * @param fn         Method to patch.
-     * @param paramTypes Parameters of the <code>fn</code>. Useful for patching individual overloads.
-     * @param hook       Callback for the patch.
-     * @return Method that will remove the patch when invoked
+     * @param clazz the class containing the method
+     * @param fn method name to patch
+     * @param paramTypes parameter types to select an overload
+     * @param hook the [XC_MethodHook] callback to apply
+     * @return an [Unpatch] that will remove the applied hook
      */
-    public Runnable patch(@NonNull Class<?> clazz, @NonNull String fn, @NonNull Class<?>[] paramTypes, @NonNull XC_MethodHook hook) {
-        return createUnpatch(Patcher.addPatch(clazz, fn, paramTypes, hook));
+    @JvmOverloads
+    fun patch(
+        clazz: Class<*>,
+        fn: String,
+        paramTypes: Array<Class<*>> = emptyArray(),
+        hook: XC_MethodHook
+    ): Unpatch {
+        return createUnpatch(addPatch(clazz, fn, paramTypes, hook))
     }
 
     /**
-     * Patches a method or constructor.
+     * Patch a specific method or constructor.
      *
-     * @param m    Method or constructor to patch. see {@link Member}.
-     * @param hook Callback for the patch.
-     * @return Method that will remove the patch when invoked
+     * @param m the reflective [Member] (method or constructor) to hook
+     * @param hook the [XC_MethodHook] callback to apply
+     * @return an [Unpatch] that will remove the applied hook
      */
-    public Runnable patch(@NonNull Member m, @NonNull XC_MethodHook hook) {
-        return createUnpatch(Patcher.addPatch(m, hook));
+    fun patch(m: Member, hook: XC_MethodHook): Unpatch {
+        return createUnpatch(addPatch(m, hook))
     }
 
     /**
-     * Patches a method or constructor.
+     * Patch a specific method or constructor using a [MethodHookCallback].
      *
-     * @param m    Method or constructor to patch. see {@link Member}.
-     * @param callback Callback for the patch.
-     * @return Method that will remove the patch when invoked
+     * @param m the reflective [Member] (method or constructor) to hook
+     * @param callback the callback wrapper to apply
+     * @return an [Unpatch] that will remove the applied hook
      */
-    public Runnable patch(@NonNull Member m, @NonNull Action1<XC_MethodHook.MethodHookParam> callback) {
-        return createUnpatch(Patcher.addPatch(m, new Hook(callback)));
+    fun patch(m: Member, callback: MethodHookCallback): Unpatch {
+        return createUnpatch(addPatch(m, Hook(callback)))
     }
 
     /**
-     * Removes all patches.
+     * Invoke all registered unpatch actions and clear the registry.
+     *
+     * This will remove all applied hooks that were created through this [PatcherAPI] instance.
      */
-    public void unpatchAll() {
-        Object[] runnables = unpatches.toArray();
-        for (Object unpatch : runnables) ((Runnable) unpatch).run();
+    fun unpatchAll() {
+        unpatches.forEach(Unpatch::run)
+        unpatches.clear()
     }
 }

@@ -11,11 +11,20 @@ import rx.functions.Action1
 import java.lang.reflect.Member
 
 /**
- * Runs the specified [callback] **after** the hooked [Member]
- *
- * @property callback The callback to run after this method
+ * A callback invoked with the Xposed method hook parameter when a hooked method runs.
  */
-class Hook(val callback: Action1<MethodHookParam>) : XC_MethodHook() {
+typealias MethodHookCallback = Action1<XC_MethodHook.MethodHookParam>
+
+/**
+ * Runs the provided [callback] after the hooked [Member] executes.
+ *
+ * This is a small XC_MethodHook implementation that forwards the [afterHookedMethod]
+ * event to a higher-level [MethodHookCallback]. Exceptions thrown by the callback
+ * are caught and logged via [Patcher.logger].
+ *
+ * @property callback the callback to execute after the original method completes
+ */
+class Hook(val callback: MethodHookCallback) : XC_MethodHook() {
     override fun afterHookedMethod(param: MethodHookParam) {
         try {
             callback.call(param)
