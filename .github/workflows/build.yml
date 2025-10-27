@@ -10,11 +10,56 @@ on:
       - "**.md"
 
 jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    if: ${{ github.ref == 'refs/heads/main' }}
+    permissions:
+      contents: read
+    outputs:
+      coreDeploy: ${{ steps.compare.outputs.coreDeploy }}
+      patchesDeploy: ${{ steps.compare.outputs.patchesDeploy }}
+      injectorDeploy: ${{ steps.compare.outputs.injectorDeploy }}
+    steps:
+      - name: Checkout src
+        uses: actions/checkout@v4
+        with:
+          path: src
+
+      - name: Checkout builds
+        uses: actions/checkout@v4
+        with:
+          ref: builds
+          path: builds
+
+      - name: Compare deployed versions
+        id: compare
+        run: |
+          # Extract new versions
+          coreVersion="$(cat $GITHUB_WORKSPACE/src/Aliucord/build.gradle.kts | grep -E 'version = "' | cut -d \" -f 2)"
+          patchesVersion="$(cat $GITHUB_WORKSPACE/src/patches/build.gradle.kts | grep -E 'version = "' | cut -d \" -f 2)"
+          injectorVersion="$(cat $GITHUB_WORKSPACE/src/Injector/build.gradle.kts | grep -E 'version = "' | cut -d \" -f 2)"
+
+          # Extract current deployed versions
+          coreVersionOld="$(jq -r '.coreVersion' $GITHUB_WORKSPACE/builds/data.json)"
+          patchesVersionOld="$(jq -r '.patchesVersion' $GITHUB_WORKSPACE/builds/data.json)"
+          injectorVersionOld="$(jq -r '.injectorVersion' $GITHUB_WORKSPACE/builds/data.json)"
+
+          # Determine whether deployments are required
+          coreDeploy=$([ "$coreVersion" != "$coreVersionOld" ] && echo true || echo false)
+          patchesDeploy=$([ "$patchesVersion" != "$patchesVersionOld" ] && echo true || echo false)
+          injectorDeploy=$([ "$injectorVersion" != "$injectorVersionOld" ] && echo true || echo false)
+
+          # Write step output
+          echo "coreDeploy=$coreDeploy" >> "$GITHUB_OUTPUT"
+          echo "patchesDeploy=$patchesDeploy" >> "$GITHUB_OUTPUT"
+          echo "injectorDeploy=$injectorDeploy" >> "$GITHUB_OUTPUT"
+
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
-    # Prevent duplicate workflow run for PRs from same repo
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork }}
+    timeout-minutes: 10
+    needs: [ inspect ]
+    if: ${{ !cancelled() }} # Allow build when `inspect` job skipped
     permissions:
       contents: read
     steps:
@@ -31,17 +76,19 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }} # Don't write cache for pull requests
+          cache-write-only: ${{ needs.inspect.outputs.coreDeploy == 'true' }} # Disable using cache when deploying
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
       - name: Build project
+        env:
+          RELEASE: ${{ needs.inspect.outputs.coreDeploy == 'true' }}
         run: |
-          # Check if this should be marked as a release build
-          export RELEASE=${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
-
           chmod +x gradlew
-          ./gradlew --stacktrace :Aliucord:make :Injector:make :patches:package :patches:disassembleWithPatches :patches:test
+          ./gradlew --stacktrace :Aliucord:make :Injector:make :patches:package :patches:disassembleWithPatches :patches:testPatches
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -51,13 +98,26 @@ jobs:
           path: |
             ${{ github.workspace }}/Aliucord/build/outputs/Aliucord.zip
             ${{ github.workspace }}/Injector/build/outputs/Injector.dex
-            ${{ github.workspace }}/patches/build/outputs/patches.zip
+            ${{ github.workspace }}/patches/build/outputs/patches.zip'
+
+      - name: Publish Snapshots to Maven
+        env:
+          MAVEN_SNAPSHOTS_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+          MAVEN_SNAPSHOTS_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+        run: |
+          ./gradlew --stacktrace -Pversion=$GITHUB_REF_NAME-SNAPSHOT \
+              :Aliucord:publishAllPublicationsToAliucordSnapshotsRepository
+          ./gradlew --stacktrace -Pversion=$(git rev-parse --short "$GITHUB_SHA") \
+              :Aliucord:publishAllPublicationsToAliucordSnapshotsRepository
 
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 3
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    needs: [ build ]
+    needs: [ inspect, build ]
+    if: ${{ github.ref == 'refs/heads/main' && (
+      needs.inspect.outputs.coreDeploy == 'true' ||
+      needs.inspect.outputs.injectorDeploy == 'true' ||
+      needs.inspect.outputs.patchesDeploy == 'true' ) }}
     permissions:
       contents: write
     steps:
@@ -83,25 +143,21 @@ jobs:
           # Flatten downloaded artifacts
           find $GITHUB_WORKSPACE/artifacts -type f -exec mv -t $GITHUB_WORKSPACE/artifacts '{}' +
 
-          # Extract component versions
-          coreVersion=$(cat $GITHUB_WORKSPACE/src/Aliucord/build.gradle.kts | grep -E 'version = "' | cut -d \" -f 2)
-          patchesVersion=$(cat $GITHUB_WORKSPACE/src/patches/build.gradle.kts | grep -E 'version = "' | cut -d \" -f 2)
-          injectorVersion=$(cat $GITHUB_WORKSPACE/src/Injector/build.gradle.kts | grep -E 'version = "' | cut -d \" -f 2)
-
           # Copy over builds if version changed
-          cd $GITHUB_WORKSPACE/builds
-          [ "$(jq -r '.coreVersion' data.json)" != "$coreVersion" ] && cp $GITHUB_WORKSPACE/artifacts/Aliucord.zip .
-          [ "$(jq -r '.injectorVersion' data.json)" != "$injectorVersion" ] && cp $GITHUB_WORKSPACE/artifacts/Injector.dex .
-          [ "$(jq -r '.patchesVersion' data.json)" != "$patchesVersion" ] && cp $GITHUB_WORKSPACE/artifacts/patches.zip .
+          [ ${{ needs.inspect.outputs.coreDeploy }} ] && cp $GITHUB_WORKSPACE/artifacts/Aliucord.zip $GITHUB_WORKSPACE/builds
+          [ ${{ needs.inspect.outputs.injectorDeploy }} ] && cp $GITHUB_WORKSPACE/artifacts/Injector.dex $GITHUB_WORKSPACE/builds
+          [ ${{ needs.inspect.outputs.patchesDeploy }} ] && cp $GITHUB_WORKSPACE/artifacts/patches.zip $GITHUB_WORKSPACE/builds
 
           # Write versions to data.json
-          # `aliucordHash` is kept to force old builds to update
+          # `aliucordHash` is kept to force old builds to update (when versions were tied to a commit hash)
           jq '. + { coreVersion: $cv, injectorVersion: $iv, patchesVersion: $pv, aliucordHash: "0000000" }' \
              --arg cv $coreVersion \
              --arg iv $injectorVersion \
              --arg pv $patchesVersion \
-             ../src/.assets/data.json > data.json
+             $GITHUB_WORKSPACE/src/.assets/data.json > $GITHUB_WORKSPACE/builds/data.json
 
+          # Commit and push
+          cd $GITHUB_WORKSPACE/builds
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
           git add .
@@ -110,12 +166,28 @@ jobs:
             git push
           fi
 
-  # Publish core to maven if not originating from a PR
+  #   - name: Wait for GitHub Pages
+  #     run: sleep 2m
+
+  #   # Proxying through Cloudflare is not currently enabled
+  #   - name: Purge Cloudflare cache
+  #     uses: jakejarvis/cloudflare-purge-action@v0.3.0
+  #     env:
+  #       CLOUDFLARE_ZONE: ${{ secrets.CLOUDFLARE_ZONE }}
+  #       CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_PURGE_TOKEN }}
+  #       PURGE_URLS: |
+  #         [
+  #           "https://builds.aliucord.com/data.json",
+  #           "https://builds.aliucord.com/Aliucord.zip",
+  #           "https://builds.aliucord.com/Injector.dex",
+  #           "https://builds.aliucord.com/patches.zip"
+  #         ]
+
   maven:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    if: github.event_name != 'pull_request' && github.repository_owner == 'Aliucord'
-    needs: [ build ]
+    timeout-minutes: 10
+    needs: [ inspect ]
+    if: ${{ github.ref == 'refs/heads/main' && needs.inspect.outputs.coreDeploy == 'true' }}
     permissions:
       contents: read
     steps:
@@ -132,12 +204,13 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-write-only: true
 
-      - name: Build & Publish to Maven
+      - name: Build & Publish to Maven releases
         env:
-          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+          MAVEN_RELEASES_USERNAME: ${{ secrets.MAVEN_RELEASES_USERNAME }}
+          MAVEN_RELEASES_PASSWORD: ${{ secrets.MAVEN_RELEASES_PASSWORD }}
         run: |
           chmod +x gradlew
-          ./gradlew :Aliucord:publish --stacktrace -Pversion=$GITHUB_REF_NAME-SNAPSHOT
-          ./gradlew :Aliucord:publish --stacktrace -Pversion=$(git rev-parse --short "$GITHUB_SHA") | exit 0
+          ./gradlew --stacktrace :Aliucord:publishAllPublicationsToAliucordRepository

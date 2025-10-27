@@ -65,11 +65,11 @@ private fun init(appActivity: AppActivity) {
     if (!pruneArtProfile(appActivity))
         Logger.w("Failed to prune art profile")
 
-    Logger.d("Initializing Aliucord...")
+    val dexFile = appActivity.codeCacheDir.resolve("Aliucord.zip")
+    val customDexFile = appActivity.codeCacheDir.resolve("Aliucord.custom.zip")
 
+    Logger.d("Initializing Aliucord...")
     try {
-        val dexFile = appActivity.codeCacheDir.resolve("Aliucord.zip")
-        val customDexFile = appActivity.codeCacheDir.resolve("Aliucord.custom.zip")
         val useCustomDex = useCustomDex(appActivity)
 
         // Copy core bundle from external storage to internal cache
@@ -124,11 +124,13 @@ private fun init(appActivity: AppActivity) {
         init.invoke(null, appActivity)
         Logger.d("Finished initializing Aliucord")
     } catch (th: Throwable) {
-        error(appActivity, "Failed to initialize Aliucord :(", th)
-        // Delete file so it is reinstalled the next time
+        error(appActivity, "Failed to initialize Aliucord", th)
         try {
-            File(appActivity.codeCacheDir, "Aliucord.zip").delete()
-        } catch (ignored: Throwable) {
+            // Delete cached file so it is reinstalled the next time
+            dexFile.delete()
+            customDexFile.delete()
+        } catch (_: Throwable) {
+            // Ignore
         }
     }
 }

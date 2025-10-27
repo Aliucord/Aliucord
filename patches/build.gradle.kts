@@ -1,4 +1,7 @@
 import com.aliucord.gradle.task.adb.DeployComponentTask
+import org.gradle.api.internal.file.FileOperations
+import org.gradle.kotlin.dsl.support.serviceOf
+import java.io.ByteArrayOutputStream
 import java.util.Properties
 
 version = "1.3.0"
@@ -14,11 +17,11 @@ android {
     compileSdk = 36
 }
 
-// --- Dependencies --- //
+// ------ Dependencies ------ //
 
 // Make dependency configuration for build tools
-val smaliTools: Configuration by configurations.creating
-val discord: Configuration by configurations.creating
+val smaliTools by configurations.registering
+val discord by configurations.registering
 
 dependencies {
     smaliTools(libs.smali)
@@ -26,27 +29,209 @@ dependencies {
     discord(libs.discord)
 }
 
-// --- Other --- //
-val localProperties = Properties().apply {
-    val file = project.rootProject.file("local.properties")
-    if (file.exists()) {
-        load(file.inputStream())
-    }
-}
-
-// --- Shared files --- //
+// ------ Shared files ------ //
 
 val patchesDir = projectDir.resolve("src")
 val smaliDir = projectDir.resolve("smali")
-val smaliOriginalDir = layout.buildDirectory.file("smali_original").get().asFile
-val patchesBundle = layout.buildDirectory.file("outputs/patches.zip").get().asFile
+val smaliOriginalDir = layout.buildDirectory.dir("smali_original")
+val patchesBundle = layout.buildDirectory.file("outputs/patches.zip")
+
+// ------ Other ------ //
+
+/** Task group for all public tasks */
+@Suppress("PropertyName")
+val TASK_GROUP = "aliucord"
+
+/** Task group for all private tasks */
+@Suppress("PropertyName")
+val TASK_GROUP_INTERNAL = "aliucordInternal"
+
+val localPropertiesFile = project.rootProject.file("local.properties")
+val localProperties = Properties().apply {
+    if (localPropertiesFile.exists()) {
+        load(localPropertiesFile.inputStream())
+    }
+}
+
+// Regular function notation breaks with configuration caching??
+val execIgnoreCode: (ExecOperations.(Logger, ExecSpec.() -> Unit) -> Pair<ExecResult, String>) =
+    execIgnoreCode@{ logger, block ->
+        val stdout = ByteArrayOutputStream()
+        val stderr = ByteArrayOutputStream()
+
+        val result = exec {
+            isIgnoreExitValue = true
+            standardOutput = stdout
+            errorOutput = stderr
+            block(this)
+        }
+
+        val stdoutString = stdout.toString()
+        val stderrString = stderr.toString()
+
+        if (stderrString.isNotEmpty())
+            logger.error(stderrString)
+
+        logger.info(stdoutString)
+
+        return@execIgnoreCode result to stdoutString
+    }
+
+// ------ Internal tasks ------ //
+
+val disassembleInternal = tasks.register("disassembleInternal") {
+    group = TASK_GROUP_INTERNAL
+
+    // Configuration cache workaround
+    val execOperations = serviceOf<ExecOperations>()
+    val fileOperations = serviceOf<FileOperations>()
+    val smaliOriginalDir = smaliOriginalDir
+    val smaliTools = smaliTools.map { it }
+
+    // Resolve Discord APK dependency to an apk file
+    val discordApks = discord.map {
+        it.incoming
+            .artifactView { attributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "apk") }
+            .files
+    }
+
+    inputs.files(smaliTools)
+    inputs.files(discordApks)
+    outputs.dir(smaliOriginalDir)
+
+    doFirst {
+        val smaliOriginalDir = smaliOriginalDir.get().asFile
+            .apply { deleteRecursively() }
+
+        val discordApk = discordApks.get().singleFile
+        val classesFiles = fileOperations.zipTree(discordApk)
+            .matching { include("classes*.dex") }
+
+        classesFiles.visit {
+            logger.info("Disassembling $name")
+            execOperations.javaexec {
+                jvmArgs = listOf("-Xmx2G")
+                classpath = smaliTools.get()
+                systemProperty("line.separator", "\n") // Ensure smali output uses LF endings
+
+                mainClass.set("com.android.tools.smali.baksmali.Main")
+                args = listOf(
+                    "disassemble",
+                    "--use-locals",
+                    "--output", smaliOriginalDir.absolutePath,
+                    "${discordApk.absolutePath}/$name",
+                )
+            }
+        }
+    }
+}
+
+val copyDisassembled by tasks.register("copyDisassembled", Sync::class) {
+    group = TASK_GROUP_INTERNAL
+    destinationDir = smaliDir
+    from(smaliOriginalDir)
+    dependsOn(disassembleInternal)
+}
+
+val applyPatches = tasks.register("applyPatches") {
+    group = TASK_GROUP_INTERNAL
+
+    // Configuration cache workaround
+    val execOperations = serviceOf<ExecOperations>()
+    val fileOperations = serviceOf<FileOperations>()
+    val execIgnoreCode = execIgnoreCode
+    val patchesDir = patchesDir
+    val smaliDir = smaliDir
+
+    dependsOn(copyDisassembled)
+    outputs.upToDateWhen { false }
+
+    val patchBin = localProperties.getProperty("patch.bin", null)
+        ?: project.findProperty("patch.bin") as String?
+        ?: "patch"
+
+    doLast {
+        val patchFiles = fileOperations.fileTree(patchesDir)
+            .filter { it.name.endsWith(".patch") }
+
+        for (patchFile in patchFiles) {
+            val fileClassName = patchFile
+                .toRelativeString(patchesDir)
+                .removeSuffix(".patch")
+
+            val className = fileClassName.replace("""[\\/]""".toRegex(), ".")
+            logger.lifecycle("Applying smali patches to class $className")
+
+            execOperations.execIgnoreCode(logger) {
+                executable = patchBin
+                args = listOf(
+                    "--verbose",
+                    "--forward",
+                    "--unified",
+                    smaliDir.resolve("$fileClassName.smali").absolutePath,
+                    patchFile.absolutePath,
+                )
+            }
+        }
+    }
+}
 
 // --- Public tasks --- //
 
+tasks.named<Delete>("clean") {
+    group = TASK_GROUP
+    delete(smaliDir)
+}
+
+tasks.register("disassembleWithPatches") {
+    group = TASK_GROUP
+    dependsOn(disassembleInternal, copyDisassembled, applyPatches)
+}
+
+tasks.register<JavaExec>("testPatches") {
+    group = TASK_GROUP
+    mustRunAfter(applyPatches) // When applyPatches is also being run, it must come before
+
+    // Configuration cache workaround
+    val smaliDir = smaliDir
+    val outputDex = layout.buildDirectory.file("patched.dex")
+
+    // Get all patch files and their corresponding smali file
+    val patchFiles = fileTree(patchesDir) { include("**/*.patch") }
+    val smaliFiles = patchFiles.map { file ->
+        file.toRelativeString(patchesDir)
+            .replace(".patch", ".smali")
+            .let(smaliDir::resolve)
+    }
+
+    // Up-to-Date config
+    inputs.files(patchFiles, smaliFiles)
+    outputs.file(outputDex)
+
+    // javaexec config
+    classpath(smaliTools)
+    jvmArgs = listOf("-Xmx2G")
+    mainClass = "com.android.tools.smali.smali.Main"
+    args = listOf(
+        "assemble",
+        "--verbose",
+        "--output", outputDex.get().asFile.absolutePath,
+    ) + smaliFiles.map { it.absolutePath }
+
+    doFirst {
+        if (!smaliDir.exists()) {
+            error("Smali directory does not exist! Run the disassembleWithPatches task")
+        }
+    }
+    doLast {
+        logger.lifecycle("Successfully reassembled dex: {}", outputDex.get().asFile.absolutePath)
+    }
+}
+
 val packageTask by tasks.register("package", Zip::class) {
-    group = "aliucord"
-    archiveFileName = patchesBundle.name
-    destinationDirectory = patchesBundle.parentFile
+    group = TASK_GROUP
+    archiveFileName = patchesBundle.get().asFile.name
+    destinationDirectory = patchesBundle.get().asFile.parentFile
     isReproducibleFileOrder = true
     isPreserveFileTimestamps = false
 
@@ -56,67 +241,38 @@ val packageTask by tasks.register("package", Zip::class) {
 }
 
 tasks.register<DeployComponentTask>("deployWithAdb") {
-    group = "aliucord"
+    group = TASK_GROUP
     componentType = "patches"
     componentVersion = project.version.toString()
-    componentFile.set(patchesBundle)
+    componentFile.set(packageTask.outputs.files.singleFile)
     dependsOn(packageTask)
 }
 
-tasks.register("disassembleWithPatches") {
-    group = "aliucord"
-    dependsOn("disassembleInternal", "copyDisassembled", "applyPatches")
-}
+tasks.register("writePatches") {
+    group = TASK_GROUP
+    mustRunAfter(applyPatches) // When applyPatches is also being run, it must come before
 
-tasks.register<JavaExec>("testPatches") {
-    group = "aliucord"
-    mustRunAfter("applyPatches")
+    // Configuration cache workaround
+    val execOperations = serviceOf<ExecOperations>()
+    val execIgnoreCode = execIgnoreCode
+    val smaliOriginalDir = smaliOriginalDir
+    val smaliDir = smaliDir
+    val patchesDir = patchesDir
+    val projectDir = projectDir
 
-    val outputDex = layout.buildDirectory.file("patched.dex").get().asFile.absolutePath
-    val patchFiles = fileTree(patchesDir) { include("**/*.patch") }.files
-    val smaliFiles = patchFiles.map { path ->
-        path.toRelativeString(patchesDir)
-            .replace(".patch", ".smali")
-            .let(smaliDir::resolve)
-            .absolutePath
-    }
+    // No input defined otherwise it could cause a dependency on disassembling
+    outputs.dir(patchesDir)
 
-    classpath = smaliTools
-    jvmArgs = listOf("-Xmx2G")
-    mainClass = "com.android.tools.smali.smali.Main"
-    args = listOf(
-        "assemble",
-        "--verbose",
-        "--output", outputDex,
-    ) + smaliFiles
-
-    doFirst {
-        delete(outputDex)
-
-        if (!smaliDir.exists()) {
-            error("Smali directory does not exist! Run the disassembleWithPatches task")
-        }
-    }
+    val diffBin = localProperties.getProperty("diff.bin", null)
+        ?: project.findProperty("diff.bin") as String?
+        ?: "diff"
 
     doLast {
-        logger.lifecycle("Successfully reassembled dex: {}", outputDex)
-    }
-}
-
-tasks.register("writePatches") {
-    group = "aliucord"
-    mustRunAfter("applyPatches")
-
-    doFirst {
-        if (!smaliDir.exists() || !smaliOriginalDir.exists()) {
+        if (!smaliDir.exists() || !smaliOriginalDir.get().asFile.exists()) {
             error("Smali directory does not exist! Run the disassembleWithPatches task")
         }
 
-        val diffBin = localProperties.getProperty("diff.bin", null)
-            ?: project.findProperty("diff.bin") as String?
-            ?: "diff"
-
-        val output = providers.execIgnoreCode {
+        val (result, output) = execOperations.execIgnoreCode(logger) {
             executable = diffBin
             args = listOf(
                 "--unified",
@@ -125,16 +281,19 @@ tasks.register("writePatches") {
                 "--recursive",
                 "--strip-trailing-cr",
                 "--show-function-line=.method",
-                "./" + smaliOriginalDir.toRelativeString(projectDir).replace('\\', '/'),
-                "./" + smaliDir.toRelativeString(projectDir).replace('\\', '/'),
+                "./" + smaliOriginalDir.get().asFile
+                    .toRelativeString(projectDir)
+                    .replace('\\', '/'),
+                "./" + smaliDir
+                    .toRelativeString(projectDir)
+                    .replace('\\', '/'),
             )
         }
-        val result = output.result.get()
 
         // diff returns 1 if changes are present
         if (result.exitValue !in 0..1) result.assertNormalExitValue()
 
-        val diffs = output.standardOutput.asText.get()
+        val diffs = output
             .replace("\r\n", "\n") // Replace CRLF endings with LF
             .split("^diff --unified.+?\\R".toRegex(RegexOption.MULTILINE)) // Split by file diff header
             .filter(String::isNotBlank)
@@ -147,8 +306,6 @@ tasks.register("writePatches") {
         for (diff in diffs) {
             val (className) = classNameRegex.find(diff)?.destructured
                 ?: error("failed to parse diff:\n$diff")
-
-            logger.lifecycle("Writing patch for class $className")
 
             logger.lifecycle("Writing patch for class $className")
 
@@ -166,102 +323,4 @@ tasks.register("writePatches") {
                 .writeText(cleanDiff)
         }
     }
-}
-
-tasks.named<Delete>("clean") {
-    delete(layout.buildDirectory)
-    delete(smaliDir)
-}
-
-// --- Internal tasks --- //
-
-val disassembleInternal by tasks.registering {
-    outputs.upToDateWhen {
-        smaliOriginalDir.exists()
-    }
-
-    doFirst {
-        // Resolve Discord APK dependency to an apk file
-        val discordApk = discord.incoming
-            .artifactView { attributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "apk") }
-            .files.singleFile
-
-        val classesFiles = zipTree(discordApk.absolutePath)
-            .matching { include("classes*.dex") }
-
-        classesFiles.visit {
-            logger.lifecycle("Disassembling $name")
-            providers.javaexec {
-                classpath = smaliTools
-                jvmArgs = listOf("-Xmx2G")
-                systemProperty("line.separator", "\n") // Ensure smali output uses LF endings
-
-                mainClass.set("com.android.tools.smali.baksmali.Main")
-                args = listOf(
-                    "disassemble",
-                    "--use-locals",
-                    "--output", smaliOriginalDir.absolutePath,
-                    "${discordApk.absolutePath}/$name",
-                )
-            }.result.get()
-        }
-    }
-}
-
-val copyDisassembled by tasks.registering(Copy::class) {
-    mustRunAfter(disassembleInternal)
-    doFirst {
-        delete(smaliDir)
-    }
-
-    from(smaliOriginalDir)
-    destinationDir = smaliDir
-}
-
-tasks.register("applyPatches") {
-    mustRunAfter(copyDisassembled)
-    doLast {
-        val patchFiles = fileTree(patchesDir).filter { it.name.endsWith(".patch") }
-
-        for (patchFile in patchFiles) {
-            val className = patchFile
-                .toRelativeString(patchesDir)
-                .removeSuffix(".patch")
-
-            logger.lifecycle("Applying smali patches to class $className")
-
-            val patchBin = localProperties.getProperty("patch.bin", null)
-                ?: project.findProperty("patch.bin") as String?
-                ?: "patch"
-
-            providers.execIgnoreCode {
-                executable = patchBin
-                args = listOf(
-                    "--verbose",
-                    "--forward",
-                    "--unified",
-                    smaliDir.resolve("$className.smali").absolutePath,
-                    patchFile.absolutePath,
-                )
-            }
-        }
-    }
-}
-
-private fun ProviderFactory.execIgnoreCode(block: ExecSpec.() -> Unit): ExecOutput = run {
-    val result = exec {
-        workingDir = projectDir
-        isIgnoreExitValue = true
-        block(this)
-    }
-
-    val stdout = result.standardOutput.asText.get().trim()
-    logger.info(stdout)
-
-    val stderr = result.standardError.asText.get().trim()
-    if (stderr.isNotEmpty()) {
-        logger.error(stderr)
-    }
-
-    result
 }

@@ -1,5 +1,5 @@
 [versions]
-aliucord-gradle = "2.1.1"
+aliucord-gradle = "2.1.3"
 aliuhook = "1.1.4"
 android-gradle = "8.13.0"
 discord = "126021"
@@ -7,6 +7,7 @@ dokka = "2.1.0"
 kotlin = "2.2.20"
 #noinspection GradleDependency
 kotlin-stdlib = "1.5.21"
+publish = "0.34.0"
 smali = "3.0.9"
 
 #noinspection GradleDependency
@@ -27,9 +28,10 @@ smali = { module = "com.android.tools.smali:smali", version.ref = "smali" }
 smali-baksmali = { module = "com.android.tools.smali:smali-baksmali", version.ref = "smali" }
 
 [plugins]
-kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-android-library = { id = "com.android.library", version.ref = "android-gradle" }
 aliucord-core = { id = "com.aliucord.core", version.ref = "aliucord-gradle" }
 aliucord-injector = { id = "com.aliucord.injector", version.ref = "aliucord-gradle" }
+android-library = { id = "com.android.library", version.ref = "android-gradle" }
 dokka-html = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 dokka-javadoc = { id = "org.jetbrains.dokka-javadoc", version.ref = "dokka" }
+kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+publish = { id = "com.vanniktech.maven.publish", version.ref = "publish" }
