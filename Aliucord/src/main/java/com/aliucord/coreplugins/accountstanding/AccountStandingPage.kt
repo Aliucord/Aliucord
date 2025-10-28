@@ -101,7 +101,7 @@ class AccountStandingPage : SettingsPage() {
                             val message =
                                 if (json.classifications.first().flaggedContent.isNotEmpty()) i.flaggedContent.first().content else "Not provided"
 
-                            addView(ViolationCard(view.context, i.description, message, actions, i.id, i.maxExpirationTime))
+                            ViolationCard(view.context, i.description, message, actions, i.id, i.maxExpirationTime).addTo(linearLayout)
                         }
                     }
                 }

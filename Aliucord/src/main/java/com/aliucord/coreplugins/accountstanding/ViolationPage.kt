@@ -48,7 +48,7 @@ class ViolationPage(val violation: String, val flaggedContent: String?, val acti
             setPadding(16.dp, 1.dp, 1.dp, 1.dp)
         }.addTo(linearLayout)
 
-        var actionsText: String? = ""
+        var actionsText = ""
         for (i in actions) {
             actionsText += "- $i\n"
         }
@@ -60,16 +60,9 @@ class ViolationPage(val violation: String, val flaggedContent: String?, val acti
         }.addTo(linearLayout)
 
         TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
-            text = "Violation will expire on $expirationTime"
+            text = "Violation will expire on $expirationTime\nOccurred on $occurredTime"
             textSize = 14f
             typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold)
-        }.addTo(linearLayout)
-
-        TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
-            text = "Occurred on $occurredTime"
-            textSize = 14f
-            typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold)
-            setPadding(16.dp, 1.dp, 1.dp, 1.dp)
         }.addTo(linearLayout)
     }
 }
