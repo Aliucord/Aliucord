@@ -17,12 +17,14 @@ import com.aliucord.Utils
 import com.aliucord.utils.DimenUtils.defaultCardRadius
 import com.aliucord.utils.DimenUtils.defaultPadding
 import com.aliucord.utils.ViewUtils.setDefaultMargins
+import com.discord.api.utcdatetime.UtcDateTime
 import com.discord.utilities.color.ColorCompat
 import com.google.android.material.card.MaterialCardView
 import com.lytefast.flexinput.R
+import java.util.Date
 
 @SuppressLint("ViewConstructor")
-class ViolationCard(ctx: Context, violation: String, flaggedContent: String?, actions: List<String>) : MaterialCardView(ctx) {
+class ViolationCard(ctx: Context, violation: String, flaggedContent: String?, actions: List<String>, id: Long, maxExpirationTime: UtcDateTime) : MaterialCardView(ctx) {
     var title: TextView
 
     init {
@@ -40,6 +42,7 @@ class ViolationCard(ctx: Context, violation: String, flaggedContent: String?, ac
         setRadius(defaultCardRadius.toFloat())
         setPadding(p, p, p, p)
         setCardBackgroundColor(ColorCompat.getThemedColor(ctx, R.b.colorBackgroundSecondaryAlt))
+        if (Date().time > maxExpirationTime.g()) setAlpha(0.5f)
 
         // The card will explode if i create more than one TextView.. :|
         title = TextView(ctx, null, 0, R.i.UiKit_Settings_Item).apply {
@@ -48,7 +51,7 @@ class ViolationCard(ctx: Context, violation: String, flaggedContent: String?, ac
             typeface = ResourcesCompat.getFont(ctx, Constants.Fonts.whitney_semibold)
             movementMethod = LinkMovementMethod.getInstance()
             setOnClickListener {
-                Utils.openPageWithProxy(ctx, ViolationPage(violation, flaggedContent, actions))
+                Utils.openPageWithProxy(ctx, ViolationPage(violation, flaggedContent, actions, id, maxExpirationTime))
             }
         }
 

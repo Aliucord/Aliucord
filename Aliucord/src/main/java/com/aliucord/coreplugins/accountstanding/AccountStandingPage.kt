@@ -20,24 +20,28 @@ import com.discord.utilities.color.ColorCompat
 import com.lytefast.flexinput.R
 import com.aliucord.utils.DimenUtils.dp
 import com.aliucord.utils.SerializedName
+import com.discord.api.utcdatetime.UtcDateTime
 import com.discord.stores.StoreStream
 import com.discord.utilities.images.MGImages
 import com.facebook.drawee.view.SimpleDraweeView
 
 data class SafetyHubResponse(
     @SerializedName("account_standing")
-    var accountStanding: AccountStandingState,
-    var classifications: List<UserClassifications>
+    val accountStanding: AccountStandingState,
+    val classifications: List<UserClassifications>
 ) {
     data class UserClassifications(
+        val id: Long,
         val description: String,
         @SerializedName("flagged_content")
-        var flaggedContent: List<FlaggedContent>,
-        var actions: List<Actions>
+        val flaggedContent: List<FlaggedContent>,
+        val actions: List<Actions>,
+        @SerializedName("max_expiration_time")
+        val maxExpirationTime: UtcDateTime
     )
 
-    data class Actions(var descriptions: List<String>)
-    data class FlaggedContent(var content: String)
+    data class Actions(val descriptions: List<String>)
+    data class FlaggedContent(val content: String)
     data class AccountStandingState(val state: Int)
 }
 
@@ -97,10 +101,9 @@ class AccountStandingPage : SettingsPage() {
                             val message =
                                 if (json.classifications.first().flaggedContent.isNotEmpty()) i.flaggedContent.first().content else "Not provided"
 
-                            addView(ViolationCard(view.context, i.description, message, actions))
+                            addView(ViolationCard(view.context, i.description, message, actions, i.id, i.maxExpirationTime))
                         }
                     }
-
                 }
             } catch (e: Exception) {
                 Logger("AccountStanding").errorToast("Failed to check account standing", e)

@@ -18,12 +18,18 @@ import com.aliucord.utils.ViewUtils.addTo
 import com.lytefast.flexinput.R
 import com.aliucord.utils.ViewUtils.findViewById
 import com.discord.utilities.color.ColorCompat
+import com.discord.utilities.time.ClockFactory
+import com.discord.utilities.time.TimeUtils
+import com.discord.utilities.SnowflakeUtils
+import com.discord.api.utcdatetime.UtcDateTime
 
-class ViolationPage(var violation: String, var flaggedContent: String?, var actions: List<String>) : SettingsPage() {
+class ViolationPage(val violation: String, val flaggedContent: String?, val actions: List<String>, var id: Long, val maxExpirationTime: UtcDateTime) : SettingsPage() {
     override fun onViewBound(view: View) {
         super.onViewBound(view)
 
         val header = view.findViewById<ViewGroup>("action_bar_toolbar")
+        val occurredTime = TimeUtils.toReadableTimeString(context, SnowflakeUtils.toTimestamp(id), ClockFactory.get())
+        val expirationTime = TimeUtils.toReadableTimeString(context, SnowflakeUtils.toTimestamp(TimeUtils.millisToSnowflake(maxExpirationTime.g())), ClockFactory.get())
 
         // Change the UI a little bit
         header.removeViewAt(0)
@@ -51,6 +57,19 @@ class ViolationPage(var violation: String, var flaggedContent: String?, var acti
             text = "What this means for you:\n$actionsText"
             textSize = 16f
             typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold)
+        }.addTo(linearLayout)
+
+        TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
+            text = "Violation will expire on $expirationTime"
+            textSize = 14f
+            typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold)
+        }.addTo(linearLayout)
+
+        TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
+            text = "Occurred on $occurredTime"
+            textSize = 14f
+            typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold)
+            setPadding(16.dp, 1.dp, 1.dp, 1.dp)
         }.addTo(linearLayout)
     }
 }
