@@ -18,6 +18,10 @@ android {
     namespace = "com.aliucord"
     compileSdk = 36
 
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+    }
+
     defaultConfig {
         minSdk = 24
     }
@@ -65,6 +69,7 @@ dependencies {
     compileOnly(libs.kotlin.stdlib)
     compileOnly(libs.material)
     compileOnly(project(":Injector")) // Needed to access certain stubs
+    coreLibraryDesugaring(libs.desugar)
 }
 
 tasks.withType<JavaCompile> {
