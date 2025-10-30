@@ -337,7 +337,6 @@ public final class Main {
         );
         Patcher.addPatch(WidgetHome.class,
             "maybeShowHubEmailUpsell",
-            null,
             new InsteadHook(param -> null)
         );
 

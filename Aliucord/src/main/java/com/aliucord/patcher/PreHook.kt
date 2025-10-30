@@ -7,15 +7,17 @@
 package com.aliucord.patcher
 
 import de.robv.android.xposed.XC_MethodHook
-import rx.functions.Action1
-import java.lang.reflect.Member
 
 /**
- * Runs the specified [callback] **before** the hooked [Member]
+ * Invokes the provided [MethodHookCallback] before the hooked method or constructor runs.
  *
- * @property callback The callback to run before the method
+ * This small [XC_MethodHook] forwards the [beforeHookedMethod] event to the given
+ * callback. Any exceptions thrown by the callback are caught and logged via
+ * [Patcher.logger].
+ *
+ * @property callback the callback to run before the original method executes
  */
-class PreHook(val callback: Action1<MethodHookParam>) : XC_MethodHook() {
+class PreHook(val callback: MethodHookCallback) : XC_MethodHook() {
     override fun beforeHookedMethod(param: MethodHookParam) {
         try {
             callback.call(param)
