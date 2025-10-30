@@ -10,6 +10,8 @@ import android.content.Context
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.*
 import androidx.core.content.res.ResourcesCompat
 import com.aliucord.*
@@ -53,6 +55,13 @@ class AccountStandingPage : SettingsPage() {
 
         setActionBarTitle("Account Standing")
         setActionBarSubtitle("User Settings")
+
+        val indicator = FrameLayout(view.context).addTo(linearLayout) {
+            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+            ProgressBar(view.context).addTo(this) {
+                layoutParams = FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT, Gravity.CENTER)
+            }
+        }
 
         Utils.threadPool.execute {
             try {
@@ -104,6 +113,8 @@ class AccountStandingPage : SettingsPage() {
                             ViolationCard(view.context, i.description, message, actions, i.id, i.maxExpirationTime).addTo(linearLayout)
                         }
                     }
+
+                    removeView(indicator)
                 }
             } catch (e: Exception) {
                 Logger("AccountStanding").errorToast("Failed to check account standing", e)
