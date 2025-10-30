@@ -346,19 +346,20 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             val ctx = flexInputFragment.requireContext()
             val pages = flexInputFragment.r.toMutableList()
 
-            val channel = StoreStream.getChannelsSelected().selectedChannel
-                ?: return@after
-            val isPrivate = ChannelUtils.B(channel)
-            val isSystem = ChannelUtils.E(channel)
-            val permissions = StoreStream.getPermissions().permissionsByChannel[channel.id]
-            val hasPermission = PermissionUtils.can(SEND_POLLS_PERMISSION, permissions)
-            val permitted = (isPrivate && !isSystem) || hasPermission
+            if (ManagerBuild.hasPatches("1.3.1")) {
+                val channel = StoreStream.getChannelsSelected().selectedChannel
+                    ?: return@after
+                val isPrivate = ChannelUtils.B(channel)
+                val isSystem = ChannelUtils.E(channel)
+                val permissions = StoreStream.getPermissions().permissionsByChannel[channel.id]
+                val hasPermission = PermissionUtils.can(SEND_POLLS_PERMISSION, permissions)
+                val permitted = (isPrivate && !isSystem) || hasPermission
 
-            if (!permitted) return@after
+                if (!permitted) return@after
+            }
 
             val page = `WidgetChatInputAttachments$configureFlexInputContentPages$1$page$1`(ctx, R.e.ic_sort_white_24dp, pollStringId)
-            @Suppress("CAST_NEVER_SUCCEEDS")
-            pages.add(page as b.b.a.d.d.a) // Cast required because of missing superclass issue
+            pages.add(page)
             flexInputFragment.r = pages.toTypedArray()
         }
 
