@@ -4,7 +4,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import java.io.ByteArrayOutputStream
 import java.util.Properties
 
-version = "1.3.0"
+version = "1.3.1"
 
 // --- Android --- //
 
@@ -117,6 +117,7 @@ val disassembleInternal = tasks.register("disassembleInternal") {
                 mainClass.set("com.android.tools.smali.baksmali.Main")
                 args = listOf(
                     "disassemble",
+                    "--accessor-comments", "false",
                     "--use-locals",
                     "--output", smaliOriginalDir.absolutePath,
                     "${discordApk.absolutePath}/$name",
