@@ -42,6 +42,7 @@ import com.discord.app.*;
 import com.discord.databinding.WidgetChangeLogBinding;
 import com.discord.databinding.WidgetDebuggingAdapterItemBinding;
 import com.discord.models.domain.*;
+import com.discord.models.domain.emoji.ModelEmojiCustom;
 import com.discord.models.domain.emoji.ModelEmojiUnicode;
 import com.discord.stores.*;
 import com.discord.utilities.color.ColorCompat;
@@ -339,6 +340,21 @@ public final class Main {
             "maybeShowHubEmailUpsell",
             null,
             new InsteadHook(param -> null)
+        );
+
+        // Support webp emojis by forcing every emoji to be webp
+        Patcher.addPatch(ModelEmojiCustom.class,
+            "getImageUri",
+            new Class[]{ long.class, boolean.class, int.class },
+            new InsteadHook(param ->
+                String.format(
+                    Locale.ROOT,
+                    "https://cdn.discordapp.com/emojis/%s.webp?size=%s&animated=%s",
+                    param.args[0],
+                    param.args[2],
+                    param.args[1]
+                )
+            )
         );
 
         if (loadedPlugins) {
