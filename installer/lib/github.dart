@@ -140,5 +140,5 @@ class GithubAPI with ChangeNotifier {
   }
 
   String getDownloadUrl(String ref, String file) =>
-      'https://raw.githubusercontent.com/$_org/$_repo/$ref/$file';
+      'https://cdn.jsdelivr.net/gh/$_org/$_repo@$ref/$file';
 }

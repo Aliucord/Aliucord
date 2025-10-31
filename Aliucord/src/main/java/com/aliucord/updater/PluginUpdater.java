@@ -118,9 +118,14 @@ public class PluginUpdater {
     public static UpdateInfo getUpdateInfo(Plugin plugin) throws Exception {
         Plugin.Manifest manifest = plugin.getManifest();
         if (manifest.updateUrl == null || manifest.updateUrl.equals("")) return null;
+
+        String updateUrl = manifest.updateUrl.replaceFirst(
+            "https://raw\\.githubusercontent\\.com/(.+?)/(.+?)/(.+)",
+            "https://cdn.jsdelivr.net/gh/$1/$2@$3"
+        );
         String name = plugin.getName();
 
-        CachedData cached = cache.get(manifest.updateUrl);
+        CachedData cached = cache.get(updateUrl);
         if (cached != null && cached.time > System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(30)) {
             UpdateInfo updateInfo = cached.data.get(name);
             UpdateInfo defaultInfo = cached.data.get("default");
@@ -129,9 +134,9 @@ public class PluginUpdater {
             return updateInfo;
         }
 
-        Map<String, UpdateInfo> res = Http.simpleJsonGet(manifest.updateUrl, resType);
+        Map<String, UpdateInfo> res = Http.simpleJsonGet(updateUrl, resType);
         if (res == null) return null;
-        cache.put(manifest.updateUrl, new CachedData(res));
+        cache.put(updateUrl, new CachedData(res));
         UpdateInfo updateInfo = res.get(name);
         UpdateInfo defaultInfo = res.get("default");
         if (updateInfo == null) return defaultInfo;

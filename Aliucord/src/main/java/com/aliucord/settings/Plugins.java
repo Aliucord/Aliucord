@@ -209,7 +209,9 @@ public class Plugins extends SettingsPage {
             return plugin
                 .getManifest().updateUrl
                 .replace("raw.githubusercontent.com", "github.com")
-                .replaceFirst("/builds.*", "");
+                .replace("cdn.jsdelivr.net/gh/", "github.com/")
+                .replaceFirst("/builds.*", "")
+                .replaceFirst("@.*", "");
         }
 
         public void onGithubClick(int position) {

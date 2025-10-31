@@ -26,8 +26,8 @@ import java.net.URL
 import java.util.concurrent.atomic.AtomicBoolean
 
 const val LOG_TAG = "Injector"
-private const val DATA_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/data.json"
-private const val DEX_URL = "https://raw.githubusercontent.com/Aliucord/Aliucord/builds/Aliucord.zip"
+private const val DATA_URL = "https://builds.aliucord.com/data.json"
+private const val DEX_URL = "https://builds.aliucord.com/Aliucord.zip"
 
 @Suppress("DEPRECATION")
 private val BASE_DIRECTORY = File(Environment.getExternalStorageDirectory().absolutePath, "Aliucord")
