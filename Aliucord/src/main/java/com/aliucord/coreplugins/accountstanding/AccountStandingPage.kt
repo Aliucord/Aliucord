@@ -36,14 +36,14 @@ data class SafetyHubResponse(
         val id: Long,
         val description: String,
         @SerializedName("flagged_content")
-        val flaggedContent: List<FlaggedContent>,
-        val actions: List<Actions>,
+        val flaggedContent: List<FlaggedContent>?,
+        val actions: List<Actions>?,
         @SerializedName("max_expiration_time")
         val maxExpirationTime: UtcDateTime
     )
 
     data class Actions(val descriptions: List<String>)
-    data class FlaggedContent(val content: String)
+    data class FlaggedContent(val content: String?)
     data class AccountStandingState(val state: Int)
 }
 
@@ -106,9 +106,9 @@ class AccountStandingPage : SettingsPage() {
 
                         for (i in json.classifications) {
                             val actions =
-                                if (json.classifications.first().actions.isNotEmpty()) i.actions.first().descriptions else listOf("Not provided")
+                                if (i.actions.isNullOrEmpty()) listOf("Not provided") else i.actions.first().descriptions
                             val message =
-                                if (json.classifications.first().flaggedContent.isNotEmpty()) i.flaggedContent.first().content else "Not provided"
+                                if (i.flaggedContent.isNullOrEmpty()) "Not provided" else i.flaggedContent.first().content
 
                             ViolationCard(view.context, i.description, message, actions, i.id, i.maxExpirationTime).addTo(linearLayout)
                         }
