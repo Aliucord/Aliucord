@@ -98,7 +98,7 @@ jobs:
           path: |
             ${{ github.workspace }}/Aliucord/build/outputs/Aliucord.zip
             ${{ github.workspace }}/Injector/build/outputs/Injector.dex
-            ${{ github.workspace }}/patches/build/outputs/patches.zip'
+            ${{ github.workspace }}/patches/build/outputs/patches.zip
 
       - name: Publish Snapshots to Maven
         if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
