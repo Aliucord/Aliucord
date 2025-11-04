@@ -106,9 +106,9 @@ jobs:
           MAVEN_SNAPSHOTS_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_SNAPSHOTS_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
         run: |
-          ./gradlew --stacktrace -Pversion=$GITHUB_REF_NAME-SNAPSHOT \
+          ./gradlew --stacktrace -PVERSION_NAME=$GITHUB_REF_NAME-SNAPSHOT \
               :Aliucord:publishAllPublicationsToAliucordSnapshotsRepository
-          ./gradlew --stacktrace -Pversion=$(git rev-parse --short "$GITHUB_SHA") \
+          ./gradlew --stacktrace -PVERSION_NAME=$(git rev-parse --short "$GITHUB_SHA") \
               :Aliucord:publishAllPublicationsToAliucordSnapshotsRepository
 
   deploy:
