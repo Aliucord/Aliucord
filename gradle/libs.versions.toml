@@ -2,6 +2,7 @@
 aliucord-gradle = "2.1.3"
 aliuhook = "1.1.4"
 android-gradle = "8.13.0"
+desugar = "2.0.3"
 discord = "126021"
 dokka = "2.1.0"
 kotlin = "2.2.20"
@@ -21,6 +22,7 @@ material = "1.5.0"
 aliuhook = { module = "com.aliucord:Aliuhook", version.ref = "aliuhook" }
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
+desugar = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar" }
 discord = { module = "com.discord:discord", version.ref = "discord" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin-stdlib" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
