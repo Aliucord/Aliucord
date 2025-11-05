@@ -50,7 +50,7 @@ internal class Modal(private val author: String, private val repo: String) : Set
                 Utils.threadPool.execute {
                     try {
                         plugins =
-                            Http.simpleJsonGet("https://raw.githubusercontent.com/$author/$repo/builds/updater.json", resType)
+                            Http.simpleJsonGet("https://cdn.jsdelivr.net/gh/$author/$repo@refs/heads/builds/updater.json", resType)
                     } catch (th: Throwable) {
                         throwable = th
                     }
