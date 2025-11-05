@@ -19,6 +19,7 @@ import com.aliucord.entities.CorePlugin
 import com.aliucord.entities.Plugin
 import com.aliucord.patcher.Patcher
 import com.aliucord.patcher.PreHook
+import com.aliucord.settings.ALIUCORD_SAFE_MODE_KEY
 import com.aliucord.utils.GsonUtils.fromJson
 import com.aliucord.utils.GsonUtils.gson
 import com.aliucord.utils.MapUtils
@@ -54,7 +55,14 @@ object PluginManager {
     @Suppress("UNCHECKED_CAST")
     fun loadPlugin(context: Context, file: File) {
         val fileName = file.name.replace(".zip", "")
-        logger.info("Loading plugin: $fileName")
+
+        if (isSafeModeEnabled()) {
+            logger.info("Cannot load plugin '$fileName' during safe mode")
+            return
+        } else {
+            logger.info("Loading plugin: $fileName")
+        }
+
         try {
             val loader = PathClassLoader(file.absolutePath, context.classLoader)
             val manifest = loader.getResourceAsStream("manifest.json").use { stream ->
@@ -68,7 +76,14 @@ object PluginManager {
                     gson.fromJson(it, Plugin.Manifest::class.java)
                 }
             }
+
             val name = requireNotNull(manifest.name)
+
+            if (plugins.containsKey(name)) {
+                logger.error("Plugin with name $name already exists", null)
+                return
+            }
+
             val pluginClass = loader.loadClass(manifest.pluginClassName) as Class<out Plugin>
 
             Patcher.addPatch(pluginClass.getDeclaredConstructor(), PreHook {
@@ -89,11 +104,6 @@ object PluginManager {
                 pluginConstructor.newInstance()
             } catch (t: Exception) {
                 logger.error("Failed to create plugin class for plugin with name $name", t)
-                return
-            }
-
-            if (plugins.containsKey(name)) {
-                logger.error("Plugin with name $name already exists", null)
                 return
             }
 
@@ -277,6 +287,10 @@ object PluginManager {
     @JvmStatic
     fun getVisiblePlugins() = plugins.filter { (_, p) -> p !is CorePlugin || !p.isHidden }
 
+    /** Checks whether safe mode is enabled. */
+    @JvmStatic
+    fun isSafeModeEnabled() = Main.settings.getBool(ALIUCORD_SAFE_MODE_KEY, false)
+
     /** Gets a formatted string with info about installed and enabled plugins */
     @JvmStatic
     fun getPluginsInfo(): String {
@@ -323,7 +337,9 @@ object PluginManager {
             UploadSize(),
         )
 
-        corePlugins.forEach { p ->
+        corePlugins.filter { p ->
+            p.isRequired && isSafeModeEnabled()
+        }.forEach { p ->
             logger.info("Loading coreplugin: ${p.name}")
             try {
                 plugins[p.name] = p

@@ -39,8 +39,7 @@ import com.aliucord.widgets.SideloadingBlockWarning;
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper;
 import com.discord.api.message.embed.EmbedField;
 import com.discord.app.*;
-import com.discord.databinding.WidgetChangeLogBinding;
-import com.discord.databinding.WidgetDebuggingAdapterItemBinding;
+import com.discord.databinding.*;
 import com.discord.models.domain.*;
 import com.discord.models.domain.emoji.ModelEmojiUnicode;
 import com.discord.stores.*;
@@ -59,10 +58,12 @@ import com.discord.widgets.guilds.profile.WidgetGuildProfileSheet$configureGuild
 import com.discord.widgets.home.WidgetHome;
 import com.discord.widgets.settings.WidgetSettings;
 import com.discord.widgets.settings.profile.WidgetEditUserOrGuildMemberProfile;
+import com.discord.widgets.status.*;
 import com.lytefast.flexinput.R;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -182,6 +183,39 @@ public final class Main {
             changelogBtn.setVisibility(View.GONE);
         }));
 
+        // Add permanent indicator if safe mode is enabled.
+        Patcher.addPatch(WidgetGlobalStatusIndicator.class, "configureUI", new Class<?>[] {WidgetGlobalStatusIndicatorViewModel.ViewState.class }, new PreHook(param -> {
+            if (!PluginManager.isSafeModeEnabled()) {
+                return;
+            }
+            WidgetGlobalStatusIndicator thisObject = (WidgetGlobalStatusIndicator) param.thisObject;
+            Context context = thisObject.requireContext();
+
+            try {
+                Method bindingGetter = thisObject.getClass().getDeclaredMethod("getBinding");
+                bindingGetter.setAccessible(true);
+                Field indicatorStateField = thisObject.getClass().getDeclaredField("indicatorState");
+                indicatorStateField.setAccessible(true);
+
+                var binding = (WidgetGlobalStatusIndicatorBinding) bindingGetter.invoke(thisObject);
+                var indicatorState = (WidgetGlobalStatusIndicatorState) indicatorStateField.get(thisObject);
+
+                Utils.mainThread.post(() -> indicatorState.updateState(true, false, false));
+
+                int backgroundColor = Utils.getResId("colorBackgroundTertiary", "attr");
+                int textColor = Utils.getResId("colorHeaderPrimary", "attr");
+                binding.c.setBackgroundColor(ColorCompat.getThemedColor(context, backgroundColor));
+                binding.i.setTextColor(ColorCompat.getThemedColor(context, textColor));
+                binding.i.setText("Safe mode enabled");
+                LinearLayout linearLayout = binding.c;
+                linearLayout.setVisibility(View.VISIBLE);
+            } catch (Throwable e) {
+                logger.error(e);
+                return;
+            }
+
+            param.setResult(null);
+        }));
         // Patch to repair built-in emotes is needed because installer doesn't recompile resources,
         // so they stay in package com.discord instead of apk package name
         Patcher.addPatch(ModelEmojiUnicode.class, "getImageUri", new Class<?>[]{ String.class, Context.class },

@@ -16,6 +16,7 @@ import android.view.*;
 import android.widget.*;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.*;
 
@@ -283,8 +284,11 @@ public class Plugins extends SettingsPage {
     public void onViewBound(View view) {
         super.onViewBound(view);
         setActionBarTitle("Plugins");
-        setActionBarSubtitle(PluginManager.getPluginsInfo());
         removeScrollView();
+
+        if (!PluginManager.isSafeModeEnabled()) {
+            setActionBarSubtitle(PluginManager.getPluginsInfo());
+        }
 
         var context = view.getContext();
         int padding = DimenUtils.getDefaultPadding();
@@ -299,6 +303,15 @@ public class Plugins extends SettingsPage {
             return true;
         });
 
+        if (PluginManager.isSafeModeEnabled()) {
+            TextView safeModeNotice = new TextView(context, null, 0, R.i.UiKit_Settings_Item_Header);
+            safeModeNotice.setAllCaps(false);
+            safeModeNotice.setText("This page won't work while safe mode is on.\n Use Aliucord Manager to change plugin settings.");
+            safeModeNotice.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
+            safeModeNotice.setGravity(Gravity.CENTER);
+            addView(safeModeNotice);
+            return;
+        }
         if (!PluginManager.failedToLoad.isEmpty()) {
             var failedPluginsView = new Button(context);
             failedPluginsView.setText("Plugin Errors");
