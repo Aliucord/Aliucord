@@ -107,7 +107,7 @@ jobs:
             ${{ github.workspace }}/patches/build/outputs/patches.zip
 
       - name: Publish Snapshots to Maven
-        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+        if: ${{ github.event_name != 'pull_request' }}
         env:
           MAVEN_SNAPSHOTS_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_SNAPSHOTS_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
