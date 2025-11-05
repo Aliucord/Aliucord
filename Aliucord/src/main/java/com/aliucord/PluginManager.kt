@@ -338,7 +338,7 @@ object PluginManager {
         )
 
         corePlugins.filter { p ->
-            p.isRequired && isSafeModeEnabled()
+            !isSafeModeEnabled() || p.isRequired
         }.forEach { p ->
             logger.info("Loading coreplugin: ${p.name}")
             try {
