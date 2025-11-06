@@ -196,13 +196,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [ inspect ]
+    # The existence of secrets should be checked here instead of repository owner,
+    # but because GH Actions is shit, there is no way to do this without smuggling
+    # the secret through a separate job's step output.
+    # Job-level env is not accessible here either.
     if: ${{ github.ref == 'refs/heads/main'
       && needs.inspect.outputs.coreDeploy == 'true'
-      && env.MAVEN_RELEASES_USERNAME != ''
-      && env.MAVEN_RELEASES_PASSWORD != '' }}
-    env:
-      MAVEN_RELEASES_USERNAME: ${{ secrets.MAVEN_RELEASES_USERNAME }}
-      MAVEN_RELEASES_PASSWORD: ${{ secrets.MAVEN_RELEASES_PASSWORD }}
+      && github.repository == 'Aliucord/Aliucord' }}
     permissions:
       contents: read
     steps:
@@ -223,6 +223,9 @@ jobs:
           cache-write-only: true
 
       - name: Build & Publish to Maven releases
+        env:
+          MAVEN_RELEASES_USERNAME: ${{ secrets.MAVEN_RELEASES_USERNAME }}
+          MAVEN_RELEASES_PASSWORD: ${{ secrets.MAVEN_RELEASES_PASSWORD }}
         run: |
           chmod +x gradlew
           ./gradlew --stacktrace :Aliucord:publishAllPublicationsToAliucordRepository
