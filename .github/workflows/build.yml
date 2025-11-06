@@ -107,7 +107,9 @@ jobs:
             ${{ github.workspace }}/patches/build/outputs/patches.zip
 
       - name: Publish Snapshots to Maven
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ github.event_name != 'pull_request'
+          && env.MAVEN_SNAPSHOTS_USERNAME != ''
+          && env.MAVEN_SNAPSHOTS_PASSWORD != '' }}
         env:
           MAVEN_SNAPSHOTS_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_SNAPSHOTS_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
@@ -194,7 +196,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [ inspect ]
-    if: ${{ github.ref == 'refs/heads/main' && needs.inspect.outputs.coreDeploy == 'true' }}
+    if: ${{ github.ref == 'refs/heads/main'
+      && needs.inspect.outputs.coreDeploy == 'true'
+      && env.MAVEN_RELEASES_USERNAME != ''
+      && env.MAVEN_RELEASES_PASSWORD != '' }}
+    env:
+      MAVEN_RELEASES_USERNAME: ${{ secrets.MAVEN_RELEASES_USERNAME }}
+      MAVEN_RELEASES_PASSWORD: ${{ secrets.MAVEN_RELEASES_PASSWORD }}
     permissions:
       contents: read
     steps:
@@ -215,9 +223,6 @@ jobs:
           cache-write-only: true
 
       - name: Build & Publish to Maven releases
-        env:
-          MAVEN_RELEASES_USERNAME: ${{ secrets.MAVEN_RELEASES_USERNAME }}
-          MAVEN_RELEASES_PASSWORD: ${{ secrets.MAVEN_RELEASES_PASSWORD }}
         run: |
           chmod +x gradlew
           ./gradlew --stacktrace :Aliucord:publishAllPublicationsToAliucordRepository
