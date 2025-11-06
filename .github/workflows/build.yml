@@ -161,8 +161,8 @@ jobs:
           # `aliucordHash` is kept to force old builds to update (when versions were tied to a commit hash)
           jq '. + { coreVersion: $cv, injectorVersion: $iv, patchesVersion: $pv, aliucordHash: "0000000" }' \
              --arg cv "${{ needs.inspect.outputs.coreVersion }}" \
-             --arg iv "${{ needs.inspect.outputs.patchesVersion }}" \
-             --arg pv "${{ needs.inspect.outputs.injectorVersion }}" \
+             --arg iv "${{ needs.inspect.outputs.injectorVersion }}" \
+             --arg pv "${{ needs.inspect.outputs.patchesVersion }}" \
              $GITHUB_WORKSPACE/src/.assets/data.json > $GITHUB_WORKSPACE/builds/data.json
 
           # Commit and push
