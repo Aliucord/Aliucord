@@ -55,14 +55,7 @@ object PluginManager {
     @Suppress("UNCHECKED_CAST")
     fun loadPlugin(context: Context, file: File) {
         val fileName = file.name.replace(".zip", "")
-
-        if (isSafeModeEnabled()) {
-            logger.info("Cannot load plugin '$fileName' during safe mode")
-            return
-        } else {
-            logger.info("Loading plugin: $fileName")
-        }
-
+        logger.info("Loading plugin: $fileName")
         try {
             val loader = PathClassLoader(file.absolutePath, context.classLoader)
             val manifest = loader.getResourceAsStream("manifest.json").use { stream ->
@@ -76,14 +69,7 @@ object PluginManager {
                     gson.fromJson(it, Plugin.Manifest::class.java)
                 }
             }
-
             val name = requireNotNull(manifest.name)
-
-            if (plugins.containsKey(name)) {
-                logger.error("Plugin with name $name already exists", null)
-                return
-            }
-
             val pluginClass = loader.loadClass(manifest.pluginClassName) as Class<out Plugin>
 
             Patcher.addPatch(pluginClass.getDeclaredConstructor(), PreHook {
@@ -104,6 +90,11 @@ object PluginManager {
                 pluginConstructor.newInstance()
             } catch (t: Exception) {
                 logger.error("Failed to create plugin class for plugin with name $name", t)
+                return
+            }
+
+            if (plugins.containsKey(name)) {
+                logger.error("Plugin with name $name already exists", null)
                 return
             }
 

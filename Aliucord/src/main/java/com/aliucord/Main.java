@@ -460,6 +460,10 @@ public final class Main {
     }
 
     private static void loadAllPlugins(Context context) {
+        if (PluginManager.isSafeModeEnabled()) {
+            logger.warn("Safe mode is enabled. skipping loading external plugins");
+            return;
+        }
         File dir = new File(Constants.PLUGINS_PATH);
         if (!dir.exists()) {
             boolean res = dir.mkdirs();
