@@ -47,12 +47,11 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
             }.addTo(layout, baseIndex + 1)
         }
 
-        val notificationData: NotificationData = NotificationData()
+        val notificationData = NotificationData()
             .setTitle("Account Standing")
             .setAutoDismissPeriodSecs(10)
             .setOnClick { _ ->
                 openPage(Utils.appActivity, AccountStandingPage::class.java)
-                Unit.a
             }
             .setBody(MDUtils.render("You broke Discord's rules, Please check Account Standing for more info."))
 

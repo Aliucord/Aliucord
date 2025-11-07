@@ -42,14 +42,39 @@ data class SafetyHubResponse(
         val maxExpirationTime: UtcDateTime
     )
 
-    data class Actions(val descriptions: List<String>)
-    data class FlaggedContent(val content: String?)
+    data class Actions(val descriptions: List<String>
+    )
+    data class FlaggedContent(val content: String?
+    )
     data class AccountStandingState(val state: Int)
+
+    class DetermineString(val state: Int) {
+        val headerString: String
+            get() = when (state) {
+                100 -> "Your account is all good"
+                200 -> "Your account is limited"
+                300 -> "Your account is very limited."
+                400 -> "Your account is at risk"
+                500 -> "Your account is suspended."
+                else -> "Unknown"
+            }
+
+        val bodyString: String
+            get() = when (state) {
+                100 -> "Thank you for upholding Discord's Terms of Service and Community Guidelines. If you break the rules, it will show up here."
+                200 -> "You may lose access to some parts of Discord if you break the rules again."
+                300 -> "You can't use some parts of Discord, You may be suspended if you break the rules again."
+                400 -> "You broke Discord's rules. You will be permanently suspended if you break them again."
+                500 -> "Due to serious policy violations, your account is permanently suspended, You can no longer use Discord."
+                else -> "Unknown"
+            }
+    }
+
 }
 
-private data class ClassificationState(val state: Int, val color: Int)
+internal data class ClassificationState(val state: Int, val color: Int)
 
-class AccountStandingPage : SettingsPage() {
+internal class AccountStandingPage : SettingsPage() {
     override fun onViewBound(view: View) {
         super.onViewBound(view)
 
@@ -79,21 +104,21 @@ class AccountStandingPage : SettingsPage() {
                     }.addTo(linearLayout)
 
                     TextView(context, null, 0, R.i.UiKit_Settings_Item).apply {
-                        text = determineHeaderString(json.accountStanding.state)
+                        text = SafetyHubResponse.DetermineString(json.accountStanding.state).headerString
                         typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
                         textSize = 18f
                         gravity = Gravity.CENTER
-                        setPadding(1.dp, 1.dp, 1.dp, 1.dp)
+                        setPadding(0.dp, 0.dp, 0.dp, 0.dp)
                     }.addTo(linearLayout)
 
                     TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
-                        text = determineString(json.accountStanding.state)
+                        text = SafetyHubResponse.DetermineString(json.accountStanding.state).bodyString
                         typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
                         textSize = 12f
                         gravity = Gravity.CENTER
                     }.addTo(linearLayout)
 
-                    createIndicator(view.context, json.accountStanding.state).addTo(linearLayout)
+                    createIndicator(view.context, SafetyHubResponse.AccountStandingState(json.accountStanding.state)).addTo(linearLayout)
 
                     if (json.classifications.isNotEmpty()) {
                         TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
@@ -104,13 +129,16 @@ class AccountStandingPage : SettingsPage() {
                             setPadding(1.dp, 1.dp, 1.dp, 1.dp)
                         }.addTo(linearLayout)
 
-                        for (i in json.classifications) {
-                            val actions =
-                                if (i.actions.isNullOrEmpty()) listOf("Not provided") else i.actions.first().descriptions
-                            val message =
-                                if (i.flaggedContent.isNullOrEmpty()) "Not provided" else i.flaggedContent.first().content
+                        json.classifications.forEach { classification ->
+                            val actions = classification.actions?.firstOrNull()?.descriptions ?: listOf("Not provided")
+                            val message = classification.flaggedContent?.firstOrNull()?.content ?: "Not provided"
 
-                            ViolationCard(view.context, i.description, message, actions, i.id, i.maxExpirationTime).addTo(linearLayout)
+                            ViolationCard(view.context,
+                                classification.description,
+                                message,
+                                actions,
+                                classification.id,
+                                classification.maxExpirationTime).addTo(linearLayout)
                         }
                     }
 
@@ -122,29 +150,7 @@ class AccountStandingPage : SettingsPage() {
         }
     }
 
-    private fun determineHeaderString(state: Int): String {
-        return when (state) {
-            100 -> "Your account is all good"
-            200 -> "Your account is limited"
-            300 -> "Your account is very limited."
-            400 -> "Your account is at risk"
-            500 -> "Your account is suspended."
-            else -> "Unknown"
-        }
-    }
-
-    private fun determineString(state: Int): String {
-        return when (state) {
-            100 -> "Thank you for upholding Discord's Terms of Service and Community Guidelines. If you break the rules, it will show up here."
-            200 -> "You may lose access to some parts of Discord if you break the rules again."
-            300 -> "You can't use some parts of Discord, You may be suspended if you break the rules again."
-            400 -> "You broke Discord's rules. You will be permanently suspended if you break them again."
-            500 -> "Due to serious policy violations, your account is permanently suspended, You can no longer use Discord."
-            else -> "Unknown"
-        }
-    }
-
-    private fun createIndicator(context: Context, currentState: Int): LinearLayout {
+    private fun createIndicator(context: Context, currentState: SafetyHubResponse.AccountStandingState): LinearLayout {
         val container = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(24.dp, 24.dp, 24.dp, 24.dp)
@@ -165,10 +171,10 @@ class AccountStandingPage : SettingsPage() {
 
         states.forEachIndexed { index, (state, color) ->
             FrameLayout(context).apply {
-                layoutParams = if (currentState == state) LinearLayout.LayoutParams(21.dp, 21.dp) else LinearLayout.LayoutParams(16.dp, 16.dp)
+                layoutParams = if (currentState.state == state) LinearLayout.LayoutParams(21.dp, 21.dp) else LinearLayout.LayoutParams(16.dp, 16.dp)
                 val circleDrawable = GradientDrawable().apply {
                     shape = GradientDrawable.OVAL
-                    if (currentState == state) setColor(color) else setColor(Utils.appContext.getColor(R.c.status_grey_200))
+                    setColor(if (currentState.state == state) color else Utils.appContext.getColor(R.c.status_grey_200))
                 }
                 background = circleDrawable
             }.addTo(indicator)

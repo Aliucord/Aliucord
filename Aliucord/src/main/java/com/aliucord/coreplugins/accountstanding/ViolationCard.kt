@@ -27,7 +27,7 @@ import com.lytefast.flexinput.R
 import java.util.Date
 
 @SuppressLint("ViewConstructor")
-class ViolationCard(ctx: Context, violation: String, flaggedContent: String?, actions: List<String>, id: Long, maxExpirationTime: UtcDateTime) : MaterialCardView(ctx) {
+internal class ViolationCard(ctx: Context, violation: String, flaggedContent: String?, actions: List<String>, id: Long, maxExpirationTime: UtcDateTime) : MaterialCardView(ctx) {
     var title: TextView
 
     init {
@@ -44,10 +44,10 @@ class ViolationCard(ctx: Context, violation: String, flaggedContent: String?, ac
 
         val p = defaultPadding
 
-        setRadius(defaultCardRadius.toFloat())
+        radius = defaultCardRadius.toFloat()
         setPadding(p, p, p, p)
         setCardBackgroundColor(ColorCompat.getThemedColor(ctx, R.b.colorBackgroundSecondaryAlt))
-        if (Date().time > maxExpirationTime.g()) setAlpha(0.5f)
+        if (Date().time > maxExpirationTime.g()) alpha = 0.5f
 
         // The card will explode if i create more than one TextView.. :|
         title = TextView(ctx, null, 0, R.i.UiKit_Settings_Item).apply {

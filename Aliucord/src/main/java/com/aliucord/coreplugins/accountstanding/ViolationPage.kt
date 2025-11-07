@@ -6,6 +6,7 @@
 
 package com.aliucord.coreplugins.accountstanding
 
+import android.text.SpannableStringBuilder
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
@@ -23,7 +24,7 @@ import com.discord.utilities.time.TimeUtils
 import com.discord.utilities.SnowflakeUtils
 import com.discord.api.utcdatetime.UtcDateTime
 
-class ViolationPage(val violation: String, val flaggedContent: String?, val actions: List<String>, var id: Long, val maxExpirationTime: UtcDateTime) : SettingsPage() {
+internal class ViolationPage(val violation: String, val flaggedContent: String?, val actions: List<String>, var id: Long, val maxExpirationTime: UtcDateTime) : SettingsPage() {
     override fun onViewBound(view: View) {
         super.onViewBound(view)
 
@@ -31,7 +32,7 @@ class ViolationPage(val violation: String, val flaggedContent: String?, val acti
         val occurredTime = TimeUtils.toReadableTimeString(context, SnowflakeUtils.toTimestamp(id), ClockFactory.get())
         val expirationTime = TimeUtils.toReadableTimeString(context, SnowflakeUtils.toTimestamp(TimeUtils.millisToSnowflake(maxExpirationTime.g())), ClockFactory.get())
 
-        // Change the UI a little bit
+        // Remove the header title and description (since it's unneeded) and change the background color to the regular current color.
         header.removeViewAt(0)
         header.setBackgroundColor(ColorCompat.getThemedColor(view.context, R.b.colorBackgroundMobilePrimary))
 
@@ -45,12 +46,13 @@ class ViolationPage(val violation: String, val flaggedContent: String?, val acti
             text = "Flagged content: $flaggedContent"
             textSize = 16f
             typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold)
-            setPadding(16.dp, 1.dp, 1.dp, 1.dp)
+            setPadding(16.dp, 0.dp, 0.dp, 0.dp)
         }.addTo(linearLayout)
 
-        var actionsText = ""
-        for (i in actions) {
-            actionsText += "- $i\n"
+        val actionsText = SpannableStringBuilder().apply {
+            for (i in actions) {
+                "- $i\n"
+            }
         }
 
         TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
