@@ -27,7 +27,7 @@ import com.discord.stores.StoreStream
 import com.discord.utilities.images.MGImages
 import com.facebook.drawee.view.SimpleDraweeView
 
-data class SafetyHubResponse(
+internal data class SafetyHubResponse(
     @SerializedName("account_standing")
     val accountStanding: AccountStandingState,
     val classifications: List<UserClassifications>
@@ -42,10 +42,8 @@ data class SafetyHubResponse(
         val maxExpirationTime: UtcDateTime
     )
 
-    data class Actions(val descriptions: List<String>
-    )
-    data class FlaggedContent(val content: String?
-    )
+    data class Actions(val descriptions: List<String>)
+    data class FlaggedContent(val content: String?)
     data class AccountStandingState(val state: Int)
 
     class DetermineString(val state: Int) {
