@@ -6,7 +6,6 @@
 
 package com.aliucord.coreplugins.accountstanding
 
-import android.text.SpannableStringBuilder
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
@@ -49,11 +48,7 @@ internal class ViolationPage(val violation: String, val flaggedContent: String?,
             setPadding(16.dp, 0.dp, 0.dp, 0.dp)
         }.addTo(linearLayout)
 
-        val actionsText = SpannableStringBuilder().apply {
-            for (i in actions) {
-                "- $i\n"
-            }
-        }
+        val actionsText = actions.joinToString("\n")
 
         TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
             text = "What this means for you:\n$actionsText"
