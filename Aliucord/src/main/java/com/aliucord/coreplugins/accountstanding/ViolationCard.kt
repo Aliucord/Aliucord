@@ -49,7 +49,6 @@ internal class ViolationCard(ctx: Context, violation: String, flaggedContent: St
         setCardBackgroundColor(ColorCompat.getThemedColor(ctx, R.b.colorBackgroundSecondaryAlt))
         if (Date().time > maxExpirationTime.g()) alpha = 0.5f
 
-        // The card will explode if i create more than one TextView.. :|
         title = TextView(ctx, null, 0, R.i.UiKit_Settings_Item).apply {
             text = "$time\nYou broke Discord's rules for $violation"
             textSize = 14f
