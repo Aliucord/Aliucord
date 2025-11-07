@@ -27,7 +27,7 @@ import com.discord.stores.StoreStream
 import com.discord.utilities.images.MGImages
 import com.facebook.drawee.view.SimpleDraweeView
 
-inteernal data class SafetyHubResponse(
+internal data class SafetyHubResponse(
     @SerializedName("account_standing")
     val accountStanding: AccountStandingState,
     val classifications: List<UserClassifications>
