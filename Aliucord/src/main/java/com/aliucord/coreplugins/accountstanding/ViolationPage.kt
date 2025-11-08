@@ -48,10 +48,8 @@ internal class ViolationPage(val violation: String, val flaggedContent: String?,
             setPadding(16.dp, 0.dp, 0.dp, 0.dp)
         }.addTo(linearLayout)
 
-        val actionsText = actions.joinToString("\n")
-
         TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
-            text = "What this means for you:\n$actionsText"
+            text = "What this means for you:\n${actions.joinToString("\n")}"
             textSize = 16f
             typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold)
         }.addTo(linearLayout)

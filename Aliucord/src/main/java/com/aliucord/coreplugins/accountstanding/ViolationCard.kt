@@ -35,8 +35,6 @@ internal class ViolationCard(ctx: Context, violation: String, flaggedContent: St
 
         setDefaultMargins(false, true, false, false)
 
-        val time = TimeUtils.toReadableTimeString(context, SnowflakeUtils.toTimestamp(id), ClockFactory.get())
-
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_VERTICAL
@@ -48,7 +46,7 @@ internal class ViolationCard(ctx: Context, violation: String, flaggedContent: St
         if (Date().time > maxExpirationTime.g()) alpha = 0.5f
 
         title = TextView(ctx, null, 0, R.i.UiKit_Settings_Item).apply {
-            text = "$time\nYou broke Discord's rules for $violation"
+            text = "${TimeUtils.toReadableTimeString(context, SnowflakeUtils.toTimestamp(id), ClockFactory.get())}\nYou broke Discord's rules for $violation"
             textSize = 14f
             typeface = ResourcesCompat.getFont(ctx, Constants.Fonts.whitney_semibold)
             movementMethod = LinkMovementMethod.getInstance()
