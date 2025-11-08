@@ -99,7 +99,7 @@ internal class AccountStandingPage : SettingsPage() {
                     }.addTo(linearLayout)
 
                     TextView(context, null, 0, R.i.UiKit_Settings_Item).apply {
-                        text = SafetyHubResponse.AccountStandingState(json.accountStanding.state).headerString
+                        text = json.accountStanding.headerString
                         typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
                         textSize = 18f
                         gravity = Gravity.CENTER
@@ -107,7 +107,7 @@ internal class AccountStandingPage : SettingsPage() {
                     }.addTo(linearLayout)
 
                     TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
-                        text = SafetyHubResponse.AccountStandingState(json.accountStanding.state).bodyString
+                        text = json.accountStanding.bodyString
                         typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
                         textSize = 12f
                         gravity = Gravity.CENTER

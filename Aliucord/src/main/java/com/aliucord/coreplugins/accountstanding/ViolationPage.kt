@@ -23,7 +23,13 @@ import com.discord.utilities.time.TimeUtils
 import com.discord.utilities.SnowflakeUtils
 import com.discord.api.utcdatetime.UtcDateTime
 
-internal class ViolationPage(val violation: String, val flaggedContent: String?, val actions: List<String>, var classificationId: Long, val maxExpirationTime: UtcDateTime) : SettingsPage() {
+internal class ViolationPage(
+    private val violation: String,
+    private val flaggedContent: String?,
+    private val actions: List<String>,
+    private var classificationId: Long,
+    private val maxExpirationTime: UtcDateTime
+) : SettingsPage() {
     override fun onViewBound(view: View) {
         super.onViewBound(view)
 
@@ -54,7 +60,10 @@ internal class ViolationPage(val violation: String, val flaggedContent: String?,
 
         TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
             val occurredTime = TimeUtils.toReadableTimeString(context, SnowflakeUtils.toTimestamp(classificationId), ClockFactory.get())
-            val expirationTime = TimeUtils.toReadableTimeString(context, SnowflakeUtils.toTimestamp(TimeUtils.millisToSnowflake(maxExpirationTime.g())), ClockFactory.get())
+            val expirationTime = TimeUtils.toReadableTimeString(context,
+                SnowflakeUtils.toTimestamp(TimeUtils.millisToSnowflake(maxExpirationTime.g())),
+                ClockFactory.get())
+
             text = "Violation will expire on $expirationTime\nOccurred on $occurredTime"
             textSize = 14f
             typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold)
