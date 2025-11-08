@@ -26,8 +26,6 @@ import com.discord.widgets.settings.WidgetSettings
 import com.lytefast.flexinput.R
 
 internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
-    override val isHidden = true
-
     init {
         manifest.description = "Adds account standing to Aliucord"
     }
@@ -47,15 +45,17 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
             }.addTo(layout, baseIndex + 1)
         }
 
-        val notificationData = NotificationData()
-            .setTitle("Account Standing")
-            .setAutoDismissPeriodSecs(10)
-            .setOnClick { _ ->
-                openPage(Utils.appActivity, AccountStandingPage::class.java)
-            }
-            .setBody(MDUtils.render("You broke Discord's rules, Please check Account Standing for more info."))
+        if ((StoreStream.getUsers().me.flags and 8192) != 0) {
+            val notificationData = NotificationData()
+                .setTitle("Account Standing")
+                .setAutoDismissPeriodSecs(10)
+                .setOnClick { _ ->
+                    openPage(Utils.appActivity, AccountStandingPage::class.java)
+                }
+                .setBody(MDUtils.render("You broke Discord's rules, Please check Account Standing for more info."))
 
-        if (StoreStream.getUsers().me.flags == 8192) NotificationsAPI.display(notificationData)
+            NotificationsAPI.display(notificationData)
+        }
     }
 
     override fun stop(context: Context) = patcher.unpatchAll()

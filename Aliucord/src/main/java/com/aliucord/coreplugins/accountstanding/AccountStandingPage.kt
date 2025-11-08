@@ -67,7 +67,6 @@ internal data class SafetyHubResponse(
                 else -> "Unknown"
             }
     }
-
 }
 
 internal data class ClassificationState(val state: Int, val color: Int)
@@ -136,7 +135,8 @@ internal class AccountStandingPage : SettingsPage() {
                                 message,
                                 actions,
                                 classification.id,
-                                classification.maxExpirationTime).addTo(linearLayout)
+                                classification.maxExpirationTime
+                            ).addTo(linearLayout)
                         }
                     }
 

@@ -42,10 +42,8 @@ internal class ViolationCard(ctx: Context, violation: String, flaggedContent: St
             gravity = Gravity.CENTER_VERTICAL
         }
 
-        val p = defaultPadding
-
         radius = defaultCardRadius.toFloat()
-        setPadding(p, p, p, p)
+        setPadding(defaultPadding, defaultPadding, defaultPadding, defaultPadding)
         setCardBackgroundColor(ColorCompat.getThemedColor(ctx, R.b.colorBackgroundSecondaryAlt))
         if (Date().time > maxExpirationTime.g()) alpha = 0.5f
 

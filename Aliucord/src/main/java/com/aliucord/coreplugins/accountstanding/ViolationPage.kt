@@ -31,7 +31,7 @@ internal class ViolationPage(val violation: String, val flaggedContent: String?,
         val occurredTime = TimeUtils.toReadableTimeString(context, SnowflakeUtils.toTimestamp(id), ClockFactory.get())
         val expirationTime = TimeUtils.toReadableTimeString(context, SnowflakeUtils.toTimestamp(TimeUtils.millisToSnowflake(maxExpirationTime.g())), ClockFactory.get())
 
-        // Remove the header title and description (since it's unneeded) and change the background color to the regular current color.
+        // Remove the header title and description (since it's unneeded) and change the background color to the primary background color.
         header.removeViewAt(0)
         header.setBackgroundColor(ColorCompat.getThemedColor(view.context, R.b.colorBackgroundMobilePrimary))
 
