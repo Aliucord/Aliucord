@@ -123,7 +123,7 @@ internal class AccountStandingPage : SettingsPage() {
                             typeface = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium)
                             textSize = 12f
                             gravity = Gravity.LEFT
-                            setPadding(1.dp, 1.dp, 1.dp, 1.dp)
+                            setPadding(0.dp, 0.dp, 0.dp, 0.dp)
                         }.addTo(linearLayout)
 
                         json.classifications.forEach { classification ->
