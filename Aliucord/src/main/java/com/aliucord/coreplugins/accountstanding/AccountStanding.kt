@@ -21,6 +21,7 @@ import com.aliucord.patcher.*
 import com.aliucord.utils.MDUtils
 import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.utils.ViewUtils.findViewById
+import com.discord.api.user.UserFlags
 import com.discord.stores.StoreStream
 import com.discord.widgets.settings.WidgetSettings
 import com.lytefast.flexinput.R
@@ -45,7 +46,7 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
             }.addTo(layout, baseIndex + 1)
         }
 
-        if ((StoreStream.getUsers().me.flags and 8192) != 0) {
+        if ((StoreStream.getUsers().me.flags and UserFlags.HAS_UNREAD_URGENT_MESSAGES) != 0) {
             val notificationData = NotificationData()
                 .setTitle("Account Standing")
                 .setAutoDismissPeriodSecs(10)
