@@ -44,7 +44,7 @@ internal data class SafetyHubResponse(
 
     data class Actions(val descriptions: List<String>)
     data class FlaggedContent(val content: String?)
-    data class AccountStandingState(val state: Int) {
+    data class AccountStandingState(private val state: Int) {
         val headerString: String
             get() = when (state) {
                 100 -> "Your account is all good"
@@ -64,6 +64,9 @@ internal data class SafetyHubResponse(
                 500 -> "Due to serious policy violations, your account is permanently suspended, You can no longer use Discord."
                 else -> "Unknown"
             }
+
+        val status: Int
+            get() = state
     }
 }
 
@@ -113,7 +116,7 @@ internal class AccountStandingPage : SettingsPage() {
                         gravity = Gravity.CENTER
                     }.addTo(linearLayout)
 
-                    createIndicator(view.context, SafetyHubResponse.AccountStandingState(json.accountStanding.state)).addTo(linearLayout)
+                    createIndicator(view.context, SafetyHubResponse.AccountStandingState(json.accountStanding.status)).addTo(linearLayout)
 
                     if (json.classifications.isNotEmpty()) {
                         TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
@@ -167,10 +170,10 @@ internal class AccountStandingPage : SettingsPage() {
 
         states.forEachIndexed { index, (state, color) ->
             FrameLayout(context).apply {
-                layoutParams = if (currentState.state == state) LinearLayout.LayoutParams(21.dp, 21.dp) else LinearLayout.LayoutParams(16.dp, 16.dp)
+                layoutParams = if (currentState.status == state) LinearLayout.LayoutParams(21.dp, 21.dp) else LinearLayout.LayoutParams(16.dp, 16.dp)
                 val circleDrawable = GradientDrawable().apply {
                     shape = GradientDrawable.OVAL
-                    setColor(if (currentState.state == state) color else Utils.appContext.getColor(R.c.status_grey_200))
+                    setColor(if (currentState.status == state) color else Utils.appContext.getColor(R.c.status_grey_200))
                 }
                 background = circleDrawable
             }.addTo(indicator)
