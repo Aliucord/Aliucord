@@ -7,6 +7,7 @@
 package com.aliucord.settings;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
@@ -309,7 +310,17 @@ public class Plugins extends SettingsPage {
             safeModeNotice.setText("This page won't work while safe mode is on.\n Use Aliucord Manager to change plugin settings.");
             safeModeNotice.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
             safeModeNotice.setGravity(Gravity.CENTER);
+
+            Button openManagerButton = new Button(context);
+            openManagerButton.setText("Open Manager");
+            openManagerButton.setOnClickListener(widget -> {
+                Intent intent = new Intent("com.aliucord.manager.OPEN_PLUGINS");
+                intent.setClassName("com.aliucord.manager", "com.aliucord.manager.MainActivity");
+                Utils.appActivity.startActivity(intent);
+            });
+
             addView(safeModeNotice);
+            addView(openManagerButton);
             return;
         }
         if (!PluginManager.failedToLoad.isEmpty()) {
