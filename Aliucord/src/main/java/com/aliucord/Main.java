@@ -25,9 +25,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.fragment.app.Fragment;
 
 import com.aliucord.entities.CorePlugin;
 import com.aliucord.entities.Plugin;
+import com.aliucord.fragments.ConfirmDialog;
 import com.aliucord.patcher.*;
 import com.aliucord.settings.*;
 import com.aliucord.updater.PluginUpdater;
@@ -188,27 +190,30 @@ public final class Main {
             if (!PluginManager.isSafeModeEnabled()) {
                 return;
             }
-            WidgetGlobalStatusIndicator thisObject = (WidgetGlobalStatusIndicator) param.thisObject;
-            Context context = thisObject.requireContext();
+            WidgetGlobalStatusIndicator indicator = (WidgetGlobalStatusIndicator) param.thisObject;
+            Context context = indicator.requireContext();
 
             try {
-                Method bindingGetter = thisObject.getClass().getDeclaredMethod("getBinding");
+                Method bindingGetter = indicator.getClass().getDeclaredMethod("getBinding");
                 bindingGetter.setAccessible(true);
-                Field indicatorStateField = thisObject.getClass().getDeclaredField("indicatorState");
+                Field indicatorStateField = indicator.getClass().getDeclaredField("indicatorState");
                 indicatorStateField.setAccessible(true);
 
-                var binding = (WidgetGlobalStatusIndicatorBinding) bindingGetter.invoke(thisObject);
-                var indicatorState = (WidgetGlobalStatusIndicatorState) indicatorStateField.get(thisObject);
-
-                Utils.mainThread.post(() -> indicatorState.updateState(true, false, false));
+                var binding = (WidgetGlobalStatusIndicatorBinding) bindingGetter.invoke(indicator);
+                var indicatorState = (WidgetGlobalStatusIndicatorState) indicatorStateField.get(indicator);
 
                 int backgroundColor = Utils.getResId("colorBackgroundTertiary", "attr");
                 int textColor = Utils.getResId("colorHeaderPrimary", "attr");
-                binding.c.setBackgroundColor(ColorCompat.getThemedColor(context, backgroundColor));
-                binding.i.setTextColor(ColorCompat.getThemedColor(context, textColor));
-                binding.i.setText("Safe mode enabled");
+
                 LinearLayout linearLayout = binding.c;
+                TextView indicatorText = binding.i;
+                linearLayout.setBackgroundColor(ColorCompat.getThemedColor(context, backgroundColor));
+                linearLayout.setOnClickListener(widget -> safeModeDialog(indicator));
+                indicatorText.setTextColor(ColorCompat.getThemedColor(context, textColor));
+                indicatorText.setText("Safe mode enabled");
                 linearLayout.setVisibility(View.VISIBLE);
+
+                Utils.mainThread.post(() -> indicatorState.updateState(true, false, false));
             } catch (Throwable e) {
                 logger.error(e);
                 return;
@@ -216,6 +221,7 @@ public final class Main {
 
             param.setResult(null);
         }));
+
         // Patch to repair built-in emotes is needed because installer doesn't recompile resources,
         // so they stay in package com.discord instead of apk package name
         Patcher.addPatch(ModelEmojiUnicode.class, "getImageUri", new Class<?>[]{ String.class, Context.class },
@@ -555,5 +561,23 @@ public final class Main {
             granted -> permissionGrantedCallback(activity, granted)
         ).launch(perm);
         return false;
+    }
+    private static void safeModeDialog(Fragment fragment) {
+        var desc = """
+            You are currently in safe mode. Plugins are disabled.
+
+            Press OK to exit safe mode and restart Aliucord.
+            """;
+        new ConfirmDialog()
+            .setTitle("Safe Mode")
+            .setDescription(desc)
+            .setOnOkListener(widget -> {
+                settings.setBool(AliucordPageKt.ALIUCORD_SAFE_MODE_KEY, false);
+                Context ctx = fragment.requireContext();
+                Intent intent = ctx.getPackageManager().getLaunchIntentForPackage(ctx.getPackageName());
+                Utils.appActivity.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
+                Runtime.getRuntime().exit(0);
+            })
+            .show(fragment.getParentFragmentManager(), "Disable Safe Mode");
     }
 }
