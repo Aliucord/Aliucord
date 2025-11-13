@@ -558,6 +558,7 @@ public final class Main {
         ).launch(perm);
         return false;
     }
+
     private static void safeModeDialog(Fragment fragment) {
         var desc = """
             You are currently in safe mode. Plugins are disabled.
