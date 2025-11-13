@@ -7,6 +7,7 @@
 package com.aliucord.utils;
 
 import android.annotation.SuppressLint;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -16,7 +17,7 @@ import java.lang.reflect.*;
 
 /** Utility class to ease Reflection */
 @SuppressLint("DiscouragedPrivateApi")
-@SuppressWarnings("unchecked")
+@SuppressWarnings({ "unchecked", "unused" })
 public final class ReflectUtils {
     private static Object unsafe;
     private static Method unsafeAllocIns;
@@ -24,6 +25,7 @@ public final class ReflectUtils {
 
     /**
      * Creates new class instance without using a constructor
+     *
      * @param clazz Class
      * @return Created instance
      */
@@ -35,7 +37,7 @@ public final class ReflectUtils {
                 unsafeAllocIns = c.getMethod("allocateInstance", Class.class);
             }
             return (T) unsafeAllocIns.invoke(unsafe, clazz);
-        } catch (Throwable e) { Main.logger.error(e); }
+        } catch (Throwable e) {Main.logger.error(e);}
         return null;
     }
 
@@ -49,9 +51,12 @@ public final class ReflectUtils {
      * @throws NoSuchMethodException No such constructor found
      */
     public static <T> Constructor<T> getConstructorByArgs(@NonNull Class<T> clazz, Object... args) throws NoSuchMethodException {
-        Class<?>[] argTypes = new Class<?>[args.length];
-        for (int i = 0; i < args.length; i++) {
-            argTypes[i] = args[i].getClass();
+        Class<?>[] argTypes = null;
+        if (args != null) {
+            argTypes = new Class<?>[args.length];
+            for (int i = 0; i < args.length; i++) {
+                argTypes[i] = args[i].getClass();
+            }
         }
 
         Constructor<T> c = clazz.getDeclaredConstructor(argTypes);
@@ -80,17 +85,20 @@ public final class ReflectUtils {
      * Please note that this does not cache the lookup result, so if you need to call this many times
      * you should do it manually and cache the {@link Method} to improve performance drastically
      *
-     * @param clazz The class
+     * @param clazz      The class
      * @param methodName The name of the method
-     * @param args  The arguments to invoke the method with. arguments [ "hello", 12 ] would match someMethod(String s, int i)
+     * @param args       The arguments to invoke the method with. arguments [ "hello", 12 ] would match someMethod(String s, int i)
      * @return The found method
      * @throws NoSuchMethodException No such constructor found
      */
     @NonNull
     public static Method getMethodByArgs(@NonNull Class<?> clazz, @NonNull String methodName, Object... args) throws NoSuchMethodException {
-        Class<?>[] argTypes = new Class<?>[args.length];
-        for (int i = 0; i < args.length; i++) {
-            argTypes[i] = args[i].getClass();
+        Class<?>[] argTypes = null;
+        if (args != null) {
+            argTypes = new Class<?>[args.length];
+            for (int i = 0; i < args.length; i++) {
+                argTypes[i] = args[i].getClass();
+            }
         }
 
         Method m = clazz.getDeclaredMethod(methodName, argTypes);
@@ -103,10 +111,10 @@ public final class ReflectUtils {
      * Please note that this does not cache the lookup result, so if you need to call this many times
      * you should do it manually and cache the {@link Method} to improve performance drastically
      *
-     * @param clazz The class holding the method
-     * @param instance The instance of the class to invoke the method on or null to invoke static method
+     * @param clazz      The class holding the method
+     * @param instance   The instance of the class to invoke the method on or null to invoke static method
      * @param methodName The name of the method
-     * @param args  The arguments to invoke the method with. arguments [ "hello", 12 ] would match someMethod(String s, int i)
+     * @param args       The arguments to invoke the method with. arguments [ "hello", 12 ] would match someMethod(String s, int i)
      * @return The result of invoking the method
      * @throws NoSuchMethodException     No such method found
      * @throws IllegalAccessException    This method is inaccessible
@@ -122,9 +130,9 @@ public final class ReflectUtils {
      * Please note that this does not cache the lookup result, so if you need to call this many times
      * you should do it manually and cache the {@link Method} to improve performance drastically
      *
-     * @param instance The instance of the class to invoke the method on
+     * @param instance   The instance of the class to invoke the method on
      * @param methodName The name of the method
-     * @param args  The arguments to invoke the method with. arguments [ "hello", 12 ] would match someMethod(String s, int i)
+     * @param args       The arguments to invoke the method with. arguments [ "hello", 12 ] would match someMethod(String s, int i)
      * @return The result of invoking the method
      * @throws NoSuchMethodException     No such method found
      * @throws IllegalAccessException    This method is inaccessible

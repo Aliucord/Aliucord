@@ -20,6 +20,9 @@ jobs:
       coreDeploy: ${{ steps.compare.outputs.coreDeploy }}
       patchesDeploy: ${{ steps.compare.outputs.patchesDeploy }}
       injectorDeploy: ${{ steps.compare.outputs.injectorDeploy }}
+      coreVersion: ${{ steps.compare.outputs.coreVersion }}
+      patchesVersion: ${{ steps.compare.outputs.patchesVersion }}
+      injectorVersion: ${{ steps.compare.outputs.injectorVersion }}
     steps:
       - name: Checkout src
         uses: actions/checkout@v4
@@ -51,6 +54,9 @@ jobs:
           injectorDeploy=$([ "$injectorVersion" != "$injectorVersionOld" ] && echo true || echo false)
 
           # Write step output
+          echo "coreVersion=$coreVersion" >> "$GITHUB_OUTPUT"
+          echo "patchesVersion=$patchesVersion" >> "$GITHUB_OUTPUT"
+          echo "injectorVersion=$injectorVersion" >> "$GITHUB_OUTPUT"
           echo "coreDeploy=$coreDeploy" >> "$GITHUB_OUTPUT"
           echo "patchesDeploy=$patchesDeploy" >> "$GITHUB_OUTPUT"
           echo "injectorDeploy=$injectorDeploy" >> "$GITHUB_OUTPUT"
@@ -98,17 +104,19 @@ jobs:
           path: |
             ${{ github.workspace }}/Aliucord/build/outputs/Aliucord.zip
             ${{ github.workspace }}/Injector/build/outputs/Injector.dex
-            ${{ github.workspace }}/patches/build/outputs/patches.zip'
+            ${{ github.workspace }}/patches/build/outputs/patches.zip
 
       - name: Publish Snapshots to Maven
-        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+        if: ${{ github.event_name != 'pull_request'
+          && env.MAVEN_SNAPSHOTS_USERNAME != ''
+          && env.MAVEN_SNAPSHOTS_PASSWORD != '' }}
         env:
           MAVEN_SNAPSHOTS_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_SNAPSHOTS_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
         run: |
-          ./gradlew --stacktrace -Pversion=$GITHUB_REF_NAME-SNAPSHOT \
+          ./gradlew --stacktrace -PVERSION_NAME=$GITHUB_REF_NAME-SNAPSHOT \
               :Aliucord:publishAllPublicationsToAliucordSnapshotsRepository
-          ./gradlew --stacktrace -Pversion=$(git rev-parse --short "$GITHUB_SHA") \
+          ./gradlew --stacktrace -PVERSION_NAME=$(git rev-parse --short "$GITHUB_SHA") \
               :Aliucord:publishAllPublicationsToAliucordSnapshotsRepository
 
   deploy:
@@ -145,16 +153,16 @@ jobs:
           find $GITHUB_WORKSPACE/artifacts -type f -exec mv -t $GITHUB_WORKSPACE/artifacts '{}' +
 
           # Copy over builds if version changed
-          [ ${{ needs.inspect.outputs.coreDeploy }} ] && cp $GITHUB_WORKSPACE/artifacts/Aliucord.zip $GITHUB_WORKSPACE/builds
-          [ ${{ needs.inspect.outputs.injectorDeploy }} ] && cp $GITHUB_WORKSPACE/artifacts/Injector.dex $GITHUB_WORKSPACE/builds
-          [ ${{ needs.inspect.outputs.patchesDeploy }} ] && cp $GITHUB_WORKSPACE/artifacts/patches.zip $GITHUB_WORKSPACE/builds
+          [ "${{ needs.inspect.outputs.coreDeploy }}" == "true" ] && cp $GITHUB_WORKSPACE/artifacts/Aliucord.zip $GITHUB_WORKSPACE/builds
+          [ "${{ needs.inspect.outputs.injectorDeploy }}" == "true" ] && cp $GITHUB_WORKSPACE/artifacts/Injector.dex $GITHUB_WORKSPACE/builds
+          [ "${{ needs.inspect.outputs.patchesDeploy }}" == "true" ] && cp $GITHUB_WORKSPACE/artifacts/patches.zip $GITHUB_WORKSPACE/builds
 
           # Write versions to data.json
           # `aliucordHash` is kept to force old builds to update (when versions were tied to a commit hash)
           jq '. + { coreVersion: $cv, injectorVersion: $iv, patchesVersion: $pv, aliucordHash: "0000000" }' \
-             --arg cv $coreVersion \
-             --arg iv $injectorVersion \
-             --arg pv $patchesVersion \
+             --arg cv "${{ needs.inspect.outputs.coreVersion }}" \
+             --arg iv "${{ needs.inspect.outputs.injectorVersion }}" \
+             --arg pv "${{ needs.inspect.outputs.patchesVersion }}" \
              $GITHUB_WORKSPACE/src/.assets/data.json > $GITHUB_WORKSPACE/builds/data.json
 
           # Commit and push
@@ -188,7 +196,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [ inspect ]
-    if: ${{ github.ref == 'refs/heads/main' && needs.inspect.outputs.coreDeploy == 'true' }}
+    # The existence of secrets should be checked here instead of repository owner,
+    # but because GH Actions is shit, there is no way to do this without smuggling
+    # the secret through a separate job's step output.
+    # Job-level env is not accessible here either.
+    if: ${{ github.ref == 'refs/heads/main'
+      && needs.inspect.outputs.coreDeploy == 'true'
+      && github.repository == 'Aliucord/Aliucord' }}
     permissions:
       contents: read
     steps:
