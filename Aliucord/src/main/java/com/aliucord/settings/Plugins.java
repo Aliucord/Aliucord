@@ -6,8 +6,7 @@
 
 package com.aliucord.settings;
 
-import android.content.Context;
-import android.content.Intent;
+import android.content.*;
 import android.graphics.Color;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
@@ -313,12 +312,7 @@ public class Plugins extends SettingsPage {
 
             Button openManagerButton = new Button(context);
             openManagerButton.setText("Open Manager");
-            openManagerButton.setOnClickListener(widget -> {
-                Intent intent = new Intent("com.aliucord.manager.OPEN_PLUGINS");
-                intent.setClassName("com.aliucord.manager", "com.aliucord.manager.MainActivity");
-                intent.putExtra("aliucord.packageName", context.getPackageName());
-                Utils.appActivity.startActivity(intent);
-            });
+            openManagerButton.setOnClickListener(this::onOpenManagerClick);
 
             addView(safeModeNotice);
             addView(openManagerButton);
@@ -371,5 +365,15 @@ public class Plugins extends SettingsPage {
                 item.setChecked(show);
                 return true;
             });
+    }
+    public void onOpenManagerClick(View view) {
+        Intent intent = new Intent("com.aliucord.manager.OPEN_PLUGINS");
+        intent.setClassName("com.aliucord.manager", "com.aliucord.manager.MainActivity");
+        intent.putExtra("aliucord.packageName", requireContext().getPackageName());
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            Utils.showToast("Aliucord Manager is not installed.");
+        }
     }
 }
