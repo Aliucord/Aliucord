@@ -316,6 +316,7 @@ public class Plugins extends SettingsPage {
             openManagerButton.setOnClickListener(widget -> {
                 Intent intent = new Intent("com.aliucord.manager.OPEN_PLUGINS");
                 intent.setClassName("com.aliucord.manager", "com.aliucord.manager.MainActivity");
+                intent.putExtra("aliucord.packageName", context.getPackageName());
                 Utils.appActivity.startActivity(intent);
             });
 

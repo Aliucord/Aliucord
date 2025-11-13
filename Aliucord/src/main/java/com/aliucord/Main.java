@@ -194,13 +194,8 @@ public final class Main {
             Context context = indicator.requireContext();
 
             try {
-                Method bindingGetter = indicator.getClass().getDeclaredMethod("getBinding");
-                bindingGetter.setAccessible(true);
-                Field indicatorStateField = indicator.getClass().getDeclaredField("indicatorState");
-                indicatorStateField.setAccessible(true);
-
-                var binding = (WidgetGlobalStatusIndicatorBinding) bindingGetter.invoke(indicator);
-                var indicatorState = (WidgetGlobalStatusIndicatorState) indicatorStateField.get(indicator);
+                var binding = (WidgetGlobalStatusIndicatorBinding) ReflectUtils.invokeMethod(indicator, "getBinding");
+                var indicatorState = (WidgetGlobalStatusIndicatorState) ReflectUtils.getField(indicator, "indicatorState");
 
                 int backgroundColor = Utils.getResId("colorBackgroundTertiary", "attr");
                 int textColor = Utils.getResId("colorHeaderPrimary", "attr");

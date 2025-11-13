@@ -328,8 +328,9 @@ object PluginManager {
             UploadSize(),
         )
 
+        val safeMode = isSafeModeEnabled();
         corePlugins.filter { p ->
-            !isSafeModeEnabled() || p.isRequired
+            !safeMode || p.isRequired
         }.forEach { p ->
             logger.info("Loading coreplugin: ${p.name}")
             try {
