@@ -38,9 +38,7 @@ internal class PluginFile(val plugin: String) : File("${Constants.PLUGINS_PATH}/
                         PluginManager.stopPlugin(plugin)
                         PluginManager.unloadPlugin(plugin)
                     }
-                    if (safeMode) {
-                        Utils.showToast("Plugin $plugin is disabled due to safe mode.")
-                    } else {
+                    if (!safeMode) {
                         PluginManager.loadPlugin(Utils.appContext, this)
                         if (PluginManager.isPluginEnabled(plugin))
                             PluginManager.startPlugin(plugin)
@@ -48,7 +46,9 @@ internal class PluginFile(val plugin: String) : File("${Constants.PLUGINS_PATH}/
                             PluginManager.enablePlugin(plugin)
                     }
                     Utils.showToast("Plugin $plugin successfully ${if (isReinstall) "re" else ""}installed!")
-
+                    if (safeMode) {
+                        Utils.showToast("Plugin not loaded due to safe mode!")
+                    }
                     if (PluginManager.plugins[plugin]?.requiresRestart() == true)
                         Utils.promptRestart()
 
