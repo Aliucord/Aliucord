@@ -33,12 +33,13 @@ import com.discord.widgets.settings.account.WidgetSettingsAccount
 data class Response(
     val classifications: List<UserClassifications>?
 ) {
-    data class UserClassifications(val id: Long)
+    data class UserClassifications(
+        val id: Long
+    )
 }
 
 internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
-    private var SettingsAPI.classifications by settings.delegate(HashMap<Long, List<Long>>())
-    private var SettingsAPI.mapHasChanged by settings.delegate(false)
+    private var SettingsAPI.classifications by settings.delegate(HashMap<Long, List<Response.UserClassifications>>())
     private var SettingsAPI.hasAlreadyFetched by settings.delegate(false)
 
     init {
@@ -62,17 +63,12 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
     }
 
     private fun addClassifications(json: Response) {
-        val newMap = HashMap<Long, List<Long>>()
+        val newMap = HashMap<Long, List<Response.UserClassifications>>()
         val me = StoreStream.getUsers().me
 
-        newMap[me.id] == json.classifications!!
-        settings.mapHasChanged = false
+        newMap[me.id] = json.classifications!!
 
-        if (newMap[me.id] !== settings.classifications[me.id] && settings.classifications.isNotEmpty()) {
-            settings.mapHasChanged = true
-        }
-
-        if (settings.mapHasChanged && (me.flags and UserFlags.HAS_UNREAD_URGENT_MESSAGES) != 0) {
+        if (newMap[me.id] != settings.classifications[me.id] && settings.classifications.isNotEmpty() && (me.flags and UserFlags.HAS_UNREAD_URGENT_MESSAGES) != 0) {
             sendNotification()
         }
 
@@ -103,7 +99,7 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
                 setCompoundDrawablesWithIntrinsicBounds(
                     null,
                     null,
-                    ctx.getDrawable(R.e.ic_navigate_next_grey_a60_24dp),
+                    ctx.getDrawable(R.e.ic_navigate_next_white_a60_24dp),
                     null
                 )
                 setOnClickListener {
