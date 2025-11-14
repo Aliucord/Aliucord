@@ -21,12 +21,13 @@ internal class PluginFile(val plugin: String) : File("${Constants.PLUGINS_PATH}/
 
     fun install(url: String, callback: Runnable? = null) {
         Utils.threadPool.execute {
+            val safeMode = PluginManager.isSafeModeEnabled()
             val isReinstall = isInstalled
             if (PluginManager.plugins[plugin] is CorePlugin) {
                 Utils.showToast("External plugins are not able to override built-in coreplugins!")
                 throw IOException("External plugins are not able to override built-in coreplugins")
             }
-            
+
             try {
                 Http.simpleDownload(url, this)
                 // Plugins are started on the main thread.
@@ -37,13 +38,17 @@ internal class PluginFile(val plugin: String) : File("${Constants.PLUGINS_PATH}/
                         PluginManager.stopPlugin(plugin)
                         PluginManager.unloadPlugin(plugin)
                     }
-                    PluginManager.loadPlugin(Utils.appContext, this)
-                    if (PluginManager.isPluginEnabled(plugin))
-                        PluginManager.startPlugin(plugin)
-                    else
-                        PluginManager.enablePlugin(plugin)
+                    if (!safeMode) {
+                        PluginManager.loadPlugin(Utils.appContext, this)
+                        if (PluginManager.isPluginEnabled(plugin))
+                            PluginManager.startPlugin(plugin)
+                        else
+                            PluginManager.enablePlugin(plugin)
+                    }
                     Utils.showToast("Plugin $plugin successfully ${if (isReinstall) "re" else ""}installed!")
-
+                    if (safeMode) {
+                        Utils.showToast("Plugin not loaded due to safe mode!")
+                    }
                     if (PluginManager.plugins[plugin]?.requiresRestart() == true)
                         Utils.promptRestart()
 
