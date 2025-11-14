@@ -373,7 +373,21 @@ public class Plugins extends SettingsPage {
         try {
             startActivity(intent);
         } catch (ActivityNotFoundException e) {
-            Utils.showToast("Aliucord Manager is not installed.");
+            this.noManagerDialog();
         }
+    }
+
+    public void noManagerDialog() {
+        var desc = """
+            Aliucord Manager is not installed on this device.
+
+            Click OK to download manager.
+            """;
+
+        new ConfirmDialog()
+            .setTitle("Not Found")
+            .setDescription(desc)
+            .setOnOkListener(widget -> Utils.launchUrl("https://github.com/Aliucord/Manager/releases/latest"))
+            .show(getParentFragmentManager(), "No Manager");
     }
 }
