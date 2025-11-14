@@ -2,6 +2,7 @@ package com.aliucord.coreplugins
 
 import android.content.Context
 import com.aliucord.coreplugins.decorations.DecorationsSettings
+import com.aliucord.coreplugins.decorations.guildtags.GuildTags
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.updater.ManagerBuild
@@ -17,21 +18,18 @@ internal class Decorations : CorePlugin(Manifest().apply {
     name = "Decorations"
     description = "Adds support for various user profile decorations"
 }) {
-    // TODO: make visible once plugin is ready
-    override val isHidden = true
-
     init {
         settingsTab = SettingsTab(DecorationsSettings.Sheet::class.java, SettingsTab.Type.BOTTOM_SHEET)
     }
 
     override fun start(context: Context) {
-        if (!DecorationsSettings.enable) return
         if (!ManagerBuild.hasInjector("2.3.0") || !ManagerBuild.hasPatches("1.3.0")) {
             logger.warn("Base app outdated, cannot enable Decorations")
             return
         }
 
         patchFields()
+        GuildTags.patch(patcher)
     }
 
     override fun stop(context: Context) {
@@ -44,6 +42,15 @@ internal class Decorations : CorePlugin(Manifest().apply {
             collectibles = api.collectibles
             displayNameStyles = api.displayNameStyles
             primaryGuild = api.primaryGuild
+        }
+        patcher.after<CoreUser>("equals", Object::class.java) { (param, other: Any?) ->
+            if (other is CoreUser) {
+                param.result = (param.result as Boolean)
+                    && avatarDecorationData == other.avatarDecorationData
+                    && collectibles == other.collectibles
+                    && displayNameStyles == other.displayNameStyles
+                    && primaryGuild == other.primaryGuild
+            }
         }
         patcher.after<CoreUser.Companion>("merge", CoreUser::class.java, User::class.java) { (param, old: CoreUser, api: User) ->
             val res = param.result as CoreUser
@@ -59,6 +66,15 @@ internal class Decorations : CorePlugin(Manifest().apply {
             collectibles = api.collectibles
             displayNameStyles = api.displayNameStyles
             primaryGuild = api.primaryGuild
+        }
+        patcher.after<MeUser>("equals", Object::class.java) { (param, other: Any?) ->
+            if (other is MeUser) {
+                param.result = (param.result as Boolean)
+                    && avatarDecorationData == other.avatarDecorationData
+                    && collectibles == other.collectibles
+                    && displayNameStyles == other.displayNameStyles
+                    && primaryGuild == other.primaryGuild
+            }
         }
         patcher.after<MeUser.Companion>("merge", MeUser::class.java, User::class.java) { (param, old: MeUser, api: User) ->
             val res = param.result as MeUser
