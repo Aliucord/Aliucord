@@ -30,16 +30,8 @@ import com.aliucord.api.SettingsAPI
 import com.aliucord.utils.GsonUtils
 import com.discord.widgets.settings.account.WidgetSettingsAccount
 
-data class Response(
-    val classifications: List<UserClassifications>?
-) {
-    data class UserClassifications(
-        val id: Long
-    )
-}
-
 internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
-    private var SettingsAPI.classifications by settings.delegate(HashMap<Long, List<Response.UserClassifications>>())
+    private var SettingsAPI.classifications by settings.delegate(HashMap<Long, List<PluginResponse.Classifications>>())
     private var SettingsAPI.hasAlreadyFetched by settings.delegate(false)
 
     init {
@@ -51,7 +43,7 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
             try {
                 logger.info("Fetching classifications...")
                 val json = Http.Request.newDiscordRNRequest("/safety-hub/@me", "GET").execute()
-                    .json(GsonUtils.gsonRestApi, Response::class.java)
+                    .json(GsonUtils.gsonRestApi, PluginResponse::class.java)
 
                 addClassifications(json)
 
@@ -62,8 +54,8 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
         }
     }
 
-    private fun addClassifications(json: Response) {
-        val newMap = HashMap<Long, List<Response.UserClassifications>>()
+    private fun addClassifications(json: PluginResponse) {
+        val newMap = HashMap<Long, List<PluginResponse.Classifications>>()
         val me = StoreStream.getUsers().me
 
         newMap[me.id] = json.classifications!!

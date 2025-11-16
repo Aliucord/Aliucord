@@ -21,54 +21,9 @@ import com.aliucord.utils.ViewUtils.addTo
 import com.discord.utilities.color.ColorCompat
 import com.lytefast.flexinput.R
 import com.aliucord.utils.DimenUtils.dp
-import com.aliucord.utils.SerializedName
-import com.discord.api.utcdatetime.UtcDateTime
 import com.discord.stores.StoreStream
 import com.discord.utilities.images.MGImages
 import com.facebook.drawee.view.SimpleDraweeView
-
-internal data class SafetyHubResponse(
-    @SerializedName("account_standing")
-    val accountStanding: AccountStandingState,
-    val classifications: List<UserClassifications>
-) {
-    data class UserClassifications(
-        val id: Long,
-        val description: String,
-        @SerializedName("flagged_content")
-        val flaggedContent: List<FlaggedContent>?,
-        val actions: List<Actions>?,
-        @SerializedName("max_expiration_time")
-        val maxExpirationTime: UtcDateTime
-    )
-
-    data class Actions(val descriptions: List<String>)
-    data class FlaggedContent(val content: String?)
-    data class AccountStandingState(private val state: Int) {
-        val headerString: String
-            get() = when (state) {
-                100 -> "Your account is all good"
-                200 -> "Your account is limited"
-                300 -> "Your account is very limited."
-                400 -> "Your account is at risk"
-                500 -> "Your account is suspended."
-                else -> "Unknown"
-            }
-
-        val bodyString: String
-            get() = when (state) {
-                100 -> "Thank you for upholding Discord's Terms of Service and Community Guidelines. If you break the rules, it will show up here."
-                200 -> "You may lose access to some parts of Discord if you break the rules again."
-                300 -> "You can't use some parts of Discord, You may be suspended if you break the rules again."
-                400 -> "You broke Discord's rules. You will be permanently suspended if you break them again."
-                500 -> "Due to serious policy violations, your account is permanently suspended, You can no longer use Discord."
-                else -> "Unknown"
-            }
-
-        val status: Int
-            get() = state
-    }
-}
 
 internal data class ClassificationState(val state: Int, val color: Int)
 
@@ -89,7 +44,7 @@ internal class AccountStandingPage : SettingsPage() {
         Utils.threadPool.execute {
             try {
                 val json = Http.Request.newDiscordRNRequest("/safety-hub/@me", "GET").execute()
-                    .json(GsonUtils.gsonRestApi, SafetyHubResponse::class.java)
+                    .json(GsonUtils.gsonRestApi, PageResponse::class.java)
 
                 Utils.mainThread.post {
                     SimpleDraweeView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
@@ -116,7 +71,7 @@ internal class AccountStandingPage : SettingsPage() {
                         gravity = Gravity.CENTER
                     }.addTo(linearLayout)
 
-                    createIndicator(view.context, SafetyHubResponse.AccountStandingState(json.accountStanding.status)).addTo(linearLayout)
+                    createIndicator(view.context, PageResponse.AccountStandingState(json.accountStanding.status)).addTo(linearLayout)
 
                     if (json.classifications.isNotEmpty()) {
                         TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
@@ -149,7 +104,7 @@ internal class AccountStandingPage : SettingsPage() {
         }
     }
 
-    private fun createIndicator(context: Context, currentState: SafetyHubResponse.AccountStandingState): LinearLayout {
+    private fun createIndicator(context: Context, currentState: PageResponse.AccountStandingState): LinearLayout {
         val container = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(24.dp, 24.dp, 24.dp, 24.dp)
