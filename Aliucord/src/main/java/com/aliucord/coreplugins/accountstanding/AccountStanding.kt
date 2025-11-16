@@ -32,7 +32,7 @@ import com.discord.widgets.settings.account.WidgetSettingsAccount
 
 internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
     private var SettingsAPI.classifications by settings.delegate(HashMap<Long, List<PluginResponse.Classifications>>())
-    private var SettingsAPI.hasAlreadyFetched by settings.delegate(false)
+    private var SettingsAPI.isFetched by settings.delegate(false)
 
     init {
         manifest.description = "Adds account standing to Aliucord"
@@ -65,7 +65,7 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
         }
 
         settings.classifications = newMap
-        settings.hasAlreadyFetched = true
+        settings.isFetched = true
     }
 
     private fun sendNotification() {
@@ -100,7 +100,7 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
             }.addTo(layout, baseIndex + 1)
         }
 
-        if ((StoreStream.getUsers().me.flags and UserFlags.HAS_UNREAD_URGENT_MESSAGES) != 0 || !settings.hasAlreadyFetched) {
+        if ((StoreStream.getUsers().me.flags and UserFlags.HAS_UNREAD_URGENT_MESSAGES) != 0 || !settings.isFetched) {
             fetchClassifications()
         } else {
             logger.info("Classifications has already been fetched, Not fetching.")

@@ -71,7 +71,7 @@ internal class AccountStandingPage : SettingsPage() {
                         gravity = Gravity.CENTER
                     }.addTo(linearLayout)
 
-                    createIndicator(view.context, PageResponse.AccountStandingState(json.accountStanding.status)).addTo(linearLayout)
+                    createIndicator(view.context, PageResponse.AccountStandingState(json.accountStanding.state)).addTo(linearLayout)
 
                     if (json.classifications.isNotEmpty()) {
                         TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
