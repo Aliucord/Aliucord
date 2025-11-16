@@ -32,12 +32,16 @@ internal class JumpToMessageFix : CorePlugin(Manifest("JumpToMessageFix")) {
             if (messageId <= 0L) {
                 return@instead -1
             }
-            val messageIndex = list.indexOfFirst { item -> (item is MessageEntry) && item.message.id == messageId }
+            val messageIndex = list
+                .indexOfFirst { item -> (item is MessageEntry) && item.message.id == messageId }
 
             if (messageIndex == -1) {
                 return@instead -1
             }
-            val newMessageIndex = list.subList(0, messageIndex).indexOfLast { (it is NewMessagesEntry) && it.messageId == messageId }.takeIf { it != -1 }
+            val newMessageIndex =
+                list.subList(0, messageIndex)
+                    .indexOfLast { (it is NewMessagesEntry) && it.messageId == messageId }
+                    .takeIf { it != -1 }
 
             // This ensures the app doesn't jump to message before loading its channel.
             val selectedChannel = StoreStream.Companion!!.channelsSelected.id
