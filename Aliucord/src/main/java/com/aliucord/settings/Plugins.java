@@ -6,7 +6,7 @@
 
 package com.aliucord.settings;
 
-import android.content.Context;
+import android.content.*;
 import android.graphics.Color;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
@@ -16,6 +16,7 @@ import android.view.*;
 import android.widget.*;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.*;
 
@@ -283,8 +284,11 @@ public class Plugins extends SettingsPage {
     public void onViewBound(View view) {
         super.onViewBound(view);
         setActionBarTitle("Plugins");
-        setActionBarSubtitle(PluginManager.getPluginsInfo());
         removeScrollView();
+
+        if (!PluginManager.isSafeModeEnabled()) {
+            setActionBarSubtitle(PluginManager.getPluginsInfo());
+        }
 
         var context = view.getContext();
         int padding = DimenUtils.getDefaultPadding();
@@ -299,6 +303,21 @@ public class Plugins extends SettingsPage {
             return true;
         });
 
+        if (PluginManager.isSafeModeEnabled()) {
+            TextView safeModeNotice = new TextView(context, null, 0, R.i.UiKit_Settings_Item_Header);
+            safeModeNotice.setAllCaps(false);
+            safeModeNotice.setText("This page won't work while safe mode is on.\n Use Aliucord Manager to change plugin settings.");
+            safeModeNotice.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
+            safeModeNotice.setGravity(Gravity.CENTER);
+
+            Button openManagerButton = new Button(context);
+            openManagerButton.setText("Open Manager");
+            openManagerButton.setOnClickListener(this::onOpenManagerClick);
+
+            addView(safeModeNotice);
+            addView(openManagerButton);
+            return;
+        }
         if (!PluginManager.failedToLoad.isEmpty()) {
             var failedPluginsView = new Button(context);
             failedPluginsView.setText("Plugin Errors");
@@ -346,5 +365,29 @@ public class Plugins extends SettingsPage {
                 item.setChecked(show);
                 return true;
             });
+    }
+    public void onOpenManagerClick(View view) {
+        Intent intent = new Intent("com.aliucord.manager.OPEN_PLUGINS");
+        intent.setClassName("com.aliucord.manager", "com.aliucord.manager.MainActivity");
+        intent.putExtra("aliucord.packageName", requireContext().getPackageName());
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            this.noManagerDialog();
+        }
+    }
+
+    public void noManagerDialog() {
+        var desc = """
+            Aliucord Manager is not installed on this device.
+
+            Click OK to download manager.
+            """;
+
+        new ConfirmDialog()
+            .setTitle("Not Found")
+            .setDescription(desc)
+            .setOnOkListener(widget -> Utils.launchUrl("https://github.com/Aliucord/Manager/releases/latest"))
+            .show(getParentFragmentManager(), "No Manager");
     }
 }

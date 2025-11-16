@@ -21,6 +21,7 @@ import com.lytefast.flexinput.R
 const val AUTO_DISABLE_ON_CRASH_KEY = "autoDisableCrashingPlugins"
 const val AUTO_UPDATE_PLUGINS_KEY = "AC_plugins_auto_update_enabled"
 const val AUTO_UPDATE_ALIUCORD_KEY = "AC_aliucord_auto_update_enabled"
+const val ALIUCORD_SAFE_MODE_KEY = "AC_aliucord_safe_mode_enabled"
 const val ALIUCORD_FROM_STORAGE_KEY = "AC_from_storage"
 
 class AliucordPage : SettingsPage() {
@@ -33,14 +34,15 @@ class AliucordPage : SettingsPage() {
         val ctx = view.context
 
         addHeader(ctx, "Aliucord Settings")
+        addSwitch(ctx, AUTO_UPDATE_ALIUCORD_KEY, "Automatically update Aliucord", null)
+        addSwitch(ctx, AUTO_UPDATE_PLUGINS_KEY, "Automatically update plugins", null)
         addSwitch(ctx,
             AUTO_DISABLE_ON_CRASH_KEY,
             "Automatically disable plugins on crash",
             "When a plugin is found to be causing crashes, it will automatically be disabled",
             true
         )
-        addSwitch(ctx, AUTO_UPDATE_ALIUCORD_KEY, "Automatically update Aliucord", null)
-        addSwitch(ctx, AUTO_UPDATE_PLUGINS_KEY, "Automatically update plugins", null)
+        addSwitch(ctx, ALIUCORD_SAFE_MODE_KEY, "Safe mode", "Disables all plugins and optional coreplugins.", false) { Utils.promptRestart() }
 
         if (StoreStream.getUserSettings().isDeveloperMode) {
             addDivider(ctx)

@@ -10,6 +10,50 @@ import com.aliucord.Utils
 import com.aliucord.utils.ViewUtils.findViewById
 import com.discord.views.CheckedSetting
 
+data class Padding(val left: Int, val top: Int, val right: Int, val bottom: Int) {
+    operator fun plus(other: Padding) = Padding(
+        left + other.left,
+        top + other.top,
+        right + other.right,
+        bottom + other.bottom,
+    )
+
+    operator fun plus(other: Int) = Padding(
+        left + other,
+        top + other,
+        right + other,
+        bottom + other,
+    )
+
+    operator fun minus(other: Padding) = Padding(
+        left - other.left,
+        top - other.top,
+        right - other.right,
+        bottom - other.bottom,
+    )
+
+    operator fun minus(other: Int) = Padding(
+        left - other,
+        top - other,
+        right - other,
+        bottom - other,
+    )
+
+    operator fun times(other: Int) = Padding(
+        left * other,
+        top * other,
+        right * other,
+        bottom * other,
+    )
+
+    operator fun div(other: Int) = Padding(
+        left / other,
+        top / other,
+        right / other,
+        bottom / other,
+    )
+}
+
 object ViewUtils {
     /**
      * Shorthand extension function to add a View into a ViewGroup, and then
@@ -95,4 +139,52 @@ object ViewUtils {
 
     /** Subtext of the setting */
     val CheckedSetting.subtext get() = l.f() as TextView
+
+    // Padding utilities
+
+    /** Set a uniform padding for all sides */
+    fun View.setPadding(value: Int) = setPadding(value, value, value, value)
+
+    /** Convenient property to get and set left padding */
+    inline var View.leftPadding
+        get() = paddingLeft
+        set(value) = setPadding(value, paddingTop, paddingRight, paddingBottom)
+
+    /** Convenient property to get and set top padding */
+    inline var View.topPadding
+        get() = paddingTop
+        set(value) = setPadding(paddingLeft, value, paddingRight, paddingBottom)
+
+    /** Convenient property to get and set right padding */
+    inline var View.rightPadding
+        get() = paddingRight
+        set(value) = setPadding(paddingLeft, paddingTop, value, paddingBottom)
+
+    /** Convenient property to get and set bottom padding */
+    inline var View.bottomPadding
+        get() = paddingBottom
+        set(value) = setPadding(paddingLeft, paddingTop, paddingRight, value)
+
+    /** Convenient property to get and set start padding (left on ltr, right on rtl) */
+    inline var View.startPadding
+        get() = paddingStart
+        set(value) = if (layoutDirection == View.LAYOUT_DIRECTION_RTL) {
+            rightPadding = value
+        } else {
+            leftPadding = value
+        }
+
+    /** Convenient property to get and set end padding (right on ltr, left on rtl) */
+    inline var View.endPadding
+        get() = paddingEnd
+        set(value) = if (layoutDirection == View.LAYOUT_DIRECTION_RTL) {
+            leftPadding = value
+        } else {
+            rightPadding = value
+        }
+
+    /** Convenient property to get and set a [Padding] value */
+    inline var View.padding
+        get() = Padding(paddingLeft, paddingTop, paddingRight, paddingBottom)
+        set(value) = with(value) { setPadding(left, top, right, bottom) }
 }
