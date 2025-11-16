@@ -308,6 +308,7 @@ object PluginManager {
             ExperimentDefaults(),
             ForwardedMessages(),
             GifPreviewFix(),
+            JumpToMessageFix(),
             MembersListFix(),
             NewPins(),
             NoTrack(),
