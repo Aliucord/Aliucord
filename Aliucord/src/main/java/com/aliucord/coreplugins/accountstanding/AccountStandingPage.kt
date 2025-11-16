@@ -125,7 +125,7 @@ internal class AccountStandingPage : SettingsPage() {
 
         states.forEachIndexed { index, (state, color) ->
             FrameLayout(context).apply {
-                layoutParams = if (currentState.stats == currentState.statuse) LinearLayout.LayoutParams(21.dp, 21.dp) else LinearLayout.LayoutParams(16.dp, 16.dp)
+                layoutParams = if (currentState.state == state) LinearLayout.LayoutParams(21.dp, 21.dp) else LinearLayout.LayoutParams(16.dp, 16.dp)
                 val circleDrawable = GradientDrawable().apply {
                     shape = GradientDrawable.OVAL
                     setColor(if (currentState.state == state) color else Utils.appContext.getColor(R.c.status_grey_200))
