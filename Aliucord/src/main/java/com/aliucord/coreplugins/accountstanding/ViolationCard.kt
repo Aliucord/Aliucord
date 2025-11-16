@@ -27,7 +27,7 @@ import com.lytefast.flexinput.R
 import java.util.Date
 
 @SuppressLint("ViewConstructor")
-internal class ViolationCard(ctx: Context, violation: String, flaggedContent: String?, actions: List<String>, id: Long, maxExpirationTime: UtcDateTime) : MaterialCardView(ctx) {
+internal class ViolationCard(ctx: Context, violation: String, flaggedContent: String, actions: List<String>, id: Long, maxExpirationTime: UtcDateTime) : MaterialCardView(ctx) {
     var title: TextView
 
     init {

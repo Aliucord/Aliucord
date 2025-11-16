@@ -25,7 +25,7 @@ import com.discord.api.utcdatetime.UtcDateTime
 
 internal class ViolationPage(
     private val violation: String,
-    private val flaggedContent: String?,
+    private val flaggedContent: String,
     private val actions: List<String>,
     private var classificationId: Long,
     private val maxExpirationTime: UtcDateTime
