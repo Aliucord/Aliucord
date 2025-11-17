@@ -44,7 +44,7 @@ internal class AccountStandingPage : SettingsPage() {
         Utils.threadPool.execute {
             try {
                 val json = Http.Request.newDiscordRNRequest("/safety-hub/@me", "GET").execute()
-                    .json(GsonUtils.gsonRestApi, PageResponse::class.java)
+                    .json(GsonUtils.gsonRestApi, AccountStandingPageResponse::class.java)
 
                 Utils.mainThread.post {
                     SimpleDraweeView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
@@ -71,7 +71,7 @@ internal class AccountStandingPage : SettingsPage() {
                         gravity = Gravity.CENTER
                     }.addTo(linearLayout)
 
-                    createIndicator(view.context, PageResponse.AccountStandingState(json.accountStanding.state)).addTo(linearLayout)
+                    createIndicator(view.context, AccountStandingPageResponse.AccountStandingState(json.accountStanding.state)).addTo(linearLayout)
 
                     if (json.classifications.isNotEmpty()) {
                         TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
@@ -104,7 +104,7 @@ internal class AccountStandingPage : SettingsPage() {
         }
     }
 
-    private fun createIndicator(context: Context, currentState: PageResponse.AccountStandingState): LinearLayout {
+    private fun createIndicator(context: Context, currentState: AccountStandingPageResponse.AccountStandingState): LinearLayout {
         val container = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(24.dp, 24.dp, 24.dp, 24.dp)

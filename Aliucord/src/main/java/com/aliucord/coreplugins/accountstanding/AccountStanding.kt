@@ -30,9 +30,10 @@ import com.aliucord.api.SettingsAPI
 import com.aliucord.utils.GsonUtils
 import com.discord.widgets.settings.account.WidgetSettingsAccount
 
+const val SAFETY_HUB_ROUTE = "/safety-hub"
+
 internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
-    private var SettingsAPI.classifications by settings.delegate(HashMap<Long, List<PluginResponse.Classifications>>())
-    private var SettingsAPI.isFetched by settings.delegate(false)
+    private var SettingsAPI.classifications by settings.delegate(HashMap<Long, List<AccountStandingResponse.Classifications>>())
 
     init {
         manifest.description = "Adds account standing to Aliucord"
@@ -41,43 +42,30 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
     private fun fetchClassifications() {
         Utils.threadPool.execute {
             try {
-                logger.info("Fetching classifications...")
-                val json = Http.Request.newDiscordRNRequest("/safety-hub/@me", "GET").execute()
-                    .json(GsonUtils.gsonRestApi, PluginResponse::class.java)
+                val me = StoreStream.getUsers().me
+                val json = Http.Request.newDiscordRNRequest("${SAFETY_HUB_ROUTE}/@me", "GET").execute()
+                    .json(GsonUtils.gsonRestApi, AccountStandingResponse::class.java)
+                val userClassifications = HashMap<Long, List<AccountStandingResponse.Classifications>>()
 
-                addClassifications(json)
+                userClassifications[me.id] = json.classifications!!
 
-                logger.info("Fetched classifications! Classifications stored: ${settings.classifications}")
+                if (userClassifications.isNotEmpty() && userClassifications[me.id] != settings.classifications[me.id] && settings.classifications.isNotEmpty() && (me.flags and UserFlags.HAS_UNREAD_URGENT_MESSAGES) != 0) {
+                    val notificationData = NotificationData()
+                        .setTitle("Account Standing")
+                        .setAutoDismissPeriodSecs(10)
+                        .setOnClick { _ ->
+                            openPage(Utils.appActivity, AccountStandingPage::class.java)
+                        }
+                        .setBody(MDUtils.render("You broke Discord's rules, Please check Account Standing for more info."))
+
+                    NotificationsAPI.display(notificationData)
+                }
+
+                settings.setObject("classifications", userClassifications)
             } catch (e: Exception) {
                 logger.error("Failed to fetch data!", e)
             }
         }
-    }
-
-    private fun addClassifications(json: PluginResponse) {
-        val newMap = HashMap<Long, List<PluginResponse.Classifications>>()
-        val me = StoreStream.getUsers().me
-
-        newMap[me.id] = json.classifications!!
-
-        if (newMap[me.id] != settings.classifications[me.id] && settings.classifications.isNotEmpty() && (me.flags and UserFlags.HAS_UNREAD_URGENT_MESSAGES) != 0) {
-            sendNotification()
-        }
-
-        settings.classifications = newMap
-        settings.isFetched = true
-    }
-
-    private fun sendNotification() {
-        val notificationData = NotificationData()
-            .setTitle("Account Standing")
-            .setAutoDismissPeriodSecs(10)
-            .setOnClick { _ ->
-                openPage(Utils.appActivity, AccountStandingPage::class.java)
-            }
-            .setBody(MDUtils.render("You broke Discord's rules, Please check Account Standing for more info."))
-
-        NotificationsAPI.display(notificationData)
     }
 
     override fun start(context: Context) {
@@ -100,7 +88,8 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
             }.addTo(layout, baseIndex + 1)
         }
 
-        if ((StoreStream.getUsers().me.flags and UserFlags.HAS_UNREAD_URGENT_MESSAGES) != 0 || !settings.isFetched) {
+        // this is only temporary for now.. its very horror
+        if ((StoreStream.getUsers().me.flags and UserFlags.HAS_UNREAD_URGENT_MESSAGES) != 0 || !settings.classifications.keys.toString().contains("${StoreStream.getUsers().me.id}")) {
             fetchClassifications()
         } else {
             logger.info("Classifications has already been fetched, Not fetching.")

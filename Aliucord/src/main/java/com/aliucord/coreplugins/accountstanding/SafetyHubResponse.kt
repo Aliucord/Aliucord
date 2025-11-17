@@ -3,7 +3,7 @@ package com.aliucord.coreplugins.accountstanding
 import com.aliucord.utils.SerializedName
 import com.discord.api.utcdatetime.UtcDateTime
 
-internal data class PageResponse(
+internal data class AccountStandingPageResponse(
     @SerializedName("account_standing")
     val accountStanding: AccountStandingState,
     val classifications: List<UserClassifications>
@@ -42,7 +42,7 @@ internal data class PageResponse(
 }
 
 // Only really store the classification IDs on the cache with the plugin
-data class PluginResponse(
+data class AccountStandingResponse(
     val classifications: List<Classifications>?
 ) {
     data class Classifications(
