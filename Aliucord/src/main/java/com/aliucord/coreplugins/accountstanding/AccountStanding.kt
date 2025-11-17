@@ -45,11 +45,16 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
                 val me = StoreStream.getUsers().me
                 val json = Http.Request.newDiscordRNRequest("${SAFETY_HUB_ROUTE}/@me", "GET").execute()
                     .json(GsonUtils.gsonRestApi, AccountStandingResponse::class.java)
+
                 val userClassifications = HashMap<Long, List<AccountStandingResponse.Classifications>>()
+                val oldUserClassifications = HashMap(settings.classifications)
 
                 userClassifications[me.id] = json.classifications!!
+                settings.setObject("classifications", userClassifications)
 
-                if (userClassifications.isNotEmpty() && userClassifications[me.id] != settings.classifications[me.id] && settings.classifications.isNotEmpty() && (me.flags and UserFlags.HAS_UNREAD_URGENT_MESSAGES) != 0) {
+                if (oldUserClassifications.isEmpty() || userClassifications.isEmpty()) return@execute
+
+                if (userClassifications[me.id] != oldUserClassifications[me.id] && (me.flags and UserFlags.HAS_UNREAD_URGENT_MESSAGES) != 0) {
                     val notificationData = NotificationData()
                         .setTitle("Account Standing")
                         .setAutoDismissPeriodSecs(10)
@@ -60,8 +65,6 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
 
                     NotificationsAPI.display(notificationData)
                 }
-
-                settings.setObject("classifications", userClassifications)
             } catch (e: Exception) {
                 logger.error("Failed to fetch data!", e)
             }
