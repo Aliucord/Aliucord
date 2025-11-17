@@ -93,9 +93,9 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
         }
 
         val me = StoreStream.getUsers().me
+        // Only method that works.. it seems :|
         val dataExists = settings.classifications.keys.toString().contains("${me.id}")
 
-        // this is only temporary for now.. its very horror
         if ((me.flags and UserFlags.HAS_UNREAD_URGENT_MESSAGES) != 0 && dataExists || !dataExists) {
             fetchClassifications()
         } else {
