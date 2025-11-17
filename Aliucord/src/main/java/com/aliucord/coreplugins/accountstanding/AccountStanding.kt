@@ -65,6 +65,7 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
 
                     NotificationsAPI.display(notificationData)
                 }
+
             } catch (e: Exception) {
                 logger.error("Failed to fetch data!", e)
             }
@@ -91,8 +92,11 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
             }.addTo(layout, baseIndex + 1)
         }
 
+        val me = StoreStream.getUsers().me
+        val dataExists = settings.classifications.keys.toString().contains("${me.id}")
+
         // this is only temporary for now.. its very horror
-        if ((StoreStream.getUsers().me.flags and UserFlags.HAS_UNREAD_URGENT_MESSAGES) != 0 || !settings.classifications.keys.toString().contains("${StoreStream.getUsers().me.id}")) {
+        if ((me.flags and UserFlags.HAS_UNREAD_URGENT_MESSAGES) != 0 && dataExists || !dataExists) {
             fetchClassifications()
         } else {
             logger.info("Classifications has already been fetched, Not fetching.")
