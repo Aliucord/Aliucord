@@ -326,7 +326,7 @@ object PluginManager {
             SupporterBadges(),
             TokenLogin(),
             UploadSize(),
-            VoiceFix()
+            VoiceFix(),
         )
 
         val safeMode = isSafeModeEnabled();
