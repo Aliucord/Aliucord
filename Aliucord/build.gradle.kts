@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "com.aliucord"
-version = "2.5.0"
+version = "2.6.0"
 
 android {
     namespace = "com.aliucord"
