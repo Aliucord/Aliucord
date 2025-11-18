@@ -21,7 +21,8 @@ internal data class AccountStandingPageResponse(
     data class Actions(val descriptions: List<String>)
     data class FlaggedContent(val content: String?)
     data class AccountStandingState(val state: Int) {
-        val headerString: String = when (state) {
+        val headerString: String
+            get() = when (state) {
                 100 -> "Your account is all good"
                 200 -> "Your account is limited"
                 300 -> "Your account is very limited."
@@ -30,7 +31,8 @@ internal data class AccountStandingPageResponse(
                 else -> "Unknown"
             }
 
-        val bodyString: String = when (state) {
+        val bodyString: String
+            get() = when (state) {
                 100 -> "Thank you for upholding Discord's Terms of Service and Community Guidelines. If you break the rules, it will show up here."
                 200 -> "You may lose access to some parts of Discord if you break the rules again."
                 300 -> "You can't use some parts of Discord, You may be suspended if you break the rules again."
