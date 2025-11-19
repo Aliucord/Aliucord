@@ -62,7 +62,7 @@ kotlin {
 }
 
 dependencies {
-    compileOnly(libs.aliuhook)
+    api(libs.aliuhook)
     compileOnly(libs.appcompat)
     compileOnly(libs.constraintlayout)
     compileOnly(libs.discord)
