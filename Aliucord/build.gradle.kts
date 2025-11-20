@@ -56,7 +56,6 @@ kotlin {
             "-Xno-call-assertions",
             "-Xno-param-assertions",
             "-Xno-receiver-assertions",
-            "-Xallow-kotlin-package", // Workaround to adding kotlin.enums.EnumEntries polyfill
         )
     }
 }
