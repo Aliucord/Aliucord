@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "com.aliucord"
-version = "2.5.0"
+version = "2.6.0"
 
 android {
     namespace = "com.aliucord"
@@ -62,7 +62,7 @@ kotlin {
 }
 
 dependencies {
-    compileOnly(libs.aliuhook)
+    api(libs.aliuhook)
     compileOnly(libs.appcompat)
     compileOnly(libs.constraintlayout)
     compileOnly(libs.discord)

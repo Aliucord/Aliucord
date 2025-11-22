@@ -106,6 +106,35 @@ jobs:
             ${{ github.workspace }}/Injector/build/outputs/Injector.dex
             ${{ github.workspace }}/patches/build/outputs/patches.zip
 
+      - name: Deploy documentation
+        # Refer to comment on maven job as to why repository is explicitly checked
+        if: ${{ github.ref == 'refs/heads/main'
+          && !cancelled()
+          && github.repository == 'Aliucord/Aliucord' }}
+        shell: bash # GLOBIGNORE is unique to bash
+        env:
+          DOCS_REPO: Aliucord/dokka
+          API_TOKEN: ${{ secrets.API_PAT_GITHUB }}
+        run: |
+          # Generate docs
+          ./gradlew :Aliucord:dokkaGenerateHtml
+
+          # Clone docs repo
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git clone https://$USERNAME:$API_TOKEN@github.com/$DOCS_REPO.git docs
+          cd docs
+
+          # Clean and update docs repo
+          GLOBIGNORE=README.md:.git   # do not glob README and .git
+          rm -rf *
+          cp -r ../Aliucord/build/dokka/* .
+
+          # Commit docs changes
+          git add .
+          git commit -m "Build https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA" || exit 0
+          git push https://$USERNAME:$API_TOKEN@github.com/$DOCS_REPO.git
+
       - name: Publish Snapshots to Maven
         if: ${{ github.event_name != 'pull_request'
           && env.MAVEN_SNAPSHOTS_USERNAME != ''
