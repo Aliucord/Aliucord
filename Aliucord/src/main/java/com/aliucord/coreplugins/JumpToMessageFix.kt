@@ -16,7 +16,6 @@ import rx.Observable
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 
-
 internal class JumpToMessageFix : CorePlugin(Manifest("JumpToMessageFix")) {
     init {
         manifest.description = "Fixes message links not jumping to correct message."
@@ -36,7 +35,7 @@ internal class JumpToMessageFix : CorePlugin(Manifest("JumpToMessageFix")) {
             adapter?.setHandlers()
             adapter?.onResume()
 
-            val channelObservable = ObservableExtensionsKt.ui(ObservableExtensionsKt.computationLatest(WidgetChatListModel.Companion!!.get()))
+            val channelObservable = ObservableExtensionsKt.ui(ObservableExtensionsKt.computationLatest(WidgetChatListModel.Companion!!.get()), this, adapter)
             val channelSubscriber = RxUtils.createActionSubscriber<WidgetChatListModel>(
                 { widgetModel ->
                     // Prevent auto scroller from getting executed *after* jumping action
@@ -51,11 +50,11 @@ internal class JumpToMessageFix : CorePlugin(Manifest("JumpToMessageFix")) {
             )
             channelObservable.subscribe(channelSubscriber)
 
-            val scrollObservable = ObservableExtensionsKt.ui(StoreStream.Companion!!.messagesLoader.scrollTo, this,null)
+            val scrollObservable = ObservableExtensionsKt.ui(StoreStream.Companion!!.messagesLoader.scrollTo,this,null)
             val scrollSubscriber = RxUtils.createActionSubscriber<Long>(
                 { messageId ->
                     WidgetChatList.`access$scrollTo`(this, messageId)
-                },logger::error
+                }, logger::error
             )
             scrollObservable.subscribe(scrollSubscriber)
 
