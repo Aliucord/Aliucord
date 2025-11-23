@@ -130,6 +130,7 @@ internal class AccountStandingPage : SettingsPage() {
                     shape = GradientDrawable.OVAL
                     setColor(if (currentState.state == state) color else Utils.appContext.getColor(R.c.status_grey_200))
                 }
+
                 background = circleDrawable
             }.addTo(indicator)
 
