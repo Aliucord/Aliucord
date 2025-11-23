@@ -22,6 +22,7 @@ internal class JumpToMessageFix : CorePlugin(Manifest("JumpToMessageFix")) {
     }
 
     val bindingGetter: Method = WidgetChatList::class.java.getDeclaredMethod("getBinding").apply { isAccessible = true }
+    val channelIdField: Field = WidgetChatListAdapter.HandlerOfUpdates::class.java.getDeclaredField("channelId").apply { isAccessible = true }
     val itemAnimatorField: Field = WidgetChatList::class.java.getDeclaredField("defaultItemAnimator").apply { isAccessible = true }
 
     override fun start(context: Context) {
@@ -32,29 +33,28 @@ internal class JumpToMessageFix : CorePlugin(Manifest("JumpToMessageFix")) {
             val binding = bindingGetter(this) as WidgetChatListBinding
             itemAnimatorField[this] = binding.b.itemAnimator
 
-            adapter?.setHandlers()
-            adapter?.onResume()
+            adapter.setHandlers()
+            adapter.onResume()
 
             val channelObservable = ObservableExtensionsKt.ui(ObservableExtensionsKt.computationLatest(WidgetChatListModel.Companion!!.get()), this, adapter)
             val channelSubscriber = RxUtils.createActionSubscriber<WidgetChatListModel>(
-                { widgetModel ->
+                onNext = { widgetModel ->
                     // Prevent auto scroller from getting executed *after* jumping action
                     // else it would instantly scroll back to bottom
                     val handler = WidgetChatListAdapter.`access$getHandlerOfUpdates$p`(adapter)
                     // id from chat list model doesn't seem reliable
-                    ReflectUtils.setField(handler, "channelId", StoreStream.Companion!!.channelsSelected.id)
+                    channelIdField[handler] = StoreStream.Companion!!.channelsSelected.id
                     WidgetChatListAdapter.`access$setTouchedSinceLastJump$p`(adapter, true)
-
                     WidgetChatList.`access$configureUI`(this, widgetModel)
-                }, logger::error,
+                }, 
+                onError = logger::error
             )
             channelObservable.subscribe(channelSubscriber)
 
             val scrollObservable = ObservableExtensionsKt.ui(StoreStream.Companion!!.messagesLoader.scrollTo,this,null)
             val scrollSubscriber = RxUtils.createActionSubscriber<Long>(
-                { messageId ->
-                    WidgetChatList.`access$scrollTo`(this, messageId)
-                }, logger::error
+                onNext = { messageId -> WidgetChatList.`access$scrollTo`(this, messageId) }, 
+                onError = logger::error
             )
             scrollObservable.subscribe(scrollSubscriber)
 
