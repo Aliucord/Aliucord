@@ -3,10 +3,18 @@ package com.aliucord.coreplugins
 import android.content.Context
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.instead
+import com.aliucord.utils.ReflectUtils
+import com.aliucord.utils.RxUtils
+import com.aliucord.utils.RxUtils.subscribe
+import com.discord.databinding.WidgetChatListBinding
 import com.discord.stores.StoreStream
+import com.discord.utilities.rx.ObservableExtensionsKt
+import com.discord.widgets.chat.list.WidgetChatList
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapter
-import com.discord.widgets.chat.list.entries.MessageEntry
-import com.discord.widgets.chat.list.entries.NewMessagesEntry
+import com.discord.widgets.chat.list.model.WidgetChatListModel
+import rx.Observable
+import java.lang.reflect.Field
+import java.lang.reflect.Method
 
 
 internal class JumpToMessageFix : CorePlugin(Manifest("JumpToMessageFix")) {
@@ -14,46 +22,45 @@ internal class JumpToMessageFix : CorePlugin(Manifest("JumpToMessageFix")) {
         manifest.description = "Fixes message links not jumping to correct message."
     }
 
+    val bindingGetter: Method = WidgetChatList::class.java.getDeclaredMethod("getBinding").apply { isAccessible = true }
+    val itemAnimatorField: Field = WidgetChatList::class.java.getDeclaredField("defaultItemAnimator").apply { isAccessible = true }
+
     override fun start(context: Context) {
-        patcher.instead<WidgetChatListAdapter.ScrollToWithHighlight>("getNewMessageEntryIndex", List::class.java) { param ->
-            val list = param.args[0] as List<*>
-            var messageId = this.messageId
+        // Modified reimplementation of original function that concatenates
+        // channel loading and message jumping Observables to avoid synchronization issues
+        patcher.instead<WidgetChatList>("onViewBoundOrOnResume") {
+            val adapter = WidgetChatList.`access$getAdapter$p`(this)
+            val binding = bindingGetter(this) as WidgetChatListBinding
+            itemAnimatorField[this] = binding.b.itemAnimator
 
-            if (messageId == 1L) { // reused var for normal scroll ig
-                return@instead 0
-            }
-            if (messageId == 0L) {
-                messageId = this.adapter.data.newMessagesMarkerMessageId
-                if (messageId <= 0L) {
-                    return@instead 0
-                }
-            }
+            adapter?.setHandlers()
+            adapter?.onResume()
 
-            if (messageId <= 0L) {
-                return@instead -1
-            }
-            val messageIndex = list
-                .indexOfFirst { item -> (item is MessageEntry) && item.message.id == messageId }
+            val channelObservable = ObservableExtensionsKt.ui(ObservableExtensionsKt.computationLatest(WidgetChatListModel.Companion!!.get()))
+            val channelSubscriber = RxUtils.createActionSubscriber<WidgetChatListModel>(
+                { widgetModel ->
+                    // Prevent auto scroller from getting executed *after* jumping action
+                    // else it would instantly scroll back to bottom
+                    val handler = WidgetChatListAdapter.`access$getHandlerOfUpdates$p`(adapter)
+                    // id from chat list model doesn't seem reliable
+                    ReflectUtils.setField(handler, "channelId", StoreStream.Companion!!.channelsSelected.id)
+                    WidgetChatListAdapter.`access$setTouchedSinceLastJump$p`(adapter, true)
 
-            if (messageIndex == -1) {
-                return@instead -1
-            }
-            val newMessageIndex =
-                list.subList(0, messageIndex)
-                    .indexOfLast { (it is NewMessagesEntry) && it.messageId == messageId }
-                    .takeIf { it != -1 }
+                    WidgetChatList.`access$configureUI`(this, widgetModel)
+                }, logger::error,
+            )
+            channelObservable.subscribe(channelSubscriber)
 
-            // This ensures the app doesn't jump to message before loading its channel.
-            val selectedChannel = StoreStream.Companion!!.channelsSelected.id
-            val currentChannel = this.adapter.data.channelId
-            if (selectedChannel != currentChannel) {
-                // Forces ChatListAdapter to retry jumping to message,
-                // giving the app more time to load the channel.
-                return@instead -1
-            }
-            return@instead newMessageIndex ?: messageIndex
+            val scrollObservable = ObservableExtensionsKt.ui(StoreStream.Companion!!.messagesLoader.scrollTo, this,null)
+            val scrollSubscriber = RxUtils.createActionSubscriber<Long>(
+                { messageId ->
+                    WidgetChatList.`access$scrollTo`(this, messageId)
+                },logger::error
+            )
+            scrollObservable.subscribe(scrollSubscriber)
+
+            Observable.m(channelObservable, scrollObservable) // Observable.concat()
         }
-
     }
 
     override fun stop(context: Context) = patcher.unpatchAll()
