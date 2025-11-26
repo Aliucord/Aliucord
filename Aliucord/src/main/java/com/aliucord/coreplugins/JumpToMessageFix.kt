@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.drawable.TransitionDrawable
 import android.view.MotionEvent
 import android.view.View
+import androidx.core.content.ContextCompat
 import com.aliucord.Utils
 import com.aliucord.coreplugins.decorations.JumpToMessageSettings
 import com.aliucord.entities.CorePlugin
@@ -76,26 +77,29 @@ internal class JumpToMessageFix : CorePlugin(Manifest("JumpToMessageFix")) {
         patcher.before<WidgetChatListAdapter.ScrollToWithHighlight>("run") {
             if (JumpToMessageSettings.autoExpandBlockedMessages) {
                 val storeChat = StoreStream.Companion!!.chat
+                val dispatcher = StoreStream.getDispatcherYesThisIsIntentional()
                 // the public getter method in StoreChat returns a snapshot list instead of live
                 val expandedBlockedMessages = StoreChat.`access$getExpandedBlockedMessageGroups$p`(storeChat)
                 if (messageId !in expandedBlockedMessages) {
                     expandedBlockedMessages.add(messageId)
                 }
-                storeChat.markChanged()
+                dispatcher.schedule {
+                    storeChat.markChanged()
+                }
             }
         }
         // Custom message highlighting implementation. Message won't de-highlight until user taps on chat.
         patcher.instead<WidgetChatListAdapter.ScrollToWithHighlight>("animateHighlight", View::class.java) { param ->
             val view = param.args[0] as View
-            val highlightDrawable = Utils.getResId("drawable_bg_highlight", "drawable")
-            view.setBackgroundResource(highlightDrawable)
-            val transitionDrawable = view.background as TransitionDrawable
-            transitionDrawable.startTransition(500)
+            val highlightDrawableId = Utils.getResId("drawable_bg_highlight", "drawable")
+            val highlightDrawable = ContextCompat.getDrawable(Utils.appActivity, highlightDrawableId) as TransitionDrawable
+            view.background = highlightDrawable
+            highlightDrawable.startTransition(500)
             highlightedMessageView.set(view)
         }
         patcher.before<WidgetChatListAdapter.HandlerOfTouches>("onTouch", View::class.java, MotionEvent::class.java) {
             val messageView = highlightedMessageView.getAndSet(null) ?: return@before
-            val transitionDrawable = messageView.background as TransitionDrawable
+            val transitionDrawable = messageView.background as? TransitionDrawable ?: return@before
             transitionDrawable.reverseTransition(500)
         }
     }
