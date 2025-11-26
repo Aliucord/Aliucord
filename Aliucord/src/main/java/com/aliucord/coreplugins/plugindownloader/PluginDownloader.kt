@@ -186,7 +186,7 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
 
                 val plugin = PluginFile(name)
                 addEntryBefore(layout, "${if (plugin.isInstalled) "Reinstall" else "Install"} $name", targetId) {
-                    plugin.install("https://github.com/$author/$repo/raw/$commit/$name.zip")
+                    plugin.install("https://cdn.jsdelivr.net/gh/$author/$repo@$commit/$name.zip")
                     actions.dismiss()
                 }
             }

@@ -27,7 +27,6 @@ internal class RNAPI : CorePlugin(Manifest("RNAPI")) {
         patchDefaultAvatars()
         patchUsername()
         patchStickers()
-        patchVoice()
         patchMessageEmbeds()
 
         if (ManagerBuild.hasInjector("2.1.2")) patchAuditLog()

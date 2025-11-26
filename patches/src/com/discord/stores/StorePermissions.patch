@@ -1,0 +1,11 @@
+--- smali_original/com/discord/stores/StorePermissions.smali
++++ smali/com/discord/stores/StorePermissions.smali
+@@ -554,7 +554,7 @@ .method private final computeChannelPerm
+ 
+     if-eqz v4, :cond_89
+ 
+-    const-wide v4, 0x17ffff7feffL
++    const-wide v4, 0xa017ffff7feffL
+ 
+     goto :goto_ac
+ 

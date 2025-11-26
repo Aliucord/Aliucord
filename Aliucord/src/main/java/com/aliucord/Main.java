@@ -25,9 +25,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.fragment.app.Fragment;
 
 import com.aliucord.entities.CorePlugin;
 import com.aliucord.entities.Plugin;
+import com.aliucord.fragments.ConfirmDialog;
 import com.aliucord.patcher.*;
 import com.aliucord.settings.*;
 import com.aliucord.updater.PluginUpdater;
@@ -39,9 +41,9 @@ import com.aliucord.widgets.SideloadingBlockWarning;
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper;
 import com.discord.api.message.embed.EmbedField;
 import com.discord.app.*;
-import com.discord.databinding.WidgetChangeLogBinding;
-import com.discord.databinding.WidgetDebuggingAdapterItemBinding;
+import com.discord.databinding.*;
 import com.discord.models.domain.*;
+import com.discord.models.domain.emoji.ModelEmojiCustom;
 import com.discord.models.domain.emoji.ModelEmojiUnicode;
 import com.discord.stores.*;
 import com.discord.utilities.color.ColorCompat;
@@ -59,10 +61,12 @@ import com.discord.widgets.guilds.profile.WidgetGuildProfileSheet$configureGuild
 import com.discord.widgets.home.WidgetHome;
 import com.discord.widgets.settings.WidgetSettings;
 import com.discord.widgets.settings.profile.WidgetEditUserOrGuildMemberProfile;
+import com.discord.widgets.status.*;
 import com.lytefast.flexinput.R;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -182,6 +186,38 @@ public final class Main {
             changelogBtn.setVisibility(View.GONE);
         }));
 
+        // Add permanent indicator if safe mode is enabled.
+        Patcher.addPatch(WidgetGlobalStatusIndicator.class, "configureUI", new Class<?>[] {WidgetGlobalStatusIndicatorViewModel.ViewState.class }, new PreHook(param -> {
+            if (!PluginManager.isSafeModeEnabled()) {
+                return;
+            }
+            WidgetGlobalStatusIndicator indicator = (WidgetGlobalStatusIndicator) param.thisObject;
+            Context context = indicator.requireContext();
+
+            try {
+                var binding = (WidgetGlobalStatusIndicatorBinding) ReflectUtils.invokeMethod(indicator, "getBinding");
+                var indicatorState = (WidgetGlobalStatusIndicatorState) ReflectUtils.getField(indicator, "indicatorState");
+
+                int backgroundColor = Utils.getResId("colorBackgroundTertiary", "attr");
+                int textColor = Utils.getResId("colorHeaderPrimary", "attr");
+
+                LinearLayout linearLayout = binding.c;
+                TextView indicatorText = binding.i;
+                linearLayout.setBackgroundColor(ColorCompat.getThemedColor(context, backgroundColor));
+                linearLayout.setOnClickListener(widget -> safeModeDialog(indicator));
+                indicatorText.setTextColor(ColorCompat.getThemedColor(context, textColor));
+                indicatorText.setText("Safe mode enabled");
+                linearLayout.setVisibility(View.VISIBLE);
+
+                Utils.mainThread.post(() -> indicatorState.updateState(true, false, false));
+            } catch (Throwable e) {
+                logger.error(e);
+                return;
+            }
+
+            param.setResult(null);
+        }));
+
         // Patch to repair built-in emotes is needed because installer doesn't recompile resources,
         // so they stay in package com.discord instead of apk package name
         Patcher.addPatch(ModelEmojiUnicode.class, "getImageUri", new Class<?>[]{ String.class, Context.class },
@@ -226,6 +262,7 @@ public final class Main {
             WidgetChangeLog _this = (WidgetChangeLog) param.thisObject;
             WidgetChangeLogBinding binding = WidgetChangeLog.access$getBinding$p(_this);
 
+            @SuppressWarnings({"deprecation", "RedundantSuppression"})
             Parcelable[] actions = _this.getMostRecentIntent().getParcelableArrayExtra("INTENT_EXTRA_FOOTER_ACTIONS");
 
             if (actions == null) {
@@ -336,8 +373,22 @@ public final class Main {
         );
         Patcher.addPatch(WidgetHome.class,
             "maybeShowHubEmailUpsell",
-            null,
             new InsteadHook(param -> null)
+        );
+
+        // Support webp emojis by forcing every emoji to be webp
+        Patcher.addPatch(ModelEmojiCustom.class,
+            "getImageUri",
+            new Class[]{ long.class, boolean.class, int.class },
+            new InsteadHook(param ->
+                String.format(
+                    Locale.ROOT,
+                    "https://cdn.discordapp.com/emojis/%s.webp?size=%s&animated=%s",
+                    param.args[0],
+                    param.args[2],
+                    param.args[1]
+                )
+            )
         );
 
         if (loadedPlugins) {
@@ -426,6 +477,11 @@ public final class Main {
     }
 
     private static void loadAllPlugins(Context context) {
+        if (PluginManager.isSafeModeEnabled()) {
+            logger.warn("Safe mode is enabled. skipping loading external plugins");
+            loadedPlugins = true;
+            return;
+        }
         File dir = new File(Constants.PLUGINS_PATH);
         if (!dir.exists()) {
             boolean res = dir.mkdirs();
@@ -517,5 +573,24 @@ public final class Main {
             granted -> permissionGrantedCallback(activity, granted)
         ).launch(perm);
         return false;
+    }
+
+    private static void safeModeDialog(Fragment fragment) {
+        var desc = """
+            You are currently in safe mode. Plugins are disabled.
+
+            Press OK to exit safe mode and restart Aliucord.
+            """;
+        new ConfirmDialog()
+            .setTitle("Safe Mode")
+            .setDescription(desc)
+            .setOnOkListener(widget -> {
+                settings.setBool(AliucordPageKt.ALIUCORD_SAFE_MODE_KEY, false);
+                Context ctx = fragment.requireContext();
+                Intent intent = ctx.getPackageManager().getLaunchIntentForPackage(ctx.getPackageName());
+                Utils.appActivity.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
+                Runtime.getRuntime().exit(0);
+            })
+            .show(fragment.getParentFragmentManager(), "Disable Safe Mode");
     }
 }

@@ -1,18 +1,37 @@
 @file:Suppress("UnstableApiUsage")
 
+import com.vanniktech.maven.publish.AndroidMultiVariantLibrary
+
 plugins {
-    id("maven-publish")
-    id("org.jetbrains.dokka")
+    alias(libs.plugins.aliucord.core)
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.dokka.html)
+    alias(libs.plugins.dokka.javadoc)
+    alias(libs.plugins.kotlin)
+    alias(libs.plugins.publish)
 }
 
 group = "com.aliucord"
-version = "2.4.0"
-
-aliucord {
-    projectType.set(com.aliucord.gradle.ProjectType.CORE)
-}
+version = "2.6.0"
 
 android {
+    namespace = "com.aliucord"
+    compileSdk = 36
+
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+    }
+
+    defaultConfig {
+        minSdk = 24
+    }
+
+    buildTypes {
+        named("release") {
+            isMinifyEnabled = false
+        }
+    }
+
     defaultConfig {
         buildConfigField("String", "VERSION", "\"$version\"")
         buildConfigField("boolean", "RELEASE", System.getenv("RELEASE") ?: "false")
@@ -21,60 +40,67 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
+    }
+
+    lint {
+        disable += "SetTextI18n"
+    }
+}
+
+kotlin {
+    jvmToolchain(21)
+
+    compilerOptions {
+        freeCompilerArgs.addAll(
+            "-Xno-call-assertions",
+            "-Xno-param-assertions",
+            "-Xno-receiver-assertions",
+            "-Xallow-kotlin-package", // Workaround to adding kotlin.enums.EnumEntries polyfill
+        )
     }
 }
 
 dependencies {
-    api(libs.appcompat)
-    api(libs.material)
-    api(libs.constraintlayout)
     api(libs.aliuhook)
+    compileOnly(libs.appcompat)
+    compileOnly(libs.constraintlayout)
+    compileOnly(libs.discord)
+    compileOnly(libs.kotlin.stdlib)
+    compileOnly(libs.material)
     compileOnly(project(":Injector")) // Needed to access certain stubs
+    coreLibraryDesugaring(libs.desugar)
 }
 
-tasks {
-    dokkaHtml.configure {
-        dokkaSourceSets {
-            named("main") {
-                noAndroidSdkLink.set(false)
-                includeNonPublic.set(false)
-            }
-        }
-    }
-
-    dokkaJavadoc.configure {
-        dokkaSourceSets {
-            named("main") {
-                noAndroidSdkLink.set(false)
-                includeNonPublic.set(false)
-            }
-        }
-    }
+tasks.withType<JavaCompile> {
+    options.compilerArgs.addAll(arrayOf(
+        "-Xlint:deprecation",
+    ))
 }
 
-afterEvaluate {
-    publishing {
-        publications {
-            register<MavenPublication>(project.name) {
-                from(components["debug"])
-                artifact(tasks["debugSourcesJar"])
+mavenPublishing {
+    coordinates("com.aliucord", "Aliucord")
+    configure(AndroidMultiVariantLibrary(
+        includedBuildTypeValues = setOf("debug"),
+    ))
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "aliucord"
+            url = uri("https://maven.aliucord.com/releases")
+            credentials {
+                username = System.getenv("MAVEN_RELEASES_USERNAME")
+                password = System.getenv("MAVEN_RELEASES_PASSWORD")
             }
         }
-
-        repositories {
-            val username = System.getenv("MAVEN_USERNAME")
-            val password = System.getenv("MAVEN_PASSWORD")
-
-            if (username != null && password != null) {
-                maven {
-                    credentials {
-                        this.username = username
-                        this.password = password
-                    }
-                    setUrl("https://maven.aliucord.com/snapshots")
-                }
-            } else {
-                mavenLocal()
+        maven {
+            name = "aliucordSnapshots"
+            url = uri("https://maven.aliucord.com/snapshots")
+            credentials {
+                username = System.getenv("MAVEN_SNAPSHOTS_USERNAME")
+                password = System.getenv("MAVEN_SNAPSHOTS_PASSWORD")
             }
         }
     }

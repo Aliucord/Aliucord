@@ -1,25 +1,39 @@
 [versions]
-kotlin = "1.5.21"
-android-gradle = "7.0.4"
-#noinspection GradleDependency causes errors
-appcompat = "1.4.1"
-dokka = "1.8.10"
-aliuhook = "1.1.0"
-aliucord-gradle = "753ad25"
+aliucord-gradle = "2.2.0"
+aliuhook = "1.1.4"
+android-gradle = "8.13.0"
+desugar = "2.0.3"
 discord = "126021"
-#noinspection GradleDependency causes errors
-material = "1.5.0"
+dokka = "2.1.0"
+kotlin = "2.2.20"
+#noinspection GradleDependency
+kotlin-stdlib = "1.5.21"
+publish = "0.34.0"
+smali = "3.0.9"
+
+#noinspection GradleDependency
+appcompat = "1.4.1"
+#noinspection GradleDependency
 constraintlayout = "2.1.4"
+#noinspection GradleDependency
+material = "1.5.0"
 
 [libraries]
-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 aliuhook = { module = "com.aliucord:Aliuhook", version.ref = "aliuhook" }
+appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
+desugar = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar" }
 discord = { module = "com.discord:discord", version.ref = "discord" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin-stdlib" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
+smali = { module = "com.android.tools.smali:smali", version.ref = "smali" }
+smali-baksmali = { module = "com.android.tools.smali:smali-baksmali", version.ref = "smali" }
 
 [plugins]
-kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+aliucord-core = { id = "com.aliucord.core", version.ref = "aliucord-gradle" }
+aliucord-injector = { id = "com.aliucord.injector", version.ref = "aliucord-gradle" }
 android-library = { id = "com.android.library", version.ref = "android-gradle" }
-aliucord-gradle = { id = "com.aliucord.gradle", version.ref = "aliucord-gradle" }
-dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+dokka-html = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+dokka-javadoc = { id = "org.jetbrains.dokka-javadoc", version.ref = "dokka" }
+kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+publish = { id = "com.vanniktech.maven.publish", version.ref = "publish" }

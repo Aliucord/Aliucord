@@ -1,5 +1,3 @@
-@file:Suppress("MISSING_DEPENDENCY_CLASS", "MISSING_DEPENDENCY_SUPERCLASS")
-
 package com.aliucord.coreplugins.polls.chatview
 
 import com.aliucord.utils.RxUtils.subscribe

@@ -1,0 +1,11 @@
+--- smali_original/com/discord/widgets/channels/permissions/WidgetChannelSettingsEditPermissionsModel$Companion$getForRole$1.smali
++++ smali/com/discord/widgets/channels/permissions/WidgetChannelSettingsEditPermissionsModel$Companion$getForRole$1.smali
+@@ -228,7 +228,7 @@ .method public final call(Lcom/discord/a
+ 
+     const-wide/16 v10, 0x0
+ 
+-    const-wide v12, 0x17ffff7feffL
++    const-wide v12, 0xa017ffff7feffL
+ 
+     move-object v6, v5
+ 

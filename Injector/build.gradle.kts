@@ -1,19 +1,53 @@
-@file:Suppress("UnstableApiUsage")
+version = "2.3.2"
 
-version = "2.3.0"
-
-aliucord {
-    projectType.set(com.aliucord.gradle.ProjectType.INJECTOR)
+plugins {
+    alias(libs.plugins.aliucord.injector)
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin)
 }
 
 android {
+    namespace = "com.aliucord"
+    compileSdk = 36
+
+    defaultConfig {
+        minSdk = 24
+    }
+
+    buildTypes {
+        named("release") {
+            isMinifyEnabled = false
+        }
+    }
+
+    androidResources {
+        enable = false
+    }
+
     buildFeatures {
         buildConfig = false
-        androidResources = false
+    }
+
+    lint {
+        disable += "SetTextI18n"
+    }
+}
+
+kotlin {
+    jvmToolchain(21)
+
+    compilerOptions {
+        freeCompilerArgs.addAll(
+            "-Xno-call-assertions",
+            "-Xno-param-assertions",
+            "-Xno-receiver-assertions",
+        )
     }
 }
 
 dependencies {
-    implementation(libs.appcompat)
-    implementation(libs.aliuhook)
+    compileOnly(libs.aliuhook)
+    compileOnly(libs.appcompat)
+    compileOnly(libs.discord)
+    compileOnly(libs.kotlin.stdlib)
 }
