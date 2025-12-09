@@ -15,12 +15,15 @@ internal object DecorationsSettings {
 
     private val enableAvatarDecorationDelegate = settings.delegate("enableAvatarDecorations", true)
     val enableAvatarDecoration by enableAvatarDecorationDelegate
+    private val enableNameplatesDelegate = settings.delegate("enableNameplates", true)
+    val enableNameplates by enableNameplatesDelegate
 
     class Sheet : BottomSheet() {
         override fun onViewCreated(view: View, bundle: Bundle?) {
             super.onViewCreated(view, bundle)
 
             createSetting("Show avatar decorations", enableAvatarDecorationDelegate).addTo(linearLayout)
+            createSetting("Show nameplates", enableNameplatesDelegate).addTo(linearLayout)
         }
 
         private fun createSetting(description: String, delegate: SettingsDelegate<Boolean>): CheckedSetting {
