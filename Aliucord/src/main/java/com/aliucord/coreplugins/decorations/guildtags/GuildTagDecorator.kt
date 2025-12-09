@@ -45,7 +45,7 @@ private const val WRAP_CONTENT = ViewGroup.LayoutParams.WRAP_CONTENT
 
 private val logger = Logger("Decorations/GuildTag")
 
-internal class GuildTags() : Decorator() {
+internal class GuildTagDecorator() : Decorator() {
     override fun patch(patcher: PatcherAPI) {
         patchReplyPreview(patcher)
         patchUsernameView(patcher)
@@ -81,7 +81,7 @@ internal class GuildTags() : Decorator() {
                         sessionId,
                         /* directoryChannelId */ null,
                         /* contextProperties */ null,
-                        /* errorClass */ GuildTags::class.java, // (only class name is used, for error reporting)
+                        /* errorClass */ GuildTagDecorator::class.java, // (only class name is used, for error reporting)
                         /* onSubscribe */ null,
                         /* onError */ { e: Any? ->
                             logger.errorToast("Failed to join guild")

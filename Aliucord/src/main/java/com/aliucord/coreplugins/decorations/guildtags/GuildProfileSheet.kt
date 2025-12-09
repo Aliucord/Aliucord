@@ -420,7 +420,7 @@ internal class GuildProfileSheet : BottomSheet() {
                     text = "Adopt Tag"
                     setOnClickListener {
                         isEnabled = false
-                        GuildTags.adoptTag(profile.id) {
+                        GuildTagDecorator.adoptTag(profile.id) {
                             Utils.mainThread.post { dismiss() }
                         }
                     }
@@ -434,7 +434,7 @@ internal class GuildProfileSheet : BottomSheet() {
                     // to handle post-joining
                     // StoreStream.getLurking().startLurkingAndNavigate(profile.id, null, null)
 
-                    GuildTags.joinGuild(requireContext(), profile.id) {
+                    GuildTagDecorator.joinGuild(requireContext(), profile.id) {
                         StoreStream.getGuildSelected().set(profile.id)
                         Utils.mainThread.post { dismiss() }
                     }
