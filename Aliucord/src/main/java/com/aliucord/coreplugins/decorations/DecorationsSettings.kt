@@ -15,12 +15,15 @@ internal object DecorationsSettings {
 
     private val enableAvatarDecorationDelegate = settings.delegate("enableAvatarDecorations", true)
     val enableAvatarDecoration by enableAvatarDecorationDelegate
+    private val enableGuildTagsDelegate = settings.delegate("enableGuildTags", true)
+    val enableGuildTags by enableGuildTagsDelegate
 
     class Sheet : BottomSheet() {
         override fun onViewCreated(view: View, bundle: Bundle?) {
             super.onViewCreated(view, bundle)
 
             createSetting("Show avatar decorations", enableAvatarDecorationDelegate).addTo(linearLayout)
+            createSetting("Show server tags", enableGuildTagsDelegate).addTo(linearLayout)
         }
 
         private fun createSetting(description: String, delegate: SettingsDelegate<Boolean>): CheckedSetting {

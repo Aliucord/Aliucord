@@ -5,6 +5,7 @@ import android.util.AttributeSet
 import com.aliucord.coreplugins.decorations.DecorationsSettings
 import com.aliucord.coreplugins.decorations.Decorator
 import com.aliucord.coreplugins.decorations.avatar.AvatarDecorator
+import com.aliucord.coreplugins.decorations.guildtags.GuildTags
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.updater.ManagerBuild
@@ -38,6 +39,7 @@ internal class Decorations : CorePlugin(Manifest().apply {
     @OptIn(ExperimentalStdlibApi::class)
     private val decorators = buildList<Decorator> {
         if (DecorationsSettings.enableAvatarDecoration) add(AvatarDecorator())
+        if (DecorationsSettings.enableGuildTags) add(GuildTags())
     }
 
     override fun start(context: Context) {
@@ -62,6 +64,15 @@ internal class Decorations : CorePlugin(Manifest().apply {
             displayNameStyles = api.displayNameStyles
             primaryGuild = api.primaryGuild
         }
+        patcher.after<CoreUser>("equals", Object::class.java) { (param, other: Any?) ->
+            if (other is CoreUser) {
+                param.result = (param.result as Boolean)
+                    && avatarDecorationData == other.avatarDecorationData
+                    && collectibles == other.collectibles
+                    && displayNameStyles == other.displayNameStyles
+                    && primaryGuild == other.primaryGuild
+            }
+        }
         patcher.after<CoreUser.Companion>("merge", CoreUser::class.java, User::class.java) { (param, old: CoreUser, api: User) ->
             val res = param.result as CoreUser
 
@@ -76,6 +87,15 @@ internal class Decorations : CorePlugin(Manifest().apply {
             collectibles = api.collectibles
             displayNameStyles = api.displayNameStyles
             primaryGuild = api.primaryGuild
+        }
+        patcher.after<MeUser>("equals", Object::class.java) { (param, other: Any?) ->
+            if (other is MeUser) {
+                param.result = (param.result as Boolean)
+                    && avatarDecorationData == other.avatarDecorationData
+                    && collectibles == other.collectibles
+                    && displayNameStyles == other.displayNameStyles
+                    && primaryGuild == other.primaryGuild
+            }
         }
         patcher.after<MeUser.Companion>("merge", MeUser::class.java, User::class.java) { (param, old: MeUser, api: User) ->
             val res = param.result as MeUser
