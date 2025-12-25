@@ -36,7 +36,7 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
     private var SettingsAPI.classifications by settings.delegate(HashMap<Long, List<AccountStandingResponse.Classifications>>())
 
     init {
-        manifest.description = "Adds account standing to Aliucord"
+        manifest.description = "Adds account standing to Aliucord."
     }
 
     private fun fetchClassifications() {
@@ -56,12 +56,12 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
 
                 if (userClassifications[me.id] != oldUserClassifications[me.id] && (me.flags and UserFlags.HAS_UNREAD_URGENT_MESSAGES) != 0) {
                     val notificationData = NotificationData()
-                        .setTitle("Account Standing")
+                        .setTitle("Account standing")
                         .setAutoDismissPeriodSecs(10)
                         .setOnClick { _ ->
                             openPage(Utils.appActivity, AccountStandingPage::class.java)
                         }
-                        .setBody(MDUtils.render("You broke Discord's rules, Please check Account Standing for more info."))
+                        .setBody(MDUtils.render("You broke Discord's rules, please check Account Standing for more info."))
 
                     NotificationsAPI.display(notificationData)
                 }
@@ -79,7 +79,7 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
             val ctx = layout.context
 
             TextView(ctx, null, 0, R.i.UiKit_Settings_Item).apply {
-                text = "Account Standing"
+                text = "Account standing"
                 setCompoundDrawablesWithIntrinsicBounds(
                     null,
                     null,
@@ -99,7 +99,7 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
         if ((me.flags and UserFlags.HAS_UNREAD_URGENT_MESSAGES) != 0 && dataExists || !dataExists) {
             fetchClassifications()
         } else {
-            logger.info("Classifications has already been fetched, Not fetching.")
+            logger.info("Classifications have already been fetched, not fetching.")
         }
     }
 
