@@ -25,19 +25,19 @@ internal data class AccountStandingPageResponse(
             get() = when (state) {
                 100 -> "Your account is all good"
                 200 -> "Your account is limited"
-                300 -> "Your account is very limited."
+                300 -> "Your account is very limited"
                 400 -> "Your account is at risk"
-                500 -> "Your account is suspended."
+                500 -> "Your account is suspended"
                 else -> "Unknown"
             }
 
         val bodyString: String
             get() = when (state) {
-                100 -> "Thank you for upholding Discord's Terms of Service and Community Guidelines. If you break the rules, it will show up here."
+                100 -> "Thank you for upholding Discord's Terms of Service and Community Guidelines, if you break the rules, it will show up here."
                 200 -> "You may lose access to some parts of Discord if you break the rules again."
-                300 -> "You can't use some parts of Discord, You may be suspended if you break the rules again."
-                400 -> "You broke Discord's rules. You will be permanently suspended if you break them again."
-                500 -> "Due to serious policy violations, your account is permanently suspended, You can no longer use Discord."
+                300 -> "You can't use some parts of Discord, you may be suspended if you break the rules again."
+                400 -> "You broke Discord's rules, you will be permanently suspended if you break them again."
+                500 -> "Due to serious policy violations, your account is permanently suspended. You can no longer use Discord."
                 else -> "Unknown"
             }
     }
