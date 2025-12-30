@@ -46,6 +46,7 @@ public final class Constants {
     public static final long PLUGIN_DEVELOPMENT_CHANNEL_ID = 811261478875299840L; // #plugin-development
     public static final long PLUGIN_DEVELOPER_ROLE_ID = 811277662747623464L; // @plugin-developer
     public static final long SUPPORT_HELPER_ROLE_ID = 1397067198761144361L; // @support-helper
+    public static final long BOT_SPAM_CHANNEL_ID = 811263527239024640L; // #bot-spam
 
     /** Path of Aliucord folder */
     @SuppressWarnings("deprecation")
