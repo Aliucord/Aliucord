@@ -1,4 +1,4 @@
-package com.aliucord.coreplugins.channelbrowser
+package com.github.lampdelivery
 
 import android.annotation.SuppressLint
 import com.aliucord.Http
@@ -15,49 +15,48 @@ import com.lytefast.flexinput.R
 import com.aliucord.fragments.SettingsPage
 import com.discord.stores.StoreStream
 
-class ChannelBrowserPage(val settings: SettingsAPI) : SettingsPage() {
+internal class ChannelBrowserPage(val settings: SettingsAPI) : SettingsPage() {
+
     private val logger = com.aliucord.Logger("ChannelBrowser")
     private val handler = android.os.Handler(android.os.Looper.getMainLooper())
     private var lastView: View? = null
-    private fun getCurrentGuildSettings(guildId: Long): Map<String, Any>? {
-        return try {
-            val store = StoreStream.getUserGuildSettings()
-            val settingsMap = store.guildSettings
-            val settings = settingsMap[guildId] ?: return null
-            val field = settings.javaClass.declaredFields.find { it.name == "channelOverrides" }
-            field?.isAccessible = true
-            val overridesList = field?.get(settings) as? List<*> ?: return null
-            val overridesMap = mutableMapOf<String, Int>()
-            for (override in overridesList) {
-                if (override == null) continue
-                val chIdField = override.javaClass.declaredFields.find { it.name == "channelId" }
-                val flagsField = override.javaClass.declaredFields.find { it.name == "flags" }
-                chIdField?.isAccessible = true
-                flagsField?.isAccessible = true
-                val chId = chIdField?.get(override)?.toString()
-                val flags = (flagsField?.get(override) as? Int) ?: 0
-                if (chId != null) overridesMap[chId] = flags
-            }
-            mapOf("channel_overrides" to overridesMap)
-        } catch (e: Throwable) {
-            logger.error("[getCurrentGuildSettings] Exception: ${e.message}", e)
-            null
+
+    private fun getCurrentGuildSettings(guildId: Long): Map<String, Any>? = try {
+        val store = StoreStream.getUserGuildSettings()
+        val settingsMap = store.guildSettings
+        val settings = settingsMap[guildId] ?: return null
+        val field = settings.javaClass.declaredFields.find { it.name == "channelOverrides" }
+        field?.isAccessible = true
+        val overridesList = field?.get(settings) as? List<*> ?: return null
+        val overridesMap = mutableMapOf<String, Int>()
+        for (override in overridesList) {
+            if (override == null) continue
+            val chIdField = override.javaClass.declaredFields.find { it.name == "channelId" }
+            val flagsField = override.javaClass.declaredFields.find { it.name == "flags" }
+            chIdField?.isAccessible = true
+            flagsField?.isAccessible = true
+            val chId = chIdField?.get(override)?.toString()
+            val flags = (flagsField?.get(override) as? Int) ?: 0
+            if (chId != null) overridesMap[chId] = flags
         }
+        mapOf("channel_overrides" to overridesMap)
+    } catch (e: Throwable) {
+        logger.error("[getCurrentGuildSettings] Exception: ${e.message}", e)
+        null
     }
+
 
     private fun themeAlertDialogText(dialog: AlertDialog, ctx: Context) {
         try {
-            val textColorRes = R.c.primary_dark
-            val textColor = ContextCompat.getColor(ctx, textColorRes)
+            val textColor = ContextCompat.getColor(ctx, R.c.primary_dark)
             dialog.window?.decorView?.post {
-                val messageId = android.R.id.message
-                val messageView = dialog.findViewById<TextView>(messageId)
+                val messageView = dialog.findViewById<TextView>(android.R.id.message)
                 messageView?.setTextColor(textColor)
-                messageView?.setTypeface(ResourcesCompat.getFont(ctx, Constants.Fonts.whitney_medium))
+                messageView?.typeface = ResourcesCompat.getFont(ctx, Constants.Fonts.whitney_medium)
             }
-        } catch (_: Throwable) {
-        }
+        } catch (_: Throwable) {}
     }
+
 
     @SuppressLint("SetTextI18n")
     override fun onViewBound(view: View) {
@@ -72,12 +71,11 @@ class ChannelBrowserPage(val settings: SettingsAPI) : SettingsPage() {
         val allChannelsRaw = StoreStream.getChannels().getChannelsForGuild(guildId)
         val hiddenChannels = settings.getObject("hiddenChannels", mutableListOf<String>()) as MutableList<String>
 
-        val guildSettings = getCurrentGuildSettings(guildId)
-        val channelOverrides = guildSettings?.get("channel_overrides")
-        val channelOverridesMap = if (channelOverrides is Map<*, *>) {
-            channelOverrides.entries.filter { it.key is String && it.value is Int }
-                .associate { it.key as String to it.value as Int }
-        } else emptyMap()
+        val channelOverridesMap = (getCurrentGuildSettings(guildId)?.get("channel_overrides") as? Map<*, *>)
+            ?.filter { it.key is String && it.value is Int }
+            ?.map { it.key as String to it.value as Int }
+            ?.toMap() ?: emptyMap()
+
 
         try {
             val store = StoreStream.getUserGuildSettings()
@@ -85,22 +83,21 @@ class ChannelBrowserPage(val settings: SettingsAPI) : SettingsPage() {
                 store.observeGuildSettings(guildId),
                 ChannelBrowserPage::class.java,
                 ctx,
-                { /*  */ },
-                { _: com.discord.utilities.error.Error -> /*  */ },
-                { /*  */ },
-                { /*  */ },
-                { _: Any? -> /*  */ }
+                {},
+                { _: com.discord.utilities.error.Error -> },
+                {},
+                {},
+                { _: Any? -> }
             )
         } catch (e: Throwable) {
             logger.error("[observeGuildSettings] Exception", e)
         }
-        val typeField =
-            com.discord.api.channel.Channel::class.java.getDeclaredField("type").apply { isAccessible = true }
-        val parentIdField =
-            com.discord.api.channel.Channel::class.java.getDeclaredField("parentId").apply { isAccessible = true }
+
+        val typeField = com.discord.api.channel.Channel::class.java.getDeclaredField("type").apply { isAccessible = true }
+        val parentIdField = com.discord.api.channel.Channel::class.java.getDeclaredField("parentId").apply { isAccessible = true }
         val idField = com.discord.api.channel.Channel::class.java.getDeclaredField("id").apply { isAccessible = true }
-        val nameField =
-            com.discord.api.channel.Channel::class.java.getDeclaredField("name").apply { isAccessible = true }
+        val nameField = com.discord.api.channel.Channel::class.java.getDeclaredField("name").apply { isAccessible = true }
+
         val linearLayout = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(
@@ -108,7 +105,9 @@ class ChannelBrowserPage(val settings: SettingsAPI) : SettingsPage() {
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
         }
+
         addView(linearLayout)
+
 
         val categories = allChannelsRaw.values.filter {
             try {
@@ -117,21 +116,14 @@ class ChannelBrowserPage(val settings: SettingsAPI) : SettingsPage() {
                 false
             }
         }
+
         val channelsByCategory = mutableMapOf<Long, MutableList<com.discord.api.channel.Channel>>()
         val uncategorized = mutableListOf<com.discord.api.channel.Channel>()
 
         for (ch in allChannelsRaw.values) {
-            val type = try {
-                typeField.getInt(ch)
-            } catch (_: Throwable) {
-                -1
-            }
+            val type = try { typeField.getInt(ch) } catch (_: Throwable) { -1 }
             if (type == 4) continue
-            val parentId = try {
-                parentIdField.get(ch) as? Long
-            } catch (_: Throwable) {
-                null
-            }
+            val parentId = try { parentIdField.get(ch) as? Long } catch (_: Throwable) { null }
             if (parentId != null && allChannelsRaw.containsKey(parentId)) {
                 channelsByCategory.getOrPut(parentId) { mutableListOf() }.add(ch)
             } else {
@@ -140,27 +132,22 @@ class ChannelBrowserPage(val settings: SettingsAPI) : SettingsPage() {
         }
 
         for (cat in categories) {
-            val catName = try {
-                nameField.get(cat) as? String ?: "Unnamed Category"
-            } catch (_: Throwable) {
-                "Unnamed Category"
-            }
-            val catId = try {
-                idField.get(cat) as? Long
-            } catch (_: Throwable) {
-                null
-            }
+            val catName = try { nameField.get(cat) as? String ?: "Unnamed Category" } catch (_: Throwable) { "Unnamed Category" }
+            val catId = try { idField.get(cat) as? Long } catch (_: Throwable) { null }
+
             val catRow = LinearLayout(ctx).apply {
                 orientation = LinearLayout.HORIZONTAL
                 setPadding(0, 24, 0, 8)
                 gravity = Gravity.CENTER_VERTICAL
             }
+
             val catTv = TextView(ctx, null, 0, R.i.UiKit_Settings_Item).apply {
                 text = catName
                 typeface = ResourcesCompat.getFont(ctx, Constants.Fonts.whitney_bold)
                 textSize = 15f
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
             }
+
             val followLabel = TextView(ctx, null, 0, R.i.UiKit_Settings_Item).apply {
                 text = "Follow Category"
                 val color = try {
@@ -173,28 +160,24 @@ class ChannelBrowserPage(val settings: SettingsAPI) : SettingsPage() {
                 textSize = 14f
                 setPadding(16, 0, 16, 0)
             }
-            val children = if (catId != null) channelsByCategory[catId] else null
+
+            val children = catId?.let { channelsByCategory[it] }
             val childIds = children?.mapNotNull { ch ->
-                try {
-                    ch.javaClass.getDeclaredField("id").apply { isAccessible = true }.get(ch)?.toString()
-                } catch (_: Throwable) {
-                    null
-                }
+                try { ch.javaClass.getDeclaredField("id").apply { isAccessible = true }.get(ch)?.toString() } catch (_: Throwable) { null }
             } ?: emptyList()
+
             val isCategoryHiddenLocally = catId != null && hiddenChannels.contains(catId.toString())
-            val checkedCount = childIds.count { id ->
-                val flags = channelOverridesMap[id] ?: 4096
-                (flags and 4096) != 0
-            }
+            val checkedCount = childIds.count { id -> (channelOverridesMap[id] ?: 4096) and 4096 != 0 }
             val allChecked = checkedCount == childIds.size && childIds.isNotEmpty()
-            val catToggle = Switch(ctx)
-            catToggle.isChecked = !isCategoryHiddenLocally && allChecked
-            catToggle.layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                gravity = Gravity.CENTER_VERTICAL
+
+            val catToggle = Switch(ctx).apply {
+                isChecked = !isCategoryHiddenLocally && allChecked
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { gravity = Gravity.CENTER_VERTICAL }
             }
+
             catToggle.setOnCheckedChangeListener { _, checked ->
                 if (catId != null) {
                     catToggle.isEnabled = false
@@ -283,6 +266,7 @@ class ChannelBrowserPage(val settings: SettingsAPI) : SettingsPage() {
                 textSize = 15f
                 setPadding(0, 24, 0, 8)
             }.let { linearLayout.addView(it) }
+
             for (ch in uncategorized) {
                 addChannelRowReflect(
                     ch,
@@ -445,5 +429,4 @@ class ChannelBrowserPage(val settings: SettingsAPI) : SettingsPage() {
         linearLayout.addView(row)
     }
 }
-
 
