@@ -1,4 +1,4 @@
-package com.github.lampdelivery
+package com.aliucord.coreplugins.channelbrowser
 
 import android.annotation.SuppressLint
 import com.aliucord.Http
@@ -429,4 +429,5 @@ internal class ChannelBrowserPage(val settings: SettingsAPI) : SettingsPage() {
         linearLayout.addView(row)
     }
 }
+
 
