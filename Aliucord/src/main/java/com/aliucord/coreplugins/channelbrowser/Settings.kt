@@ -1,4 +1,4 @@
-package com.github.lampdelivery
+package com.aliucord.coreplugins.channelbrowser
 
 import android.view.View
 import com.aliucord.Utils
