@@ -1,4 +1,4 @@
-package com.github.lampdelivery
+package com.aliucord.coreplugins.channelbrowser
 
 import android.annotation.SuppressLint
 import android.content.Context
