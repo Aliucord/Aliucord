@@ -272,182 +272,177 @@ internal class GuildProfileSheet : BottomSheet() {
 
     private fun configureGames(profile: GuildProfile, applications: List<Application>) {
         val ctx = context ?: return
-        games.run {
-            removeAllViews()
-            val size = resources.getDimension(R.d.avatar_size_standard).toInt()
+        games.removeAllViews()
+        val size = resources.getDimension(R.d.avatar_size_standard).toInt()
 
-            val activities = LinkedHashMap(profile.gameActivity)
+        val activities = LinkedHashMap(profile.gameActivity)
 
-            if (activities.size < 6 && activities.size != applications.size) {
-                for (appId in profile.gameApplicationIds) {
-                    if (!activities.containsKey(appId)) {
-                        activities[appId] = GuildProfile.GameActivity(0, 0)
-                        if (activities.size >= 6) {
-                            break
-                        }
+        if (activities.size < 6 && activities.size != applications.size) {
+            for (appId in profile.gameApplicationIds) {
+                if (!activities.containsKey(appId)) {
+                    activities[appId] = GuildProfile.GameActivity(0, 0)
+                    if (activities.size >= 6) {
+                        break
                     }
                 }
             }
+        }
 
-            val sortedActivities = activities.entries
-                .sortedByDescending { (_, activity) -> activity.activityScore }
+        val sortedActivities = activities.entries
+            .sortedByDescending { (_, activity) -> activity.activityScore }
 
-            sortedActivities
-                .take(5)
-                .forEach { (appId, activity) ->
-                    val app = applications.find { it.id == appId } ?: return@forEach
-                    FrameLayout(ctx).addTo(this) {
-                        SimpleDraweeView(ctx).addTo(this) {
-                            layoutParams = FrameLayout.LayoutParams(size, size).apply {
-                                topMargin = 4.dp
-                                marginEnd = 4.dp
-                            }
-                            setImageURI("https://cdn.discordapp.com/app-icons/${app.id}/${app.c()}.png?size=256")
-                            MGImages.setRoundingParams(this, 4.dp.toFloat(), false, null, null, null)
-                            if (applications.size <= 5) {
-                                setOnClickListener {
-                                    Utils.showToast(app.d())
-                                }
-                            }
-                        }
-                        if (activity.activityLevel >= 2) {
-                            MaterialCardView(ctx).addTo(this) {
-                                layoutParams = FrameLayout.LayoutParams(18.dp, 18.dp, Gravity.TOP or Gravity.RIGHT)
-                                radius = 7.5f.dp.toFloat()
-                                elevation = 0f
-                                setCardBackgroundColor(ColorCompat.getThemedColor(this, R.b.colorSurface))
-                                SimpleDraweeSpanTextView(ctx).addTo(this) {
-                                    layoutParams = FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT, Gravity.TOP or Gravity.RIGHT).apply {
-                                        rightMargin = 2.dp
-                                    }
-                                    val name = StoreStream.getEmojis().unicodeEmojisNamesMap["fire"]?.surrogates
-                                    val emoji = MessageReactionEmoji(null, name, false)
-                                    EmojiNode.Companion!!.renderEmoji(this, emoji, true, 13.dp)
-                                }
-                            }
-                        }
-                    }
-                }
-            if (sortedActivities.size > 5) {
-                val app = applications.find { it.id == sortedActivities[5].key }!!
-                CardView(ctx).addTo(this) {
-                    layoutParams = LinearLayout.LayoutParams(size, size).apply {
-                        topMargin = 2.dp
-                    }
-                    elevation = 0f
-                    radius = 4.dp.toFloat()
-
+        sortedActivities
+            .take(5)
+            .forEach { (appId, activity) ->
+                val app = applications.find { it.id == appId } ?: return@forEach
+                FrameLayout(ctx).addTo(games) {
                     SimpleDraweeView(ctx).addTo(this) {
+                        layoutParams = FrameLayout.LayoutParams(size, size).apply {
+                            topMargin = 4.dp
+                            marginEnd = 4.dp
+                        }
                         setImageURI("https://cdn.discordapp.com/app-icons/${app.id}/${app.c()}.png?size=256")
                         MGImages.setRoundingParams(this, 4.dp.toFloat(), false, null, null, null)
+                        if (applications.size <= 5) {
+                            setOnClickListener {
+                                Utils.showToast(app.d())
+                            }
+                        }
                     }
-                    TextView(ctx).addTo(this) {
-                        layoutParams = FrameLayout.LayoutParams(size, size)
-                        gravity = Gravity.CENTER
-                        text = "+${applications.size - 5}"
-                        setTextColor(Color.WHITE)
-                        setBackgroundColor(ColorUtils.setAlphaComponent(Color.BLACK, 128))
+                    if (activity.activityLevel >= 2) {
+                        MaterialCardView(ctx).addTo(this) {
+                            layoutParams = FrameLayout.LayoutParams(18.dp, 18.dp, Gravity.TOP or Gravity.RIGHT)
+                            radius = 7.5f.dp.toFloat()
+                            elevation = 0f
+                            setCardBackgroundColor(ColorCompat.getThemedColor(this, R.b.colorSurface))
+                            SimpleDraweeSpanTextView(ctx).addTo(this) {
+                                layoutParams = FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT, Gravity.TOP or Gravity.RIGHT).apply {
+                                    rightMargin = 2.dp
+                                }
+                                val name = StoreStream.getEmojis().unicodeEmojisNamesMap["fire"]?.surrogates
+                                val emoji = MessageReactionEmoji(null, name, false)
+                                EmojiNode.Companion!!.renderEmoji(this, emoji, true, 13.dp)
+                            }
+                        }
                     }
                 }
             }
-            if (applications.size == 1) {
-                val name = applications[0].d()
-                TextView(ctx, null, 0, R.i.GuildProfileSheet_DiscoverableGuild_Text).addTo(this) {
-                    setPadding(0, 0, 4.dp, 0)
-                    text = name
+        if (sortedActivities.size > 5) {
+            val app = applications.find { it.id == sortedActivities[5].key }!!
+            CardView(ctx).addTo(games) {
+                layoutParams = LinearLayout.LayoutParams(size, size).apply {
+                    topMargin = 2.dp
+                }
+                elevation = 0f
+                radius = 4.dp.toFloat()
+
+                SimpleDraweeView(ctx).addTo(this) {
+                    setImageURI("https://cdn.discordapp.com/app-icons/${app.id}/${app.c()}.png?size=256")
+                    MGImages.setRoundingParams(this, 4.dp.toFloat(), false, null, null, null)
+                }
+                TextView(ctx).addTo(this) {
+                    layoutParams = FrameLayout.LayoutParams(size, size)
+                    gravity = Gravity.CENTER
+                    text = "+${applications.size - 5}"
+                    setTextColor(Color.WHITE)
+                    setBackgroundColor(ColorUtils.setAlphaComponent(Color.BLACK, 128))
                 }
             }
-            visibility = if (applications.isEmpty()) View.GONE else View.VISIBLE
         }
+        if (applications.size == 1) {
+            val name = applications[0].d()
+            TextView(ctx, null, 0, R.i.GuildProfileSheet_DiscoverableGuild_Text).addTo(games) {
+                setPadding(0, 0, 4.dp, 0)
+                text = name
+            }
+        }
+        games.visibility = if (applications.isEmpty()) View.GONE else View.VISIBLE
     }
 
     private fun configureTraits(profile: GuildProfile) {
-        traits.run {
-            removeAllViews()
-            val emojiSize = 18.dp
-            for (trait in profile.traits) {
-                CardView(context).addTo(this) {
-                    layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, emojiSize + 4.dp)
-                    setContentPadding(4.dp, 2.dp, 8.dp, 2.dp)
-                    elevation = 0f
-                    radius = 4.dp.toFloat()
-                    setCardBackgroundColor(ColorCompat.getThemedColor(this, R.b.colorBackgroundSecondary))
-                    LinearLayout(context).addTo(this) {
-                        trait.emojiName?.let {
-                            val name = if (trait.emojiId != null) {
-                                it
-                            } else {
-                                StoreStream.getEmojis().unicodeEmojisNamesMap[it]?.surrogates
-                            }
-                            val emoji = MessageReactionEmoji(trait.emojiId?.toString(), name, trait.emojiAnimated)
-                            SimpleDraweeSpanTextView(context).addTo(this) {
-                                gravity = Gravity.CENTER
-                                layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, emojiSize)
-                                EmojiNode.Companion!!.renderEmoji(this, emoji, true, emojiSize - 2.dp)
-                            }
+        val ctx = context ?: return
+        traits.removeAllViews()
+        val emojiSize = 18.dp
+        for (trait in profile.traits) {
+            CardView(ctx).addTo(traits) {
+                layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, emojiSize + 4.dp)
+                setContentPadding(4.dp, 2.dp, 8.dp, 2.dp)
+                elevation = 0f
+                radius = 4.dp.toFloat()
+                setCardBackgroundColor(ColorCompat.getThemedColor(this, R.b.colorBackgroundSecondary))
+                LinearLayout(context).addTo(this) {
+                    trait.emojiName?.let {
+                        val name = if (trait.emojiId != null) {
+                            it
+                        } else {
+                            StoreStream.getEmojis().unicodeEmojisNamesMap[it]?.surrogates
                         }
-                        TextView(context).addTo(this) {
-                            setPadding(4.dp, 0, 0, 0)
-                            setTextAppearance(R.i.UiKit_TextAppearance_Semibold)
-                            text = trait.label
+                        val emoji = MessageReactionEmoji(trait.emojiId?.toString(), name, trait.emojiAnimated)
+                        SimpleDraweeSpanTextView(context).addTo(this) {
+                            gravity = Gravity.CENTER
+                            layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, emojiSize)
+                            EmojiNode.Companion!!.renderEmoji(this, emoji, true, emojiSize - 2.dp)
                         }
+                    }
+                    TextView(context).addTo(this) {
+                        setPadding(4.dp, 0, 0, 0)
+                        setTextAppearance(R.i.UiKit_TextAppearance_Semibold)
+                        text = trait.label
                     }
                 }
             }
-            visibility = if (profile.traits.isEmpty()) View.GONE else View.VISIBLE
         }
+        traits.visibility = if (profile.traits.isEmpty()) View.GONE else View.VISIBLE
     }
 
     private fun configureActionButton(profile: GuildProfile) {
-        actionButton.run {
-            visibility = View.VISIBLE
-            isEnabled = true
-            alpha = 1f
-            val guild = StoreStream.getGuilds().getGuild(profile.id)
-            // User is already in guild
-            if (guild != null) {
-                // User has the guild tag active
-                if (StoreStream.getUsers().me.primaryGuild?.identityGuildId == profile.id) {
-                    setText(R.h.hub_directory_card_joined_guild_button)
-                    setOnClickListener {
-                        StoreStream.getGuildSelected().set(profile.id)
-                        dismiss()
-                    }
-                // User doesn't have the guild tag active
-                } else {
-                    text = "Adopt Tag"
-                    setOnClickListener {
-                        isEnabled = false
-                        GuildTagDecorator.adoptTag(profile.id) {
-                            Utils.mainThread.post { dismiss() }
-                        }
-                    }
+        actionButton.visibility = View.VISIBLE
+        actionButton.isEnabled = true
+        actionButton.alpha = 1f
+        val guild = StoreStream.getGuilds().getGuild(profile.id)
+        // User is already in guild
+        if (guild != null) {
+            // User has the guild tag active
+            if (StoreStream.getUsers().me.primaryGuild?.identityGuildId == profile.id) {
+                actionButton.setText(R.h.hub_directory_card_joined_guild_button)
+                actionButton.setOnClickListener {
+                    StoreStream.getGuildSelected().set(profile.id)
+                    dismiss()
                 }
-            // Guild is publicly joinable
-            } else if ("DISCOVERABLE" in profile.features) {
-                setText(R.h.join_guild)
-                setOnClickListener {
-                    isEnabled = false
-                    // Lurking is an unfinished feature :( this will NPE upon joining + there is no code
-                    // to handle post-joining
-                    // StoreStream.getLurking().startLurkingAndNavigate(profile.id, null, null)
-
-                    GuildTagDecorator.joinGuild(requireContext(), profile.id) {
-                        StoreStream.getGuildSelected().set(profile.id)
+                // User doesn't have the guild tag active
+            } else {
+                actionButton.text = "Adopt Tag"
+                actionButton.setOnClickListener {
+                    actionButton.isEnabled = false
+                    GuildTagDecorator.adoptTag(profile.id) {
                         Utils.mainThread.post { dismiss() }
                     }
                 }
-            // Guild requires application to join
-            } else if ("MEMBER_VERIFICATION_MANUAL_APPROVAL" in profile.features) {
-                setText(R.h.guild_role_subscription_settings_enable_cta)
-                alpha = 0.5f
-                setOnClickListener {
-                    Utils.showToast("Server applications are not yet supported in Aliucord. Please join this server using Desktop or official Discord for now.")
-                }
-            // Guild is not publicly joinable
-            } else {
-                visibility = View.GONE
             }
+            // Guild is publicly joinable
+        } else if ("DISCOVERABLE" in profile.features) {
+            actionButton.setText(R.h.join_guild)
+            actionButton.setOnClickListener {
+                actionButton.isEnabled = false
+                // Lurking is an unfinished feature :( this will NPE upon joining + there is no code
+                // to handle post-joining
+                // StoreStream.getLurking().startLurkingAndNavigate(profile.id, null, null)
+
+                GuildTagDecorator.joinGuild(requireContext(), profile.id) {
+                    StoreStream.getGuildSelected().set(profile.id)
+                    Utils.mainThread.post { dismiss() }
+                }
+            }
+            // Guild requires application to join
+        } else if ("MEMBER_VERIFICATION_MANUAL_APPROVAL" in profile.features) {
+            actionButton.setText(R.h.guild_role_subscription_settings_enable_cta)
+            actionButton.alpha = 0.5f
+            actionButton.setOnClickListener {
+                Utils.showToast("Server applications are not yet supported in Aliucord. Please join this server using Desktop or official Discord for now.")
+            }
+            // Guild is not publicly joinable
+        } else {
+            actionButton.visibility = View.GONE
         }
     }
 }
