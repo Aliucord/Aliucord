@@ -15,6 +15,8 @@ internal object DecorationsSettings {
 
     private val enableAvatarDecorationDelegate = settings.delegate("enableAvatarDecorations", true)
     val enableAvatarDecoration by enableAvatarDecorationDelegate
+    private val enableGuildTagsDelegate = settings.delegate("enableGuildTags", true)
+    val enableGuildTags by enableGuildTagsDelegate
     private val enableNameplatesDelegate = settings.delegate("enableNameplates", true)
     val enableNameplates by enableNameplatesDelegate
 
@@ -24,6 +26,7 @@ internal object DecorationsSettings {
 
             createSetting("Show avatar decorations", enableAvatarDecorationDelegate).addTo(linearLayout)
             createSetting("Show nameplates", enableNameplatesDelegate).addTo(linearLayout)
+            createSetting("Show server tags", enableGuildTagsDelegate).addTo(linearLayout)
         }
 
         private fun createSetting(description: String, delegate: SettingsDelegate<Boolean>): CheckedSetting {

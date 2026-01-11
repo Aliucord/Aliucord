@@ -5,6 +5,7 @@ import android.util.AttributeSet
 import com.aliucord.coreplugins.decorations.DecorationsSettings
 import com.aliucord.coreplugins.decorations.Decorator
 import com.aliucord.coreplugins.decorations.avatar.AvatarDecorator
+import com.aliucord.coreplugins.decorations.guildtags.GuildTagDecorator
 import com.aliucord.coreplugins.decorations.nameplate.NameplateDecorator
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
@@ -41,6 +42,7 @@ internal class Decorations : CorePlugin(Manifest().apply {
     @OptIn(ExperimentalStdlibApi::class)
     private val decorators = buildList<Decorator> {
         if (DecorationsSettings.enableAvatarDecoration) add(AvatarDecorator())
+        if (DecorationsSettings.enableGuildTags) add(GuildTagDecorator())
         if (DecorationsSettings.enableNameplates) add(NameplateDecorator())
     }
 
@@ -85,6 +87,15 @@ internal class Decorations : CorePlugin(Manifest().apply {
             displayNameStyles = api.displayNameStyles
             primaryGuild = api.primaryGuild
         }
+        patcher.after<CoreUser>("equals", Object::class.java) { (param, other: Any?) ->
+            if (other is CoreUser) {
+                param.result = (param.result as Boolean)
+                    && avatarDecorationData == other.avatarDecorationData
+                    && collectibles == other.collectibles
+                    && displayNameStyles == other.displayNameStyles
+                    && primaryGuild == other.primaryGuild
+            }
+        }
         patcher.after<CoreUser.Companion>("merge", CoreUser::class.java, User::class.java) { (param, old: CoreUser, api: User) ->
             val res = param.result as CoreUser
 
@@ -99,6 +110,15 @@ internal class Decorations : CorePlugin(Manifest().apply {
             collectibles = api.collectibles
             displayNameStyles = api.displayNameStyles
             primaryGuild = api.primaryGuild
+        }
+        patcher.after<MeUser>("equals", Object::class.java) { (param, other: Any?) ->
+            if (other is MeUser) {
+                param.result = (param.result as Boolean)
+                    && avatarDecorationData == other.avatarDecorationData
+                    && collectibles == other.collectibles
+                    && displayNameStyles == other.displayNameStyles
+                    && primaryGuild == other.primaryGuild
+            }
         }
         patcher.after<MeUser.Companion>("merge", MeUser::class.java, User::class.java) { (param, old: MeUser, api: User) ->
             val res = param.result as MeUser
@@ -141,7 +161,7 @@ internal class Decorations : CorePlugin(Manifest().apply {
             decorators.forEach { it.onDMsListInit(this, adapter) }
         }
 
-        // onDMsConfigure
+        // onDMsListConfigure
         patcher.after<WidgetChannelsListAdapter.ItemChannelPrivate>(
             "onConfigure",
             Int::class.javaPrimitiveType!!,
