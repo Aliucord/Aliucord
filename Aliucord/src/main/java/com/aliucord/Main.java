@@ -586,10 +586,7 @@ public final class Main {
             .setDescription(desc)
             .setOnOkListener(widget -> {
                 settings.setBool(AliucordPageKt.ALIUCORD_SAFE_MODE_KEY, false);
-                Context ctx = fragment.requireContext();
-                Intent intent = ctx.getPackageManager().getLaunchIntentForPackage(ctx.getPackageName());
-                Utils.appActivity.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
-                Runtime.getRuntime().exit(0);
+                Utils.restartAliucord(fragment.requireContext());
             })
             .show(fragment.getParentFragmentManager(), "Disable Safe Mode");
     }

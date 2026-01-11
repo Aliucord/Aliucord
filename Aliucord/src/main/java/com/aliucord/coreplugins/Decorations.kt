@@ -6,16 +6,19 @@ import com.aliucord.coreplugins.decorations.DecorationsSettings
 import com.aliucord.coreplugins.decorations.Decorator
 import com.aliucord.coreplugins.decorations.avatar.AvatarDecorator
 import com.aliucord.coreplugins.decorations.guildtags.GuildTagDecorator
+import com.aliucord.coreplugins.decorations.nameplate.NameplateDecorator
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.updater.ManagerBuild
 import com.aliucord.wrappers.users.*
+import com.discord.api.presence.Presence
 import com.discord.api.user.User
 import com.discord.databinding.WidgetChannelMembersListItemUserBinding
 import com.discord.models.member.GuildMember
 import com.discord.models.user.CoreUser
 import com.discord.models.user.MeUser
 import com.discord.stores.StoreGuilds
+import com.discord.stores.StoreStream
 import com.discord.widgets.channels.list.WidgetChannelsListAdapter
 import com.discord.widgets.channels.list.items.ChannelListItem
 import com.discord.widgets.channels.list.items.ChannelListItemPrivate
@@ -40,6 +43,7 @@ internal class Decorations : CorePlugin(Manifest().apply {
     private val decorators = buildList<Decorator> {
         if (DecorationsSettings.enableAvatarDecoration) add(AvatarDecorator())
         if (DecorationsSettings.enableGuildTags) add(GuildTagDecorator())
+        if (DecorationsSettings.enableNameplates) add(NameplateDecorator())
     }
 
     override fun start(context: Context) {
@@ -58,6 +62,25 @@ internal class Decorations : CorePlugin(Manifest().apply {
     }
 
     private fun patchFields() {
+        // Presence updates may include partial users. Nameplates and display name styles are known to not
+        // be included in the user field.
+        patcher.before<StoreStream>(
+            "handlePresenceUpdate",
+            Long::class.javaPrimitiveType!!,
+            Presence::class.java
+        ) { (_, guildId: Int, pres: Presence) ->
+            val new = pres.f()
+            val old = StoreStream.getUsers().users[new.id]
+                ?: return@before
+
+            new.run {
+                avatarDecorationData = avatarDecorationData ?: old.avatarDecorationData
+                collectibles = collectibles ?: old.collectibles
+                displayNameStyles = displayNameStyles ?: old.displayNameStyles
+                primaryGuild = primaryGuild ?: old.primaryGuild
+            }
+        }
+
         patcher.after<CoreUser>(User::class.java) { (_, api: User) ->
             avatarDecorationData = api.avatarDecorationData
             collectibles = api.collectibles
@@ -130,7 +153,7 @@ internal class Decorations : CorePlugin(Manifest().apply {
     }
 
     private fun patchHandlers() {
-        // onDMsInit
+        // onDMsListInit
         patcher.after<WidgetChannelsListAdapter.ItemChannelPrivate>(
             Int::class.javaPrimitiveType!!,
             WidgetChannelsListAdapter::class.java,
@@ -138,7 +161,7 @@ internal class Decorations : CorePlugin(Manifest().apply {
             decorators.forEach { it.onDMsListInit(this, adapter) }
         }
 
-        // onDMsConfigure
+        // onDMsListConfigure
         patcher.after<WidgetChannelsListAdapter.ItemChannelPrivate>(
             "onConfigure",
             Int::class.javaPrimitiveType!!,

@@ -61,7 +61,7 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
                     PLUGIN_LINKS_UPDATES_CHANNEL_ID, PLUGIN_DEVELOPMENT_CHANNEL_ID ->
                         handlePluginZipMessage(msg, layout, actions)
 
-                    SUPPORT_CHANNEL_ID, PLUGIN_SUPPORT_CHANNEL_ID -> {
+                    SUPPORT_CHANNEL_ID, PLUGIN_SUPPORT_CHANNEL_ID, BOT_SPAM_CHANNEL_ID -> {
                         val member = StoreStream.getGuilds().getMember(ALIUCORD_GUILD_ID, msg.author.id)
                         val isTrusted = member?.roles?.any { it in arrayOf(SUPPORT_HELPER_ROLE_ID, PLUGIN_DEVELOPER_ROLE_ID) } ?: false
 

@@ -6,12 +6,8 @@
 
 package com.aliucord.settings;
 
-import static com.aliucord.updater.Updater.isAliucordOutdated;
-import static com.aliucord.updater.Updater.isDiscordOutdated;
-import static com.aliucord.updater.Updater.updateAliucord;
-import static com.aliucord.updater.Updater.usingDexFromStorage;
+import static com.aliucord.updater.Updater.*;
 
-import android.content.Intent;
 import android.graphics.Color;
 import android.view.Gravity;
 import android.view.View;
@@ -64,11 +60,7 @@ public class Updater extends SettingsPage {
                             Utils.showToast("Successfully updated Aliucord.");
                             Snackbar rb = Snackbar
                                 .make(getLinearLayout(), "Restart to apply the update.", Snackbar.LENGTH_INDEFINITE)
-                                .setAction("Restart", e -> {
-                                    Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
-                                    context.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
-                                    Runtime.getRuntime().exit(0);
-                                });
+                                .setAction("Restart", e -> Utils.restartAliucord(context));
                             rb.setBackgroundTint(0xffffbb33);
                             rb.setTextColor(Color.BLACK);
                             rb.setActionTextColor(Color.BLACK);
