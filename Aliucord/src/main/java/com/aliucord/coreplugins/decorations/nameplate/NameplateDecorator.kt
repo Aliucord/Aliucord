@@ -3,6 +3,7 @@ package com.aliucord.coreplugins.decorations.nameplate
 import android.graphics.drawable.GradientDrawable
 import android.view.View
 import androidx.constraintlayout.widget.*
+import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import com.aliucord.coreplugins.decorations.Decorator
@@ -73,7 +74,7 @@ internal class NameplateDecorator() : Decorator() {
         View(context).addTo(layout, idx++) {
             id = solidMaskId
             layoutParams = ConstraintLayout.LayoutParams(0, 0).apply {
-                startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                startToStart = PARENT_ID
                 endToStart = barrierId
                 topToTop = decoId
                 bottomToBottom = decoId
@@ -97,8 +98,8 @@ internal class NameplateDecorator() : Decorator() {
         View(context).addTo(layout, idx++) {
             id = rippleId
             layoutParams = ConstraintLayout.LayoutParams(0, 0).apply {
-                startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-                endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+                startToStart = PARENT_ID
+                endToEnd = PARENT_ID
                 topToTop = decoId
                 bottomToBottom = decoId
             }
@@ -193,9 +194,9 @@ internal class NameplateDecorator() : Decorator() {
             intArrayOf(usernameView.id, gameView.id),
             ConstraintLayout.LayoutParams(0, 0).apply {
                 dimensionRatio = "W,16:3"
-                endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+                endToEnd = PARENT_ID
+                topToTop = PARENT_ID
+                bottomToBottom = PARENT_ID
                 topMargin = 1.dp
                 bottomMargin = 1.dp
             }
