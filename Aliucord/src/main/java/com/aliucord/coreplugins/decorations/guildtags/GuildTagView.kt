@@ -4,9 +4,10 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.graphics.Typeface
 import android.util.TypedValue
-import android.view.*
-import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.cardview.widget.CardView
@@ -23,7 +24,6 @@ import com.facebook.drawee.view.SimpleDraweeView
 import com.lytefast.flexinput.R
 
 private val logger = Logger("Decorations/GuildTag")
-private val tagViewId = View.generateViewId()
 
 internal class GuildTagView(ctx: Context) : CardView(ctx) {
     private lateinit var badge: SimpleDraweeView
@@ -35,13 +35,7 @@ internal class GuildTagView(ctx: Context) : CardView(ctx) {
         text.textSize = sp
     }
 
-    companion object {
-        @Suppress("NOTHING_TO_INLINE")
-        inline fun findIn(view: View): GuildTagView? = view.findViewById(tagViewId)
-    }
-
     init {
-        id = tagViewId
         visibility = GONE
         radius = 4.dp.toFloat()
         elevation = 0f

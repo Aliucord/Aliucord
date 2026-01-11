@@ -44,6 +44,8 @@ private val WidgetChatListAdapterItemMessage.itemRoleIcon by accessField<RoleIco
 private val WidgetChatListAdapterItemMessage.replyLeadingViewsHolder by accessField<LinearLayout?>()
 
 private val logger = Logger("Decorations/GuildTag")
+private val authorTagId = View.generateViewId()
+private val replyTagId = View.generateViewId()
 
 internal class GuildTagDecorator() : Decorator() {
     override fun patch(patcher: PatcherAPI) {
@@ -118,7 +120,9 @@ internal class GuildTagDecorator() : Decorator() {
             val username = binding.c
             val extraTag = binding.b
 
-            GuildTagView(context).addBetween(this, username, extraTag)
+            GuildTagView(context)
+                .apply { id = authorTagId }
+                .addBetween(this, username, extraTag)
         }
     }
 
@@ -129,7 +133,8 @@ internal class GuildTagDecorator() : Decorator() {
         adapter: ChannelMembersListAdapter
     ) {
         val usernameView = holder.binding.f
-        GuildTagView.findIn(usernameView)?.configure(StoreStream.getUsers().users[item.userId]?.primaryGuild)
+        usernameView.findViewById<GuildTagView>(authorTagId)
+            ?.configure(StoreStream.getUsers().users[item.userId]?.primaryGuild)
     }
 
     // The tag view is already added in UsernameView
@@ -137,20 +142,21 @@ internal class GuildTagDecorator() : Decorator() {
         view: UserProfileHeaderView,
         state: UserProfileHeaderViewModel.ViewState.Loaded
     ) {
-        GuildTagView.findIn(view)?.run {
+        view.findViewById<GuildTagView>(authorTagId)?.run {
             setSize(15f)
             configure(state.user.primaryGuild)
         }
     }
 
-    private val replyTagId = View.generateViewId()
     override fun onMessageInit(holder: WidgetChatListAdapterItemMessage, adapter: WidgetChatListAdapter) {
         val itemView = holder.itemView
         val headerLayout = itemView.findViewById<ConstraintLayout?>("chat_list_adapter_item_text_header")
             ?: return
 
         // Adds guild tag beside message author
-        GuildTagView(itemView.context).addBetween(headerLayout, holder.itemName, holder.itemRoleIcon)
+        GuildTagView(itemView.context)
+            .apply { id = authorTagId }
+            .addBetween(headerLayout, holder.itemName, holder.itemRoleIcon)
 
         val replyLeadingLayout = holder.replyLeadingViewsHolder
             ?: return
@@ -168,7 +174,8 @@ internal class GuildTagDecorator() : Decorator() {
     }
 
     override fun onMessageConfigure(holder: WidgetChatListAdapterItemMessage, entry: MessageEntry) {
-        GuildTagView.findIn(holder.itemView)?.configure(entry.message.author.primaryGuild)
+        holder.itemView.findViewById<GuildTagView>(authorTagId)
+            ?.configure(entry.message.author.primaryGuild)
 
         val referencedAuthor = entry.message.referencedMessage?.e()
         holder.itemView.findViewById<GuildTagView>(replyTagId)
@@ -180,6 +187,7 @@ internal class GuildTagDecorator() : Decorator() {
         val parent = nameView.parent as LinearLayout
         parent.gravity = Gravity.CENTER_VERTICAL
         GuildTagView(nameView.context).addTo(parent, 1) {
+            id = authorTagId
             setCardBackgroundColor(ColorCompat.getThemedColor(context, R.b.colorBackgroundPrimary))
             layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
                 marginStart = 6.dp
@@ -189,8 +197,7 @@ internal class GuildTagDecorator() : Decorator() {
 
     override fun onDMsListConfigure(holder: WidgetChannelsListAdapter.ItemChannelPrivate, item: ChannelListItemPrivate) {
         val user = ChannelUtils.getDMRecipient(item.channel)
-        GuildTagView.findIn(holder.itemView)?.run {
-            configure(user?.primaryGuild)
-        }
+        holder.itemView.findViewById<GuildTagView>(authorTagId)
+            ?.configure(user?.primaryGuild)
     }
 }
