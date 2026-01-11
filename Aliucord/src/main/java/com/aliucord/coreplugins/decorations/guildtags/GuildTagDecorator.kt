@@ -22,7 +22,6 @@ import com.discord.databinding.WidgetChannelsListItemChannelPrivateBinding
 import com.discord.stores.StoreLurking
 import com.discord.stores.StoreStream
 import com.discord.utilities.color.ColorCompat
-import com.discord.utilities.error.Error
 import com.discord.views.UsernameView
 import com.discord.widgets.channels.list.WidgetChannelsListAdapter
 import com.discord.widgets.channels.list.items.ChannelListItemPrivate
@@ -76,7 +75,7 @@ internal class GuildTagDecorator() : Decorator() {
                 try {
                     val sessionId: String = StoreLurking.`access$getSessionId$p`(StoreStream.getLurking())
                         ?: throw Throwable("Guild $guildId join failed due to missing session id")
-                    GuildJoinHelperKt.`joinGuild$default`(
+                    GuildJoinHelperKt.joinGuild(
                         context,
                         guildId,
                         /* isLurker */ false,
@@ -85,14 +84,12 @@ internal class GuildTagDecorator() : Decorator() {
                         /* contextProperties */ null,
                         /* errorClass */ GuildTagDecorator::class.java, // (only class name is used, for error reporting)
                         /* onSubscribe */ null,
-                        /* onError */ { e: Any? ->
+                        /* onError */ { e ->
                             logger.errorToast("Failed to join guild")
-                            logger.error((e as Error).toString(), null)
+                            logger.error(e.toString(), null)
                         },
                         /* captchaPayload */ null,
                         /* onNext */ { _ -> callback?.invoke() },
-                        0b01010110000,
-                        null
                     )
                 } catch(e: Throwable) {
                     logger.errorToast("Failed to join guild", e)
