@@ -11,6 +11,7 @@ import android.content.res.AssetManager
 import android.content.res.Resources
 import com.aliucord.Utils.appContext
 import com.aliucord.coreplugins.*
+import com.aliucord.coreplugins.channelbrowser.ChannelBrowser
 import com.aliucord.coreplugins.badges.DiscordBadges
 import com.aliucord.coreplugins.badges.SupporterBadges
 import com.aliucord.coreplugins.plugindownloader.PluginDownloader
@@ -300,6 +301,7 @@ object PluginManager {
             AlignThreads(),
             AppBarFix(),
             ButtonsAPI(),
+            ChannelBrowser(),
             CommandHandler(),
             CoreCommands(),
             Decorations(),
