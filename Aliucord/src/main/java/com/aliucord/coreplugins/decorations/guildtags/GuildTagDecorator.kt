@@ -2,7 +2,9 @@ package com.aliucord.coreplugins.decorations.guildtags
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.*
+import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -40,8 +42,6 @@ private val WidgetChannelsListAdapter.ItemChannelPrivate.binding by accessField<
 private val WidgetChatListAdapterItemMessage.itemName by accessField<TextView>()
 private val WidgetChatListAdapterItemMessage.itemRoleIcon by accessField<RoleIconView>()
 private val WidgetChatListAdapterItemMessage.replyLeadingViewsHolder by accessField<LinearLayout?>()
-
-private const val WRAP_CONTENT = ViewGroup.LayoutParams.WRAP_CONTENT
 
 private val logger = Logger("Decorations/GuildTag")
 
@@ -89,7 +89,7 @@ internal class GuildTagDecorator() : Decorator() {
                         },
                         /* captchaPayload */ null,
                         /* onNext */ { _ -> callback?.invoke() },
-                        0b01010110000,
+                        0b01010110000, // Bitmask for joinGuild$default optional parameters
                         null
                     )
                 } catch(e: Throwable) {

@@ -103,9 +103,7 @@ object GuildProfileStore {
                 res = ProfileResult.Failed(id, HttpException(profileReq, profileRes))
             } else {
                 val profile = profileRes.json(GsonUtils.gsonRestApi, GuildProfile::class.java)
-                val applications: List<Application>
-
-                if (profile.gameApplicationIds.isNotEmpty()) {
+                val applications: List<Application> = if (profile.gameApplicationIds.isNotEmpty()) {
                     val query = Http.QueryBuilder("/applications/public")
                     for (appId in profile.gameApplicationIds) {
                         query.append("application_ids", appId.toString())
@@ -113,9 +111,9 @@ object GuildProfileStore {
                     val apps = Http.Request.newDiscordRNRequest(query)
                         .execute()
                         .json(GsonUtils.gsonRestApi, Array<Application>::class.java)
-                    applications = apps.toList()
+                    apps.toList()
                 } else {
-                    applications = listOf()
+                    listOf()
                 }
 
                 res = ProfileResult.Available(profile, applications)

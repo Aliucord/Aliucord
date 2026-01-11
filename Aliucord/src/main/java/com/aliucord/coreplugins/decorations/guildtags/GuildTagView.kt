@@ -4,11 +4,15 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.graphics.Typeface
 import android.util.TypedValue
-import android.view.*
+import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
 import androidx.fragment.app.FragmentActivity
 import com.aliucord.Logger
 import com.aliucord.utils.DimenUtils.dp
@@ -18,10 +22,6 @@ import com.discord.utilities.color.ColorCompat
 import com.discord.utilities.icon.IconUtils
 import com.facebook.drawee.view.SimpleDraweeView
 import com.lytefast.flexinput.R
-
-private const val PARENT_ID = ConstraintLayout.LayoutParams.PARENT_ID
-private const val WRAP_CONTENT = ViewGroup.LayoutParams.WRAP_CONTENT
-private const val MATCH_PARENT = ViewGroup.LayoutParams.MATCH_PARENT
 
 private val logger = Logger("Decorations/GuildTag")
 private val tagViewId = View.generateViewId()
@@ -36,13 +36,8 @@ internal class GuildTagView(ctx: Context) : CardView(ctx) {
         text.textSize = sp
     }
 
-    companion object {
-        @Suppress("NOTHING_TO_INLINE")
-        inline fun findIn(view: View): GuildTagView? = view.findViewById(tagViewId)
-    }
 
     init {
-        id = tagViewId
         visibility = GONE
         radius = 4.dp.toFloat()
         elevation = 0f

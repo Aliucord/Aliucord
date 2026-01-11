@@ -3,10 +3,17 @@ package com.aliucord.coreplugins.decorations.guildtags
 import android.graphics.Color
 import android.os.Bundle
 import android.util.TypedValue
-import android.view.*
-import android.widget.*
+import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
 import androidx.core.graphics.ColorUtils
 import androidx.fragment.app.FragmentManager
 import com.aliucord.*
@@ -35,12 +42,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import b.a.k.b as FormatUtils
-
-private const val PARENT_ID = ConstraintLayout.LayoutParams.PARENT_ID
-private const val WRAP_CONTENT = ViewGroup.LayoutParams.WRAP_CONTENT
-private const val MATCH_PARENT = ViewGroup.LayoutParams.MATCH_PARENT
-private const val GONE = View.GONE
-private const val VISIBLE = View.VISIBLE
 
 private val logger = Logger("Decorations/GuildTag")
 
@@ -88,7 +89,7 @@ internal class GuildProfileSheet : BottomSheet() {
         }
         container = ConstraintLayout(ctx).addTo(linearLayout) {
             setPadding(0, 0, 0, 16.dp)
-            visibility = GONE
+            visibility = View.GONE
             banner = SimpleDraweeView(ctx).addTo(this) {
                 id = bannerId
                 layoutParams = ConstraintLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
@@ -137,7 +138,7 @@ internal class GuildProfileSheet : BottomSheet() {
                 }
                 countsContainer = LinearLayout(ctx).addTo(this) {
                     setPadding(0.dp, 8.dp, 0, 0)
-                    visibility = GONE
+                    visibility = View.GONE
                     orientation = LinearLayout.HORIZONTAL
                     gravity = Gravity.CENTER_VERTICAL
                     CardView(ctx).addTo(this) {
@@ -163,21 +164,21 @@ internal class GuildProfileSheet : BottomSheet() {
                 }
                 established = TextView(ctx, null, 0, R.i.GuildProfileSheet_DiscoverableGuild_Text).addTo(this) {
                     setPadding(0.dp, 4.dp, 0, 0)
-                    visibility = GONE
+                    visibility = View.GONE
                 }
                 description = TextView(ctx, null, 0, R.i.UiKit_TextView).addTo(this) {
                     setPadding(0.dp, 12.dp, 0, 0)
-                    visibility = GONE
+                    visibility = View.GONE
                 }
                 games = LinearLayout(ctx).addTo(this) {
                     setPadding(0.dp, 14.dp, 0, 0)
                     layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
-                    visibility = GONE
+                    visibility = View.GONE
                     gravity = Gravity.CENTER_VERTICAL
                 }
                 traits = ChipGroup(ctx).addTo(this) {
                     setPadding(0.dp, 12.dp, 0, 0)
-                    visibility = GONE
+                    visibility = View.GONE
                     chipSpacingVertical = 8.dp
                     chipSpacingHorizontal = 8.dp
                 }
@@ -185,7 +186,7 @@ internal class GuildProfileSheet : BottomSheet() {
                     layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
                         topMargin = 12.dp
                     }
-                    visibility = GONE
+                    visibility = View.GONE
                 }
             }
         }
@@ -198,8 +199,8 @@ internal class GuildProfileSheet : BottomSheet() {
                 is GuildProfileStore.ProfileResult.Available -> configure(it.profile, it.applications)
             }
 
-            loadingIndicator.visibility = GONE
-            container.visibility = VISIBLE
+            loadingIndicator.visibility = View.GONE
+            container.visibility = View.VISIBLE
         }
     }
 
@@ -269,98 +270,99 @@ internal class GuildProfileSheet : BottomSheet() {
             null,
             4,
         )
-        countsContainer.visibility = VISIBLE
+        countsContainer.visibility = View.VISIBLE
     }
 
     private fun configureGames(profile: GuildProfile, applications: List<Application>) {
         val ctx = context ?: return
         games.run {
             removeAllViews()
-            val size = resources.getDimension(R.d.avatar_size_standard).toInt()
+        val size = resources.getDimension(R.d.avatar_size_standard).toInt()
 
-            val activities = LinkedHashMap(profile.gameActivity)
+        val activities = LinkedHashMap(profile.gameActivity)
 
-            if (activities.size < 6 && activities.size != applications.size) {
-                for (appId in profile.gameApplicationIds) {
-                    if (!activities.containsKey(appId)) {
-                        activities[appId] = GuildProfile.GameActivity(0, 0)
-                        if (activities.size >= 6) {
-                            break
-                        }
+        if (activities.size < 6 && activities.size != applications.size) {
+            for (appId in profile.gameApplicationIds) {
+                if (!activities.containsKey(appId)) {
+                    activities[appId] = GuildProfile.GameActivity(0, 0)
+                    if (activities.size >= 6) {
+                        break
                     }
                 }
             }
+        }
 
-            val sortedActivities = activities.entries
-                .sortedByDescending { (_, activity) -> activity.activityScore }
-
-            sortedActivities
-                .take(5)
-                .forEach { (appId, activity) ->
-                    val app = applications.find { it.id == appId } ?: return@forEach
-                    FrameLayout(ctx).addTo(this) {
-                        SimpleDraweeView(ctx).addTo(this) {
-                            layoutParams = FrameLayout.LayoutParams(size, size).apply {
-                                topMargin = 4.dp
-                                marginEnd = 4.dp
-                            }
-                            setImageURI("https://cdn.discordapp.com/app-icons/${app.id}/${app.c()}.png?size=256")
-                            MGImages.setRoundingParams(this, 4.dp.toFloat(), false, null, null, null)
-                            if (applications.size <= 5) {
-                                setOnClickListener {
-                                    Utils.showToast(app.d())
-                                }
-                            }
-                        }
-                        if (activity.activityLevel >= 2) {
-                            MaterialCardView(ctx).addTo(this) {
-                                layoutParams = FrameLayout.LayoutParams(18.dp, 18.dp, Gravity.TOP or Gravity.RIGHT)
-                                radius = 7.5f.dp.toFloat()
-                                elevation = 0f
-                                setCardBackgroundColor(ColorCompat.getThemedColor(this, R.b.colorSurface))
-                                SimpleDraweeSpanTextView(ctx).addTo(this) {
-                                    layoutParams = FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT, Gravity.TOP or Gravity.RIGHT).apply {
-                                        rightMargin = 2.dp
-                                    }
-                                    val name = StoreStream.getEmojis().unicodeEmojisNamesMap["fire"]?.surrogates
-                                    val emoji = MessageReactionEmoji(null, name, false)
-                                    EmojiNode.Companion!!.renderEmoji(this, emoji, true, 13.dp)
-                                }
-                            }
-                        }
-                    }
-                }
-            if (sortedActivities.size > 5) {
-                val app = applications.find { it.id == sortedActivities[5].key }!!
-                CardView(ctx).addTo(this) {
-                    layoutParams = LinearLayout.LayoutParams(size, size).apply {
-                        topMargin = 2.dp
-                    }
-                    elevation = 0f
-                    radius = 4.dp.toFloat()
-
+        val sortedActivities = activities.entries
+            .sortedByDescending { (_, activity) -> activity.activityScore }
+        
+        sortedActivities
+            .take(5)
+            .forEach { (appId, activity) ->
+                val app = applications.find { it.id == appId } ?: return@forEach
+                FrameLayout(ctx).addTo(games) {
                     SimpleDraweeView(ctx).addTo(this) {
+                        layoutParams = FrameLayout.LayoutParams(size, size).apply {
+                            topMargin = 4.dp
+                            marginEnd = 4.dp
+                        }
                         setImageURI("https://cdn.discordapp.com/app-icons/${app.id}/${app.c()}.png?size=256")
                         MGImages.setRoundingParams(this, 4.dp.toFloat(), false, null, null, null)
+                        if (applications.size <= 5) {
+                            setOnClickListener {
+                                Utils.showToast(app.d())
+                            }
+                        }
                     }
-                    TextView(ctx).addTo(this) {
-                        layoutParams = FrameLayout.LayoutParams(size, size)
-                        gravity = Gravity.CENTER
-                        text = "+${applications.size - 5}"
-                        setTextColor(Color.WHITE)
-                        setBackgroundColor(ColorUtils.setAlphaComponent(Color.BLACK, 128))
+                    if (activity.activityLevel >= 2) {
+                        MaterialCardView(ctx).addTo(this) {
+                            layoutParams = FrameLayout.LayoutParams(18.dp, 18.dp, Gravity.TOP or Gravity.RIGHT)
+                            radius = 7.5f.dp.toFloat()
+                            elevation = 0f
+                            setCardBackgroundColor(ColorCompat.getThemedColor(this, R.b.colorSurface))
+                            SimpleDraweeSpanTextView(ctx).addTo(this) {
+                                layoutParams = FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT, Gravity.TOP or Gravity.RIGHT).apply {
+                                    rightMargin = 2.dp
+                                }
+                                val name = StoreStream.getEmojis().unicodeEmojisNamesMap["fire"]?.surrogates
+                                val emoji = MessageReactionEmoji(null, name, false)
+                                EmojiNode.Companion!!.renderEmoji(this, emoji, true, 13.dp)
+                            }
+                        }
                     }
                 }
             }
-            if (applications.size == 1) {
-                val name = applications[0].d()
-                TextView(ctx, null, 0, R.i.GuildProfileSheet_DiscoverableGuild_Text).addTo(this) {
-                    setPadding(0, 0, 4.dp, 0)
-                    text = name
+        if (sortedActivities.size > 5) {
+            val app = applications.find { it.id == sortedActivities[5].key }!!
+            CardView(ctx).addTo(games) {
+                layoutParams = LinearLayout.LayoutParams(size, size).apply {
+                    topMargin = 2.dp
+                }
+                elevation = 0f
+                radius = 4.dp.toFloat()
+
+                SimpleDraweeView(ctx).addTo(this) {
+                    setImageURI("https://cdn.discordapp.com/app-icons/${app.id}/${app.c()}.png?size=256")
+                    MGImages.setRoundingParams(this, 4.dp.toFloat(), false, null, null, null)
+                }
+                TextView(ctx).addTo(this) {
+                    layoutParams = FrameLayout.LayoutParams(size, size)
+                    gravity = Gravity.CENTER
+                    text = "+${applications.size - 5}"
+                    setTextColor(Color.WHITE)
+                    setBackgroundColor(ColorUtils.setAlphaComponent(Color.BLACK, 128))
                 }
             }
-            visibility = if (applications.isEmpty()) GONE else VISIBLE
         }
+        if (applications.size == 1) {
+            val name = applications[0].d()
+            TextView(ctx, null, 0, R.i.GuildProfileSheet_DiscoverableGuild_Text).addTo(games) {
+                setPadding(0, 0, 4.dp, 0)
+                text = name
+            }
+        }
+
+        games.visibility = if (applications.isEmpty()) View.GONE else View.VISIBLE
+    }
     }
 
     private fun configureTraits(profile: GuildProfile) {
@@ -396,13 +398,13 @@ internal class GuildProfileSheet : BottomSheet() {
                     }
                 }
             }
-            visibility = if (profile.traits.isEmpty()) GONE else VISIBLE
+            visibility = if (profile.traits.isEmpty()) View.GONE else View.VISIBLE
         }
     }
 
     private fun configureActionButton(profile: GuildProfile) {
         actionButton.run {
-            visibility = VISIBLE
+            visibility = View.VISIBLE
             isEnabled = true
             alpha = 1f
             val guild = StoreStream.getGuilds().getGuild(profile.id)
@@ -448,7 +450,7 @@ internal class GuildProfileSheet : BottomSheet() {
                 }
             // Guild is not publicly joinable
             } else {
-                visibility = GONE
+                visibility = View.GONE
             }
         }
     }
