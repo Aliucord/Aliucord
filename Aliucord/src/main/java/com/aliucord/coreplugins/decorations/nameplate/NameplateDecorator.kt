@@ -121,7 +121,7 @@ internal class NameplateDecorator() : Decorator() {
                     this,
                     "https://cdn.discordapp.com/assets/collectibles/${data.asset}img.png?passthrough=true",
                 )
-                background = Palette.from(data.palette).drawable()
+                background = NameplatePalette.from(data.palette).drawable()
             }
         }
     }

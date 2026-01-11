@@ -1,11 +1,12 @@
 package com.aliucord.coreplugins.decorations.nameplate
 
 import android.graphics.drawable.GradientDrawable
+import androidx.annotation.ColorInt
 import androidx.core.graphics.ColorUtils
 import com.aliucord.Logger
 import com.discord.stores.StoreStream
 
-enum class Palette(val dark: Int, val light: Int) {
+internal enum class NameplatePalette(@ColorInt val dark: Int, @ColorInt val light: Int) {
     None(0, 0),
     Crimson(0x900007, 0xE7040F),
     Berry(0x893A99, 0xB11FCF),
@@ -21,7 +22,7 @@ enum class Palette(val dark: Int, val light: Int) {
     ;
 
     companion object {
-        fun from(color: String): Palette {
+        fun from(color: String): NameplatePalette {
             return when (color) {
                 "none" -> None
                 "crimson" -> Crimson
