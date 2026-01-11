@@ -5,7 +5,9 @@ import androidx.core.graphics.ColorUtils
 import com.aliucord.Logger
 import com.discord.stores.StoreStream
 
-enum class Palette(val dark: Int, val light: Int) {
+import androidx.annotation.ColorInt
+
+internal enum class NameplatesPalette(@ColorInt val dark: Int, @ColorInt val light: Int) {
     None(0, 0),
     Crimson(0x900007, 0xE7040F),
     Berry(0x893A99, 0xB11FCF),
@@ -21,7 +23,7 @@ enum class Palette(val dark: Int, val light: Int) {
     ;
 
     companion object {
-        fun from(color: String): Palette {
+        fun from(color: String): NameplatesPalette {
             return when (color) {
                 "none" -> None
                 "crimson" -> Crimson

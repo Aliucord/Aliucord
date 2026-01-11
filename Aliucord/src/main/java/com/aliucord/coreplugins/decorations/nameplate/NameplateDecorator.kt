@@ -154,42 +154,36 @@ internal class NameplateDecorator() : Decorator() {
         ConstraintSet().run {
             clone(layout)
 
-            val start = ConstraintSet.START
-            val end = ConstraintSet.END
-            val right = ConstraintSet.RIGHT
-            val top = ConstraintSet.TOP
-            val bottom = ConstraintSet.BOTTOM
-
-            setMargin(avatarView.id, start, 16.dp)
+            setMargin(avatarView.id, ConstraintSet.START, 16.dp)
 
             // Move the owner indicator so it doesn't block nameplates
-            connect(ownerIndicator.id, top, usernameView.id, top)
-            connect(ownerIndicator.id, bottom, usernameView.id, bottom)
-            connect(ownerIndicator.id, start, usernameView.id, end)
+            connect(ownerIndicator.id, ConstraintSet.TOP, usernameView.id, ConstraintSet.TOP)
+            connect(ownerIndicator.id, ConstraintSet.BOTTOM, usernameView.id, ConstraintSet.BOTTOM)
+            connect(ownerIndicator.id, ConstraintSet.START, usernameView.id, ConstraintSet.END)
             setDimensionRatio(ownerIndicator.id, "W,1:1")
             constrainedWidth(ownerIndicator.id, true)
 
             // Move the boosted indicator so it doesn't block nameplates
-            connect(boostedIndicator.id, top, usernameView.id, top)
-            connect(boostedIndicator.id, bottom, usernameView.id, bottom)
-            connect(boostedIndicator.id, start, ownerIndicator.id, end)
+            connect(boostedIndicator.id, ConstraintSet.TOP, usernameView.id, ConstraintSet.TOP)
+            connect(boostedIndicator.id, ConstraintSet.BOTTOM, usernameView.id, ConstraintSet.BOTTOM)
+            connect(boostedIndicator.id, ConstraintSet.START, ownerIndicator.id, ConstraintSet.END)
             setDimensionRatio(boostedIndicator.id, "W,1:1")
             constrainedWidth(boostedIndicator.id, true)
 
             // Fixup some extraneous constraints
-            clear(boostedIndicator.id, right)
-            clear(boostedIndicator.id, end)
-            clear(usernameView.id, right)
-            clear(usernameView.id, end)
-            clear(gameView.id, right)
-            clear(gameView.id, end)
-            clear(rpcIconView.id, right)
-            clear(rpcIconView.id, end)
+            clear(boostedIndicator.id, ConstraintSet.RIGHT)
+            clear(boostedIndicator.id, ConstraintSet.END)
+            clear(usernameView.id, ConstraintSet.RIGHT)
+            clear(usernameView.id, ConstraintSet.END)
+            clear(gameView.id, ConstraintSet.RIGHT)
+            clear(gameView.id, ConstraintSet.END)
+            clear(rpcIconView.id, ConstraintSet.RIGHT)
+            clear(rpcIconView.id, ConstraintSet.END)
 
             // Set width limits for username and status
-            connect(usernameView.id, end, guidelineId, end)
-            connect(gameView.id, end, rpcIconView.id, start)
-            connect(rpcIconView.id, end, guidelineId, end)
+            connect(usernameView.id, ConstraintSet.END, guidelineId, ConstraintSet.END)
+            connect(gameView.id, ConstraintSet.END, rpcIconView.id, ConstraintSet.START)
+            connect(rpcIconView.id, ConstraintSet.END, guidelineId, ConstraintSet.END)
 
             applyTo(layout)
         }
@@ -200,9 +194,9 @@ internal class NameplateDecorator() : Decorator() {
             intArrayOf(usernameView.id, gameView.id),
             ConstraintLayout.LayoutParams(0, 0).apply {
                 dimensionRatio = "W,16:3"
-                endToEnd = PARENT_ID
-                topToTop = PARENT_ID
-                bottomToBottom = PARENT_ID
+                endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
                 topMargin = 1.dp
                 bottomMargin = 1.dp
             }
