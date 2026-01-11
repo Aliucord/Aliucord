@@ -298,10 +298,10 @@ object PluginManager {
     @JvmStatic
     fun loadCorePlugins(context: Context) {
         val corePlugins = arrayOf(
-            ChannelBrowser(),
             AlignThreads(),
             AppBarFix(),
             ButtonsAPI(),
+            ChannelBrowser(),
             CommandHandler(),
             CoreCommands(),
             Decorations(),
