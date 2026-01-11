@@ -129,7 +129,7 @@ internal class GuildTagDecorator() : Decorator() {
         adapter: ChannelMembersListAdapter
     ) {
         val usernameView = holder.binding.f
-        GuildTagView.findIn(usernameView)?.configure(StoreStream.getUsers().users[item.userId]?.primaryGuild)
+        usernameView.findViewById<GuildTagView>(replyTagId)?.configure(StoreStream.getUsers().users[item.userId]?.primaryGuild)
     }
 
     // The tag view is already added in UsernameView
@@ -137,7 +137,7 @@ internal class GuildTagDecorator() : Decorator() {
         view: UserProfileHeaderView,
         state: UserProfileHeaderViewModel.ViewState.Loaded
     ) {
-        GuildTagView.findIn(view)?.run {
+        view.findViewById<GuildTagView>(replyTagId)?.run {
             setSize(15f)
             configure(state.user.primaryGuild)
         }
@@ -168,7 +168,7 @@ internal class GuildTagDecorator() : Decorator() {
     }
 
     override fun onMessageConfigure(holder: WidgetChatListAdapterItemMessage, entry: MessageEntry) {
-        GuildTagView.findIn(holder.itemView)?.configure(entry.message.author.primaryGuild)
+        holder.itemView.findViewById<GuildTagView>(replyTagId)?.configure(entry.message.author.primaryGuild)
 
         val referencedAuthor = entry.message.referencedMessage?.e()
         holder.itemView.findViewById<GuildTagView>(replyTagId)
@@ -189,7 +189,7 @@ internal class GuildTagDecorator() : Decorator() {
 
     override fun onDMsListConfigure(holder: WidgetChannelsListAdapter.ItemChannelPrivate, item: ChannelListItemPrivate) {
         val user = ChannelUtils.getDMRecipient(item.channel)
-        GuildTagView.findIn(holder.itemView)?.run {
+        holder.itemView.findViewById<GuildTagView>(replyTagId)?.run {
             configure(user?.primaryGuild)
         }
     }
