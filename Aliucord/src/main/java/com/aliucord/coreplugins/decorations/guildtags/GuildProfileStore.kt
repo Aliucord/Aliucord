@@ -87,6 +87,7 @@ object GuildProfileStore {
         data class Available(val profile: GuildProfile, val applications: List<Application>) : ProfileResult()
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     fun get(id: Long, callback: (ProfileResult) -> Unit) {
         cache.get(id)?.let {
             callback(it)
@@ -103,19 +104,17 @@ object GuildProfileStore {
                 res = ProfileResult.Failed(id, HttpException(profileReq, profileRes))
             } else {
                 val profile = profileRes.json(GsonUtils.gsonRestApi, GuildProfile::class.java)
-                val applications: List<Application>
-
-                if (profile.gameApplicationIds.isNotEmpty()) {
+                val applications = if (profile.gameApplicationIds.isNotEmpty()) {
                     val query = Http.QueryBuilder("/applications/public")
                     for (appId in profile.gameApplicationIds) {
                         query.append("application_ids", appId.toString())
                     }
-                    val apps = Http.Request.newDiscordRNRequest(query)
+                    Http.Request.newDiscordRNRequest(query)
                         .execute()
                         .json(GsonUtils.gsonRestApi, Array<Application>::class.java)
-                    applications = apps.toList()
+                        .toList()
                 } else {
-                    applications = listOf()
+                    listOf()
                 }
 
                 res = ProfileResult.Available(profile, applications)
