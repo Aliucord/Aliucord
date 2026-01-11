@@ -3,10 +3,14 @@ package com.aliucord.coreplugins.decorations.guildtags
 import android.graphics.Color
 import android.os.Bundle
 import android.util.TypedValue
-import android.view.*
+import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.*
 import androidx.cardview.widget.CardView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
 import androidx.core.graphics.ColorUtils
 import androidx.fragment.app.FragmentManager
 import com.aliucord.*
@@ -35,12 +39,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import b.a.k.b as FormatUtils
-
-private const val PARENT_ID = ConstraintLayout.LayoutParams.PARENT_ID
-private const val WRAP_CONTENT = ViewGroup.LayoutParams.WRAP_CONTENT
-private const val MATCH_PARENT = ViewGroup.LayoutParams.MATCH_PARENT
-private const val GONE = View.GONE
-private const val VISIBLE = View.VISIBLE
 
 private val logger = Logger("Decorations/GuildTag")
 
@@ -88,7 +86,7 @@ internal class GuildProfileSheet : BottomSheet() {
         }
         container = ConstraintLayout(ctx).addTo(linearLayout) {
             setPadding(0, 0, 0, 16.dp)
-            visibility = GONE
+            visibility = View.GONE
             banner = SimpleDraweeView(ctx).addTo(this) {
                 id = bannerId
                 layoutParams = ConstraintLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
@@ -137,7 +135,7 @@ internal class GuildProfileSheet : BottomSheet() {
                 }
                 countsContainer = LinearLayout(ctx).addTo(this) {
                     setPadding(0.dp, 8.dp, 0, 0)
-                    visibility = GONE
+                    visibility = View.GONE
                     orientation = LinearLayout.HORIZONTAL
                     gravity = Gravity.CENTER_VERTICAL
                     CardView(ctx).addTo(this) {
@@ -163,21 +161,21 @@ internal class GuildProfileSheet : BottomSheet() {
                 }
                 established = TextView(ctx, null, 0, R.i.GuildProfileSheet_DiscoverableGuild_Text).addTo(this) {
                     setPadding(0.dp, 4.dp, 0, 0)
-                    visibility = GONE
+                    visibility = View.GONE
                 }
                 description = TextView(ctx, null, 0, R.i.UiKit_TextView).addTo(this) {
                     setPadding(0.dp, 12.dp, 0, 0)
-                    visibility = GONE
+                    visibility = View.GONE
                 }
                 games = LinearLayout(ctx).addTo(this) {
                     setPadding(0.dp, 14.dp, 0, 0)
                     layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
-                    visibility = GONE
+                    visibility = View.GONE
                     gravity = Gravity.CENTER_VERTICAL
                 }
                 traits = ChipGroup(ctx).addTo(this) {
                     setPadding(0.dp, 12.dp, 0, 0)
-                    visibility = GONE
+                    visibility = View.GONE
                     chipSpacingVertical = 8.dp
                     chipSpacingHorizontal = 8.dp
                 }
@@ -185,7 +183,7 @@ internal class GuildProfileSheet : BottomSheet() {
                     layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
                         topMargin = 12.dp
                     }
-                    visibility = GONE
+                    visibility = View.GONE
                 }
             }
         }
@@ -198,8 +196,8 @@ internal class GuildProfileSheet : BottomSheet() {
                 is GuildProfileStore.ProfileResult.Available -> configure(it.profile, it.applications)
             }
 
-            loadingIndicator.visibility = GONE
-            container.visibility = VISIBLE
+            loadingIndicator.visibility = View.GONE
+            container.visibility = View.VISIBLE
         }
     }
 
@@ -269,7 +267,7 @@ internal class GuildProfileSheet : BottomSheet() {
             null,
             4,
         )
-        countsContainer.visibility = VISIBLE
+        countsContainer.visibility = View.VISIBLE
     }
 
     private fun configureGames(profile: GuildProfile, applications: List<Application>) {
@@ -359,7 +357,7 @@ internal class GuildProfileSheet : BottomSheet() {
                     text = name
                 }
             }
-            visibility = if (applications.isEmpty()) GONE else VISIBLE
+            visibility = if (applications.isEmpty()) View.GONE else View.VISIBLE
         }
     }
 
@@ -396,13 +394,13 @@ internal class GuildProfileSheet : BottomSheet() {
                     }
                 }
             }
-            visibility = if (profile.traits.isEmpty()) GONE else VISIBLE
+            visibility = if (profile.traits.isEmpty()) View.GONE else View.VISIBLE
         }
     }
 
     private fun configureActionButton(profile: GuildProfile) {
         actionButton.run {
-            visibility = VISIBLE
+            visibility = View.VISIBLE
             isEnabled = true
             alpha = 1f
             val guild = StoreStream.getGuilds().getGuild(profile.id)
@@ -448,7 +446,7 @@ internal class GuildProfileSheet : BottomSheet() {
                 }
             // Guild is not publicly joinable
             } else {
-                visibility = GONE
+                visibility = View.GONE
             }
         }
     }
