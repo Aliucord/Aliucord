@@ -45,7 +45,6 @@ internal class ChannelBrowserPage(val settings: SettingsAPI) : SettingsPage() {
         null
     }
 
-
     private fun themeAlertDialogText(dialog: AlertDialog, ctx: Context) {
         try {
             val textColor = ContextCompat.getColor(ctx, R.c.primary_dark)
@@ -56,7 +55,6 @@ internal class ChannelBrowserPage(val settings: SettingsAPI) : SettingsPage() {
             }
         } catch (_: Throwable) {}
     }
-
 
     @SuppressLint("SetTextI18n")
     override fun onViewBound(view: View) {
@@ -75,7 +73,6 @@ internal class ChannelBrowserPage(val settings: SettingsAPI) : SettingsPage() {
             ?.filter { it.key is String && it.value is Int }
             ?.map { it.key as String to it.value as Int }
             ?.toMap() ?: emptyMap()
-
 
         try {
             val store = StoreStream.getUserGuildSettings()
@@ -107,7 +104,6 @@ internal class ChannelBrowserPage(val settings: SettingsAPI) : SettingsPage() {
         }
 
         addView(linearLayout)
-
 
         val categories = allChannelsRaw.values.filter {
             try {

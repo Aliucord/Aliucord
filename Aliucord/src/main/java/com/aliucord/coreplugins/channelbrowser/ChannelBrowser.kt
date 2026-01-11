@@ -23,10 +23,8 @@ import com.discord.widgets.guilds.profile.WidgetGuildProfileSheet
 import com.discord.widgets.guilds.profile.WidgetGuildProfileSheetViewModel
 import com.lytefast.flexinput.R
 
-
 @AliucordPlugin
 internal class ChannelBrowser : Plugin() {
-
 
     override fun start(context: Context) {
         settingsTab = SettingsTab(ChannelBrowserSettings::class.java).withArgs(settings)
@@ -94,7 +92,6 @@ internal class ChannelBrowser : Plugin() {
             }
         }
     }
-
 
     private class ChannelBrowserHeaderAdapter(
         val onClick: () -> Unit
