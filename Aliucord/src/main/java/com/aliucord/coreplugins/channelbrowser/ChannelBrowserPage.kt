@@ -300,6 +300,7 @@ internal class ChannelBrowserPage(val settings: SettingsAPI) : SettingsPage() {
         } catch (_: Throwable) {
             null
         }
+        val type = try { ch.javaClass.getDeclaredField("type").apply { isAccessible = true }.getInt(ch) } catch (_: Throwable) { -1 }
         val flags = if (chId != null) channelOverridesMap[chId] ?: 4096 else 4096
         val isHiddenLocally = hiddenChannels.contains(chId)
         val isCheckedRemote = (flags and 4096) != 0
@@ -311,9 +312,19 @@ internal class ChannelBrowserPage(val settings: SettingsAPI) : SettingsPage() {
             setPadding(16, 8, 16, 8)
             gravity = Gravity.CENTER_VERTICAL
         }
+
         val iconView = ImageView(ctx).apply {
             try {
-                setImageDrawable(ctx.getDrawable(R.e.ic_channel_text))
+                val iconRes = when (type) {
+                    2 -> R.e.ic_channel_voice 
+                    else -> R.e.ic_channel_text 
+                }
+                val drawable = ctx.getDrawable(iconRes)?.mutate()
+                try {
+                    val color = com.discord.utilities.color.ColorCompat.getThemedColor(ctx, R.b.colorInteractiveNormal)
+                    drawable?.setTint(color)
+                } catch (_: Throwable) {}
+                setImageDrawable(drawable)
                 val scale = ctx.resources.displayMetrics.density
                 val size = (20 * scale).toInt()
                 layoutParams = LinearLayout.LayoutParams(size, size).apply {
