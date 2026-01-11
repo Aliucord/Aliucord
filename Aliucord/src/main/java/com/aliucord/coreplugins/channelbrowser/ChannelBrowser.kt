@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.aliucord.Constants
 import com.aliucord.Utils
 import com.aliucord.annotations.AliucordPlugin
-import com.aliucord.entities.Plugin
+import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.after
 import com.aliucord.utils.ReflectUtils
 import com.discord.databinding.WidgetGuildProfileSheetBinding
@@ -24,7 +24,7 @@ import com.discord.widgets.guilds.profile.WidgetGuildProfileSheetViewModel
 import com.lytefast.flexinput.R
 
 @AliucordPlugin
-internal class ChannelBrowser : Plugin() {
+internal class ChannelBrowser : CorePlugin() {
 
     override fun start(context: Context) {
         settingsTab = SettingsTab(ChannelBrowserSettings::class.java).withArgs(settings)
