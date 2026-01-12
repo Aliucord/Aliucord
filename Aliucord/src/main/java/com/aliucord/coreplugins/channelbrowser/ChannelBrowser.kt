@@ -24,7 +24,10 @@ import com.discord.widgets.guilds.profile.WidgetGuildProfileSheetViewModel
 import com.lytefast.flexinput.R
 
 @AliucordPlugin
-internal class ChannelBrowser : CorePlugin() {
+internal class ChannelBrowser: CorePlugin(Manifest("ChannelBrowser")) {
+    init {
+        manifest.description = "Adds the "Manage Channels" feature, which allows you to hide or to show channels on a specific guild."
+    }
 
     override fun start(context: Context) {
         settingsTab = SettingsTab(ChannelBrowserSettings::class.java).withArgs(settings)
