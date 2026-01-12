@@ -70,6 +70,7 @@ dependencies {
     compileOnly(libs.kotlin.stdlib)
     compileOnly(libs.material)
     compileOnly(project(":Injector")) // Needed to access certain stubs
+    compileOnly(project(":voice")) // Needed to access certain stubs
     coreLibraryDesugaring(libs.desugar)
 }
 

@@ -10,7 +10,6 @@ import com.discord.native.engine.VideoInputDeviceDescription
 import com.discord.native.engine.VideoInputDeviceFacing
 import com.google.gson.Gson
 import org.webrtc.VideoFrame
-import java.util.concurrent.Executors
 
 private val gson = Gson()
 
@@ -169,12 +168,6 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
             }
         })
         val conn = Connection(nativeConnection)
-        Executors.newCachedThreadPool().execute {
-            // conn.connectUser("{\\\"id\\\":\\\"184405311681986560\\\",\\\"videoSsrcs\\\":[],\\\"volume\\\":0.08483428955078125,\\\"ssrc\\\":709555,\\\"videoSsrc\\\":0,\\\"rtxSsrc\\\":0,\\\"mute\\\":false}")
-            Thread.sleep(5000)
-            conn.connectUser(184405311681986560L, 709555, 0, 0, false, 1f)
-            Log.w("Aliuvoice", "User Connected")
-        }
         return conn
     }
 

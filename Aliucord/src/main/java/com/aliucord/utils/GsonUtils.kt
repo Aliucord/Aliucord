@@ -8,6 +8,7 @@ package com.aliucord.utils
 
 import com.discord.models.domain.Model
 import com.google.gson.Gson
+import com.google.gson.JsonElement
 import java.io.Reader
 import java.lang.reflect.Type
 import b.a.b.a as TypeAdapterRegistrar
@@ -48,6 +49,15 @@ object GsonUtils {
         e.add(Model.TypeAdapterFactory())
         a()
     }
+
+    /**
+     * Deserializes a JSON element into the specified class
+     * @param element The JSON element to deserialize
+     * @param clazz The class to deserialize the JSON into
+     * @return Deserialized JSON
+     */
+    @JvmStatic
+    fun <T> Gson.fromJson(element: JsonElement?, clazz: Class<T>): T = c(element, clazz)
 
     /**
      * Deserializes a JSON string into the specified class

@@ -111,16 +111,6 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
         patchResultMessage(context)
         patchAttachmentSelector()
         patchChatListActions()
-        patcher.before<com.discord.rtcconnection.socket.io.Payloads.Protocol.ProtocolInfo>(
-            String::class.java,
-            Int::class.javaPrimitiveType!!,
-            String::class.java,
-        ) { (param, _: String, _: Int, mode: String) ->
-            if (mode == "xsalsa20_poly1305") {
-                param.args[2] = "aead_aes256_gcm_rtpsize"
-                // param.args[2] = "aead_xchacha20_poly1305_rtpsize"
-            }
-        }
     }
 
     override fun stop(context: Context) {
