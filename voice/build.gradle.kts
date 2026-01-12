@@ -1,20 +1,21 @@
-version = "2.3.2"
+version = "1.0.0"
 
 plugins {
-    alias(libs.plugins.aliucord.injector)
+    alias(libs.plugins.aliucord.core)
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin)
 }
 
 android {
-    namespace = "com.aliucord.injector"
+    namespace = "com.aliucord.voice"
     compileSdk = 36
+
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+    }
 
     defaultConfig {
         minSdk = 24
-
-        buildConfigField("String", "VERSION", "\"$version\"")
-        buildConfigField("String", "TAG", "\"Injector\"")
     }
 
     buildTypes {
@@ -23,17 +24,14 @@ android {
         }
     }
 
+    androidComponents {
+        beforeVariants(selector().withBuildType("release")) { variantBuilder ->
+            variantBuilder.enable = false
+        }
+    }
+
     androidResources {
         enable = false
-    }
-
-    buildFeatures {
-        buildConfig = true
-        resValues = false
-    }
-
-    lint {
-        disable += "SetTextI18n"
     }
 }
 
@@ -51,9 +49,7 @@ kotlin {
 }
 
 dependencies {
-    compileOnly(libs.aliuhook)
-    compileOnly(libs.appcompat)
     compileOnly(libs.discord)
     compileOnly(libs.kotlin.stdlib)
-    implementation(project(":voice"))
+    coreLibraryDesugaring(libs.desugar)
 }

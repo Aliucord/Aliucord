@@ -1,11 +1,11 @@
 package com.discord.crash_reporting
 
-import com.aliucord.injector.Logger
+import android.util.Log
 
 object WebrtcCrashReporting {
     @JvmStatic
     fun reportWebrtcException(th: Throwable): String {
-        Logger.e("Caught webrtc exception", th)
+        Log.e("Aliuvoice", "Caught webrtc exception", th)
         return th.toString()
     }
 }

@@ -1,8 +1,8 @@
 package com.hammerandchisel.libdiscord
 
 import android.content.Context
+import android.util.Log
 import co.discord.media_engine.*
-import com.aliucord.injector.Logger
 import com.discord.native.engine.*
 import com.discord.native.engine.AudioInputDeviceDescription
 import com.discord.native.engine.AudioOutputDeviceDescription
@@ -138,6 +138,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         streamParametersArr: Array<StreamParameters>,
         connectToServerCallback: ConnectToServerCallback
     ): Connection {
+        Log.i("Aliuvoice", "Hello from aliuvoice!")
         val nativeConnection = nativeEngine.createVoiceConnection(
             userId.toString(),
             // TODO
@@ -172,7 +173,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
             // conn.connectUser("{\\\"id\\\":\\\"184405311681986560\\\",\\\"videoSsrcs\\\":[],\\\"volume\\\":0.08483428955078125,\\\"ssrc\\\":709555,\\\"videoSsrc\\\":0,\\\"rtxSsrc\\\":0,\\\"mute\\\":false}")
             Thread.sleep(5000)
             conn.connectUser(184405311681986560L, 709555, 0, 0, false, 1f)
-            Logger.w("User Connected")
+            Log.w("Aliuvoice", "User Connected")
         }
         return conn
     }
