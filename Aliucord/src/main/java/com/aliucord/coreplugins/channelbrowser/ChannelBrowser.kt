@@ -34,11 +34,7 @@ internal class ChannelBrowser: CorePlugin(Manifest("ChannelBrowser")) {
 
         patcher.after<`WidgetChannelListModel$Companion$guildListBuilder$$inlined$forEach$lambda$3`>("invoke") {
             val channel = `$channel`
-            val channelId = try {
-                channel.javaClass.getDeclaredField("id").apply { isAccessible = true }.get(channel) as? Long
-            } catch (_: Throwable) {
-                null
-            }
+            val channelId = channel.javaClass.getDeclaredField("id").apply { isAccessible = true }.get(channel) as? Long
             val hiddenChannels = settings.getObject("hiddenChannels", mutableListOf<String>()) as MutableList<String>
             if (channelId != null && hiddenChannels.contains(channelId.toString())) it.result = null
         }
@@ -126,16 +122,10 @@ internal class ChannelBrowser: CorePlugin(Manifest("ChannelBrowser")) {
             }
 
             val icon = ImageView(ctx).apply {
-                val resId = try {
-                    R.e.ic_menu_24dp
-                } catch (_: Throwable) {
-                    android.R.drawable.ic_menu_sort_by_size
-                }
+                val resId = R.e.ic_menu_24dp
                 val drawable = androidx.core.content.ContextCompat.getDrawable(ctx, resId)?.mutate()
-                try {
-                    val color = ColorCompat.getThemedColor(ctx, R.b.colorInteractiveNormal)
-                    drawable?.setTint(color)
-                } catch (_: Throwable) {}
+                val color = ColorCompat.getThemedColor(ctx, R.b.colorInteractiveNormal)
+                drawable?.setTint(color)
                 setImageDrawable(drawable)
                 val size = (24 * scale).toInt()
                 layoutParams = LinearLayout.LayoutParams(size, size).apply {
@@ -150,11 +140,7 @@ internal class ChannelBrowser: CorePlugin(Manifest("ChannelBrowser")) {
                 text = "Browse Channels"
                 typeface = ResourcesCompat.getFont(ctx, Constants.Fonts.whitney_medium)
                 textSize = 16f
-                val color = try {
-                    androidx.core.content.ContextCompat.getColor(ctx, try { R.c.primary_dark } catch (_: Throwable) { android.R.color.black })
-                } catch (_: Throwable) {
-                    0xFF000000.toInt()
-                }
+                val color = androidx.core.content.ContextCompat.getColor(ctx, R.c.primary_dark)
                 setTextColor(color)
                 gravity = android.view.Gravity.CENTER_VERTICAL
                 layoutParams = LinearLayout.LayoutParams(
