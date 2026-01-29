@@ -16,6 +16,7 @@ import android.widget.Toast
 import com.discord.app.AppActivity
 import com.discord.stores.StoreClientVersion
 import com.discord.stores.StoreStream
+import com.google.gson.Gson
 import dalvik.system.BaseDexClassLoader
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
@@ -28,10 +29,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 const val LOG_TAG = "Injector"
 private const val DATA_URL = "https://builds.aliucord.com/data.json"
 private const val DEX_URL = "https://builds.aliucord.com/Aliucord.zip"
-
-@Suppress("DEPRECATION")
-private val BASE_DIRECTORY = File(Environment.getExternalStorageDirectory().absolutePath, "Aliucord")
-private const val ALIUCORD_FROM_STORAGE_KEY = "AC_from_storage"
 
 private var unhook: XC_MethodHook.Unhook? = null
 
@@ -65,20 +62,27 @@ private fun init(appActivity: AppActivity) {
     if (!pruneArtProfile(appActivity))
         Logger.w("Failed to prune art profile")
 
-    val dexFile = appActivity.codeCacheDir.resolve("Aliucord.zip")
-    val customDexFile = appActivity.codeCacheDir.resolve("Aliucord.custom.zip")
+    val internalCoreFile = appActivity.codeCacheDir.resolve("Aliucord.zip")
+    val internalCustomCoreFile = appActivity.codeCacheDir.resolve("Aliucord.custom.zip")
+    val externalBaseDir = Environment.getExternalStorageDirectory().resolve("Aliucord")
+    val externalSettingsFile = externalBaseDir.resolve("settings/Aliucord.json")
+    val externalCustomCoreFile = externalBaseDir.resolve("Aliucord.zip")
 
-    Logger.d("Initializing Aliucord...")
+    val customCore = isUsingCustomCore(settingsFile = externalSettingsFile, customCoreFile = externalCustomCoreFile)
+
+    Logger.d("Loading Aliucord core...")
     try {
-        val useCustomDex = useCustomDex(appActivity)
-
-        // Copy core bundle from external storage to internal cache
-        if (useCustomDex) {
-            File(BASE_DIRECTORY, "Aliucord.zip").copyTo(customDexFile, overwrite = true)
+        // Delete old custom cores copied to code cache if exist
+        if (!customCore) {
+            internalCustomCoreFile.delete()
         }
 
-        // Download new core
-        if (!useCustomDex && !dexFile.exists()) {
+        // Copy core bundle from external storage to internal cache to prevent deletion while running
+        if (customCore) {
+            externalCustomCoreFile.copyTo(internalCustomCoreFile, overwrite = true)
+        }
+        // Download new stable core
+        else if (!internalCoreFile.exists()) {
             val successRef = AtomicBoolean(true)
             Thread {
                 try {
@@ -101,7 +105,7 @@ private fun init(appActivity: AppActivity) {
                     if (remoteVersion > version) {
                         error(appActivity, "Your base Discord is outdated. Please reinstall using the Installer.", null)
                         successRef.set(false)
-                    } else downloadLatestAliucordDex(dexFile)
+                    } else downloadLatestAliucordDex(internalCoreFile)
                 } catch (e: Throwable) {
                     error(appActivity, "Failed to install aliucord :(", e)
                     successRef.set(false)
@@ -113,8 +117,11 @@ private fun init(appActivity: AppActivity) {
             if (!successRef.get()) return
         }
 
-        Logger.d("Adding Aliucord to the classpath...")
-        addDexToClasspath(if (useCustomDex) customDexFile else dexFile, appActivity.classLoader)
+        Logger.d("Adding Aliucord core to the classpath...")
+        addDexToClasspath(
+            dex = if (customCore) internalCustomCoreFile else internalCoreFile,
+            classLoader = appActivity.classLoader,
+        )
         val c = Class.forName("com.aliucord.Main")
         val preInit = c.getDeclaredMethod("preInit", AppActivity::class.java)
         val init = c.getDeclaredMethod("init", AppActivity::class.java)
@@ -126,37 +133,66 @@ private fun init(appActivity: AppActivity) {
     } catch (th: Throwable) {
         error(appActivity, "Failed to initialize Aliucord", th)
         try {
-            // Delete cached file so it is reinstalled the next time
-            dexFile.delete()
-            customDexFile.delete()
-        } catch (_: Throwable) {
-            // Ignore
+            // Delete cached files so it is redownloaded the next time
+            internalCoreFile.delete()
+            internalCustomCoreFile.delete()
+        } catch (e: Throwable) {
+            Logger.e("Failed to delete cached core files", e)
+        }
+
+        if (customCore && !disableCustomCore(externalSettingsFile)) {
+            Logger.errorToast(appActivity, "Disabled loading custom core!")
         }
     }
 }
 
 /**
- * Checks if app has permission for storage and if so checks settings as to whether
- * using custom/local core bundle is enable .
+ * Checks whether using an external custom Aliucord core is possible and enabled.
  */
-private fun useCustomDex(appActivity: AppActivity): Boolean {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-        if (!Environment.isExternalStorageManager())
+private fun isUsingCustomCore(settingsFile: File, customCoreFile: File): Boolean {
+    // Explicitly checking whether external storage read permissions were granted has historically been error-prone,
+    // so we can instead just capture the error if they were not granted.
+    val settings = try {
+        if (!settingsFile.exists()) {
+            Logger.d("Aliucord settings file missing, skipping custom core check...")
             return false
-    } else if (appActivity.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        }
+        if (!customCoreFile.exists()) {
+            Logger.d("Aliucord external custom core missing, skipping custom core check...")
+            return false
+        }
+
+        JSONObject(settingsFile.readText())
+    } catch (e: Exception) {
+        Logger.d("Failed to read external Aliucord settings, skipping custom core check...", e)
         return false
     }
 
-    val settingsFile = File(BASE_DIRECTORY, "settings/Aliucord.json")
-    val localDexFile = File(BASE_DIRECTORY, "Aliucord.zip")
-    if (!settingsFile.exists() || !localDexFile.exists()) return false
+    val customCoreEnabled = settings.optBoolean("AC_from_storage", false)
+    if (customCoreEnabled)
+        Logger.d("Loading external custom Aliucord core!")
 
-    val useLocalDex = settingsFile.readText()
-        .let { it.isNotEmpty() && JSONObject(it).optBoolean(ALIUCORD_FROM_STORAGE_KEY, false) }
-    if (!useLocalDex) return false
+    return customCoreEnabled
+}
 
-    Logger.d("Loading dex from ${localDexFile.absolutePath}")
-    return true
+/**
+ * Tries to disable the setting that enables using a custom external Aliucord core, if possible.
+ * If permissions were not granted to read/write to the external settings, then this fails silently.
+ */
+private fun disableCustomCore(settingsFile: File): Boolean {
+    try {
+        if (!settingsFile.exists()) return true
+
+        val settings = JSONObject(settingsFile.readText())
+        if (!settings.optBoolean("AC_from_storage", false))
+            return true
+
+        settings.put("AC_from_storage", false)
+        settingsFile.writeText(settings.toString())
+        return true
+    } catch (_: Exception) {
+        return false
+    }
 }
 
 /**
