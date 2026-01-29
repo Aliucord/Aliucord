@@ -35,7 +35,7 @@ public class Updater extends SettingsPage {
 
         Utils.threadPool.execute(() -> {
             Snackbar sb;
-            if (CoreUpdater.isCustomCoreEnabled()) {
+            if (CoreUpdater.isCustomCoreLoaded()) {
                 sb = Snackbar.make(getLinearLayout(), "Core updates are currently disabled due to using Aliucord from storage.", Snackbar.LENGTH_INDEFINITE);
             } else if (CoreUpdater.isUpdaterDisabled()) {
                 sb = Snackbar.make(getLinearLayout(), "All updates have been manually disabled.", Snackbar.LENGTH_INDEFINITE);

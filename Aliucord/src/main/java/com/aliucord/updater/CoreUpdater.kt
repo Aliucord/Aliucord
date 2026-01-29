@@ -2,6 +2,7 @@ package com.aliucord.updater
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.util.Log
 import com.aliucord.*
 import com.aliucord.api.NotificationsAPI
 import com.aliucord.entities.NotificationData
@@ -9,8 +10,11 @@ import com.aliucord.fragments.ConfirmDialog
 import com.aliucord.settings.ALIUCORD_FROM_STORAGE_KEY
 import com.aliucord.settings.AUTO_UPDATE_ALIUCORD_KEY
 import com.aliucord.updater.CoreUpdater.UPDATER_DATA_URL
+import com.aliucord.utils.ReflectUtils
 import com.aliucord.utils.SemVer
 import com.aliucord.utils.SerializedName
+import dalvik.system.BaseDexClassLoader
+import java.io.File
 
 /**
  * Handles checking for core/base updates and updating the Aliucord core itself.
@@ -30,7 +34,7 @@ internal object CoreUpdater {
      */
     @JvmStatic
     fun checkForUpdates() {
-        if (isUpdaterDisabled() || isCustomCoreEnabled()) return
+        if (isUpdaterDisabled() || isCustomCoreLoaded()) return
 
         try {
             logger.debug("Checking for Aliucord updates...")
@@ -125,14 +129,42 @@ internal object CoreUpdater {
     fun isAutoUpdateEnabled(): Boolean = Main.settings.getBool(AUTO_UPDATE_ALIUCORD_KEY, false)
 
     /**
-     * Determines whether the Aliucord dex is being loaded from storage
-     *
-     * @return Whether preference [ALIUCORD_FROM_STORAGE_KEY] is set to true
+     * Determines whether custom core loading has been enabled by the user.
+     * Note that this does not guarantee that a custom core is actually currently loaded,
+     * refer to [isCustomCoreLoaded] for more information.
      */
     @JvmStatic
     fun isCustomCoreEnabled(): Boolean {
-        // FIXME: this is still true even when custom core doesn't exist
         return Main.settings.getBool(ALIUCORD_FROM_STORAGE_KEY, false)
+    }
+
+    /**
+     * Determines whether the Aliucord core is currently loaded from external storage.
+     * This does not take into account the user-configurable toggle [ALIUCORD_FROM_STORAGE_KEY] itself.
+     * This only works if the currently installed injector version is v2.3.0+, otherwise, it will always return false.
+     */
+    @JvmStatic
+    fun isCustomCoreLoaded(): Boolean = _customCoreLoaded
+
+    // Check classloader paths to see if Aliucord.custom.zip is loaded
+    private val _customCoreLoaded: Boolean by lazy {
+        val pathList = ReflectUtils.getField(
+            BaseDexClassLoader::class.java,
+            this.javaClass.classLoader,
+            "pathList",
+        )!!
+
+        @Suppress("UNCHECKED_CAST")
+        val dexElements = ReflectUtils.getField(
+            pathList,
+            "dexElements",
+        )!! as Array<Any>
+
+        dexElements.findLast { element ->
+            val path = ReflectUtils.getField(element, "path")!! as File
+
+            path.name == "Aliucord.custom.zip"
+        } != null
     }
 
     /**
