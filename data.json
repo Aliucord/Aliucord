@@ -4,5 +4,6 @@
   "coreVersion": "2.6.0",
   "injectorVersion": "2.3.2",
   "patchesVersion": "1.4.0",
+  "kotlinVersion": "1.5.21",
   "aliucordHash": "0000000"
 }
