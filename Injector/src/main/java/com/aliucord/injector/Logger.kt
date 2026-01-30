@@ -6,12 +6,26 @@
 
 package com.aliucord.injector
 
+import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.widget.Toast
 import com.discord.app.AppLog
 
-object Logger {
-    private const val TAG = "[$LOG_TAG] "
+/**
+ * A quick wrapper over Discord's internal logger that is viewable within the app.
+ * Calls to this logger will only function after the main activity has been initialized within Discord.
+ */
+internal object Logger {
+    fun d(msg: String, e: Throwable? = null) = AppLog.g.d("[${BuildConfig.TAG}] $msg", e)
+    fun i(msg: String, e: Throwable? = null) = AppLog.g.i("[${BuildConfig.TAG}] $msg", e)
+    fun w(msg: String, e: Throwable? = null) = AppLog.g.w("[${BuildConfig.TAG}] $msg", e)
+    fun e(msg: String, e: Throwable? = null) = AppLog.g.e("[${BuildConfig.TAG}] $msg", e, null)
 
-    fun d(msg: String) = AppLog.g.d(TAG + msg, null)
-    fun w(msg: String) = AppLog.g.w(TAG + msg, null)
-    fun e(msg: String, e: Throwable?) = AppLog.g.e(TAG + msg, e, null)
+    fun errorToast(ctx: Context, msg: String, e: Throwable? = null) {
+        e(msg, e)
+        Handler(Looper.getMainLooper()).post {
+            Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show()
+        }
+    }
 }

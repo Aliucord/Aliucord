@@ -6,61 +6,65 @@
 
 package com.aliucord.injector
 
-import android.Manifest
-import android.annotation.SuppressLint
-import android.content.Context
-import android.content.pm.PackageManager
-import android.os.*
+import android.app.Application
+import android.os.Bundle
+import android.os.Environment
 import android.util.Log
-import android.widget.Toast
 import com.discord.app.AppActivity
 import com.discord.stores.StoreClientVersion
 import com.discord.stores.StoreStream
-import com.google.gson.Gson
-import dalvik.system.BaseDexClassLoader
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import org.json.JSONObject
-import java.io.*
+import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
 
-const val LOG_TAG = "Injector"
 private const val DATA_URL = "https://builds.aliucord.com/data.json"
-private const val DEX_URL = "https://builds.aliucord.com/Aliucord.zip"
+private const val CORE_URL = "https://builds.aliucord.com/Aliucord.zip"
 
-private var unhook: XC_MethodHook.Unhook? = null
-
+/**
+ * The main entrypoint invoked by the overridden Discord class.
+ * This gets invoked as soon as Discord's [Application] class is loaded,
+ * prior to [Application.onCreate] and before any activity is loaded.
+ */
 fun init() {
+    Log.d(BuildConfig.TAG, "Loaded Aliucord injector!")
     try {
-        Log.d(LOG_TAG, "Hooking AppActivity.onCreate...")
-        unhook = XposedBridge.hookMethod(AppActivity::class.java.getDeclaredMethod("onCreate", Bundle::class.java), object : XC_MethodHook() {
+        val initialized = AtomicBoolean(false)
+        var unhook: XC_MethodHook.Unhook? = null
+
+        val activityOnCreate = AppActivity::class.java.getDeclaredMethod("onCreate", Bundle::class.java)
+        unhook = XposedBridge.hookMethod(activityOnCreate, object : XC_MethodHook() {
             override fun beforeHookedMethod(param: MethodHookParam) {
+                if (initialized.getAndSet(true)) return
+
                 init(param.thisObject as AppActivity)
                 unhook!!.unhook()
-                unhook = null
             }
         })
-    } catch (th: Throwable) {
-        Log.e(LOG_TAG, "Failed to initialize Aliucord", th)
+    } catch (t: Throwable) {
+        Log.e(BuildConfig.TAG, "Failed to setup Injector!", t)
     }
 }
 
-private fun error(ctx: Context, msg: String, th: Throwable?) {
-    Logger.e(msg, th)
-    Handler(Looper.getMainLooper()).post { Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show() }
-}
-
+/**
+ * The secondary entrypoint, called after Discord's main activity is invoked and [AppActivity.onCreate] is called.
+ * Aliucord is downloaded, loaded, and started at this point.
+ */
 private fun init(appActivity: AppActivity) {
-    if (!XposedBridge.disableProfileSaver())
-        Logger.w("Failed to disable profile saver")
+    Logger.d("Preparing environment...")
 
     if (!XposedBridge.disableHiddenApiRestrictions())
         Logger.w("Failed to disable hidden api restrictions")
 
-    if (!pruneArtProfile(appActivity))
-        Logger.w("Failed to prune art profile")
+    if (!XposedBridge.disableProfileSaver())
+        Logger.w("Failed to disable profile saver")
+
+    Logger.d("Pruning ART usage profile...")
+    pruneArtProfile(appActivity)
 
     val internalCoreFile = appActivity.codeCacheDir.resolve("Aliucord.zip")
     val internalCustomCoreFile = appActivity.codeCacheDir.resolve("Aliucord.custom.zip")
@@ -68,9 +72,9 @@ private fun init(appActivity: AppActivity) {
     val externalSettingsFile = externalBaseDir.resolve("settings/Aliucord.json")
     val externalCustomCoreFile = externalBaseDir.resolve("Aliucord.zip")
 
+    Logger.d("Checking custom core settings")
     val customCore = isUsingCustomCore(settingsFile = externalSettingsFile, customCoreFile = externalCustomCoreFile)
 
-    Logger.d("Loading Aliucord core...")
     try {
         // Delete old custom cores copied to code cache if exist
         if (!customCore) {
@@ -103,11 +107,13 @@ private fun init(appActivity: AppActivity) {
                     Logger.d("Retrieved remote Discord version: $remoteVersion")
 
                     if (remoteVersion > version) {
-                        error(appActivity, "Your base Discord is outdated. Please reinstall using the Installer.", null)
+                        Logger.errorToast(appActivity, "Your base Discord is outdated. Please reinstall using Aliucord Manager.")
                         successRef.set(false)
-                    } else downloadLatestAliucordDex(internalCoreFile)
+                    } else {
+                        downloadLatestCore(internalCoreFile)
+                    }
                 } catch (e: Throwable) {
-                    error(appActivity, "Failed to install aliucord :(", e)
+                    Logger.errorToast(appActivity, "Failed to download latest Aliucord core!", e)
                     successRef.set(false)
                 }
             }.run {
@@ -117,21 +123,25 @@ private fun init(appActivity: AppActivity) {
             if (!successRef.get()) return
         }
 
-        Logger.d("Adding Aliucord core to the classpath...")
+        val loadTarget = if (customCore) internalCustomCoreFile else internalCoreFile
+        Logger.d("Adding Aliucord core ${loadTarget.absolutePath} the classpath...")
         addDexToClasspath(
-            dex = if (customCore) internalCustomCoreFile else internalCoreFile,
+            dexFile = loadTarget,
             classLoader = appActivity.classLoader,
         )
+
+        Logger.d("Obtaining Aliucord core entrypoints...")
         val c = Class.forName("com.aliucord.Main")
         val preInit = c.getDeclaredMethod("preInit", AppActivity::class.java)
         val init = c.getDeclaredMethod("init", AppActivity::class.java)
 
-        Logger.d("Invoking main Aliucord entry point...")
+        Logger.d("Starting Aliucord core...")
         preInit.invoke(null, appActivity)
         init.invoke(null, appActivity)
         Logger.d("Finished initializing Aliucord")
-    } catch (th: Throwable) {
-        error(appActivity, "Failed to initialize Aliucord", th)
+    } catch (t: Throwable) {
+        Logger.errorToast(appActivity, "Failed to initialize Aliucord!", t)
+
         try {
             // Delete cached files so it is redownloaded the next time
             internalCoreFile.delete()
@@ -140,7 +150,7 @@ private fun init(appActivity: AppActivity) {
             Logger.e("Failed to delete cached core files", e)
         }
 
-        if (customCore && !disableCustomCore(externalSettingsFile)) {
+        if (customCore && disableCustomCore(externalSettingsFile)) {
             Logger.errorToast(appActivity, "Disabled loading custom core!")
         }
     }
@@ -196,49 +206,43 @@ private fun disableCustomCore(settingsFile: File): Boolean {
 }
 
 /**
- * Public so it can be manually triggered from Aliucord to update itself
- * outputFile should be new File(context.getCodeCacheDir(), "Aliucord.zip");
+ * Downloads the latest Aliucord core to [outputFile].
  */
-@Throws(IOException::class)
-fun downloadLatestAliucordDex(outputFile: File) {
-    Logger.d("Downloading Aliucord.zip from $DEX_URL...")
-    val conn = URL(DEX_URL).openConnection() as HttpURLConnection
-    conn.inputStream.use { it.copyTo(FileOutputStream(outputFile)) }
-    Logger.d("Finished downloading Aliucord.zip")
-}
+fun downloadLatestCore(outputFile: File) {
+    val tmpFile = outputFile.resolveSibling(outputFile.name + ".tmp")
 
-@SuppressLint("DiscouragedPrivateApi") // this private api seems to be stable, thanks to facebook who use it in the facebook app
-@Throws(Throwable::class)
-private fun addDexToClasspath(dex: File, classLoader: ClassLoader) {
-    Logger.d("Adding Aliucord to the classpath...")
+    Logger.d("Downloading latest Aliucord core from $CORE_URL...")
+    val startTime = System.currentTimeMillis()
+    val conn = URL(CORE_URL).openConnection() as HttpURLConnection
 
-    // https://android.googlesource.com/platform/libcore/+/58b4e5dbb06579bec9a8fc892012093b6f4fbe20/dalvik/src/main/java/dalvik/system/BaseDexClassLoader.java#59
-    val pathListField = BaseDexClassLoader::class.java.getDeclaredField("pathList")
-        .apply { isAccessible = true }
-    val pathList = pathListField[classLoader]!!
-    val addDexPath = pathList.javaClass.getDeclaredMethod("addDexPath", String::class.java, File::class.java)
-        .apply { isAccessible = true }
-    addDexPath.invoke(pathList, dex.absolutePath, null)
-    Logger.d("Successfully added Aliucord to the classpath")
-}
+    conn.setRequestProperty("User-Agent", "Aliucord Injector/${BuildConfig.VERSION} (https://github.com/Aliucord/Aliucord)")
+    conn.useCaches = false
 
-/**
- * Try to prevent method inlining by deleting the usage profile used by AOT compilation
- * https://source.android.com/devices/tech/dalvik/configure#how_art_works
- */
-private fun pruneArtProfile(ctx: Context): Boolean {
-    Logger.d("Pruning ART usage profile...")
-    val profile = File("/data/misc/profiles/cur/0/" + ctx.packageName + "/primary.prof")
-    if (!profile.exists()) {
-        return true
-    }
-    if (profile.length() > 0) {
-        try {
-            // Delete file contents
-            FileOutputStream(profile).close()
-        } catch (ignored: Throwable) {
-            return false
+    conn.getInputStream().use { stream ->
+        tmpFile.outputStream().use { out ->
+            val buffer = ByteArray(1024 * 64) // 64 KiB
+            val length = conn.contentLengthLong
+
+            var oldProgress = 0f
+            var downloaded = 0
+            var bytes = stream.read(buffer)
+            while (bytes >= 0) {
+                out.write(buffer, 0, bytes)
+
+                val newProgress = (downloaded + bytes) / length.toFloat()
+                if (newProgress >= oldProgress + 0.1f) {
+                    oldProgress = newProgress
+                    Logger.d(String.format(Locale.ROOT,
+                        "Downloaded %.2f%% after %sms",
+                        newProgress * 100,
+                        System.currentTimeMillis() - startTime))
+                }
+
+                downloaded += bytes
+                bytes = stream.read(buffer)
+            }
         }
     }
-    return true
+    tmpFile.renameTo(outputFile)
+    Logger.d("Downloaded Aliucord core after ${System.currentTimeMillis() - startTime}ms")
 }

@@ -6,12 +6,18 @@
 
 package com.discord.app;
 
+import android.app.Application;
+
 import com.aliucord.injector.InjectorKt;
 
 import kotlin.jvm.internal.DefaultConstructorMarker;
 
-// This is a class by Discord which conveniently happens to be empty
-// Thus it offers an amazing entry point for an injection since we can safely override the class
+/**
+ * This is a class within the Discord app which conveniently happens to be empty.
+ * Specifically, it is an empty Companion class for the Discord app's {@link Application} entrypoint,
+ * which gets initialized by the static constructor as soon as the parent class is loaded.
+ * Thus, it offers an amazing entrypoint for Aliucord since we can safely override this empty class.
+ */
 @SuppressWarnings("unused")
 public final class App$a {
     static {
