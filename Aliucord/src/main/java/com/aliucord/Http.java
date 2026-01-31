@@ -251,6 +251,9 @@ public class Http {
 
     /** Request Builder */
     public static class Request implements Closeable {
+        private static final String USER_AGENT =
+            String.format("Aliucord/%s (https://github.com/Aliucord/Aliucord)", BuildConfig.VERSION);
+
         /** The connection of this Request */
         public final HttpURLConnection conn;
 
@@ -284,7 +287,7 @@ public class Http {
         public Request(String url, String method) throws IOException {
             conn = (HttpURLConnection) new URL(url).openConnection();
             conn.setRequestMethod(method.toUpperCase());
-            conn.addRequestProperty("User-Agent", "Aliucord (https://github.com/Aliucord/Aliucord)");
+            conn.addRequestProperty("User-Agent", USER_AGENT);
         }
 
         /**

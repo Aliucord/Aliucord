@@ -177,6 +177,15 @@ class SettingsUtilsJSON(plugin: String) {
     fun setString(key: String, value: String?) = putObject(key, value)
 
     /**
+     * Get a [JSONArray] item
+     * @param key Key of the item
+     * @param defValue Default value
+     * @return Value if found, else the defValue
+     */
+    fun getJSONArray(key: String, defValue: JSONArray?) =
+        if (settings.has(key)) settings.getJSONArray(key) else defValue
+
+    /**
      * Get a [JSONObject] item
      * @param key Key of the item
      * @param defValue Default value
