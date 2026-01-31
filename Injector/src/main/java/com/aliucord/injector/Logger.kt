@@ -9,6 +9,7 @@ package com.aliucord.injector
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.widget.Toast
 import com.discord.app.AppLog
 import com.discord.utilities.logging.LoggingProvider
@@ -27,11 +28,25 @@ internal object Logger {
         LoggingProvider.INSTANCE.init(AppLog.g)
     }
 
-    private fun formatLog(msg: String) = "[${BuildConfig.TAG}] $msg"
-    fun d(msg: String, e: Throwable? = null) = AppLog.g.d(formatLog(msg), e)
-    fun i(msg: String, e: Throwable? = null) = AppLog.g.i(formatLog(msg), e)
-    fun w(msg: String, e: Throwable? = null) = AppLog.g.w(formatLog(msg), e)
-    fun e(msg: String, e: Throwable? = null) = AppLog.g.e(formatLog(msg), e, null)
+    private fun formatLog(msg: String, error: Throwable?): String {
+        return buildString {
+            append('[')
+            append(BuildConfig.TAG)
+            append("] ")
+            append(msg)
+
+            if (error != null) {
+                append('\n')
+                append(Log.getStackTraceString(error))
+            }
+        }
+    }
+
+    // Logging exceptions causes exceptions during early init
+    fun d(msg: String, e: Throwable? = null) = AppLog.g.d(formatLog(msg, e), null)
+    fun i(msg: String, e: Throwable? = null) = AppLog.g.i(formatLog(msg, e), null)
+    fun w(msg: String, e: Throwable? = null) = AppLog.g.w(formatLog(msg, e), null)
+    fun e(msg: String, e: Throwable? = null) = AppLog.g.e(formatLog(msg, e), null, null)
 
     fun errorToast(ctx: Context, msg: String, e: Throwable? = null) {
         e(msg, e)
