@@ -1,9 +1,3 @@
-/*
- * This file is part of Aliucord, an Android Discord client mod.
- * Copyright (c) 2025 Juby210 & Vendicated
- * Licensed under the Open Software License version 3.0
- */
-
 package com.aliucord.coreplugins.accountstanding
 
 import android.content.Context
@@ -52,7 +46,7 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
                 userClassifications[me.id] = json.classifications!!
                 settings.setObject("classifications", userClassifications)
 
-                if (oldUserClassifications.isEmpty() || userClassifications.isEmpty()) return@execute
+                if (userClassifications.isEmpty()) return@execute
 
                 if (userClassifications[me.id] != oldUserClassifications[me.id] && (me.flags and UserFlags.HAS_UNREAD_URGENT_MESSAGES) != 0) {
                     val notificationData = NotificationData()
@@ -79,7 +73,7 @@ internal class AccountStanding : CorePlugin(Manifest("AccountStanding")) {
             val ctx = layout.context
 
             TextView(ctx, null, 0, R.i.UiKit_Settings_Item).apply {
-                text = "Account standing"
+                text = "Account Standing"
                 setCompoundDrawablesWithIntrinsicBounds(
                     null,
                     null,
