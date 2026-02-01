@@ -308,6 +308,7 @@ object PluginManager {
             ExperimentDefaults(),
             ForwardedMessages(),
             GifPreviewFix(),
+            HideMutedChannelsFix(),
             MembersListFix(),
             NewPins(),
             NoTrack(),
