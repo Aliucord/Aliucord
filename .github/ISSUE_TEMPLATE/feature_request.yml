@@ -1,15 +1,7 @@
 name: Feature Request
-description: Create a feature request for Aliucord itself. To request new plugins, please go to Aliucord/plugin-requests.
+description: Create a feature or backport request to be built into Aliucord itself. To request new plugins, please go to Aliucord/plugin-requests.
 labels: [enhancement]
 body:
-  - type: input
-    id: discord
-    attributes:
-      label: Discord Account
-      description: Who on Discord is making this request? Not required.
-      placeholder: username#0000
-    validations:
-      required: false
   - type: textarea
     id: feature-basic-description
     attributes:

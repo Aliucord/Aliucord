@@ -1,10 +1,9 @@
 package com.aliucord.coreplugins
 
-import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.view.MenuItem
 import androidx.core.content.ContextCompat
+import com.aliucord.Utils
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.after
 import com.discord.utilities.color.ColorCompat
@@ -29,19 +28,11 @@ internal class RestartButton : CorePlugin(Manifest("RestartButton")) {
                 .setIcon(icon)
                 .setShowAsActionFlags(MenuItem.SHOW_AS_ACTION_ALWAYS)
                 .setOnMenuItemClickListener {
-                    restartApp(activity)
+                    Utils.restartAliucord(activity)
                     false
                 }
         }
     }
 
     override fun stop(context: Context) = patcher.unpatchAll()
-
-    private fun restartApp(activity: Activity) {
-        val intent = activity.packageManager.getLaunchIntentForPackage(activity.packageName)
-            .let { Intent.makeRestartActivityTask(it?.component) }
-
-        activity.startActivity(intent)
-        Runtime.getRuntime().exit(0)
-    }
 }

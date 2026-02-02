@@ -32,12 +32,12 @@ import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.ConfirmDialog;
 import com.aliucord.patcher.*;
 import com.aliucord.settings.*;
+import com.aliucord.updater.ManagerBuild;
 import com.aliucord.updater.PluginUpdater;
 import com.aliucord.utils.ChangelogUtils;
 import com.aliucord.utils.ReflectUtils;
 import com.aliucord.views.Divider;
 import com.aliucord.views.ToolbarButton;
-import com.aliucord.widgets.SideloadingBlockWarning;
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper;
 import com.discord.api.message.embed.EmbedField;
 import com.discord.app.*;
@@ -102,23 +102,28 @@ public final class Main {
         Patcher.addPatch(WidgetChatList.class.getDeclaredConstructor(), new Hook(param ->
             Utils.widgetChatList = (WidgetChatList) param.thisObject));
 
-        // Fix 2025-04-03 gateway change that ported visual refresh theme names over the legacy user settings
-        // Theme entries like "darker" and "midnight" are unsupported
-        Patcher.addPatch(ModelUserSettings.class, "assignField", new Class<?>[]{ Model.JsonReader.class }, new Hook(param -> {
-            var $this = (ModelUserSettings) param.thisObject;
+        // Since 1.4.0, this is implemented via a smali patch to ensure it works even if Aliucord failed to load
+        if (!ManagerBuild.hasPatches("1.4.0")) {
+            // Fix 2025-04-03 gateway change that ported visual refresh theme names over the legacy user settings
+            // Theme entries like "darker" and "midnight" are unsupported
+            Patcher.addPatch(ModelUserSettings.class, "assignField", new Class<?>[]{ Model.JsonReader.class }, new Hook(param -> {
+                var $this = (ModelUserSettings) param.thisObject;
 
-            var theme = $this.getTheme();
-            if (theme == null ||
-                ModelUserSettings.THEME_DARK.equals(theme) ||
-                ModelUserSettings.THEME_LIGHT.equals(theme) ||
-                ModelUserSettings.THEME_PURE_EVIL.equals(theme)) return;
-
-            try {
-                ReflectUtils.setField($this, "theme", "dark");
-            } catch (Exception e) {
-                logger.error("Failed to fix ModelUserSettings theme", e);
-            }
-        }));
+                switch ($this.getTheme()) {
+                    case null:
+                    case ModelUserSettings.THEME_DARK:
+                    case ModelUserSettings.THEME_LIGHT:
+                    case ModelUserSettings.THEME_PURE_EVIL:
+                        return;
+                    default:
+                        try {
+                            ReflectUtils.setField($this, "theme", "dark");
+                        } catch (Exception e) {
+                            logger.error("Failed to fix ModelUserSettings theme", e);
+                        }
+                }
+            }));
+        }
     }
 
     private static void preInitWithPermissions(AppCompatActivity activity) {
@@ -334,7 +339,7 @@ public final class Main {
         //   at android.view.ViewPropertyAnimator.setDuration(ViewPropertyAnimator.java:266)
         //   at com.discord.widgets.chat.input.SmoothKeyboardReactionHelper$Callback.onStart(SmoothKeyboardReactionHelper.kt:5)
         //   at android.view.View.dispatchWindowInsetsAnimationStart(View.java:12671)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             try {
                 Patcher.addPatch(
                     SmoothKeyboardReactionHelper.Callback.class.getDeclaredMethod("onStart", WindowInsetsAnimation.class, WindowInsetsAnimation.Bounds.class),
@@ -395,8 +400,6 @@ public final class Main {
             PluginManager.startCorePlugins();
             startAllPlugins();
         }
-
-        SideloadingBlockWarning.INSTANCE.maybeOpenDialog();
     }
 
     private static void crashHandler(Thread thread, Throwable throwable) {
@@ -586,10 +589,7 @@ public final class Main {
             .setDescription(desc)
             .setOnOkListener(widget -> {
                 settings.setBool(AliucordPageKt.ALIUCORD_SAFE_MODE_KEY, false);
-                Context ctx = fragment.requireContext();
-                Intent intent = ctx.getPackageManager().getLaunchIntentForPackage(ctx.getPackageName());
-                Utils.appActivity.startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
-                Runtime.getRuntime().exit(0);
+                Utils.restartAliucord(fragment.requireContext());
             })
             .show(fragment.getParentFragmentManager(), "Disable Safe Mode");
     }

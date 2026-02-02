@@ -22,6 +22,10 @@ import b.i.d.e as GsonBuilder
  */
 typealias SerializedName = b.i.d.p.b
 typealias JsonAdapter = b.i.d.p.a
+typealias JsonNull = b.i.d.j
+typealias JsonPrimitive = b.i.d.k
+typealias JsonSerializer<T> = b.i.d.m<T>
+typealias JsonSerializationContext = b.i.d.l
 
 object GsonUtils {
 

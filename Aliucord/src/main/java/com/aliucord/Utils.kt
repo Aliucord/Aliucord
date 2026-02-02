@@ -52,7 +52,6 @@ import com.google.android.material.snackbar.Snackbar
 import com.lytefast.flexinput.R
 import java.io.File
 import java.lang.reflect.Field
-import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.random.Random
@@ -533,6 +532,18 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
     }
 
     /**
+     * Forcefully restarts the Aliucord app.
+     */
+    @JvmStatic
+    fun restartAliucord(context: Context) {
+        val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+            .let { Intent.makeRestartActivityTask(it?.component) }
+
+        context.startActivity(intent)
+        exitProcess(0)
+    }
+
+    /**
      * Prompts the user to restart Aliucord
      *
      * @param msg Message
@@ -541,7 +552,10 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
     @SuppressLint("ShowToast", "InternalInsetResource")
     @JvmStatic
     @JvmOverloads
-    fun promptRestart(msg: String = "Restart required. Restart now?", position: Int = Gravity.TOP) {
+    fun promptRestart(
+        msg: String = "A restart is required. Restart now?",
+        position: Int = Gravity.BOTTOM,
+    ) {
         val resources = appContext.resources
         val id = resources.getIdentifier("status_bar_height", "dimen", "android")
         val statusBarHeight = if (id > 0) resources.getDimensionPixelSize(id) else 0
@@ -559,12 +573,7 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
             gravity = position
         }
 
-        bar.setAction("Restart") {
-            val ctx = it.context
-            val intent = ctx.packageManager.getLaunchIntentForPackage(ctx.packageName)
-            appActivity.startActivity(Intent.makeRestartActivityTask(intent!!.component))
-            exitProcess(0)
-        }
+        bar.setAction("Restart") { restartAliucord(it.context) }
         bar.show()
     }
 
