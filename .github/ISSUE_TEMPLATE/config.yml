@@ -1,5 +1,8 @@
 blank_issues_enabled: false
 contact_links:
+  - name: Plugin Request
+    url: https://github.com/Aliucord/plugin-requests/issues/new?template=plugin_request.yml
+    about: Create a plugin request for a feature that should not be built into Aliucord by default.
   - name: Aliucord Support Server
     url: https://discord.gg/EsNDvBaHVU
     about: If you need help regarding Aliucord or plugins for Aliucord, please join our support server.

@@ -1,0 +1,4 @@
+* text=auto eol=lf
+
+# Ignore legacy installer
+installer/** linguist-vendored

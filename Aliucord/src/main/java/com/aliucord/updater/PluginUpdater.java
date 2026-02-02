@@ -13,6 +13,7 @@ import com.aliucord.entities.NotificationData;
 import com.aliucord.entities.Plugin;
 import com.aliucord.settings.AliucordPageKt;
 import com.aliucord.utils.MDUtils;
+import com.aliucord.utils.SemVer;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
@@ -49,12 +50,14 @@ public class PluginUpdater {
     private static final Type resType = TypeToken.getParameterized(Map.class, String.class, UpdateInfo.class).getType();
 
     public static void checkUpdates(boolean notify) {
+        CoreUpdater.checkForUpdates();
+
         updates.clear();
         for (Map.Entry<String, Plugin> plugin : PluginManager.plugins.entrySet()) {
             if (checkPluginUpdate(plugin.getValue()))
                 updates.add(plugin.getKey());
         }
-        if (!notify || (updates.size() == 0 && !(!Updater.usingDexFromStorage() && Updater.isAliucordOutdated()))) return;
+        if (!notify || updates.isEmpty()) return;
 
         NotificationData notificationData = new NotificationData()
                 .setTitle("Updater")
@@ -74,26 +77,9 @@ public class PluginUpdater {
             } else {
                 body = String.format("Automatically updated %s: %s", Utils.pluralise(res, "plugin"), updatablePlugins);
             }
-        } else if (updates.size() != 0) {
+        } else if (!updates.isEmpty()) {
             body = "Updates for plugins are available: " + updatablePlugins;
         } else body = "All plugins up to date!";
-
-        if (!Updater.usingDexFromStorage()) {
-            if (Updater.isDiscordOutdated()) {
-                body = "Your Base Discord is outdated. Please update using the installer - " + body;
-            } else if (Updater.isAliucordOutdated()) {
-                if (Main.settings.getBool(AliucordPageKt.AUTO_UPDATE_ALIUCORD_KEY, false)) {
-                    try {
-                        Updater.updateAliucord(Utils.appActivity);
-                        body = "Auto updated Aliucord. Please restart Aliucord to load the update - " + body;
-                    } catch (Throwable th) {
-                        body = "Failed to auto update Aliucord. Please update it manually - " + body;
-                    }
-                } else {
-                    body = "Your Aliucord is outdated. Please update it to the latest version - " + body;
-                }
-            }
-        }
 
         notificationData.setBody(MDUtils.render(body));
         NotificationsAPI.display(notificationData);
@@ -108,9 +94,9 @@ public class PluginUpdater {
             if (updateInfo == null || updateInfo.minimumDiscordVersion > Constants.DISCORD_VERSION) return false;
 
             String updatedVer = updated.get(plugin.getClass().getSimpleName());
-            if (updatedVer != null && !Updater.isOutdated(plugin.getName(), updateInfo.version, updatedVer)) return false;
+            if (updatedVer != null && SemVer.parse(updateInfo.version).compareTo(SemVer.parse(updatedVer)) < 0) return false;
 
-            return Updater.isOutdated(plugin.getName(), manifest.version, updateInfo.version);
+            return SemVer.parse(manifest.version).compareTo(SemVer.parse(updateInfo.version)) < 0;
         } catch (Throwable e) { logger.error("Failed to check update for: " + plugin.getClass().getSimpleName(), e); }
         return false;
     }

@@ -56,13 +56,14 @@ kotlin {
             "-Xno-call-assertions",
             "-Xno-param-assertions",
             "-Xno-receiver-assertions",
+            "-Xannotation-default-target=param-property",
             "-Xallow-kotlin-package", // Workaround to adding kotlin.enums.EnumEntries polyfill
         )
     }
 }
 
 dependencies {
-    compileOnly(libs.aliuhook)
+    api(libs.aliuhook)
     compileOnly(libs.appcompat)
     compileOnly(libs.constraintlayout)
     compileOnly(libs.discord)
