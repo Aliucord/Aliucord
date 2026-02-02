@@ -552,7 +552,10 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
     @SuppressLint("ShowToast", "InternalInsetResource")
     @JvmStatic
     @JvmOverloads
-    fun promptRestart(msg: String = "Restart required. Restart now?", position: Int = Gravity.TOP) {
+    fun promptRestart(
+        msg: String = "A restart is required. Restart now?",
+        position: Int = Gravity.BOTTOM,
+    ) {
         val resources = appContext.resources
         val id = resources.getIdentifier("status_bar_height", "dimen", "android")
         val statusBarHeight = if (id > 0) resources.getDimensionPixelSize(id) else 0
