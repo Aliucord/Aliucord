@@ -1,0 +1,296 @@
+package com.aliucord.coreplugins.forwardedmessages
+
+import android.content.Context
+import android.content.Intent
+import android.graphics.drawable.Drawable
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.os.Build
+import android.telephony.SignalStrength
+import android.telephony.TelephonyManager
+import android.view.View
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
+import androidx.core.widget.NestedScrollView
+import com.aliucord.Http
+import com.aliucord.utils.GsonUtils
+import com.aliucord.Utils
+import com.aliucord.Logger
+import com.aliucord.annotations.AliucordPlugin
+import com.aliucord.entities.Plugin
+import com.aliucord.patcher.PreHook
+import com.aliucord.patcher.Patcher
+import com.aliucord.utils.DimenUtils
+import com.discord.utilities.color.ColorCompat
+import com.discord.databinding.WidgetIncomingShareBinding
+import com.aliucord.Constants
+import androidx.core.content.res.ResourcesCompat
+import com.discord.utilities.SnowflakeUtils
+import com.discord.utilities.captcha.CaptchaHelper
+import com.discord.utilities.intent.IntentUtils
+import com.discord.utilities.time.Clock
+import com.discord.widgets.chat.list.ViewEmbedGameInvite
+import com.discord.widgets.chat.list.actions.WidgetChatListActions
+import com.discord.widgets.share.WidgetIncomingShare
+import com.discord.widgets.user.search.WidgetGlobalSearchModel
+import com.google.android.material.appbar.AppBarLayout
+import java.io.IOException
+import java.lang.reflect.Field
+import java.lang.reflect.Method
+import java.util.Random
+import java.util.concurrent.ThreadLocalRandom
+
+@AliucordPlugin(requiresRestart = true)
+class ForwardMessagesPatch : Plugin() {
+    private val log = Logger("ForwardMessages")
+    
+    private val forwardExtraContent = "io.gh.reisxd.aliuplugins.MESSAGE_CONTENT"
+    private val forwardExtraMessageId = "io.gh.reisxd.aliuplugins.MESSAGE_ID"
+    private val forwardExtraChannelId = "io.gh.reisxd.aliuplugins.CHANNEL_ID"
+
+    override fun start(context: Context) {
+        val forwardId = View.generateViewId()
+
+        val replyIcon: Drawable? = ContextCompat.getDrawable(Utils.appActivity, com.lytefast.flexinput.R.e.ic_reply_24dp)?.mutate()
+        replyIcon?.isAutoMirrored = true
+        val forwardIcon = MirroredDrawable(replyIcon!!)
+
+        val bindingReflection: Method = WidgetIncomingShare::class.java.getDeclaredMethod("getBinding")
+        bindingReflection.isAccessible = true
+        val modelCommentField: Field = WidgetIncomingShare.Model::class.java.getDeclaredField("comment")
+        modelCommentField.isAccessible = true
+
+        // Add "Forward" action to Action menu
+        patcher.patch(WidgetChatListActions::class.java.getDeclaredMethod("configureUI", WidgetChatListActions.Model::class.java),
+            PreHook { param ->
+                val actions = param.thisObject as WidgetChatListActions
+                val scrollView = actions.view as NestedScrollView
+                val lay = scrollView.getChildAt(0) as LinearLayout
+
+                if (lay.findViewById<View>(forwardId) == null) {
+                    val tw = TextView(lay.context, null, 0, com.lytefast.flexinput.R.i.UiKit_Settings_Item_Icon)
+                    tw.id = forwardId
+                    tw.text = "Forward"
+                    val mediumTypeface = ResourcesCompat.getFont(tw.context, Constants.Fonts.whitney_medium)
+                    if (mediumTypeface != null) tw.typeface = mediumTypeface
+                    val color = ColorCompat.getThemedColor(tw.context, com.lytefast.flexinput.R.b.colorInteractiveNormal)
+                    forwardIcon.setTintList(android.content.res.ColorStateList.valueOf(color))
+                    tw.setCompoundDrawablesRelativeWithIntrinsicBounds(forwardIcon, null, null, null)
+
+                    val childrenCount = lay.childCount
+                    var foundIndex = false
+                    for (i in 0 until childrenCount) {
+                        val view = lay.getChildAt(i)
+                        if (view.id == Utils.getResId("dialog_chat_actions_reply", "id")) {
+                            foundIndex = true
+                            lay.addView(tw, i + 1)
+                            break
+                        }
+                    }
+                    if (!foundIndex) lay.addView(tw, 5)
+
+                    tw.setOnClickListener { _ ->
+                        val model = param.args[0] as WidgetChatListActions.Model
+                        val messageId = model.message.id
+                        val messageContent = model.message.content
+                        val channelId = model.channel.k()
+
+                        val putExtra = Intent()
+                            .putExtra(forwardExtraContent, messageContent)
+                            .putExtra(forwardExtraMessageId, messageId)
+                            .putExtra(forwardExtraChannelId, channelId)
+
+                        Utils.mainThread.post {
+                            Utils.openPage(Utils.appActivity, WidgetIncomingShare::class.java, putExtra)
+                            actions.dismiss()
+                        }
+                    }
+                }
+            })
+
+        // Check incoming intent and modify labels
+        patcher.patch(WidgetIncomingShare::class.java.getDeclaredMethod("initialize", WidgetIncomingShare.ContentModel::class.java),
+            PreHook { param ->
+                val share = param.thisObject as WidgetIncomingShare
+                val intent = share.mostRecentIntent
+                val messageId = intent.getLongExtra(forwardExtraMessageId, 0)
+                val channelId = intent.getLongExtra(forwardExtraChannelId, 0)
+                val messageContent = intent.getStringExtra(forwardExtraContent)
+
+                if (messageId == 0L || channelId == 0L) return@PreHook
+
+                val binding: WidgetIncomingShareBinding = try {
+                    bindingReflection.invoke(share) as WidgetIncomingShareBinding
+                } catch (e: Exception) {
+                    throw RuntimeException(e)
+                }
+
+                val appBar = binding.a.getChildAt(0) as AppBarLayout
+                val toolbar = appBar.getChildAt(0) as Toolbar
+                toolbar.title = "Forward"
+
+                val layout = binding.j.getChildAt(0) as LinearLayout
+
+                val shareToText = layout.getChildAt(4) as TextView
+                shareToText.text = "Forward To"
+
+                val messagePreviewText = layout.getChildAt(0) as TextView
+                messagePreviewText.text = "Optional Message"
+
+                val previewText = TextView(layout.context, null, 0, com.lytefast.flexinput.R.i.UiKit_TextAppearance)
+                val messagePreviewCustom = TextView(layout.context, null, 0, com.lytefast.flexinput.R.i.UiKit_Search_Header)
+                messagePreviewCustom.text = "Message Preview"
+                previewText.text = messageContent
+                previewText.setPadding(DimenUtils.dpToPx(16), DimenUtils.dpToPx(2), 0, 0)
+
+                layout.addView(messagePreviewCustom, 0)
+                layout.addView(previewText, 1)
+            })
+
+        // Send forwarded message
+        patcher.patch(WidgetIncomingShare::class.java.getDeclaredMethod(
+            "onSendClicked",
+            Context::class.java,
+            WidgetGlobalSearchModel.ItemDataPayload::class.java,
+            ViewEmbedGameInvite.Model::class.java,
+            WidgetIncomingShare.ContentModel::class.java,
+            Boolean::class.javaPrimitiveType,
+            Int::class.javaPrimitiveType,
+            Boolean::class.javaPrimitiveType,
+            CaptchaHelper.CaptchaPayload::class.java
+        ), PreHook { param ->
+            val share = param.thisObject as WidgetIncomingShare
+            val itemDataPayload = param.args[1] as WidgetGlobalSearchModel.ItemDataPayload
+            val intent = share.mostRecentIntent
+
+            val binding: WidgetIncomingShareBinding = try {
+                bindingReflection.invoke(share) as WidgetIncomingShareBinding
+            } catch (e: Exception) {
+                throw RuntimeException(e)
+            }
+
+            val textInput = binding.d.editText
+
+            val messageId = intent.getLongExtra(forwardExtraMessageId, 0)
+            val channelId = intent.getLongExtra(forwardExtraChannelId, 0)
+            if (messageId != 0L && channelId != 0L) {
+                val selectedChannel = itemDataPayload.channel.k()
+                val commentMessage = textInput?.text?.toString() ?: ""
+                Utils.threadPool.submit {
+                    try {
+                        val forwardMsg = Message(MessageReference(1, messageId, channelId, null, false), "")
+                        val forwardJson = try { GsonUtils.toJson(forwardMsg) } catch (e: Exception) { "<unable to serialize: ${e.message}>" }
+                        log.info("Forward request: json=$forwardJson nonce=${forwardMsg.nonce}")
+
+                        val res = Http.Request
+                            .newDiscordRNRequest(String.format("/channels/%d/messages", selectedChannel), "POST")
+                            .executeWithJson(forwardMsg)
+
+                        val respText = try { res.text() } catch (e: Exception) { "<unable to read body: ${e.message}>" }
+                        log.info("Forward response: ok=${res.ok()} code=${res.statusCode} body=$respText")
+
+                        if (!res.ok())
+                            Toast.makeText(context, "Forwarding failed: ${res.statusCode}", Toast.LENGTH_SHORT).show()
+                        else {
+                            if (commentMessage.isNotEmpty()) {
+                                val commentMsg = Message(null, commentMessage)
+                                log.info("Sending comment: content='${commentMsg.content}' nonce=${commentMsg.nonce}")
+                                val cres = Http.Request.newDiscordRNRequest(String.format("/channels/%d/messages", selectedChannel), "POST")
+                                    .executeWithJson(commentMsg)
+                                val cresText = try { cres.text() } catch (e: Exception) { "<unable to read body: ${e.message}>" }
+                                log.info("Comment response: ok=${cres.ok()} code=${cres.statusCode} body=$cresText")
+                            }
+                        }
+                    } catch (e: IOException) {
+                        log.error("Forwarding exception: ${e.message}", e)
+                        throw RuntimeException(e)
+                    }
+                }
+
+                Utils.mainThread.post {
+                    share.startActivity(IntentUtils.RouteBuilders.selectChannel(selectedChannel, 0, null)
+                        .setPackage(context.packageName))
+                }
+
+                param.result = null
+            }
+        })
+
+        // Activate send button always if forwarding
+        patcher.patch(WidgetIncomingShare::class.java.getDeclaredMethod("configureUi", WidgetIncomingShare.Model::class.java, Clock::class.java),
+            PreHook { param ->
+                val model = param.args[0] as WidgetIncomingShare.Model
+                val share = param.thisObject as WidgetIncomingShare
+                val intent = share.mostRecentIntent
+                val messageId = intent.getLongExtra(forwardExtraMessageId, 0)
+                try {
+                    if (messageId != 0L) {
+                        modelCommentField.set(model, "...")
+                    }
+                } catch (e: Exception) {
+                    throw RuntimeException(e)
+                }
+            })
+    }
+
+    override fun stop(context: Context) {
+        patcher.unpatchAll()
+    }
+
+    class MessageReference(
+        @JvmField var type: Int,
+        @JvmField var message_id: Long,
+        @JvmField var channel_id: Long,
+        @JvmField var guild_id: Long?,
+        @JvmField var fail_if_not_exists: Boolean
+    )
+
+    fun nextBits(rng: Random, bits: Int): Int {
+        if (bits < 0 || bits > 32) throw IllegalArgumentException("bits must be 0..32")
+        if (bits == 0) return 0
+        if (bits == 32) return rng.nextInt()
+        val mask = (1 shl bits) - 1
+        return rng.nextInt() and mask
+    }
+
+    fun nextBits(bits: Int): Int = nextBits(ThreadLocalRandom.current(), bits)
+
+    class Message(
+        @JvmField var message_reference: MessageReference?,
+        @JvmField var content: String = ""
+    ) {
+        @JvmField var flags: Int = 0
+        @JvmField var tts: Boolean = false
+        @JvmField var nonce: String = (SnowflakeUtils.fromTimestamp(System.currentTimeMillis()) + (ThreadLocalRandom.current().nextInt() and ((1 shl 23) - 1))).toString()
+        @JvmField var mobile_network_type: String = "unknown"
+        @JvmField var signal_strength: Int = 0
+
+        init {
+            val context = Utils.appActivity.applicationContext
+            val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+
+            val activeNetwork: Network? = connectivityManager.activeNetwork
+            if (activeNetwork != null) {
+                val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork)
+                if (capabilities != null) {
+                    mobile_network_type = when {
+                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "wifi"
+                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> "cellular"
+                        else -> mobile_network_type
+                    }
+
+                    if (Build.VERSION.SDK_INT >= 28) {
+                        val ss: SignalStrength? = telephonyManager.signalStrength
+                        signal_strength = ss?.level ?: 0
+                    }
+                }
+            }
+        }
+    }
+}
