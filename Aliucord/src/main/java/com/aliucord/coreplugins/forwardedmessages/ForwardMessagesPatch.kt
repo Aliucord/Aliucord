@@ -20,7 +20,6 @@ import androidx.core.widget.NestedScrollView
 import com.aliucord.Http
 import com.aliucord.utils.GsonUtils
 import com.aliucord.Utils
-import com.aliucord.Logger
 import com.aliucord.annotations.AliucordPlugin
 import com.aliucord.entities.Plugin
 import com.aliucord.patcher.PreHook
@@ -47,11 +46,9 @@ import java.util.concurrent.ThreadLocalRandom
 
 @AliucordPlugin(requiresRestart = true)
 class ForwardMessagesPatch : Plugin() {
-    private val log = Logger("ForwardMessages")
-    
-    private val forwardExtraContent = "io.gh.reisxd.aliuplugins.MESSAGE_CONTENT"
-    private val forwardExtraMessageId = "io.gh.reisxd.aliuplugins.MESSAGE_ID"
-    private val forwardExtraChannelId = "io.gh.reisxd.aliuplugins.CHANNEL_ID"
+    private val forwardExtraContent = "com.discord.intent.extra.EXTRA_CONTENT"
+    private val forwardExtraMessageId = "com.discord.intent.extra.EXTRA_MESSAGE_ID"
+    private val forwardExtraChannelId = "com.discord.intent.extra.EXTRA_CHANNEL_ID"
 
     override fun start(context: Context) {
         val forwardId = View.generateViewId()
@@ -185,29 +182,25 @@ class ForwardMessagesPatch : Plugin() {
                     try {
                         val forwardMsg = Message(MessageReference(1, messageId, channelId, null, false), "")
                         val forwardJson = try { GsonUtils.toJson(forwardMsg) } catch (e: Exception) { "<unable to serialize: ${e.message}>" }
-                        log.info("Forward request: json=$forwardJson nonce=${forwardMsg.nonce}")
 
                         val res = Http.Request
                             .newDiscordRNRequest(String.format("/channels/%d/messages", selectedChannel), "POST")
                             .executeWithJson(forwardMsg)
 
                         val respText = try { res.text() } catch (e: Exception) { "<unable to read body: ${e.message}>" }
-                        log.info("Forward response: ok=${res.ok()} code=${res.statusCode} body=$respText")
 
                         if (!res.ok())
                             Toast.makeText(context, "Forwarding failed: ${res.statusCode}", Toast.LENGTH_SHORT).show()
                         else {
                             if (commentMessage.isNotEmpty()) {
                                 val commentMsg = Message(null, commentMessage)
-                                log.info("Sending comment: content='${commentMsg.content}' nonce=${commentMsg.nonce}")
+                                
                                 val cres = Http.Request.newDiscordRNRequest(String.format("/channels/%d/messages", selectedChannel), "POST")
                                     .executeWithJson(commentMsg)
                                 val cresText = try { cres.text() } catch (e: Exception) { "<unable to read body: ${e.message}>" }
-                                log.info("Comment response: ok=${cres.ok()} code=${cres.statusCode} body=$cresText")
                             }
                         }
                     } catch (e: IOException) {
-                        log.error("Forwarding exception: ${e.message}", e)
                         throw RuntimeException(e)
                     }
                 }
