@@ -80,7 +80,7 @@ body:
     id: agreement-check
     attributes:
       label: Before Submitting
-      description: Please confirm the following:
+      description: "Please confirm the following:"
       options:
         - label: I’ve checked that this issue hasn’t already been reported.
           required: true
