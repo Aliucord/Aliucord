@@ -7,9 +7,9 @@
 package com.aliucord.coreplugins.plugindownloader
 
 import com.aliucord.*
+import com.aliucord.entities.CorePlugin
 import java.io.File
 import java.io.IOException
-import com.aliucord.entities.CorePlugin
 
 internal class PluginFile(val plugin: String) : File("${Constants.PLUGINS_PATH}/$plugin.zip") {
     val isInstalled
@@ -55,7 +55,7 @@ internal class PluginFile(val plugin: String) : File("${Constants.PLUGINS_PATH}/
                     callback?.let { Utils.mainThread.post(it) }
                 }
             } catch (ex: IOException) {
-                logger.error(ex)
+                Logger("PluginFile").error(ex)
                 Utils.showToast("Failed to download $plugin: ${ex.message}")
                 if (this.exists()) this.delete()
             }
