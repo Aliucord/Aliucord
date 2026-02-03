@@ -20,8 +20,7 @@ import androidx.core.widget.NestedScrollView
 import com.aliucord.Http
 import com.aliucord.utils.GsonUtils
 import com.aliucord.Utils
-import com.aliucord.annotations.AliucordPlugin
-import com.aliucord.entities.Plugin
+import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.PreHook
 import com.aliucord.patcher.Patcher
 import com.aliucord.utils.DimenUtils
@@ -44,8 +43,7 @@ import java.lang.reflect.Method
 import java.util.Random
 import java.util.concurrent.ThreadLocalRandom
 
-@AliucordPlugin(requiresRestart = true)
-class ForwardMessagesPatch : Plugin() {
+internal class ForwardMessagesPatch : CorePlugin(Manifest("ForwardMessagesPatch")) {
     private val forwardExtraContent = "com.aliucord.coreplugins.forwardedmessages.EXTRA_CONTENT"
     private val forwardExtraMessageId = "com.aliucord.coreplugins.forwardedmessages.EXTRA_MESSAGE_ID"
     private val forwardExtraChannelId = "com.aliucord.coreplugins.forwardedmessages.EXTRA_CHANNEL_ID"
