@@ -24,6 +24,7 @@ private const val DATA_URL = "https://builds.aliucord.com/data.json"
 private const val CORE_URL = "https://builds.aliucord.com/Aliucord.zip"
 
 private val initialized = AtomicBoolean(false)
+private val legacyInitialized = AtomicBoolean(false)
 
 /**
  * The main entrypoint, invoked by the overridden Discord class.
@@ -148,7 +149,7 @@ private fun startLegacyAliucord() {
         AppActivity::class.java.getDeclaredMethod("onCreate", Bundle::class.java),
         object : XC_MethodHook() {
             override fun beforeHookedMethod(param: MethodHookParam) {
-                if (initialized.getAndSet(true)) return
+                if (legacyInitialized.getAndSet(true)) return
 
                 unhook!!.unhook()
 
