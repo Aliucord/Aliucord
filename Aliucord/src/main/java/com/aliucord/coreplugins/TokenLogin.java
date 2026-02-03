@@ -72,7 +72,7 @@ public final class TokenLogin extends CorePlugin {
         }
 
         public void login(CharSequence token) {
-            StoreAuthentication.access$dispatchLogin(StoreStream.getAuthentication(), new ModelLoginResult(token.toString().startsWith("mfa."), null, token.toString(), null, new ArrayList<>()));
+            StoreAuthentication.access$dispatchLogin(StoreStream.getAuthentication(), new ModelLoginResult(token.toString().startsWith("mfa."), null, token.toString().trim(), null, new ArrayList<>()));
         }
     }
 
