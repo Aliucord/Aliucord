@@ -36,13 +36,31 @@ import com.discord.widgets.chat.list.entries.MessageEntry
 import com.lytefast.flexinput.R
 import java.util.regex.Pattern
 
-private val viewId = View.generateViewId()
+/**
+ * A random view ID used for custom context menu entries to ensure they aren't duplicated.
+ */
+private val pluginDownloaderViewId = View.generateViewId()
+
+/**
+ * Intent argument key for toggling plugin downloader scanning for plugin links.
+ */
+private const val INTENT_ENABLED = "INTENT_PLUGIN_DOWNLOADER_ENABLED"
+
+/**
+ * Github Repository regex in the format of `https://github.com/$USER/$REPO` matching `$USER` and `$REPO`.
+ */
 private val repoPattern = Pattern.compile(
     """https?://github\.com/([A-Za-z0-9\-_.]+)/([A-Za-z0-9\-_.]+)""")
+
+/**
+ * Github raw link to a plugin download in the format of `https://github.com/$USER/$REPO/raw/$BRANCH/$PLUGIN.zip`
+ * matching `$USER`, `$REPO`, `$BRANCH` and `$PLUGIN` name.
+ */
 private val zipPattern = Pattern.compile(
     """https?://(?:github|raw\.githubusercontent)\.com/([A-Za-z0-9\-_.]+)/([A-Za-z0-9\-_.]+)/(?:raw|blob)?/?(\w+)/(\w+).zip""")
 
 private val WidgetUrlActions.binding by accessGetter<WidgetUrlActionsBinding>()
+private val WidgetUrlActions.url by accessGetter<String>()
 
 internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
     override val isRequired = true // TODO: make this optional once PluginRepo is core
@@ -68,7 +86,7 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
             val layout = (this.requireView() as ViewGroup)
                 .findViewById<LinearLayout>("dialog_chat_actions_container")
 
-            if (layout.findViewById<View>(viewId) != null) return@after
+            if (layout.findViewById<View>(pluginDownloaderViewId) != null) return@after
             if (message.content.isNullOrEmpty()) return@after
 
             val member = StoreStream.getGuilds().getMember(Constants.ALIUCORD_GUILD_ID, message.author.id)
@@ -79,6 +97,7 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
                 messageAttachments = message.attachments,
                 sheet = this,
             )
+            if (entries.isEmpty()) return@after
 
             val replyView = layout.findViewById<View?>("dialog_chat_actions_edit") ?: return@after
             val replyViewIdx = layout.indexOfChild(replyView)
@@ -87,7 +106,7 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
             }
         }
 
-        // Replace link click handlers so that message data can be smuggled through intent before opening link context menu
+        // Replace link click handlers so that extra data can be smuggled through intent to open link context menu
         patcher.after<WidgetChatListAdapterItemMessage>(
             "getMessageRenderContext",
             Context::class.java,
@@ -102,33 +121,28 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
                 val urlActions = WidgetUrlActions().apply {
                     arguments = Bundle().apply {
                         putString("INTENT_URL", url)
-                        putString("INTENT_PLUGIN_DOWNLOADER_CONTENT", messageEntry.message.content)
+                        putBoolean(INTENT_ENABLED, true)
                     }
                 }
-                urlActions.show(
-                    /* p0 = */ this.adapter.fragmentManager,
-                    /* p1 = */ WidgetUrlActions::class.java.getName(),
-                )
+                urlActions.show(this.adapter.fragmentManager, WidgetUrlActions::class.java.getName())
             }
             // For future reference: replacing onClickUrl callback for short presses is possible here too
             ReflectUtils.setFinalField(renderContext, "onLongPressUrl", newLongClickHandler)
         }
 
         // Add items to links context menu
-        patcher.after<WidgetUrlActions>(
-            "onViewCreated",
-            View::class.java,
-            Bundle::class.java,
-        ) {
-            val content = this.arguments?.getString("INTENT_PLUGIN_DOWNLOADER_CONTENT") ?: return@after
-            val layout = this.binding.root as ViewGroup
+        patcher.after<WidgetUrlActions>("onViewCreated", View::class.java, Bundle::class.java) {
+            if (this.arguments?.getBoolean(INTENT_ENABLED, false) != true)
+                return@after
 
             val entries = getEntriesForPluginsListing(
-                messageContent = content,
+                messageContent = this.url, // Only this url should be scanned
                 messageAttachments = null,
                 sheet = this,
             )
+            if (entries.isEmpty()) return@after
 
+            val layout = this.binding.root as ViewGroup
             val copyView = this.binding.b
             val copyViewIdx = layout.indexOfChild(copyView)
             for ((entryIdx, entry) in entries.withIndex()) {
@@ -179,7 +193,7 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
 
             entries += makeContextMenuEntry(
                 ctx = sheet.requireContext(),
-                text = "View Available Plugins",
+                text = "View Author's Plugins",
                 onClick = {
                     Utils.openPageWithProxy(it.context, PluginRepoModal(author, repo))
                     sheet.dismiss()
@@ -209,7 +223,7 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
             }
         }
 
-        for (attachment in messageAttachments ?: emptyList()) {
+        for (attachment in messageAttachments.orEmpty()) {
             if (attachment.filename.run { !endsWith(".zip") || equals("Aliucord.zip") }) continue
 
             val name = attachment.filename.removeSuffix(".zip")
@@ -235,7 +249,7 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
      */
     fun makeContextMenuEntry(ctx: Context, text: String, onClick: View.OnClickListener): View {
         return TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Icon).apply {
-            id = viewId
+            id = pluginDownloaderViewId
             setText(text)
             setOnClickListener(onClick)
             ContextCompat.getDrawable(ctx, R.e.ic_file_download_white_24dp)?.run {
