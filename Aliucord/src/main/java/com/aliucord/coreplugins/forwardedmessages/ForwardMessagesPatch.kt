@@ -46,9 +46,9 @@ import java.util.concurrent.ThreadLocalRandom
 
 @AliucordPlugin(requiresRestart = true)
 class ForwardMessagesPatch : Plugin() {
-    private val forwardExtraContent = "com.discord.intent.extra.EXTRA_CONTENT"
-    private val forwardExtraMessageId = "com.discord.intent.extra.EXTRA_MESSAGE_ID"
-    private val forwardExtraChannelId = "com.discord.intent.extra.EXTRA_CHANNEL_ID"
+    private val forwardExtraContent = "com.aliucord.coreplugins.forwardedmessages.EXTRA_CONTENT"
+    private val forwardExtraMessageId = "com.aliucord.coreplugins.forwardedmessages.EXTRA_MESSAGE_ID"
+    private val forwardExtraChannelId = "com.aliucord.coreplugins.forwardedmessages.EXTRA_CHANNEL_ID"
 
     override fun start(context: Context) {
         val forwardId = View.generateViewId()
@@ -198,6 +198,10 @@ class ForwardMessagesPatch : Plugin() {
                                 val cres = Http.Request.newDiscordRNRequest(String.format("/channels/%d/messages", selectedChannel), "POST")
                                     .executeWithJson(commentMsg)
                                 val cresText = try { cres.text() } catch (e: Exception) { "<unable to read body: ${e.message}>" }
+                            }
+
+                            Utils.mainThread.post {
+                                Toast.makeText(context, "Message forwarded!", Toast.LENGTH_SHORT).show()
                             }
                         }
                     } catch (e: IOException) {
