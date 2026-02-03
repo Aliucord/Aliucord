@@ -42,7 +42,7 @@ private val repoPattern = Pattern.compile(
 private val zipPattern = Pattern.compile(
     """https?://(?:github|raw\.githubusercontent)\.com/([A-Za-z0-9\-_.]+)/([A-Za-z0-9\-_.]+)/(?:raw|blob)?/?(\w+)/(\w+).zip""")
 
-private val WidgetUrlActions.binding by accessGetter<WidgetUrlActionsBinding>("getBinding")
+private val WidgetUrlActions.binding by accessGetter<WidgetUrlActionsBinding>()
 
 internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
     override val isRequired = true // TODO: make this optional once PluginRepo is core
