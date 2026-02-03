@@ -43,7 +43,7 @@ import java.lang.reflect.Method
 import java.util.Random
 import java.util.concurrent.ThreadLocalRandom
 
-internal class ForwardMessagesPatch : CorePlugin(Manifest("ForwardMessages")) {
+internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
     private val forwardExtraContent = "com.aliucord.coreplugins.forwardedmessages.EXTRA_CONTENT"
     private val forwardExtraMessageId = "com.aliucord.coreplugins.forwardedmessages.EXTRA_MESSAGE_ID"
     private val forwardExtraChannelId = "com.aliucord.coreplugins.forwardedmessages.EXTRA_CHANNEL_ID"
