@@ -120,7 +120,7 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
             val newLongClickHandler: Function1<String, Unit> = { url ->
                 val urlActions = WidgetUrlActions().apply {
                     arguments = Bundle().apply {
-                        putString("INTENT_URL", url)
+                        putString("INTENT_URL", url) // Part of original intent
                         putBoolean(INTENT_ENABLED, true)
                     }
                 }
