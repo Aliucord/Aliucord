@@ -1,7 +1,9 @@
 package com.discord.api.botuikit
 
+import b.i.d.p.b as SerializedName
+
 enum class SelectV2DefaultValueType {
-    @b.i.d.p.b("user") USER,
-    @b.i.d.p.b("role") ROLE,
-    @b.i.d.p.b("channel") CHANNEL,
+    @SerializedName("user") USER,
+    @SerializedName("role") ROLE,
+    @SerializedName("channel") CHANNEL,
 }
