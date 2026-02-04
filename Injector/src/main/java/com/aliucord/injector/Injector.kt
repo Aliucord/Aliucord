@@ -7,6 +7,7 @@
 package com.aliucord.injector
 
 import android.app.Application
+import android.content.Context
 import android.os.Bundle
 import android.os.Environment
 import com.discord.app.App
@@ -18,10 +19,18 @@ import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.Locale
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
+
 
 private const val DATA_URL = "https://builds.aliucord.com/data.json"
 private const val CORE_URL = "https://builds.aliucord.com/Aliucord.zip"
+
+/**
+ * External settings key controlling whether custom core is enabled.
+ */
+private const val ALIUCORD_FROM_STORAGE_KEY = "AC_from_storage"
 
 private val initialized = AtomicBoolean(false)
 private val legacyInitialized = AtomicBoolean(false)
@@ -30,6 +39,7 @@ private val legacyInitialized = AtomicBoolean(false)
  * The main entrypoint, invoked by the overridden Discord class.
  * This is invoked shortly after [App.onCreate] starts executing.
  */
+// FIXME: don't download aliucord when not starting activity (FCM service)
 internal fun init(appCtx: Application) {
     if (initialized.getAndSet(true)) return
 
@@ -65,31 +75,20 @@ internal fun init(appCtx: Application) {
         }
         // Download new stable core
         else if (!internalCoreFile.exists()) {
-            val success = AtomicBoolean(false)
-            Thread {
-                try {
-                    val version = com.discord.BuildConfig.VERSION_CODE
-                    Logger.d("Retrieved local Discord version: $version")
+            val es = Executors.newSingleThreadExecutor()
+            val result = es.submit(Callable {
+                installCore(
+                    ctx = appCtx,
+                    internalCoreFile = internalCoreFile,
+                )
+            })
 
-                    Logger.d("Fetching latest Discord version...")
-                    val conn = URL(DATA_URL).openConnection() as HttpURLConnection
-                    val remoteVersion = JSONObject(conn.inputStream.bufferedReader().readText()).getInt("versionCode")
-                    Logger.d("Retrieved remote Discord version: $remoteVersion")
-
-                    if (remoteVersion > version) {
-                        Logger.errorToast(appCtx, "Your base Discord is outdated. Please reinstall using Aliucord Manager.")
-                    } else {
-                        downloadLatestCore(internalCoreFile)
-                        success.set(true)
-                    }
-                } catch (e: Throwable) {
-                    Logger.errorToast(appCtx, "Failed to download latest Aliucord core!", e)
-                }
-            }.run {
-                start()
-                join()
+            try {
+                if (!result.get())
+                    throw Exception("Aliucord core installer failed!")
+            } finally {
+                es.shutdown()
             }
-            if (!success.get()) return
         }
 
         val loadTarget = if (customCore) internalCustomCoreFile else internalCoreFile
@@ -182,7 +181,7 @@ private fun isUsingCustomCore(settingsFile: File, customCoreFile: File): Boolean
         return false
     }
 
-    val customCoreEnabled = settings.optBoolean("AC_from_storage", false)
+    val customCoreEnabled = settings.optBoolean(ALIUCORD_FROM_STORAGE_KEY, false)
     if (customCoreEnabled)
         Logger.d("Loading external custom Aliucord core!")
 
@@ -198,10 +197,10 @@ private fun disableCustomCore(settingsFile: File): Boolean {
         if (!settingsFile.exists()) return true
 
         val settings = JSONObject(settingsFile.readText())
-        if (!settings.optBoolean("AC_from_storage", false))
+        if (!settings.optBoolean(ALIUCORD_FROM_STORAGE_KEY, false))
             return true
 
-        settings.put("AC_from_storage", false)
+        settings.put(ALIUCORD_FROM_STORAGE_KEY, false)
         settingsFile.writeText(settings.toString())
         return true
     } catch (_: Exception) {
@@ -210,9 +209,40 @@ private fun disableCustomCore(settingsFile: File): Boolean {
 }
 
 /**
+ * Performs the whole download flow of obtaining the latest core build.
+ *
+ * This first checks whether the current installation is compatible with the
+ * latest core and prompts to reinstall with Manager when possible.
+ */
+private fun installCore(ctx: Context, internalCoreFile: File): Boolean {
+    return try {
+        val data = fetchBuildData()
+        Logger.d("Retrieved remote build data: $data")
+
+        val kotlinSemver = data.kotlinVersion
+            .split('.')
+            .map { it.toInt() }
+
+        if (data.discordVersion > com.discord.BuildConfig.VERSION_CODE ||
+            !KotlinVersion.CURRENT.isAtLeast(kotlinSemver[0], kotlinSemver[1], kotlinSemver[2])
+        ) {
+            // TODO: launch aliucord manager reinstall
+            Logger.errorToast(ctx, "Your base Discord is outdated. Please reinstall using Aliucord Manager.")
+            false
+        } else {
+            downloadLatestCore(outputFile = internalCoreFile)
+            true
+        }
+    } catch (e: Throwable) {
+        Logger.errorToast(ctx, "Failed to download latest Aliucord core!", e)
+        false
+    }
+}
+
+/**
  * Downloads the latest Aliucord core to [outputFile].
  */
-fun downloadLatestCore(outputFile: File) {
+private fun downloadLatestCore(outputFile: File) {
     val tmpFile = outputFile.resolveSibling(outputFile.name + ".tmp")
 
     Logger.d("Downloading latest Aliucord core from $CORE_URL...")
@@ -249,4 +279,29 @@ fun downloadLatestCore(outputFile: File) {
     }
     tmpFile.renameTo(outputFile)
     Logger.d("Downloaded Aliucord core after ${System.currentTimeMillis() - startTime}ms")
+}
+
+/**
+ * A parsed model of the data available at [DATA_URL].
+ */
+private data class BuildData(
+    var discordVersion: Int,
+    var kotlinVersion: String,
+)
+
+/**
+ * Fetches and parses the remote build data that is used to determine if update is possible.
+ */
+private fun fetchBuildData(): BuildData {
+    Logger.d("Fetching remote build data...")
+
+    val conn = URL(DATA_URL).openConnection() as HttpURLConnection
+    conn.setRequestProperty("User-Agent", "Aliucord Injector/${BuildConfig.VERSION} (https://github.com/Aliucord/Aliucord)")
+    conn.useCaches = false
+
+    val data = JSONObject(conn.inputStream.bufferedReader().readText())
+    return BuildData(
+        discordVersion = data.getInt("versionCode"),
+        kotlinVersion = data.optString("kotlinVersion", "1.5.21"),
+    )
 }
