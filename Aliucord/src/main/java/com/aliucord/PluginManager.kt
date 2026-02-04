@@ -306,6 +306,7 @@ object PluginManager {
             DefaultStickers(),
             DiscordBadges(),
             ExperimentDefaults(),
+            ForwardMessages(),
             ForwardedMessages(),
             GifPreviewFix(),
             HideMutedChannelsFix(),
