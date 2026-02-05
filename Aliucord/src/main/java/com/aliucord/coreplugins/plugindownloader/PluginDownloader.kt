@@ -7,32 +7,63 @@
 package com.aliucord.coreplugins.plugindownloader
 
 import android.content.Context
+import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.aliucord.*
-import com.aliucord.Constants.*
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
+import com.aliucord.utils.ReflectUtils
+import com.aliucord.utils.ViewUtils.findViewById
+import com.aliucord.utils.accessGetter
 import com.aliucord.wrappers.messages.AttachmentWrapper.Companion.filename
 import com.aliucord.wrappers.messages.AttachmentWrapper.Companion.url
+import com.discord.api.message.attachment.MessageAttachment
+import com.discord.app.AppBottomSheet
+import com.discord.databinding.WidgetUrlActionsBinding
+import com.discord.models.member.GuildMember
 import com.discord.models.message.Message
 import com.discord.stores.StoreStream
 import com.discord.utilities.color.ColorCompat
+import com.discord.utilities.textprocessing.MessageRenderContext
+import com.discord.widgets.chat.WidgetUrlActions
 import com.discord.widgets.chat.list.actions.WidgetChatListActions
+import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemMessage
+import com.discord.widgets.chat.list.entries.MessageEntry
 import com.lytefast.flexinput.R
 import java.util.regex.Pattern
 
-internal val logger = Logger("PluginDownloader")
+/**
+ * A random view ID used for custom context menu entries to ensure they aren't duplicated.
+ */
+private val pluginDownloaderViewId = View.generateViewId()
 
-private val viewId = View.generateViewId()
-private val repoPattern = Pattern.compile("https?://github\\.com/([A-Za-z0-9\\-_.]+)/([A-Za-z0-9\\-_.]+)")
-private val zipPattern =
-    Pattern.compile("https?://(?:github|raw\\.githubusercontent)\\.com/([A-Za-z0-9\\-_.]+)/([A-Za-z0-9\\-_.]+)/(?:raw|blob)?/?(\\w+)/(\\w+).zip")
+/**
+ * Intent argument key for toggling plugin downloader scanning for plugin links.
+ */
+private const val INTENT_ENABLED = "INTENT_PLUGIN_DOWNLOADER_ENABLED"
+
+/**
+ * Github Repository regex in the format of `https://github.com/$USER/$REPO` matching `$USER` and `$REPO`.
+ */
+private val repoPattern = Pattern.compile(
+    """https?://github\.com/([A-Za-z0-9\-_.]+)/([A-Za-z0-9\-_.]+)""")
+
+/**
+ * Github raw link to a plugin download in the format of `https://github.com/$USER/$REPO/raw/$BRANCH/$PLUGIN.zip`
+ * matching `$USER`, `$REPO`, `$BRANCH` and `$PLUGIN` name.
+ */
+private val zipPattern = Pattern.compile(
+    """https?://(?:github|raw\.githubusercontent)\.com/([A-Za-z0-9\-_.]+)/([A-Za-z0-9\-_.]+)/(?:raw|blob)?/?(\w+)/(\w+).zip""")
+
+private val WidgetUrlActions.binding by accessGetter<WidgetUrlActionsBinding>()
+private val WidgetUrlActions.url by accessGetter<String>()
 
 internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
-    override val isRequired = true
+    override val isRequired = true // TODO: make this optional once PluginRepo is core
 
     init {
         manifest.description = "Utility for installing plugins directly from the Aliucord server's plugins channels"
@@ -46,96 +77,186 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
     }
 
     override fun start(context: Context) {
-        patcher.patch(
-            WidgetChatListActions::class.java.getDeclaredMethod("configureUI", WidgetChatListActions.Model::class.java),
-            Hook { (param, model: WidgetChatListActions.Model) ->
-                val actions = param.thisObject as WidgetChatListActions
-                val layout = (actions.requireView() as ViewGroup).getChildAt(0) as ViewGroup
+        // Add items to message context menu
+        patcher.after<WidgetChatListActions>(
+            "configureUI",
+            WidgetChatListActions.Model::class.java,
+        ) { (_, model: WidgetChatListActions.Model) ->
+            val message = model.message
+            val layout = (this.requireView() as ViewGroup)
+                .findViewById<LinearLayout>("dialog_chat_actions_container")
 
-                if (layout.findViewById<View>(viewId) != null) return@Hook
+            if (layout.findViewById<View>(pluginDownloaderViewId) != null) return@after
+            if (message.content.isNullOrEmpty()) return@after
 
-                val msg = model.message
-                val content = msg?.content ?: return@Hook
+            val member = StoreStream.getGuilds().getMember(Constants.ALIUCORD_GUILD_ID, message.author.id)
+            if (!shouldScanForPlugins(message, member)) return@after
 
-                when (msg.channelId) {
-                    PLUGIN_LINKS_UPDATES_CHANNEL_ID, PLUGIN_DEVELOPMENT_CHANNEL_ID ->
-                        handlePluginZipMessage(msg, layout, actions)
+            val entries = getEntriesForPluginsListing(
+                messageContent = message.content,
+                messageAttachments = message.attachments,
+                sheet = this,
+            )
+            if (entries.isEmpty()) return@after
 
-                    SUPPORT_CHANNEL_ID, PLUGIN_SUPPORT_CHANNEL_ID, BOT_SPAM_CHANNEL_ID -> {
-                        val member = StoreStream.getGuilds().getMember(ALIUCORD_GUILD_ID, msg.author.id)
-                        val isTrusted = member?.roles?.any { it in arrayOf(SUPPORT_HELPER_ROLE_ID, PLUGIN_DEVELOPER_ROLE_ID) } ?: false
+            val replyView = layout.findViewById<View?>("dialog_chat_actions_edit") ?: return@after
+            val replyViewIdx = layout.indexOfChild(replyView)
+            for ((entryIdx, entry) in entries.withIndex()) {
+                layout.addView(entry, replyViewIdx + entryIdx)
+            }
+        }
 
-                        if (isTrusted) handlePluginZipMessage(msg, layout, actions)
-                    }
+        // Replace link click handlers so that extra data can be smuggled through intent to open link context menu
+        patcher.after<WidgetChatListAdapterItemMessage>(
+            "getMessageRenderContext",
+            Context::class.java,
+            MessageEntry::class.java,
+            Function1::class.java,
+        ) { (param, _: Context, messageEntry: MessageEntry) ->
+            if (!shouldScanForPlugins(messageEntry.message, messageEntry.author)) return@after
 
-                    PLUGIN_LINKS_CHANNEL_ID -> {
-                        repoPattern.matcher(content).takeIf { it.find() }?.run {
-                            val author = group(1)!!
-                            val repo = group(2)!!
+            val renderContext = param.result as MessageRenderContext
 
-                            addEntry(layout, "Open Plugin Downloader") {
-                                Utils.openPageWithProxy(it.context, Modal(author, repo))
-                                actions.dismiss()
-                            }
-                        }
+            val newLongClickHandler: Function1<String, Unit> = { url ->
+                val urlActions = WidgetUrlActions().apply {
+                    arguments = Bundle().apply {
+                        putString("INTENT_URL", url) // Part of original intent
+                        putBoolean(INTENT_ENABLED, true)
                     }
                 }
+                urlActions.show(this.adapter.fragmentManager, WidgetUrlActions::class.java.getName())
             }
-        )
+            // For future reference: replacing onClickUrl callback for short presses is possible here too
+            ReflectUtils.setFinalField(renderContext, "onLongPressUrl", newLongClickHandler)
+        }
+
+        // Add items to links context menu
+        patcher.after<WidgetUrlActions>("onViewCreated", View::class.java, Bundle::class.java) {
+            if (this.arguments?.getBoolean(INTENT_ENABLED, false) != true)
+                return@after
+
+            val entries = getEntriesForPluginsListing(
+                messageContent = this.url, // Only this url should be scanned
+                messageAttachments = null,
+                sheet = this,
+            )
+            if (entries.isEmpty()) return@after
+
+            val layout = this.binding.root as ViewGroup
+            val copyView = this.binding.b
+            val copyViewIdx = layout.indexOfChild(copyView)
+            for ((entryIdx, entry) in entries.withIndex()) {
+                layout.addView(entry, copyViewIdx + entryIdx)
+            }
+        }
     }
 
     override fun stop(context: Context) {}
 
-    private fun handlePluginZipMessage(msg: Message, layout: ViewGroup, actions: WidgetChatListActions) {
-        zipPattern.matcher(msg.content).run {
+    /**
+     * Checks whether a message should be scanned for plugin links to be added to context menus.
+     * This implies that the message comes from a **trusted** source.
+     */
+    private fun shouldScanForPlugins(message: Message, authorMember: GuildMember?): Boolean {
+        return when (message.channelId) {
+            Constants.PLUGIN_LINKS_CHANNEL_ID,
+            Constants.PLUGIN_LINKS_UPDATES_CHANNEL_ID,
+            Constants.PLUGIN_DEVELOPMENT_CHANNEL_ID -> true
+
+            Constants.SUPPORT_CHANNEL_ID,
+            Constants.PLUGIN_SUPPORT_CHANNEL_ID,
+            Constants.BOT_SPAM_CHANNEL_ID -> {
+                val isTrusted = authorMember?.roles
+                    ?.any { it == Constants.SUPPORT_HELPER_ROLE_ID || it == Constants.PLUGIN_DEVELOPER_ROLE_ID }
+                    ?: false
+
+                return isTrusted
+            }
+
+            else -> false
+        }
+    }
+
+    /**
+     * Scans message content & attachments and generates view entries to be added to a context menu.
+     */
+    private fun getEntriesForPluginsListing(
+        messageContent: String,
+        messageAttachments: List<MessageAttachment>?,
+        sheet: AppBottomSheet,
+    ): List<View> {
+        val entries = mutableListOf<View>()
+
+        repoPattern.matcher(messageContent).takeIf { it.find() }?.run {
+            val author = group(1)!!
+            val repo = group(2)!!
+
+            entries += makeContextMenuEntry(
+                ctx = sheet.requireContext(),
+                text = "View Author's Plugins",
+                onClick = {
+                    Utils.openPageWithProxy(it.context, PluginRepoModal(author, repo))
+                    sheet.dismiss()
+                },
+            )
+        }
+
+        zipPattern.matcher(messageContent).run {
             while (find()) {
                 val author = group(1)!!
                 val repo = group(2)!!
-				val commit = group(3)!!
+                val commit = group(3)!!
                 val name = group(4)!!
 
                 // Don't accidentally install core as a plugin
                 if (name == "Aliucord") continue
 
                 val plugin = PluginFile(name)
-                addEntry(layout, "${if (plugin.isInstalled) "Reinstall" else "Install"} $name") {
-                    plugin.install("https://cdn.jsdelivr.net/gh/$author/$repo@$commit/$name.zip")
-                    actions.dismiss()
-                }
+                entries += makeContextMenuEntry(
+                    ctx = sheet.requireContext(),
+                    text = "${if (plugin.isInstalled) "Reinstall" else "Install"} $name",
+                    onClick = {
+                        plugin.install("https://cdn.jsdelivr.net/gh/$author/$repo@$commit/$name.zip")
+                        sheet.dismiss()
+                    },
+                )
             }
         }
 
-        for (attachment in msg.attachments) {
+        for (attachment in messageAttachments.orEmpty()) {
             if (attachment.filename.run { !endsWith(".zip") || equals("Aliucord.zip") }) continue
 
             val name = attachment.filename.removeSuffix(".zip")
             val isInstalled = PluginManager.plugins.containsKey(name)
 
-            addEntry(layout, "${if (isInstalled) "Reinstall" else "Install"} $name") {
-                PluginFile(name).install(
-                    url = attachment.url,
-                    callback = actions::dismiss,
-                )
-            }
+            entries += makeContextMenuEntry(
+                ctx = sheet.requireContext(),
+                text = "${if (isInstalled) "Reinstall" else "Install"} $name",
+                onClick = {
+                    PluginFile(name).install(
+                        url = attachment.url,
+                        callback = sheet::dismiss,
+                    )
+                },
+            )
         }
+
+        return entries
     }
 
-    private fun addEntry(layout: ViewGroup, text: String, onClick: View.OnClickListener) {
-        val replyView =
-            layout.findViewById<View>(Utils.getResId("dialog_chat_actions_edit", "id")) ?: return
-        val idx = layout.indexOfChild(replyView)
-
-        TextView(layout.context, null, 0, R.i.UiKit_Settings_Item_Icon).run {
-            id = viewId
+    /**
+     * Makes a generic context menu entry for plugin downloader items with the download icon.
+     */
+    fun makeContextMenuEntry(ctx: Context, text: String, onClick: View.OnClickListener): View {
+        return TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Icon).apply {
+            id = pluginDownloaderViewId
             setText(text)
             setOnClickListener(onClick)
-            ContextCompat.getDrawable(layout.context, R.e.ic_file_download_white_24dp)?.run {
+            ContextCompat.getDrawable(ctx, R.e.ic_file_download_white_24dp)?.run {
                 mutate()
-                setTint(ColorCompat.getThemedColor(layout.context, R.b.colorInteractiveNormal))
+                setTint(ColorCompat.getThemedColor(ctx, R.b.colorInteractiveNormal))
                 setCompoundDrawablesRelativeWithIntrinsicBounds(this, null, null, null)
             }
-
-            layout.addView(this, idx)
         }
     }
 }
