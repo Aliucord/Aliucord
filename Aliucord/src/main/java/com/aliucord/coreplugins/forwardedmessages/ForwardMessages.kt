@@ -198,12 +198,22 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                 previewText.setPadding(DimenUtils.dpToPx(16), DimenUtils.dpToPx(2), 0, 0)
                 layout.addView(previewText, 1)
 
-                // Extract attachments from intent
-                val attachmentsList = intent.getSerializableExtra("forwarded_attachments") as? ArrayList<Map<String, String>>?
-                com.aliucord.Logger("ForwardMessages").info("Preview attachmentsList from intent: $attachmentsList")
+                // Extract attachments from intent (fix deprecation and unchecked cast warnings)
+                @Suppress("DEPRECATION")
+                val attachmentsList = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    intent.getSerializableExtra("forwarded_attachments", java.util.ArrayList::class.java) as? ArrayList<*>
+                } else {
+                    @Suppress("UNCHECKED_CAST")
+                    intent.getSerializableExtra("forwarded_attachments") as? ArrayList<*>
+                }
+                val safeAttachmentsList: List<Map<String, String>>? = attachmentsList?.mapNotNull {
+                    if (it is Map<*, *>) {
+                        @Suppress("UNCHECKED_CAST")
+                        it as? Map<String, String>
+                    } else null
+                }
 
                 if (attachmentsList != null && attachmentsList.isNotEmpty()) {
-                                    com.aliucord.Logger("ForwardMessages").info("attachmentsList is ${attachmentsList?.size} items: $attachmentsList")
                     // Add a horizontal LinearLayout for compact display
                     val attachmentsLayout = LinearLayout(layout.context).apply {
                         orientation = LinearLayout.HORIZONTAL
@@ -211,12 +221,11 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                     }
                     // Limit to 3 images for compactness
                     var imageCount = 0
-                    attachmentsList.forEach { att ->
+                    safeAttachmentsList?.forEach { att ->
                         try {
                             val filename = att["filename"] ?: ""
                             val url = att["url"] ?: ""
                             val type = att["type"] ?: ""
-                            com.aliucord.Logger("ForwardMessages").info("Attachment: $filename, type: $type, url: $url")
                             if (type.contains("IMAGE", true) && imageCount < 3) {
                                 val imageView = com.facebook.drawee.view.SimpleDraweeView(layout.context).apply {
                                     val size = DimenUtils.dpToPx(48)
@@ -225,7 +234,6 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                                     }
                                     scaleType = ImageView.ScaleType.CENTER_CROP
                                 }
-                                com.aliucord.Logger("ForwardMessages").info("Loading image: $url")
                                 com.discord.utilities.icon.IconUtils.setIcon(imageView, url)
                                 com.discord.utilities.images.MGImages.setRoundingParams(imageView, 8f, false, null, null, null)
                                 attachmentsLayout.addView(imageView)
@@ -253,9 +261,7 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                                 fileLayout.addView(downloadIcon)
                                 attachmentsLayout.addView(fileLayout)
                             }
-                        } catch (e: Throwable) {
-                            com.aliucord.Logger("ForwardMessages").error("Attachment render error", e)
-                        }
+                        } catch (_: Throwable) {}
                     }
                     // Insert attachments below previewText
                     layout.addView(attachmentsLayout, 2)
