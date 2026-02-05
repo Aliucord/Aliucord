@@ -226,10 +226,11 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                             val filename = att["filename"] ?: ""
                             val url = att["url"] ?: ""
                             val type = att["type"] ?: ""
+                            val size = att["size"] ?: ""
                             if (type.contains("IMAGE", true) && imageCount < 3) {
                                 val imageView = com.facebook.drawee.view.SimpleDraweeView(layout.context).apply {
-                                    val size = DimenUtils.dpToPx(48)
-                                    layoutParams = LinearLayout.LayoutParams(size, size).apply {
+                                    val imgSize = DimenUtils.dpToPx(48)
+                                    layoutParams = LinearLayout.LayoutParams(imgSize, imgSize).apply {
                                         setMargins(DimenUtils.dpToPx(2), 0, DimenUtils.dpToPx(2), 0)
                                     }
                                     scaleType = ImageView.ScaleType.CENTER_CROP
@@ -239,27 +240,18 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                                 attachmentsLayout.addView(imageView)
                                 imageCount++
                             } else if (!type.contains("IMAGE", true)) {
-                                // File: show filename and download icon
-                                val fileLayout = LinearLayout(layout.context).apply {
-                                    orientation = LinearLayout.VERTICAL
-                                    setPadding(DimenUtils.dpToPx(2), 0, DimenUtils.dpToPx(2), 0)
-                                }
+                                // File: show filename as clickable link, underline, themed color, and file size if available
                                 val fileNameView = TextView(layout.context).apply {
-                                    text = filename
-                                    setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 10f)
-                                    setTextColor(ColorCompat.getThemedColor(layout.context, com.lytefast.flexinput.R.b.colorTextMuted))
-                                }
-                                val downloadIcon = ImageView(layout.context).apply {
-                                    setImageResource(android.R.drawable.stat_sys_download)
+                                    text = if (size.isNotEmpty()) "$filename ($size bytes)" else filename
+                                    setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
+                                    setTextColor(ColorCompat.getThemedColor(layout.context, com.lytefast.flexinput.R.b.colorInteractiveNormal))
+                                    paint.isUnderlineText = true
+                                    setPadding(DimenUtils.dpToPx(2), 0, DimenUtils.dpToPx(2), 0)
                                     setOnClickListener {
                                         Utils.openMediaViewer(url, filename)
                                     }
-                                    val size = DimenUtils.dpToPx(24)
-                                    layoutParams = LinearLayout.LayoutParams(size, size)
                                 }
-                                fileLayout.addView(fileNameView)
-                                fileLayout.addView(downloadIcon)
-                                attachmentsLayout.addView(fileLayout)
+                                attachmentsLayout.addView(fileNameView)
                             }
                         } catch (_: Throwable) {}
                     }
