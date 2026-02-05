@@ -28,6 +28,7 @@ import com.discord.utilities.color.ColorCompat
 import com.discord.databinding.WidgetIncomingShareBinding
 import com.aliucord.Constants
 import androidx.core.content.res.ResourcesCompat
+import com.aliucord.entities.Plugin
 import com.discord.utilities.SnowflakeUtils
 import com.discord.utilities.captcha.CaptchaHelper
 import com.discord.utilities.intent.IntentUtils
@@ -47,6 +48,10 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
     private val forwardExtraContent = "com.aliucord.coreplugins.forwardedmessages.EXTRA_CONTENT"
     private val forwardExtraMessageId = "com.aliucord.coreplugins.forwardedmessages.EXTRA_MESSAGE_ID"
     private val forwardExtraChannelId = "com.aliucord.coreplugins.forwardedmessages.EXTRA_CHANNEL_ID"
+
+    init {
+        settingsTab = Plugin.SettingsTab(ForwardSettings.Sheet::class.java, SettingsTab.Type.BOTTOM_SHEET)
+    }
 
     override fun start(context: Context) {
         val forwardId = View.generateViewId()
@@ -192,14 +197,16 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                         else {
                             if (commentMessage.isNotEmpty()) {
                                 val commentMsg = Message(null, commentMessage)
-                                
+
                                 val cres = Http.Request.newDiscordRNRequest(String.format("/channels/%d/messages", selectedChannel), "POST")
                                     .executeWithJson(commentMsg)
                                 val cresText = try { cres.text() } catch (e: Exception) { "<unable to read body: ${e.message}>" }
                             }
 
                             Utils.mainThread.post {
-                                Toast.makeText(context, "Message forwarded!", Toast.LENGTH_SHORT).show()
+                                if (ForwardSettings.showToast) {
+                                    Toast.makeText(context, "Message forwarded!", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         }
                     } catch (e: IOException) {
