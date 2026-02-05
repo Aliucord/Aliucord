@@ -91,20 +91,23 @@ class ConstructorSignature(val clazz: Class<*>, vararg argTypes: Class<*>) {
 /**
 * Extension field that holds signature of a Method
 */
-val Method.signature get() {
-    MethodSignature(declaringClass, name, *parameterTypes)
-}
+val Method.signature: MethodSignature
+    get() {
+        return MethodSignature(declaringClass, name, *parameterTypes)
+    }
 
 /**
 * Extension field that holds signature of a Field
 */
-val Field.signature get() {
-    FieldSignature(declaringClass, name)
-}
+val Field.signature: FieldSignature
+    get() {
+        return FieldSignature(declaringClass, name)
+    }
 
 /**
 * Extension field that holds signature of a Constructor
 */
-val Constructor<*>.signature get() {
-    ConstructorSignature(declaringClass, *parameterTypes)
-}
+val Constructor<*>.signature: ConstructorSignature
+    get() {
+        return ConstructorSignature(declaringClass, *parameterTypes)
+    }
