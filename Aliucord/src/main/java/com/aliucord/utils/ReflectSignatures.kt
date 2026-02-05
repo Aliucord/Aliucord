@@ -16,7 +16,7 @@ import java.lang.reflect.*
 * @param argTypes The list of types of the arguments
 * @propery argTypes backing field for [argTypes]
 */
-class MethodSignature(val clazz: Class<*>, val name: String, vararg argTypes: Class<*>){
+class MethodSignature(val clazz: Class<*>, val name: String, vararg argTypes: Class<*>) {
 	val argTypes = argTypes
 
     /**
@@ -31,8 +31,8 @@ class MethodSignature(val clazz: Class<*>, val name: String, vararg argTypes: Cl
     *
     * @return The Method described by this signature
     **/
-	fun get(): Method{
-		return clazz.getDeclaredMethod(this.name, *this.argTypes)
+	fun get(): Method {
+		return clazz.getDeclaredMethod(name, *argTypes)
 	}
 }
 
@@ -42,7 +42,7 @@ class MethodSignature(val clazz: Class<*>, val name: String, vararg argTypes: Cl
 * @property clazz The declaring Class
 * @property name The name of the Field
 */
-class FieldSignature(val clazz: Class<*>, val name: String){
+class FieldSignature(val clazz: Class<*>, val name: String) {
 
     /**
     * Secondary constructor which extracts signature from existing Field
@@ -56,8 +56,8 @@ class FieldSignature(val clazz: Class<*>, val name: String){
     *
     * @return The Field described by this signature
     **/
-	fun get(): Field{
-		return clazz.getDeclaredField(this.name)
+	fun get(): Field {
+		return clazz.getDeclaredField(name)
 	}
 }
 
@@ -68,7 +68,7 @@ class FieldSignature(val clazz: Class<*>, val name: String){
 * @param argTypes The list of types of the arguments
 * @propery argTypes backing field for [argTypes]
 */
-class ConstructorSignature(val clazz: Class<*>, vararg argTypes: Class<*>){
+class ConstructorSignature(val clazz: Class<*>, vararg argTypes: Class<*>) {
 	val argTypes = argTypes
 
 	/**
@@ -83,25 +83,28 @@ class ConstructorSignature(val clazz: Class<*>, vararg argTypes: Class<*>){
     *
     * @return The Constructor described by this signature
     **/
-	fun get(): Constructor<*>{
-		return clazz.getDeclaredConstructor(*this.argTypes)
+	fun get(): Constructor<*> {
+		return clazz.getDeclaredConstructor(*argTypes)
 	}
 }
 
 /**
 * Extension field that holds signature of a Method
 */
-val Method.signature get() =
-    MethodSignature(this.declaringClass, this.name, *this.parameterTypes)
+val Method.signature get() {
+    MethodSignature(declaringClass, name, *parameterTypes)
+}
 
 /**
 * Extension field that holds signature of a Field
 */
-val Field.signature get() =
-    FieldSignature(this.declaringClass, this.name)
+val Field.signature get() {
+    FieldSignature(declaringClass, name)
+}
 
 /**
 * Extension field that holds signature of a Constructor
 */
-val Constructor<*>.signature get() =
-    ConstructorSignature(this.declaringClass, *this.parameterTypes)
+val Constructor<*>.signature get() {
+    ConstructorSignature(declaringClass, *parameterTypes)
+}
