@@ -398,16 +398,6 @@ public final class Main {
             )
         );
 
-        Patcher.addPatch(PermissionUtils.class,
-            "hasBypassSlowmodePermissions",
-            new Class[]{ Long.class, StoreSlowMode.Type.class },
-            new InsteadHook(param -> {
-                Long permissions = (Long)param.args[0];
-                return PermissionUtils.can(Permission.ADMINISTRATOR, permissions)
-                    || PermissionUtils.can(1L << 52, permissions);
-            })
-        );
-
         if (loadedPlugins) {
             PluginManager.startCorePlugins();
             startAllPlugins();
