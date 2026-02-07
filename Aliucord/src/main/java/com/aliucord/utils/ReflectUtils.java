@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
 import java.lang.reflect.*;
+import java.util.stream.Collectors;
 
 /** Utility class to ease Reflection */
 @SuppressLint("DiscouragedPrivateApi")
