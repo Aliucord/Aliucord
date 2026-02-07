@@ -26,9 +26,9 @@ public final class ReflectUtils {
     private static Method unsafeAllocIns;
     private static Field accessFlagsFields;
 
-    public static Map<MethodSignature, Method> mCache = new HashMap<>();
-    public static Map<FieldSignature, Field> fCache = new HashMap<>();
-    public static Map<ConstructorSignature, Constructor<?>> cCache = new HashMap<>();
+    public static Map<String, Method> mCache = new HashMap<>();
+    public static Map<String, Field> fCache = new HashMap<>();
+    public static Map<String, Constructor<?>> cCache = new HashMap<>();
 
     /**
      * Creates new class instance without using a constructor
@@ -73,7 +73,7 @@ public final class ReflectUtils {
                 c = clazz.getDeclaredConstructor(argTypes);
             }
             c.setAccessible(true);
-            cCache.put(new ConstructorSignature(clazz, argTypes), c);
+            cCache.put(clazz.toString()+"("+String.join(", ", argTypes)+")", c);
             return c;
         }catch(NoSuchMethodException e){
             //Fallback to finding by arg count since signature might not use runtime type
@@ -84,7 +84,7 @@ public final class ReflectUtils {
             @SuppressWarnings("unchecked")
             Constructor<T> c = (Constructor<T>) cs[0];
             c.setAccessible(true);
-            cCache.put(new ConstructorSignature(clazz, argTypes), c);
+            cCache.put(clazz.toString()+"("+String.join(", ", argTypes)+")", c);
             return c;
         }
     }
@@ -132,7 +132,7 @@ public final class ReflectUtils {
                 m = clazz.getDeclaredMethod(methodName, argTypes);
             }
             m.setAccessible(true);
-            mCache.put(new MethodSignature(clazz, methodName, argTypes), m);
+            mCache.put(clazz.toString()+"."+methodName.toString()+"("+String.join(", ", argTypes)+")", m);
             return m;
         }catch(NoSuchMethodException e){
             //Fallback to finding by arg count since signature might not use runtime type
@@ -142,7 +142,7 @@ public final class ReflectUtils {
             }
             Method m = ms[0];
             m.setAccessible(true);
-            mCache.put(new MethodSignature(clazz, methodName, argTypes), m);
+            mCache.put(clazz.toString()+"."+methodName.toString()+"("+String.join(", ", argTypes)+")", m);
             return m;
         }
     }
@@ -219,7 +219,7 @@ public final class ReflectUtils {
             f = clazz.getDeclaredField(fieldName);
         };
         f.setAccessible(true);
-        fCache.put(new FieldSignature(clazz, fieldName), f);
+        fCache.put(clazz.toString()+"."+methodName.toString(), f);
         return f.get(instance);
     }
 
@@ -257,7 +257,7 @@ public final class ReflectUtils {
         };
         f.setAccessible(true);
         f.set(instance, v);
-        fCache.put(new FieldSignature(clazz, fieldName), f);
+        fCache.put(clazz.toString()+"."+methodName.toString(), f);
     }
 
     /**
@@ -310,6 +310,6 @@ public final class ReflectUtils {
         f.setAccessible(true);
         accessFlagsFields.set(f, f.getModifiers() & ~Modifier.FINAL);
         f.set(instance, v);
-        fCache.put(new FieldSignature(clazz, fieldName), f);
+        fCache.put(clazz.toString()+"."+methodName.toString(), f);
     }
 }
