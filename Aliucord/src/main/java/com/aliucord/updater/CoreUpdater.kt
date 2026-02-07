@@ -7,6 +7,7 @@ import com.aliucord.*
 import com.aliucord.api.NotificationsAPI
 import com.aliucord.entities.NotificationData
 import com.aliucord.fragments.ConfirmDialog
+import com.aliucord.settings.ALIUCORD_DISABLE_UPDATER
 import com.aliucord.settings.ALIUCORD_FROM_STORAGE_KEY
 import com.aliucord.settings.AUTO_UPDATE_ALIUCORD_KEY
 import com.aliucord.updater.CoreUpdater.UPDATER_DATA_URL
@@ -115,12 +116,10 @@ internal object CoreUpdater {
     }
 
     /**
-     * Determines whether the updater is disabled
-     *
-     * @return Whether preference "disableAliucordUpdater" is set to true
+     * Determines whether the updater has been disabled by the user.
      */
     @JvmStatic
-    fun isUpdaterDisabled(): Boolean = Main.settings.getBool("disableAliucordUpdater", false)
+    fun isUpdaterDisabled(): Boolean = Main.settings.getBool(ALIUCORD_DISABLE_UPDATER, false)
 
     /**
      * Determines whether automatic core updates have been disabled by the user.
