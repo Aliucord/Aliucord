@@ -16,6 +16,7 @@ import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.utils.ViewUtils.label
 import com.aliucord.utils.ViewUtils.subtext
 import com.aliucord.wrappers.GuildRoleWrapper.Companion.permissions
+import com.discord.api.permission.Permission
 import com.discord.models.message.Message
 import com.discord.models.user.MeUser
 import com.discord.restapi.RestAPIParams
@@ -204,7 +205,9 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
             val result = param.result as ManageMessageContext
 
             val isPrivateDM = isPrivateChannel && !isSystemDM
-            val isPinPermitted = isPrivateDM || PermissionUtils.can(PIN_MESSAGES_PERMISSION, permissions)
+            val isPinPermitted = isPrivateDM
+                || PermissionUtils.can(PIN_MESSAGES_PERMISSION, permissions)
+                || PermissionUtils.can(Permission.ADMINISTRATOR, permissions)
             val canPin = isPinPermitted && !isArchivedThread
             param.result = ManageMessageContext(
                 result.canManageMessages,
