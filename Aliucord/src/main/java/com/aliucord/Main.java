@@ -40,6 +40,7 @@ import com.aliucord.views.Divider;
 import com.aliucord.views.ToolbarButton;
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper;
 import com.discord.api.message.embed.EmbedField;
+import com.discord.api.permission.Permission;
 import com.discord.app.*;
 import com.discord.databinding.*;
 import com.discord.models.domain.*;
@@ -48,6 +49,7 @@ import com.discord.models.domain.emoji.ModelEmojiUnicode;
 import com.discord.stores.*;
 import com.discord.utilities.color.ColorCompat;
 import com.discord.utilities.guildautomod.AutoModUtils;
+import com.discord.utilities.permissions.PermissionUtils;
 import com.discord.utilities.user.UserUtils;
 import com.discord.widgets.changelog.WidgetChangeLog;
 import com.discord.widgets.chat.input.SmoothKeyboardReactionHelper;
@@ -394,6 +396,16 @@ public final class Main {
                     param.args[1]
                 )
             )
+        );
+
+        Patcher.addPatch(PermissionUtils.class,
+            "hasBypassSlowmodePermissions",
+            new Class[]{ Long.class, StoreSlowMode.Type.class },
+            new InsteadHook(param -> {
+                Long permissions = (Long)param.args[0];
+                return PermissionUtils.can(Permission.ADMINISTRATOR, permissions)
+                    || PermissionUtils.can(1L << 52, permissions);
+            })
         );
 
         if (loadedPlugins) {
