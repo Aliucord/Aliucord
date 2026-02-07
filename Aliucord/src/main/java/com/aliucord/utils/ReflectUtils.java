@@ -220,7 +220,7 @@ public final class ReflectUtils {
             f = clazz.getDeclaredField(fieldName);
         };
         f.setAccessible(true);
-        fCache.put(clazz.toString()+"."+methodName.toString(), f);
+        fCache.put(clazz.toString()+"."+fieldName.toString(), f);
         return f.get(instance);
     }
 
@@ -258,7 +258,7 @@ public final class ReflectUtils {
         };
         f.setAccessible(true);
         f.set(instance, v);
-        fCache.put(clazz.toString()+"."+methodName.toString(), f);
+        fCache.put(clazz.toString()+"."+fieldName.toString(), f);
     }
 
     /**
@@ -311,6 +311,6 @@ public final class ReflectUtils {
         f.setAccessible(true);
         accessFlagsFields.set(f, f.getModifiers() & ~Modifier.FINAL);
         f.set(instance, v);
-        fCache.put(clazz.toString()+"."+methodName.toString(), f);
+        fCache.put(clazz.toString()+"."+fieldName.toString(), f);
     }
 }
