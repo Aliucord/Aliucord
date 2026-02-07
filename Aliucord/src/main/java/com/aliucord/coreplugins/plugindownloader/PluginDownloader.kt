@@ -42,9 +42,10 @@ import java.util.regex.Pattern
 private val pluginDownloaderViewId = View.generateViewId()
 
 /**
- * Intent argument key for toggling plugin downloader scanning for plugin links.
+ * Intent argument key for specifying the link's original message's channel id.
+ * The existence of this key also indicates to scan the provided url for plugin links.
  */
-private const val INTENT_ENABLED = "INTENT_PLUGIN_DOWNLOADER_ENABLED"
+private const val INTENT_CHANNEL_ID = "INTENT_PLUGIN_DOWNLOADER_CHANNEL_ID"
 
 /**
  * Github Repository regex in the format of `https://github.com/$USER/$REPO` matching `$USER` and `$REPO`.
@@ -92,7 +93,8 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
             val member = StoreStream.getGuilds().getMember(Constants.ALIUCORD_GUILD_ID, message.author.id)
             if (!shouldScanForPlugins(message, member)) return@after
 
-            val entries = getEntriesForPluginsListing(
+            val entries = getEntriesForPluginZips(
+                channelId = message.channelId,
                 messageContent = message.content,
                 messageAttachments = message.attachments,
                 sheet = this,
@@ -121,7 +123,7 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
                 val urlActions = WidgetUrlActions().apply {
                     arguments = Bundle().apply {
                         putString("INTENT_URL", url) // Part of original intent
-                        putBoolean(INTENT_ENABLED, true)
+                        putLong(INTENT_CHANNEL_ID, messageEntry.message.channelId)
                     }
                 }
                 urlActions.show(this.adapter.fragmentManager, WidgetUrlActions::class.java.getName())
@@ -132,10 +134,10 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
 
         // Add items to links context menu
         patcher.after<WidgetUrlActions>("onViewCreated", View::class.java, Bundle::class.java) {
-            if (this.arguments?.getBoolean(INTENT_ENABLED, false) != true)
-                return@after
+            val channelId = this.arguments?.getLong(INTENT_CHANNEL_ID) ?: return@after
 
-            val entries = getEntriesForPluginsListing(
+            val entries = getEntriesForPluginZips(
+                channelId = channelId,
                 messageContent = this.url, // Only this url should be scanned
                 messageAttachments = null,
                 sheet = this,
@@ -180,25 +182,33 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
     /**
      * Scans message content & attachments and generates view entries to be added to a context menu.
      */
-    private fun getEntriesForPluginsListing(
+    private fun getEntriesForPluginZips(
+        channelId: Long,
         messageContent: String,
         messageAttachments: List<MessageAttachment>?,
         sheet: AppBottomSheet,
     ): List<View> {
         val entries = mutableListOf<View>()
 
-        repoPattern.matcher(messageContent).takeIf { it.find() }?.run {
-            val author = group(1)!!
-            val repo = group(2)!!
+        // Only scan for repo links in #plugins-list and #new-plugins
+        if (channelId == Constants.PLUGIN_LINKS_CHANNEL_ID ||
+            channelId == Constants.PLUGIN_LINKS_UPDATES_CHANNEL_ID
+        ) {
+            repoPattern.matcher(messageContent).run {
+                while (find()) {
+                    val author = group(1)!!
+                    val repo = group(2)!!
 
-            entries += makeContextMenuEntry(
-                ctx = sheet.requireContext(),
-                text = "View Author's Plugins",
-                onClick = {
-                    Utils.openPageWithProxy(it.context, PluginRepoModal(author, repo))
-                    sheet.dismiss()
-                },
-            )
+                    entries += makeContextMenuEntry(
+                        ctx = sheet.requireContext(),
+                        text = "View $author's Plugins",
+                        onClick = {
+                            Utils.openPageWithProxy(it.context, PluginRepoModal(author, repo))
+                            sheet.dismiss()
+                        },
+                    )
+                }
+            }
         }
 
         zipPattern.matcher(messageContent).run {
