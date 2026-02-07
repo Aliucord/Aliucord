@@ -4,9 +4,9 @@ import android.content.Context
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.after
 import com.aliucord.wrappers.ChannelWrapper.Companion.id
-import com.discord.widgets.channels.list.*
+import com.discord.widgets.channels.list.`WidgetChannelListModel$Companion$guildListBuilder$$inlined$forEach$lambda$1$1`
+import com.discord.widgets.channels.list.`WidgetChannelListModel$Companion$guildListBuilder$$inlined$forEach$lambda$1$2`
 
-@Suppress("MISSING_DEPENDENCY_CLASS")
 internal class HideMutedChannelsFix : CorePlugin(Manifest("HideMutedChannelsFix")) {
     init {
         manifest.description = "Fixes 'Hide Muted Channels' feature ignoring unread mentions"
@@ -15,9 +15,9 @@ internal class HideMutedChannelsFix : CorePlugin(Manifest("HideMutedChannelsFix"
     override fun start(context: Context) {
         // Fix hiding muted threads
         patcher.after<`WidgetChannelListModel$Companion$guildListBuilder$$inlined$forEach$lambda$1$1`>("invoke") { param ->
-            val builder = this.`this$0` as `WidgetChannelListModel$Companion$guildListBuilder$$inlined$forEach$lambda$1`
+            val builder = this.`this$0`
             val threadId = this.`$textChannel`.id
-            val mentionCount = builder.`$mentionCounts$inlined`[threadId] as? Int ?: return@after
+            val mentionCount = builder.`$mentionCounts$inlined`[threadId] as Int? ?: return@after
             if (mentionCount > 0) {
                 builder.`$hiddenChannelsIds$inlined`.remove(threadId)
                 param.result = false
@@ -25,9 +25,10 @@ internal class HideMutedChannelsFix : CorePlugin(Manifest("HideMutedChannelsFix"
         }
 
         // Fix hiding muted channels
+        @Suppress("UNCHECKED_CAST")
         patcher.after<`WidgetChannelListModel$Companion$guildListBuilder$$inlined$forEach$lambda$1$2`>("invoke") { param ->
-            val builder = this.`this$0` as `WidgetChannelListModel$Companion$guildListBuilder$$inlined$forEach$lambda$1`
-            val mentionCountMap = builder.`$mentionCounts$inlined` as? Map<Long, Int> ?: return@after
+            val builder = this.`this$0`
+            val mentionCountMap = builder.`$mentionCounts$inlined` as Map<Long, Int>
             val hasUnreadMentions = mentionCountMap.values.any { it > 0 }
             if (hasUnreadMentions) {
                 builder.`$hiddenChannelsIds$inlined`.remove(this.`$textChannelId`)
