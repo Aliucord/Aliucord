@@ -73,7 +73,7 @@ public final class ReflectUtils {
                 c = clazz.getDeclaredConstructor(argTypes);
             }
             c.setAccessible(true);
-            cCache.put(clazz.toString()+"("+String.join(", ", Arrays.stream(argTypes)).map(Class::getSimpleName).collect(Collectors.toList())+")", c);
+            cCache.put(clazz.toString()+Arrays.stream(argTypes).map(Class::getSimpleName).collect(Collectors.joining(", ", "(", ")")), c);
             return c;
         }catch(NoSuchMethodException e){
             //Fallback to finding by arg count since signature might not use runtime type
@@ -84,7 +84,7 @@ public final class ReflectUtils {
             @SuppressWarnings("unchecked")
             Constructor<T> c = (Constructor<T>) cs[0];
             c.setAccessible(true);
-            cCache.put(clazz.toString()+"("+String.join(", ", Arrays.stream(argTypes)).map(Class::getSimpleName).collect(Collectors.toList())+")", c);
+            cCache.put(clazz.toString()+Arrays.stream(argTypes).map(Class::getSimpleName).collect(Collectors.joining(", ", "(", ")")), c);
             return c;
         }
     }
@@ -132,7 +132,7 @@ public final class ReflectUtils {
                 m = clazz.getDeclaredMethod(methodName, argTypes);
             }
             m.setAccessible(true);
-            mCache.put(clazz.toString()+"."+methodName.toString()+"("+String.join(", ", Arrays.stream(argTypes)).map(Class::getSimpleName).collect(Collectors.toList())+")", m);
+            mCache.put(clazz.toString()+"."+methodName.toString()+Arrays.stream(argTypes).map(Class::getSimpleName).collect(Collectors.joining(", ", "(", ")")), m);
             return m;
         }catch(NoSuchMethodException e){
             //Fallback to finding by arg count since signature might not use runtime type
@@ -142,7 +142,7 @@ public final class ReflectUtils {
             }
             Method m = ms[0];
             m.setAccessible(true);
-            mCache.put(clazz.toString()+"."+methodName.toString()+"("+String.join(", ", Arrays.stream(argTypes)).map(Class::getSimpleName).collect(Collectors.toList())+")", m);
+            mCache.put(clazz.toString()+"."+methodName.toString()+Arrays.stream(argTypes).map(Class::getSimpleName).collect(Collectors.joining(", ", "(", ")")), m);
             return m;
         }
     }
