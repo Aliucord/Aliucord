@@ -13,7 +13,7 @@ import com.discord.widgets.channels.list.`WidgetChannelsListItemChannelActions$b
 import com.discord.widgets.chat.list.actions.`WidgetChatListActions$binding$2`
 import com.lytefast.flexinput.R
 
-internal class AlignThreads : CorePlugin(Manifest("AlignThreads")) {
+internal class AlignThreadsIcon : CorePlugin(Manifest("AlignThreadsIcon")) {
     init {
         manifest.description = "Adjusts the Threads icon in the Chat actions menu"
     }

@@ -16,7 +16,7 @@ import com.discord.stores.StoreMessageReplies
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemMessage
 import com.discord.widgets.chat.list.entries.MessageEntry
 
-internal class ShowReplyMention : CorePlugin(Manifest("ShowReplyMention")) {
+internal class ShowReplyMentionFix : CorePlugin(Manifest("ShowReplyMentionFix")) {
     override val isHidden = true
     override val isRequired = true
 
