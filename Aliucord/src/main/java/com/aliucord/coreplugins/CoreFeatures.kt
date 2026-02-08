@@ -47,7 +47,7 @@ import com.discord.widgets.status.*
 import com.lytefast.flexinput.R
 
 // Contains core features like the Aliucord section in settings, and other small features
-internal class CoreBase : CorePlugin(Manifest("CoreBase")) {
+internal class CoreFeatures : CorePlugin(Manifest("CoreBase")) {
     override val isHidden = true
     override val isRequired = true
 
