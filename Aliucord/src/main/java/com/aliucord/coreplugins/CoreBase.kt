@@ -51,6 +51,10 @@ internal class CoreBase : CorePlugin(Manifest("CoreBase")) {
     override val isHidden = true
     override val isRequired = true
 
+    init {
+        manifest.description = "Provides core Aliucord features"
+    }
+
     override fun start(context: Context) {
         // Adds Aliucord section in settings with links to plugins, settings, etc
         patcher.after<WidgetSettings>("onViewBound", View::class.java) { (param, root: ViewGroup) ->

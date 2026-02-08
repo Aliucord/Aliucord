@@ -38,6 +38,10 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     override val isHidden = true
     override val isRequired = true
 
+    init {
+        manifest.description = "Applies critical patches and fixes to ensure Aliucord functions correctly without errors"
+    }
+
     @Suppress("UNCHECKED_CAST")
     override fun start(context: Context) {
         // Fix 2025-04-03 gateway change that ported visual refresh theme names over the legacy user settings
