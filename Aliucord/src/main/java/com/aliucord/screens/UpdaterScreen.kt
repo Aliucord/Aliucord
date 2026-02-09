@@ -63,11 +63,11 @@ internal class UpdaterScreen : SettingsPage() {
         }
 
         if (updates.isEmpty()) {
-            TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).apply {
+            TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).addTo(linearLayout) {
                 text = "No updates found!"
                 setPadding(DimenUtils.defaultPadding)
                 setGravity(Gravity.CENTER)
-            }.addTo(linearLayout)
+            }
         } else {
             for (update in updates) {
                 addView(UpdaterPluginCard(context, update, this::reRender))
