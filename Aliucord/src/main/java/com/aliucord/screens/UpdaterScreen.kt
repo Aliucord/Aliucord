@@ -86,7 +86,7 @@ internal class UpdaterScreen : SettingsPage() {
             updates.addAll(PluginUpdater.fetchUpdates())
 
             val noticeText = if (updates.isNotEmpty()) {
-                "Found ${updates.size} plugin updates!"
+                "Found ${Utils.pluralise(updates.size, "plugin update")}!"
             } else {
                 "No plugin updates found!"
             }
