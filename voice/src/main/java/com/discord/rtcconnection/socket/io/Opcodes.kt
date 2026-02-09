@@ -1,6 +1,6 @@
 package com.discord.rtcconnection.socket.io
 
-@Suppress("unused")
+// @Suppress("unused")
 object Opcodes {
     const val IDENTIFY = 0
     const val SELECT_PROTOCOL = 1
@@ -20,17 +20,17 @@ object Opcodes {
     const val CLIENTS_CONNECT = 11
     const val CLIENT_FLAGS = 18
     const val CLIENT_PLATFORM = 20
-    const val DAVE_PREPARE_TRANSITION = 21
-    const val DAVE_EXECUTE_TRANSITION = 22
-    const val DAVE_TRANSITION_READY = 23
-    const val DAVE_PREPARE_EPOCH = 24
-    const val DAVE_MLS_EXTERNAL_SENDER = 25
-    const val DAVE_MLS_KEY_PACKAGE = 26
-    const val DAVE_MLS_PROPOSALS = 27
-    const val DAVE_MLS_COMMIT_WELCOME = 28
-    const val DAVE_MLS_ANNOUNCE_COMMIT_TRANSITION = 29
-    const val DAVE_MLS_WELCOME = 30
-    const val DAVE_MLS_INVALID_COMMIT_WELCOME = 31
+    const val DAVE_PREPARE_TRANSITION = 21 // server
+    const val DAVE_EXECUTE_TRANSITION = 22 // server
+    const val DAVE_TRANSITION_READY = 23 // client
+    const val DAVE_PREPARE_EPOCH = 24 // server
+    const val DAVE_MLS_EXTERNAL_SENDER = 25 // server, binary
+    const val DAVE_MLS_KEY_PACKAGE = 26 // client, binary
+    const val DAVE_MLS_PROPOSALS = 27 // server, binary
+    const val DAVE_MLS_COMMIT_WELCOME = 28 // client, binary
+    const val DAVE_MLS_ANNOUNCE_COMMIT_TRANSITION = 29 // server, binary
+    const val DAVE_MLS_WELCOME = 30 // server, binary
+    const val DAVE_MLS_INVALID_COMMIT_WELCOME = 31 // client
 
     val nameLookup: Map<Int, String> = mapOf(
         0 to "IDENTIFY",

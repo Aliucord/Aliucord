@@ -323,11 +323,11 @@ object PluginManager {
             RestartButton(),
             ShowReplyMention(),
             StickerCrashFix(),
+            Sunflower(),
             SupportWarn(),
             SupporterBadges(),
             TokenLogin(),
             UploadSize(),
-            VoiceFix(),
         )
 
         val safeMode = isSafeModeEnabled();

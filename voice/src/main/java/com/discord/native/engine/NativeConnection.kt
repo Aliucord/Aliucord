@@ -51,7 +51,7 @@ class NativeConnection {
     }
 
     interface OnSpeakingCallback {
-        fun onSpeaking(userId: String, speakingFlags: Int)
+        fun onSpeaking(userId: String, speakingFlags: Int, voiceDb: Float)
     }
 
     interface OnVideoCallback {

@@ -40,7 +40,7 @@ data class ConnectionOptions(
     val ssrc: Int,
     val experiments: Array<String>,
     val modes: Array<String>,
-    val streamParameters: Array<StreamParameters>,
+    val streamParameters: Array<Discord.NewStreamParameters>,
     val qosEnabled: Boolean,
 )
 
@@ -129,6 +129,51 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
 
     private fun setLocalVoiceLevelChangedCallbackNative(z2: Boolean) { }
 
+    data class NewStreamParameters(
+        val type: String, // "audio" | "video"
+        val rid: String,
+        val ssrc: Int,
+        val maxBitrate: Int,
+
+        val soundshare: Boolean? = null,
+
+        val quality: Int? = null,
+        val maxResolution: MaxResolution? = null,
+        val rtxSsrc: Int? = null,
+        val maxFrameRate: Int? = null,
+        val active: Boolean? = null,
+    ) {
+        data class MaxResolution(
+            val type: String, // "fixed"
+            val width: Int,
+            val height: Int,
+        )
+
+        companion object {
+            fun from(old: StreamParameters): NewStreamParameters {
+                // this.type = mediaType;
+                // this.rid = str;
+                // this.ssrc = i;
+                // this.rtxSsrc = i2;
+                // this.active = z2;
+                // this.maxBitrate = i3;
+                // this.quality = i4;
+                // this.maxPixelCount = i5;
+                return NewStreamParameters(
+                    type = if (old.type == MediaType.Video) "video" else "audio",
+                    rid = old.rid,
+                    ssrc = old.ssrc,
+                    rtxSsrc = old.rtxSsrc,
+                    active = old.active,
+                    maxBitrate = old.maxBitrate,
+                    quality = old.quality,
+                    // TODO
+                    maxResolution = MaxResolution("fixed", 1280, 720),
+                    maxFrameRate = 30,
+                )
+            }
+        }
+    }
     fun connectToServer(
         ssrc: Int,
         userId: Long,
@@ -138,6 +183,29 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         connectToServerCallback: ConnectToServerCallback
     ): Connection {
         Log.i("Aliuvoice", "Hello from aliuvoice!")
+
+        // public StreamParameters(MediaType mediaType, String str, int i, int i2, boolean z2, int i3, int i4, int i5) {
+        //     m.checkNotNullParameter(mediaType, "type");
+        //     m.checkNotNullParameter(str, "rid");
+        //     this.type = mediaType;
+        //     this.rid = str;
+        //     this.ssrc = i;
+        //     this.rtxSsrc = i2;
+        //     this.active = z2;
+        //     this.maxBitrate = i3;
+        //     this.quality = i4;
+        //     this.maxPixelCount = i5;
+        // }
+        val streamParams = arrayOf(
+            NewStreamParameters(
+                type = "audio",
+                soundshare = false,
+                maxBitrate = 64000,
+                rid = "",
+                ssrc = ssrc,
+            ),
+            NewStreamParameters.from(streamParametersArr[0])
+        )
         val nativeConnection = nativeEngine.createVoiceConnection(
             userId.toString(),
             // TODO
@@ -148,7 +216,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
                 ssrc = ssrc,
                 experiments = arrayOf(),
                 modes = arrayOf("aead_aes256_gcm_rtpsize", "aead_xchacha20_poly1305_rtpsize"),
-                streamParameters = streamParametersArr,
+                streamParameters = streamParams,
                 qosEnabled = false,
             )),
             object : NativeEngine.ConnectToServerCallback {
@@ -162,11 +230,12 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
                 }
             }
         )
-        nativeConnection.prepareSecureFramesTransition(0, 0, object : NativeConnection.SecureFramesTransitionReadyCallback {
-            override fun onTransitionReady() {
-                nativeConnection.executeSecureFramesTransition(0)
-            }
-        })
+        // nativeConnection.prepareSecureFramesEpoch("1", 1, )
+        // nativeConnection.prepareSecureFramesTransition(0, 0, object : NativeConnection.SecureFramesTransitionReadyCallback {
+        //     override fun onTransitionReady() {
+        //         nativeConnection.executeSecureFramesTransition(0)
+        //     }
+        // })
         val conn = Connection(nativeConnection)
         return conn
     }
@@ -217,12 +286,15 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         })
     }
 
+    // TODO: last seen in 304.7/90.0.17-ptt-vad-arg-exposed
+    // Likely reimpl in NativeEngine.getCodecCapabilities
     fun getSupportedVideoCodecs(getSupportedVideoCodecsCallback: GetSupportedVideoCodecsCallback) {
-        nativeEngine.getSupportedVideoCodecs(object : NativeEngine.GetSupportedVideoCodecsCallback {
-            override fun onSupportedVideoCodecs(codecs: Array<String>) {
-                getSupportedVideoCodecsCallback.onSupportedVideoCodecs(codecs)
-            }
-        })
+        getSupportedVideoCodecsCallback.onSupportedVideoCodecs(arrayOf("H264"))
+        // nativeEngine.getSupportedVideoCodecs(object : NativeEngine.GetSupportedVideoCodecsCallback {
+        //     override fun onSupportedVideoCodecs(codecs: Array<String>) {
+        //         getSupportedVideoCodecsCallback.onSupportedVideoCodecs(codecs)
+        //     }
+        // })
     }
 
     fun getVideoInputDevices(getVideoInputDevicesCallback: GetVideoInputDevicesCallback) {

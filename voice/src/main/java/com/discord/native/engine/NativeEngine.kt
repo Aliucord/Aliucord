@@ -56,10 +56,6 @@ class NativeEngine(
         fun onRankedRtcRegions(regions: Array<String>)
     }
 
-    interface GetSupportedVideoCodecsCallback {
-        fun onSupportedVideoCodecs(codecs: Array<String>)
-    }
-
     interface GetVideoInputDevicesCallback {
         fun onDevices(devices: Array<VideoInputDeviceDescription?>)
     }
@@ -124,8 +120,6 @@ class NativeEngine(
         external get
 
     external fun getOutputDevices(callback: GetAudioOutputDevicesCallback)
-
-    external fun getSupportedVideoCodecs(callback: GetSupportedVideoCodecsCallback)
 
     external fun getVideoInputDevices(callback: GetVideoInputDevicesCallback)
 

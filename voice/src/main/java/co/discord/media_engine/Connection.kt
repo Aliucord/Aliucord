@@ -25,6 +25,23 @@ data class TransportAudioDecoder(
     }
 }
 
+data class TransportAudioEncoder(
+    val type: Int,
+    val rate: Int,
+    val name: String,
+    val freq: Int,
+    val channels: Int,
+    val pacsize: Int,
+) {
+    companion object {
+        fun from(decoder: AudioEncoder): TransportAudioEncoder {
+            with(decoder) {
+                return TransportAudioEncoder(type, rate, name, freq, channels, pacsize)
+            }
+        }
+    }
+}
+
 data class TransportVideoDecoder(
     val params: HashMap<String, String>,
     val channels: Int,
@@ -49,7 +66,7 @@ data class TransportOptions(
     val attenuation: Boolean? = null,
     val attenuationFactor: Double? = null,
     val audioDecoders: List<TransportAudioDecoder>? = null,
-    val audioEncoder: Any? = null,
+    val audioEncoder: TransportAudioEncoder? = null,
     val callBitRate: Int? = null,
     val callMaxBitRate: Int? = null,
     val callMinBitRate: Int? = null,
@@ -77,7 +94,7 @@ data class TransportOptions(
     val remoteAudioHistoryMs: Int? = null,
     val remoteSinkWantsMaxFramerate: Int? = null,
     val remoteSinkWantsPixelCount: Int? = null,
-    // val selfMute: Boolean? = null,
+    val selfMute: Boolean? = null,
     val softwareH264: Boolean? = null,
     val streamParameters: Any? = null,
     val videoDecoders: Any? = null,
@@ -90,14 +107,18 @@ data class TransportOptions(
 class Connection {
     private var disposed: Boolean = false
     private val nativeInstance: Long = 0
-    private lateinit var realInstance: NativeConnection
+    private lateinit var native: NativeConnection
 
     private constructor(nativeInstance: Long) {
         throw IllegalStateException("ktConnection constructor called")
     }
 
     constructor(realInstance: NativeConnection) {
-        this.realInstance = realInstance
+        this.native = realInstance
+        this.native.setSecureFramesStateUpdateCallback(object : NativeConnection.SecureFramesStateUpdateCallback {
+            override fun onSecureFramesStateUpdateCallback(stateUpdateJSON: String) {
+            }
+        })
     }
 
     interface EncryptionModesCallback {
@@ -137,7 +158,7 @@ class Connection {
 
     private fun getStatsNative(getStatsCallbackNative: GetStatsCallbackNative?, i: Int) {
         if (disposed) return
-        realInstance.getFilteredStats(i, object : NativeConnection.GetStatsCallback {
+        native.getFilteredStats(i, object : NativeConnection.GetStatsCallback {
             override fun onStats(stats: String) {
                 getStatsCallbackNative?.onStats(stats)
             }
@@ -156,7 +177,7 @@ class Connection {
         val mute: Boolean,
     )
     fun connectUser(userId: Long, audioSsrc: Int, txVideoSsrc: Int, rxVideoSsrc: Int, isMuted: Boolean, volume: Float) {
-        realInstance.mergeUsers(gson.m(listOf(UserConnectionInfo(
+        native.mergeUsers(gson.m(listOf(UserConnectionInfo(
             id = userId.toString(),
             videoSsrcs = listOf(),
             volume = volume,
@@ -166,21 +187,21 @@ class Connection {
             mute = isMuted,
         ))))
     }
-    fun deafenLocalUser(deafened: Boolean) = realInstance.setSelfDeafen(deafened)
+    fun deafenLocalUser(deafened: Boolean) = native.setSelfDeafen(deafened)
     // TODO
     fun disableVideo(j: Long, z2: Boolean) {}
     // fun disableVideo(j: Long, z2: Boolean) = userStreams[j]?.let { engine.setVideoOutputSink(it, null) }
-    fun disconnectUser(userId: Long) = realInstance.destroyUser(userId.toString())
+    fun disconnectUser(userId: Long) = native.destroyUser(userId.toString())
     fun dispose() {
         disposed = true
-        realInstance.dispose()
+        native.dispose()
     }
     // TODO
     fun enableDiscontinuousTransmission(z2: Boolean) {}
     // TODO
     fun enableForwardErrorCorrection(z2: Boolean) {}
     fun getEncryptionModes(encryptionModesCallback: EncryptionModesCallback?) =
-        realInstance.getEncryptionModes(object : NativeConnection.GetEncryptionModesCallback {
+        native.getEncryptionModes(object : NativeConnection.GetEncryptionModesCallback {
             override fun onEncryptionModes(modes: Array<String?>) { encryptionModesCallback?.onEncryptionModes(modes) }
         })
 
@@ -192,8 +213,11 @@ class Connection {
         if (!disposed) getStatsNative(GetStatsCallbackNative(getStatsCallback), i)
     }
 
-    fun muteLocalUser(z2: Boolean) = realInstance.setSelfMute(true)
-    fun muteUser(j: Long, z2: Boolean) = realInstance.setLocalMute(j.toString(), z2)
+    fun muteLocalUser(z2: Boolean) {
+        native.setSelfMute(z2)
+        TransportOptions(selfMute = z2).set()
+    }
+    fun muteUser(j: Long, z2: Boolean) = native.setLocalMute(j.toString(), z2)
 
     // TODO
     fun setAudioInputMode(i: Int) {}
@@ -206,7 +230,8 @@ class Connection {
         videoDecoderArr: Array<VideoDecoder>
     ) {
         TransportOptions(
-            audioDecoders = audioDecoderArr.map { TransportAudioDecoder.from(it) }
+            audioDecoders = audioDecoderArr.map { TransportAudioDecoder.from(it) },
+            audioEncoder = TransportAudioEncoder.from(audioEncoder)
         ).set()
     }
 
@@ -224,12 +249,12 @@ class Connection {
 
     fun setEncryptionSettings(settings: EncryptionSettings?) = TransportOptions(encryptionSettings = settings).set()
     fun setExpectedPacketLossRate(f: Float) = TransportOptions(packetLossRate = f).set()
-    fun setMinimumPlayoutDelay(delay: Int) = realInstance.setMinimumOutputDelay(delay)
+    fun setMinimumPlayoutDelay(delay: Int) = native.setMinimumOutputDelay(delay)
     // TODO
     fun setOnVideoCallback(onVideoCallback: OnVideoCallback?) {}
-    fun setPTTActive(active: Boolean) = realInstance.setPTTActive(active, false) // TODO: priority?
+    fun setPTTActive(active: Boolean) = native.setPTTActive(active, false) // TODO: priority?
     fun setQoS(enabled: Boolean) = TransportOptions(qos = enabled).set()
-    fun setUserPlayoutVolume(userId: Long, volume: Float) = realInstance.setLocalVolume(userId.toString(), volume)
+    fun setUserPlayoutVolume(userId: Long, volume: Float) = native.setLocalVolume(userId.toString(), volume)
 
     // TODO
     fun setVADAutoThreshold(i: Int) {}
@@ -244,25 +269,55 @@ class Connection {
 
     fun setVideoBroadcast(broadcasting: Boolean) {
         if (disposed) return
-        realInstance.setVideoBroadcast(broadcasting)
+        native.setVideoBroadcast(broadcasting)
     }
 
     // external fun simulatePacketLoss(f: Float)
 
     fun startScreenshareBroadcast(capturer: VideoCapturer, nativeInstance: Long) =
-        realInstance.startBroadcast(capturer, nativeInstance)
-    fun stopScreenshareBroadcast() = realInstance.stopBroadcast()
+        native.startBroadcast(capturer, nativeInstance)
+    fun stopScreenshareBroadcast() = native.stopBroadcast()
 
     fun setUserSpeakingStatusChangedCallback(userSpeakingStatusChangedCallback: UserSpeakingStatusChangedCallback) {
-        realInstance.setOnSpeakingCallback(object : NativeConnection.OnSpeakingCallback {
-            override fun onSpeaking(userId: String, speakingFlags: Int) {
+        native.setOnSpeakingCallback(object : NativeConnection.OnSpeakingCallback {
+            override fun onSpeaking(userId: String, speakingFlags: Int, voiceDb: Float) {
                 userSpeakingStatusChangedCallback.onUserSpeakingStatusChanged(userId.toLong(), speakingFlags > 0, false)
             }
         })
     }
 
     private fun setTransportOptions(options: TransportOptions) {
-        realInstance.setTransportOptions(gson.m(options))
+        native.setTransportOptions(gson.m(options))
     }
     private fun TransportOptions.set() = setTransportOptions(this)
+
+    fun getMLSKeyPackageB64(callback: NativeConnection.MLSKeyPackageCallback) = native.getMLSKeyPackageB64(callback)
+
+    fun prepareMLSCommitTransitionB64(transitionId: Int, commit: String, callback: NativeConnection.MLSCommitTransitionCallback) {
+        native.prepareMLSCommitTransitionB64(transitionId, commit, callback)
+    }
+
+    fun prepareSecureFramesEpoch(epoch: String, transitionId: Int, groupId: String) {
+        native.prepareSecureFramesEpoch(epoch, transitionId, groupId)
+    }
+
+    fun prepareSecureFramesTransition(transitionId: Int, protocolVersion: Int, callback: NativeConnection.SecureFramesTransitionReadyCallback) {
+        native.prepareSecureFramesTransition(transitionId, protocolVersion, callback)
+    }
+
+    fun executeSecureFramesTransition(transitionId: Int) {
+        native.executeSecureFramesTransition(transitionId)
+    }
+
+    fun processMLSProposalsB64(proposals: String, callback: NativeConnection.MLSProcessProposalsCallback) {
+        native.processMLSProposalsB64(proposals, callback)
+    }
+
+    fun processMLSWelcomeB64(transitionId: Int, welcome: String, callback: NativeConnection.MLSWelcomeCallback) {
+        native.processMLSWelcomeB64(transitionId, welcome, callback)
+    }
+
+    fun updateMLSExternalSenderB64(externalSenderB64: String) {
+        native.updateMLSExternalSenderB64(externalSenderB64)
+    }
 }
