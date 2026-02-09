@@ -8,17 +8,47 @@ import com.aliucord.settings.AUTO_UPDATE_PLUGINS_KEY
 import com.aliucord.utils.SemVer
 import java.io.File
 
+/**
+ * Manages fetching and installing plugin updates.
+ * This class is pure and does not store plugin updates globally.
+ */
 internal object PluginUpdater {
     private val logger = Logger("Updater/Plugins")
 
+    /**
+     * Represents an available plugin update.
+     */
     data class PluginUpdate(
+        /**
+         * The currently loaded plugin this is update applies to.
+         */
         val plugin: Plugin,
+        /**
+         * The plugin's manifest name/id
+         */
         val pluginName: String = plugin.name,
+        /**
+         * The fetched update info for the latest build of this plugin.
+         */
         val info: PluginRepoUpdater.PluginBuildInfo,
+        /**
+         * Whether the base Discord/Aliucord installation is outdated and
+         * requires a reinstallation update through Aliucord Manager.
+         */
         val isBaseOutdated: Boolean,
+        /**
+         * Whether the current Aliucord core is outdated and requires an update.
+         */
         val isCoreOutdated: Boolean,
+        /**
+         * Whether the current Android version is too low to load the new plugin.
+         */
         val isAndroidOutdated: Boolean,
     ) {
+        /**
+         * Whether this plugin should be allowed to update as
+         * the new build will not cause issues upon loading.
+         */
         fun isUpdatePossible(): Boolean =
             !isBaseOutdated && !isCoreOutdated && !isAndroidOutdated
     }
@@ -30,7 +60,8 @@ internal object PluginUpdater {
     fun isAutoUpdateEnabled(): Boolean = Main.settings.getBool(AUTO_UPDATE_PLUGINS_KEY, false)
 
     /**
-     * Force fetches all possible plugin updates.
+     * Force fetches all available updates, including ones that cannot be updated.
+     * The resulting updates should not be held for long durations (ie, cached globally).
      */
     @JvmStatic
     fun fetchUpdates(): List<PluginUpdate> {

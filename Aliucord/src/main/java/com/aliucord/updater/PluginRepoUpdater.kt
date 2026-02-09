@@ -23,6 +23,7 @@ internal object PluginRepoUpdater {
     /**
      * Clears the update info cache
      */
+    // TODO: this should be cleared after not being used for a while
     fun clear() {
         cachedRepoInfo.clear()
     }
