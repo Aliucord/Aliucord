@@ -300,7 +300,7 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                         val forwardMsg = Message(MessageReference(1, messageId, channelId, null, false), "")
 
                         val res = Http.Request
-                            .newDiscordRNRequest(String.format("/channels/%d/messages", selectedChannel), "POST")
+                            .newDiscordRNRequest("/channels/$selectedChannel/messages", "POST")
                             .executeWithJson(forwardMsg)
 
                         val respText = try { res.text() } catch (e: Exception) { "<unable to read body: ${e.message}>" }
@@ -311,7 +311,7 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                             if (commentMessage.isNotEmpty()) {
                                 val commentMsg = Message(null, commentMessage)
 
-                                val cres = Http.Request.newDiscordRNRequest(String.format("/channels/%d/messages", selectedChannel), "POST")
+                                val cres = Http.Request.newDiscordRNRequest("/channels/$selectedChannel/messages", "POST")
                                     .executeWithJson(commentMsg)
                                 val cresText = try { cres.text() } catch (e: Exception) { "<unable to read body: ${e.message}>" }
                             }
