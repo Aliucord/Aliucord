@@ -8,7 +8,6 @@ import android.view.WindowInsetsAnimation
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.aliucord.Main
-import com.aliucord.Utils
 import com.aliucord.Utils.getResId
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
@@ -44,6 +43,23 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
 
     @Suppress("UNCHECKED_CAST")
     override fun start(context: Context) {
+        fixUnsupportedThemes()
+        fixStockEmojis()
+        fixAutoModEmbed()
+        fixKeyboardCrash()
+        fixWebpEmojis()
+        fixGifPreviews()
+        fixMemberListGroups()
+        fixAppBar()
+        fixStickerCrash()
+        fixHidingMutedThreads()
+        fixHidingMutedChannels()
+        fixPrivateThreads()
+        fixPrivateChannelScroll()
+        fixVoiceCodec()
+    }
+
+    private fun fixUnsupportedThemes() = tryPatch("Fix unsupported themes") {
         // Fix 2025-04-03 gateway change that ported visual refresh theme names over the legacy user settings
         // Theme entries like "darker" and "midnight" are unsupported
         patcher.after<ModelUserSettings>("assignField", Model.JsonReader::class.java) {
@@ -60,38 +76,43 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                 Main.logger.error("Failed to fix ModelUserSettings theme", e)
             }
         }
+    }
 
+    private fun fixStockEmojis() = tryPatch("Fix built-in emojis") {
         // Patch to repair built-in emotes is needed because installer doesn't recompile resources,
         // so they stay in package com.discord instead of apk package name
         Patcher.addPatch(ModelEmojiUnicode::class.java, "getImageUri", arrayOf(String::class.java, Context::class.java),
             InsteadHook { param -> "res:///${getResId("emoji_${param.args[0]}", "raw")}" }
         )
+    }
 
+    private fun fixAutoModEmbed() = tryPatch("Fix AutoMod embed crashes") {
         // Patch to fix crash when displaying newer AutoMod embed types like "Quarantined a member at username update"
-        Patcher.addPatch(WidgetChatListAdapterItemAutoModSystemMessageEmbed::class.java,
+        patcher.before<WidgetChatListAdapterItemAutoModSystemMessageEmbed>(
             "onConfigure",
-            arrayOf(Int::class.javaPrimitiveType!!, ChatListEntry::class.java),
-            PreHook { (_, _: Any, autoModEntry: AutoModSystemMessageEmbedEntry) ->
-                // If the channel_id embed field is missing, then just add one set to 0, it'll be displayed as null
-                if (AutoModUtils.INSTANCE.getEmbedFieldValue(autoModEntry.embed, "channel_id").isNullOrEmpty()) {
-                    val fields = MessageEmbedWrapper(autoModEntry.embed).rawFields as ArrayList<EmbedField>
+            Int::class.javaPrimitiveType!!, ChatListEntry::class.java
+        ) { (_, _: Any, autoModEntry: AutoModSystemMessageEmbedEntry) ->
+            // If the channel_id embed field is missing, then just add one set to 0, it'll be displayed as null
+            if (AutoModUtils.INSTANCE.getEmbedFieldValue(autoModEntry.embed, "channel_id").isNullOrEmpty()) {
+                val fields = MessageEmbedWrapper(autoModEntry.embed).rawFields as ArrayList<EmbedField>
 
-                    val newField = ReflectUtils.allocateInstance(EmbedField::class.java)
-                    ReflectUtils.setField(newField!!, "name", "channel_id")
-                    ReflectUtils.setField(newField, "value", "0")
+                val newField = ReflectUtils.allocateInstance(EmbedField::class.java)
+                ReflectUtils.setField(newField, "name", "channel_id")
+                ReflectUtils.setField(newField, "value", "0")
 
-                    fields += newField
-                }
+                fields += newField
             }
-        )
+        }
+    }
 
+    private fun fixKeyboardCrash() {
         // not sure why this happens, reported on Android 15 Beta 4
         // java.lang.IllegalArgumentException: Animators cannot have negative duration: -1
         //   at android.view.ViewPropertyAnimator.setDuration(ViewPropertyAnimator.java:266)
         //   at com.discord.widgets.chat.input.SmoothKeyboardReactionHelper$Callback.onStart(SmoothKeyboardReactionHelper.kt:5)
         //   at android.view.View.dispatchWindowInsetsAnimationStart(View.java:12671)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            try {
+            tryPatch("Fix keyboard animation crash on Android 15") {
                 Patcher.addPatch(
                     SmoothKeyboardReactionHelper.Callback::class.java.getDeclaredMethod("onStart",
                         WindowInsetsAnimation::class.java,
@@ -100,11 +121,11 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                         if (animation.durationMillis < 0) param.result = param.args[1]
                     }
                 )
-            } catch (e: Throwable) {
-                Main.logger.error("Couldn't patch possible Android 15 (?) crash", e)
             }
         }
+    }
 
+    private fun fixWebpEmojis() = tryPatch("Fix emoji formats") {
         // Support webp emojis by forcing every emoji to be webp
         patcher.patch(
             ModelEmojiCustom::class.java,
@@ -114,8 +135,9 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                 "https://cdn.discordapp.com/emojis/${param.args[0]}.webp?size=${param.args[2]}&animated=${param.args[1]}"
             }
         )
+    }
 
-        // Fix GIF previews
+    private fun fixGifPreviews() = tryPatch("Fix GIF previews") {
         patcher.after<EmbedResourceUtils>(
             "getPreviewUrls",
             String::class.java, Int::class.java, Int::class.java, Boolean::class.java,
@@ -139,20 +161,24 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             urls[0] = newUri.toString()
             params.result = urls
         }
+    }
 
-        // Fixes member list groups
-        val memberListGroupsField = ChannelMemberList::class.java.getDeclaredField("groups").apply {
-            isAccessible = true
-        }
+    private fun fixMemberListGroups() = tryPatch("Fix member list groups") {
+        val memberListGroupsField = ChannelMemberList::class.java.getDeclaredField("groups")
+            .apply { isAccessible = true }
+        @Suppress("UNCHECKED_CAST")
         patcher.after<ChannelMemberList>("setGroups", List::class.java, Function1::class.java) {
             val groupsMap = memberListGroupsField[this] as Map<String, MemberListRow>
             groupIndices.forEach { (idx, id) -> rows[idx] = groupsMap[id] }
         }
+    }
 
-        // Fixes erratic AppBarLayout behavior by disabling 'smooth keyboard' animation
+    // Fixes erratic AppBarLayout behavior by disabling 'smooth keyboard' animation
+    private fun fixAppBar() = tryPatch("Fix erratic AppBarLayout behavior by disabling 'smooth keyboard' animation") {
         patcher.instead<SmoothKeyboardReactionHelper>("install", View::class.java) {}
+    }
 
-        // Sticker crash fix
+    private fun fixStickerCrash() = tryPatch("Fix sticker crash") {
         patcher.before<Apng>(
             Int::class.javaPrimitiveType!!,
             Int::class.javaPrimitiveType!!,
@@ -167,53 +193,59 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                 if (duration <= 10) durations[index] = 100
             }
         }
+    }
 
-        // Fix hiding muted threads
+    private fun fixHidingMutedThreads() = tryPatch("Fix hiding muted threads") {
         patcher.after<`WidgetChannelListModel$Companion$guildListBuilder$$inlined$forEach$lambda$1$1`>("invoke") { param ->
             val builder = this.`this$0`
             val threadId = this.`$textChannel`.id
             val mentionCount = builder.`$mentionCounts$inlined`[threadId] as Int? ?: return@after
+
             if (mentionCount > 0) {
                 builder.`$hiddenChannelsIds$inlined`.remove(threadId)
                 param.result = false
             }
         }
+    }
 
-        // Fix hiding muted channels
+    private fun fixHidingMutedChannels() = tryPatch("Fix hiding muted channels") {
         @Suppress("UNCHECKED_CAST")
         patcher.after<`WidgetChannelListModel$Companion$guildListBuilder$$inlined$forEach$lambda$1$2`>("invoke") { param ->
-            val builder = this.`this$0`
-            val channelId = this.`$textChannelId`
+            val builder = `this$0`
             val mentionCountMap = builder.`$mentionCounts$inlined` as Map<Long, Int>
             val threadParentMap = builder.`$threadParentMap$inlined` as Map<Long, List<Channel>>
+            val channelId = `$textChannelId`
             val childThreads = threadParentMap[channelId]
-
-            val hasMentions = this.`$mentionCount` > 0
+            val hasMentions = `$mentionCount` > 0
             val hasChildMentions = childThreads?.any { mentionCountMap.getOrDefault(it.id, 0) > 0 } == true
+
             if (hasMentions || hasChildMentions) {
-                builder.`$hiddenChannelsIds$inlined`.remove(this.`$textChannelId`)
+                builder.`$hiddenChannelsIds$inlined`.remove(channelId)
                 param.result = false
             }
         }
+    }
 
-        // Fix private threads
+    private fun fixPrivateThreads() = tryPatch("Fix private threads") {
         patcher.instead<ThreadDraftFormEntry>("getCanCreatePrivateThread") { true }
         patcher.after<WidgetChatListAdapterItemThreadDraftForm>("onConfigure", Int::class.javaPrimitiveType!!, ChatListEntry::class.java) {
-            itemView.findViewById<TextView>(Utils.getResId("private_thread_toggle_badge", "id")).visibility = View.GONE
+            itemView.findViewById<TextView>(getResId("private_thread_toggle_badge", "id")).visibility = View.GONE
         }
+    }
 
-        // Fixes scrolling in private channels
+    private fun fixPrivateChannelScroll() = tryPatch("Fix private channel scroll") {
         patcher.after<WidgetChannelsList>("configureUI", WidgetChannelListModel::class.java) { (_, model: WidgetChannelListModel) ->
             if (!model.isGuildSelected && model.items.size > 1) {
-                val manager = WidgetChannelsList.`access$getBinding$p`(this).c.layoutManager!! as LinearLayoutManager
+                val manager = WidgetChannelsList.`access$getBinding$p`(this).c.layoutManager as LinearLayoutManager
                 if (manager.findFirstVisibleItemPosition() != 0) {
                     manager.scrollToPosition(0)
                     patcher.unpatchAll()
                 }
             }
         }
+    }
 
-        // Fixes VC not working properly.
+    private fun fixVoiceCodec() = tryPatch("Fix VC codec") {
         patcher.before<ProtocolInfo>(
             String::class.java,
             Int::class.javaPrimitiveType!!,
@@ -222,6 +254,14 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             if (mode == "xsalsa20_poly1305") {
                 param.args[2] = "xsalsa20_poly1305_lite_rtpsize"
             }
+        }
+    }
+
+    private fun tryPatch(label: String, block: () -> Unit) {
+        try {
+            block()
+        } catch (e: Throwable) {
+            Main.logger.error("Failed to apply patch: \"$label\"", e)
         }
     }
 }
