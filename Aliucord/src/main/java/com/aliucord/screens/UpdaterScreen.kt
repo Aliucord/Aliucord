@@ -70,7 +70,7 @@ internal class UpdaterScreen : SettingsPage() {
             }
         } else {
             for (update in updates) {
-                addView(UpdaterPluginCard(context, update, this::reRender))
+                UpdaterPluginCard(context, update, this::reRender).addTo(linearLayout)
             }
         }
     }
