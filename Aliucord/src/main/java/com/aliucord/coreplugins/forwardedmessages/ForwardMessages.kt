@@ -11,8 +11,11 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
-import androidx.core.content.res.ResourcesCompat
 import androidx.core.widget.NestedScrollView
+import androidx.core.content.res.ResourcesCompat
+import com.aliucord.coreplugins.forwardedmessages.MirroredDrawable
+import com.aliucord.coreplugins.forwardedmessages.ForwardSettings
+import com.aliucord.wrappers.messages.AttachmentWrapper
 import com.aliucord.*
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.PreHook
@@ -30,16 +33,22 @@ import com.discord.widgets.share.WidgetIncomingShare
 import com.discord.widgets.user.search.WidgetGlobalSearchModel
 import com.google.android.material.appbar.AppBarLayout
 import com.discord.utilities.view.text.SimpleDraweeSpanTextView
+import com.facebook.drawee.span.DraweeSpanStringBuilder
+import com.lytefast.flexinput.R
 import java.io.IOException
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.util.Random
 import java.util.concurrent.ThreadLocalRandom
 
+data class ForwardedAttachment(val filename: String, val url: String, val type: String, val size: Long = 0) : java.io.Serializable
+
+private const val EXTRA_CONTENT_INTENT = "com.aliucord.coreplugins.forwardedmessages.EXTRA_CONTENT"
+private const val EXTRA_MESSAGE_ID_INTENT = "com.aliucord.coreplugins.forwardedmessages.EXTRA_MESSAGE_ID"
+private const val EXTRA_CHANNEL_ID_INTENT = "com.aliucord.coreplugins.forwardedmessages.EXTRA_CHANNEL_ID"
+private const val EXTRA_ATTACHMENTS_INTENT = "com.aliucord.coreplugins.forwardedmessages.EXTRA_ATTACHMENTS"
+
 internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
-    private val forwardExtraContent = "com.aliucord.coreplugins.forwardedmessages.EXTRA_CONTENT"
-    private val forwardExtraMessageId = "com.aliucord.coreplugins.forwardedmessages.EXTRA_MESSAGE_ID"
-    private val forwardExtraChannelId = "com.aliucord.coreplugins.forwardedmessages.EXTRA_CHANNEL_ID"
 
     init {
         settingsTab = SettingsTab(ForwardSettings.Sheet::class.java, SettingsTab.Type.BOTTOM_SHEET)
@@ -48,7 +57,7 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
     override fun start(context: Context) {
         val forwardId = View.generateViewId()
 
-        val replyIcon: Drawable? = ContextCompat.getDrawable(Utils.appActivity, com.lytefast.flexinput.R.e.ic_reply_24dp)?.mutate()
+        val replyIcon: Drawable? = ContextCompat.getDrawable(context, R.e.ic_reply_24dp)?.mutate()
         replyIcon?.isAutoMirrored = true
         val forwardIcon = MirroredDrawable(replyIcon!!)
 
@@ -65,26 +74,18 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                 val lay = scrollView.getChildAt(0) as LinearLayout
 
                 if (lay.findViewById<View>(forwardId) == null) {
-                    val tw = TextView(lay.context, null, 0, com.lytefast.flexinput.R.i.UiKit_Settings_Item_Icon)
+                    val tw = TextView(lay.context, null, 0, R.i.UiKit_Settings_Item_Icon)
                     tw.id = forwardId
                     tw.text = "Forward"
                     val mediumTypeface = ResourcesCompat.getFont(tw.context, Constants.Fonts.whitney_medium)
                     if (mediumTypeface != null) tw.typeface = mediumTypeface
-                    val color = ColorCompat.getThemedColor(tw.context, com.lytefast.flexinput.R.b.colorInteractiveNormal)
+                    val color = ColorCompat.getThemedColor(tw.context, R.b.colorInteractiveNormal)
                     forwardIcon.setTintList(android.content.res.ColorStateList.valueOf(color))
                     tw.setCompoundDrawablesRelativeWithIntrinsicBounds(forwardIcon, null, null, null)
 
-                    val childrenCount = lay.childCount
-                    var foundIndex = false
-                    for (i in 0 until childrenCount) {
-                        val view = lay.getChildAt(i)
-                        if (view.id == Utils.getResId("dialog_chat_actions_reply", "id")) {
-                            foundIndex = true
-                            lay.addView(tw, i + 1)
-                            break
-                        }
-                    }
-                    if (!foundIndex) lay.addView(tw, 5)
+                    val replyView = lay.findViewById<View>(Utils.getResId("dialog_chat_actions_reply", "id"))
+                    val idx = if (replyView != null) lay.indexOfChild(replyView) + 1 else 5
+                    lay.addView(tw, idx)
 
                     tw.setOnClickListener { _ ->
                         val model = param.args[0] as WidgetChatListActions.Model
@@ -100,22 +101,26 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                         val attachmentInfo = attachments?.mapNotNull {
                             val msgAttachment = it as? com.discord.api.message.attachment.MessageAttachment
                             if (msgAttachment != null) {
-                                val wrapper = com.aliucord.wrappers.messages.AttachmentWrapper(msgAttachment)
-                                val map = java.util.HashMap<String, String>()
-                                map["filename"] = wrapper.filename ?: ""
-                                map["url"] = wrapper.proxyUrl ?: wrapper.url ?: ""
-                                map["type"] = wrapper.type?.name ?: ""
-                                map
+                                val wrapper = AttachmentWrapper(msgAttachment)
+                                ForwardedAttachment(
+                                    filename = wrapper.filename,
+                                    url = wrapper.proxyUrl ?: wrapper.url,
+                                    type = wrapper.type.name,
+                                    size = wrapper.size ?: 0L
+                                )
                             } else null
                         }
                         val putExtra = Intent()
-                            .putExtra(forwardExtraContent, messageContent)
-                            .putExtra(forwardExtraMessageId, messageId)
-                            .putExtra(forwardExtraChannelId, channelId)
-                            .putExtra("forwarded_attachments", attachmentInfo?.let { ArrayList(it) } ?: ArrayList<HashMap<String, String>>())
+                            .putExtra(EXTRA_CONTENT_INTENT, messageContent)
+                            .putExtra(EXTRA_MESSAGE_ID_INTENT, messageId)
+                            .putExtra(EXTRA_CHANNEL_ID_INTENT, channelId)
+                            .putExtra(EXTRA_ATTACHMENTS_INTENT, attachmentInfo?.let { ArrayList(it) } ?: ArrayList<ForwardedAttachment>())
 
                         Utils.mainThread.post {
-                            Utils.openPage(Utils.appActivity, WidgetIncomingShare::class.java, putExtra)
+                            if (context !is android.app.Activity) {
+                                putExtra.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            Utils.openPage(context, WidgetIncomingShare::class.java, putExtra)
                             actions.dismiss()
                         }
                     }
@@ -127,9 +132,9 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
             PreHook { param ->
                 val share = param.thisObject as WidgetIncomingShare
                 val intent = share.mostRecentIntent
-                val messageId = intent.getLongExtra(forwardExtraMessageId, 0)
-                val channelId = intent.getLongExtra(forwardExtraChannelId, 0)
-                val messageContent = intent.getStringExtra(forwardExtraContent)
+                val messageId = intent.getLongExtra(EXTRA_MESSAGE_ID_INTENT, 0)
+                val channelId = intent.getLongExtra(EXTRA_CHANNEL_ID_INTENT, 0)
+                val messageContent = intent.getStringExtra(EXTRA_CONTENT_INTENT)
 
                 if (messageId == 0L || channelId == 0L) return@PreHook
 
@@ -177,7 +182,7 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                 }
 
                 // Use Discord's message parser and AST renderer for mentions/emojis
-                val draweeBuilder = Class.forName("com.facebook.drawee.span.DraweeSpanStringBuilder").getConstructor().newInstance() as android.text.SpannableStringBuilder
+                val draweeBuilder = DraweeSpanStringBuilder()
                 val initialState = com.aliucord.utils.ReflectUtils.getField(
                     com.discord.utilities.textprocessing.MessageParseState::class.java,
                     null,
@@ -201,10 +206,10 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                 // Extract attachments from intent (fix deprecation and unchecked cast warnings)
                 @Suppress("DEPRECATION")
                 val attachmentsList = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                    intent.getSerializableExtra("forwarded_attachments", java.util.ArrayList::class.java) as? ArrayList<*>
+                    intent.getSerializableExtra(EXTRA_ATTACHMENTS_INTENT, java.util.ArrayList::class.java) as? ArrayList<*>
                 } else {
                     @Suppress("UNCHECKED_CAST")
-                    intent.getSerializableExtra("forwarded_attachments") as? ArrayList<*>
+                    intent.getSerializableExtra(EXTRA_ATTACHMENTS_INTENT) as? ArrayList<*>
                 }
                 val safeAttachmentsList: List<Map<String, String>>? = attachmentsList?.mapNotNull {
                     if (it is Map<*, *>) {
@@ -223,10 +228,11 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                     var imageCount = 0
                     safeAttachmentsList?.forEach { att ->
                         try {
-                            val filename = att["filename"] ?: ""
-                            val url = att["url"] ?: ""
-                            val type = att["type"] ?: ""
-                            val size = att["size"] ?: ""
+                            val attObj = att as? ForwardedAttachment ?: return@forEach
+                            val filename = attObj.filename
+                            val url = attObj.url
+                            val type = attObj.type
+                            val size = attObj.size
                             if (type.contains("IMAGE", true) && imageCount < 3) {
                                 val imageView = com.facebook.drawee.view.SimpleDraweeView(layout.context).apply {
                                     val imgSize = DimenUtils.dpToPx(48)
@@ -242,7 +248,7 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                             } else if (!type.contains("IMAGE", true)) {
                                 // File: show filename as clickable link, underline, themed color, and file size if available
                                 val fileNameView = TextView(layout.context).apply {
-                                    text = if (size.isNotEmpty()) "$filename ($size bytes)" else filename
+                                    text = if (size > 0) "$filename ($size bytes)" else filename
                                     setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
                                     setTextColor(ColorCompat.getThemedColor(layout.context, com.lytefast.flexinput.R.b.colorInteractiveNormal))
                                     paint.isUnderlineText = true
@@ -284,8 +290,8 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
 
             val textInput = binding.d.editText
 
-            val messageId = intent.getLongExtra(forwardExtraMessageId, 0)
-            val channelId = intent.getLongExtra(forwardExtraChannelId, 0)
+            val messageId = intent.getLongExtra(EXTRA_MESSAGE_ID_INTENT, 0)
+            val channelId = intent.getLongExtra(EXTRA_CHANNEL_ID_INTENT, 0)
             if (messageId != 0L && channelId != 0L) {
                 val selectedChannel = itemDataPayload.channel.k()
                 val commentMessage = textInput?.text?.toString() ?: ""
@@ -336,7 +342,7 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                 val model = param.args[0] as WidgetIncomingShare.Model
                 val share = param.thisObject as WidgetIncomingShare
                 val intent = share.mostRecentIntent
-                val messageId = intent.getLongExtra(forwardExtraMessageId, 0)
+                val messageId = intent.getLongExtra(EXTRA_MESSAGE_ID_INTENT, 0)
                 try {
                     if (messageId != 0L) {
                         modelCommentField.set(model, "...")
@@ -351,55 +357,21 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
         patcher.unpatchAll()
     }
 
-    class MessageReference(
-        @JvmField var type: Int,
-        @JvmField var message_id: Long,
-        @JvmField var channel_id: Long,
-        @JvmField var guild_id: Long?,
-        @JvmField var fail_if_not_exists: Boolean
+    data class MessageReference(
+        @com.aliucord.utils.SerializedName("type") val type: Int,
+        @com.aliucord.utils.SerializedName("message_id") val messageId: Long,
+        @com.aliucord.utils.SerializedName("channel_id") val channelId: Long,
+        @com.aliucord.utils.SerializedName("guild_id") val guildId: Long?,
+        @com.aliucord.utils.SerializedName("fail_if_not_exists") val failIfNotExists: Boolean
     )
 
-    fun nextBits(rng: Random, bits: Int): Int {
-        if (bits < 0 || bits > 32) throw IllegalArgumentException("bits must be 0..32")
-        if (bits == 0) return 0
-        if (bits == 32) return rng.nextInt()
-        val mask = (1 shl bits) - 1
-        return rng.nextInt() and mask
-    }
-
-    fun nextBits(bits: Int): Int = nextBits(ThreadLocalRandom.current(), bits)
 
     class Message(
-        @JvmField var message_reference: MessageReference?,
-        @JvmField var content: String = ""
-    ) {
-        @JvmField var flags: Int = 0
-        @JvmField var tts: Boolean = false
-        @JvmField var nonce: String = (SnowflakeUtils.fromTimestamp(System.currentTimeMillis()) + (ThreadLocalRandom.current().nextInt() and ((1 shl 23) - 1))).toString()
-        @JvmField var mobile_network_type: String = "unknown"
-        @JvmField var signal_strength: Int = 0
-
-        init {
-            val context = Utils.appActivity.applicationContext
-            val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-
-            val activeNetwork: Network? = connectivityManager.activeNetwork
-            if (activeNetwork != null) {
-                val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork)
-                if (capabilities != null) {
-                    mobile_network_type = when {
-                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "wifi"
-                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> "cellular"
-                        else -> mobile_network_type
-                    }
-
-                    if (Build.VERSION.SDK_INT >= 28) {
-                        val ss: SignalStrength? = telephonyManager.signalStrength
-                        signal_strength = ss?.level ?: 0
-                    }
-                }
-            }
-        }
-    }
+        val message_reference: MessageReference?,
+        content: String = "",
+        flags: Int = 0,
+        tts: Boolean = false,
+        nonce: String = Utils.generateRNNonce().toString(),
+        context: Context = Utils.appContext
+    ) : com.aliucord.entities.RNMessage(content, flags, tts, nonce, context)
 }
