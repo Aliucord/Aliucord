@@ -3,18 +3,12 @@ package com.aliucord.coreplugins.forwardedmessages
 import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Drawable
-import android.net.*
-import android.os.Build
-import android.telephony.SignalStrength
-import android.telephony.TelephonyManager
 import android.view.View
 import android.widget.*
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.core.widget.NestedScrollView
 import androidx.core.content.res.ResourcesCompat
-import com.aliucord.coreplugins.forwardedmessages.MirroredDrawable
-import com.aliucord.coreplugins.forwardedmessages.ForwardSettings
 import com.aliucord.wrappers.messages.AttachmentWrapper
 import com.aliucord.*
 import com.aliucord.entities.CorePlugin
@@ -22,7 +16,6 @@ import com.aliucord.patcher.PreHook
 import com.aliucord.utils.DimenUtils
 import com.discord.api.role.GuildRole
 import com.discord.databinding.WidgetIncomingShareBinding
-import com.discord.utilities.SnowflakeUtils
 import com.discord.utilities.captcha.CaptchaHelper
 import com.discord.utilities.color.ColorCompat
 import com.discord.utilities.intent.IntentUtils
@@ -38,8 +31,6 @@ import com.lytefast.flexinput.R
 import java.io.IOException
 import java.lang.reflect.Field
 import java.lang.reflect.Method
-import java.util.Random
-import java.util.concurrent.ThreadLocalRandom
 
 data class ForwardedAttachment(val filename: String, val url: String, val type: String, val size: Long = 0) : java.io.Serializable
 
@@ -104,9 +95,9 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                                 val wrapper = AttachmentWrapper(msgAttachment)
                                 ForwardedAttachment(
                                     filename = wrapper.filename,
-                                    url = wrapper.proxyUrl ?: wrapper.url,
+                                    url = wrapper.proxyUrl,
                                     type = wrapper.type.name,
-                                    size = wrapper.size ?: 0L
+                                    size = wrapper.size
                                 )
                             } else null
                         }
@@ -156,7 +147,7 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                 messagePreviewText.text = "Optional Message"
 
                 // Message Preview Header
-                val messagePreviewCustom = TextView(layout.context, null, 0, com.lytefast.flexinput.R.i.UiKit_Search_Header)
+                val messagePreviewCustom = TextView(layout.context, null, 0, R.i.UiKit_Search_Header)
                 messagePreviewCustom.text = "Message Preview"
                 layout.addView(messagePreviewCustom, 0)
 
@@ -164,7 +155,7 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                 val previewText = SimpleDraweeSpanTextView(layout.context)
                 val mediumTypeface = ResourcesCompat.getFont(layout.context, Constants.Fonts.whitney_medium)
                 if (mediumTypeface != null) previewText.typeface = mediumTypeface
-                val color = ColorCompat.getThemedColor(layout.context, com.lytefast.flexinput.R.b.colorInteractiveNormal)
+                val color = ColorCompat.getThemedColor(layout.context, R.b.colorInteractiveNormal)
                 previewText.setTextColor(color)
                 previewText.gravity = android.view.Gravity.CENTER_VERTICAL
                 // Further increase top and bottom padding to prevent emoji cropping
@@ -176,7 +167,7 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                     previewText.paddingBottom + extraPad
                 )
                 // After setting text, force layout and set minHeight to lineHeight
-                previewText.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
+                previewText.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
                     val lh = previewText.lineHeight
                     previewText.minHeight = lh
                 }
@@ -206,7 +197,7 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                 // Extract attachments from intent (fix deprecation and unchecked cast warnings)
                 @Suppress("DEPRECATION")
                 val attachmentsList = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                    intent.getSerializableExtra(EXTRA_ATTACHMENTS_INTENT, java.util.ArrayList::class.java) as? ArrayList<*>
+                    intent.getSerializableExtra(EXTRA_ATTACHMENTS_INTENT, java.util.ArrayList::class.java)
                 } else {
                     @Suppress("UNCHECKED_CAST")
                     intent.getSerializableExtra(EXTRA_ATTACHMENTS_INTENT) as? ArrayList<*>
@@ -250,7 +241,7 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                                 val fileNameView = TextView(layout.context).apply {
                                     text = if (size > 0) "$filename ($size bytes)" else filename
                                     setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
-                                    setTextColor(ColorCompat.getThemedColor(layout.context, com.lytefast.flexinput.R.b.colorInteractiveNormal))
+                                    setTextColor(ColorCompat.getThemedColor(layout.context, R.b.colorInteractiveNormal))
                                     paint.isUnderlineText = true
                                     setPadding(DimenUtils.dpToPx(2), 0, DimenUtils.dpToPx(2), 0)
                                     setOnClickListener {
@@ -297,23 +288,26 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                 val commentMessage = textInput?.text?.toString() ?: ""
                 Utils.threadPool.submit {
                     try {
-                        val forwardMsg = Message(MessageReference(1, messageId, channelId, null, false), "")
+                        val forwardMsg = Message(
+                            message_reference = MessageReference(
+                                type = 1,
+                                messageId = messageId,
+                                channelId = channelId,
+                                guildId = null,
+                                failIfNotExists = false
+                            ),
+                            content = ""
+                        )
 
                         val res = Http.Request
                             .newDiscordRNRequest("/channels/$selectedChannel/messages", "POST")
                             .executeWithJson(forwardMsg)
 
-                        val respText = try { res.text() } catch (e: Exception) { "<unable to read body: ${e.message}>" }
-
                         if (!res.ok())
                             Toast.makeText(context, "Forwarding failed: ${res.statusCode}", Toast.LENGTH_SHORT).show()
                         else {
                             if (commentMessage.isNotEmpty()) {
-                                val commentMsg = Message(null, commentMessage)
 
-                                val cres = Http.Request.newDiscordRNRequest("/channels/$selectedChannel/messages", "POST")
-                                    .executeWithJson(commentMsg)
-                                val cresText = try { cres.text() } catch (e: Exception) { "<unable to read body: ${e.message}>" }
                             }
 
                             Utils.mainThread.post {
@@ -367,7 +361,8 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
 
 
     class Message(
-        val message_reference: MessageReference?,
+        @com.aliucord.utils.SerializedName("message_reference")
+        val message_reference: MessageReference? = null,
         content: String = "",
         flags: Int = 0,
         tts: Boolean = false,

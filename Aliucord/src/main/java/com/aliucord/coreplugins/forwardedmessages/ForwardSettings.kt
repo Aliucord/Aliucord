@@ -33,7 +33,7 @@ internal object ForwardSettings {
                 var setting by delegate
                 isChecked = setting
                 setOnCheckedListener {
-                    setting = !setting
+                    !setting
                 }
             }
         }

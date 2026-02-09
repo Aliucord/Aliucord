@@ -3,7 +3,6 @@ package com.aliucord.coreplugins.forwardedmessages
 import android.content.res.ColorStateList
 import android.graphics.Canvas
 import android.graphics.ColorFilter
-import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import androidx.core.graphics.drawable.DrawableCompat
@@ -29,8 +28,12 @@ class MirroredDrawable(base: Drawable) : Drawable() {
 
     override fun getIntrinsicWidth(): Int = wrapped.intrinsicWidth
     override fun getIntrinsicHeight(): Int = wrapped.intrinsicHeight
-    override fun setAlpha(alpha: Int) = wrapped.setAlpha(alpha)
-    override fun setColorFilter(colorFilter: ColorFilter?) = wrapped.setColorFilter(colorFilter)
+    override fun setAlpha(alpha: Int) {
+        wrapped.alpha = alpha
+    }
+    override fun setColorFilter(colorFilter: ColorFilter?) {
+        wrapped.colorFilter = colorFilter
+    }
     @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
     override fun getOpacity(): Int = wrapped.opacity
 
