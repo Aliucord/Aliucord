@@ -194,19 +194,13 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                 previewText.setPadding(DimenUtils.dpToPx(16), DimenUtils.dpToPx(2), 0, 0)
                 layout.addView(previewText, 1)
 
-                // Extract attachments from intent (fix deprecation and unchecked cast warnings)
+                // Extract attachments from intent as ForwardedAttachment
                 @Suppress("DEPRECATION")
                 val attachmentsList = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                    intent.getSerializableExtra(EXTRA_ATTACHMENTS_INTENT, java.util.ArrayList::class.java)
+                    intent.getSerializableExtra(EXTRA_ATTACHMENTS_INTENT, java.util.ArrayList::class.java) as? ArrayList<ForwardedAttachment>
                 } else {
                     @Suppress("UNCHECKED_CAST")
-                    intent.getSerializableExtra(EXTRA_ATTACHMENTS_INTENT) as? ArrayList<*>
-                }
-                val safeAttachmentsList: List<Map<String, String>>? = attachmentsList?.mapNotNull {
-                    if (it is Map<*, *>) {
-                        @Suppress("UNCHECKED_CAST")
-                        it as? Map<String, String>
-                    } else null
+                    intent.getSerializableExtra(EXTRA_ATTACHMENTS_INTENT) as? ArrayList<ForwardedAttachment>
                 }
 
                 if (attachmentsList != null && attachmentsList.isNotEmpty()) {
@@ -217,9 +211,8 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                     }
                     // Limit to 3 images for compactness
                     var imageCount = 0
-                    safeAttachmentsList?.forEach { att ->
+                    attachmentsList.forEach { attObj ->
                         try {
-                            val attObj = att as? ForwardedAttachment ?: return@forEach
                             val filename = attObj.filename
                             val url = attObj.url
                             val type = attObj.type
