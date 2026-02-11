@@ -1,7 +1,6 @@
-package com.aliucord.coreplugins
+package com.aliucord.coreplugins.voice
 
 import android.content.Context
-import com.aliucord.coreplugins.voice.*
 import com.aliucord.coreplugins.voice.SunflowerPayload.DaveTransitionReady
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
