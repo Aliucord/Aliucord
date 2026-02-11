@@ -54,16 +54,6 @@ fun RtcControlSocket.send(opcode: Int, data: ByteString) {
     send(ByteString(bytes))
 }
 
-open class BTest {
-    fun xd1() {
-        Logger("Sunflower").info("BTest unpatched")
-    }
-}
-
-class Test1 : BTest()
-class Test2 : BTest()
-class Test3 : BTest()
-
 data class NewIdentify(
     @SerializedName("server_id") val serverId: String,
     @SerializedName("user_id") val userId: String,
