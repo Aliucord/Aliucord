@@ -6,63 +6,63 @@ import org.webrtc.VideoCapturer
 class NativeConnection {
     private val nativeInstance: Long = 0
 
-    interface GetEncryptionModesCallback {
+    fun interface GetEncryptionModesCallback {
         fun onEncryptionModes(modes: Array<String?>)
     }
 
-    interface GetStatsCallback {
+    fun interface GetStatsCallback {
         fun onStats(stats: String)
     }
 
-    interface MLSCommitTransitionCallback {
+    fun interface MLSCommitTransitionCallback {
         fun onMLSProcessedCommit(processedCommit: Boolean, protocolVersion: Int, rosterChange: String)
     }
 
-    interface MLSFailureCallback {
+    fun interface MLSFailureCallback {
         fun onMLSFailureCallback(source: String, reason: String)
     }
 
-    interface MLSKeyPackageCallback {
+    fun interface MLSKeyPackageCallback {
         fun onMLSKeyPackage(keyPackageB64: String)
     }
 
-    interface MLSPairwiseFingerprintCallback {
+    fun interface MLSPairwiseFingerprintCallback {
         fun onMLSPairwiseFingerprint(fingerprintB64: String)
     }
 
-    interface MLSProcessProposalsCallback {
+    fun interface MLSProcessProposalsCallback {
         fun onMLSCommitWelcome(commitWelcome: String)
     }
 
-    interface MLSWelcomeCallback {
+    fun interface MLSWelcomeCallback {
         fun onMLSProcessedWelcome(joinedGroup: Boolean, protocolVersion: Int, rosterChange: String)
     }
 
-    interface OnFirstFrameCallback {
+    fun interface OnFirstFrameCallback {
         fun onFirstFrame(userId: String, videoSsrc: Long, streamId: String)
     }
 
-    interface OnPingCallback {
+    fun interface OnPingCallback {
         fun onPing(ping: Int, server: String, port: Int, seq: Int)
     }
 
-    interface OnPingTimeoutCallback {
+    fun interface OnPingTimeoutCallback {
         fun onPingTimeout(server: String, port: Int, seq: Int, timeout: Int)
     }
 
-    interface OnSpeakingCallback {
+    fun interface OnSpeakingCallback {
         fun onSpeaking(userId: String, speakingFlags: Int, voiceDb: Float)
     }
 
-    interface OnVideoCallback {
+    fun interface OnVideoCallback {
         fun onVideo(userId: String, ssrc: Long, streamId: String, videoStreamParametersJson: String)
     }
 
-    interface SecureFramesStateUpdateCallback {
+    fun interface SecureFramesStateUpdateCallback {
         fun onSecureFramesStateUpdateCallback(stateUpdateJSON: String)
     }
 
-    interface SecureFramesTransitionReadyCallback {
+    fun interface SecureFramesTransitionReadyCallback {
         fun onTransitionReady()
     }
 

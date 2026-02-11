@@ -100,8 +100,7 @@ data class TransportOptions(
     val videoDecoders: Any? = null,
     val videoEncoder: Any? = null,
     val videoEncoderExperiments: String? = null,
-) {
-}
+)
 
 @Suppress("unused")
 class Connection {
@@ -115,10 +114,8 @@ class Connection {
 
     constructor(realInstance: NativeConnection) {
         this.native = realInstance
-        this.native.setSecureFramesStateUpdateCallback(object : NativeConnection.SecureFramesStateUpdateCallback {
-            override fun onSecureFramesStateUpdateCallback(stateUpdateJSON: String) {
-            }
-        })
+        // TODO
+        this.native.setSecureFramesStateUpdateCallback { }
     }
 
     interface EncryptionModesCallback {
@@ -158,11 +155,7 @@ class Connection {
 
     private fun getStatsNative(getStatsCallbackNative: GetStatsCallbackNative?, i: Int) {
         if (disposed) return
-        native.getFilteredStats(i, object : NativeConnection.GetStatsCallback {
-            override fun onStats(stats: String) {
-                getStatsCallbackNative?.onStats(stats)
-            }
-        })
+        native.getFilteredStats(i) { stats -> getStatsCallbackNative?.onStats(stats) }
     }
 
     val userStreams = HashMap<Long, String>()
@@ -200,10 +193,9 @@ class Connection {
     fun enableDiscontinuousTransmission(z2: Boolean) {}
     // TODO
     fun enableForwardErrorCorrection(z2: Boolean) {}
-    fun getEncryptionModes(encryptionModesCallback: EncryptionModesCallback?) =
-        native.getEncryptionModes(object : NativeConnection.GetEncryptionModesCallback {
-            override fun onEncryptionModes(modes: Array<String?>) { encryptionModesCallback?.onEncryptionModes(modes) }
-        })
+    fun getEncryptionModes(encryptionModesCallback: EncryptionModesCallback?) {
+        native.getEncryptionModes { modes -> encryptionModesCallback?.onEncryptionModes(modes) }
+    }
 
     fun getStats(getStatsCallback: GetStatsCallback) {
         getStatsNative(GetStatsCallbackNative(getStatsCallback), -1)
@@ -279,11 +271,13 @@ class Connection {
     fun stopScreenshareBroadcast() = native.stopBroadcast()
 
     fun setUserSpeakingStatusChangedCallback(userSpeakingStatusChangedCallback: UserSpeakingStatusChangedCallback) {
-        native.setOnSpeakingCallback(object : NativeConnection.OnSpeakingCallback {
-            override fun onSpeaking(userId: String, speakingFlags: Int, voiceDb: Float) {
-                userSpeakingStatusChangedCallback.onUserSpeakingStatusChanged(userId.toLong(), speakingFlags > 0, false)
-            }
-        })
+        native.setOnSpeakingCallback { userId, speakingFlags, voiceDb ->
+            userSpeakingStatusChangedCallback.onUserSpeakingStatusChanged(
+                userId.toLong(),
+                speakingFlags > 0,
+                false
+            )
+        }
     }
 
     private fun setTransportOptions(options: TransportOptions) {
@@ -291,6 +285,7 @@ class Connection {
     }
     private fun TransportOptions.set() = setTransportOptions(this)
 
+    // New DAVE-related functions
     fun getMLSKeyPackageB64(callback: NativeConnection.MLSKeyPackageCallback) = native.getMLSKeyPackageB64(callback)
 
     fun prepareMLSCommitTransitionB64(transitionId: Int, commit: String, callback: NativeConnection.MLSCommitTransitionCallback) {
