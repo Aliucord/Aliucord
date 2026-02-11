@@ -64,41 +64,42 @@ JNI methods. This shouldn't be necessary if you already used jadx, but here it i
   the native code's setTransportOptions function to find all the options, or use this (cursed) frida script:
 <details>
     <summary>Frida script</summary>
-```js
-if (typeof stored === "undefined") var stored = {}
-stored = {};
 
-function parse(key, obj) {
-    if (!stored[key]) stored[key] = new Map()
-        const target = stored[key]
+    ```js
+    if (typeof stored === "undefined") var stored = {}
+    stored = {};
 
-    for (const key in obj) {
-        if (!target.has(key)) target.set(key, [typeof obj[key], []])
-            if (typeof obj[key] == "object") {
-                target.get(key)[1][0] = parse(key, obj[key])
-            } else {
-                target.get(key)[1].push(obj[key])
-            }
+    function parse(key, obj) {
+        if (!stored[key]) stored[key] = new Map()
+            const target = stored[key]
+
+        for (const key in obj) {
+            if (!target.has(key)) target.set(key, [typeof obj[key], []])
+                if (typeof obj[key] == "object") {
+                    target.get(key)[1][0] = parse(key, obj[key])
+                } else {
+                    target.get(key)[1].push(obj[key])
+                }
+        }
+        return "\n    " + [...target.entries()]
+            .map(([k, v]) => `${k} (${v[0]}): ${v[1].join(", ")}`)
+            .sort()
+            .join("\n")
+            .split("\n")
+            .join("\n    ")
     }
-    return "\n    " + [...target.entries()]
-        .map(([k, v]) => `${k} (${v[0]}): ${v[1].join(", ")}`)
-        .sort()
-        .join("\n")
-        .split("\n")
-        .join("\n    ")
-}
 
-defineHandler({
-    onEnter(log, args, state) {
-        let e = JSON.parse(args[0]);
-        log(
-            "NativeConnection.setTransportOptions: " +
-                JSON.stringify(e, null, 2).split("\n").join("\n    ") +
-                `\n  - opts:${parse("root", e)}`
-        );
-    }
-});
-```
+    defineHandler({
+        onEnter(log, args, state) {
+            let e = JSON.parse(args[0]);
+            log(
+                "NativeConnection.setTransportOptions: " +
+                    JSON.stringify(e, null, 2).split("\n").join("\n    ") +
+                    `\n  - opts:${parse("root", e)}`
+            );
+        }
+    });
+    ```
 </details>
 
 ### mitmproxy
