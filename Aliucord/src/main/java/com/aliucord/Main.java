@@ -27,13 +27,13 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 
-import com.aliucord.entities.CorePlugin;
-import com.aliucord.entities.Plugin;
+import com.aliucord.api.NotificationsAPI;
+import com.aliucord.entities.*;
 import com.aliucord.fragments.ConfirmDialog;
 import com.aliucord.patcher.*;
+import com.aliucord.screens.UpdaterScreen;
 import com.aliucord.settings.*;
-import com.aliucord.updater.ManagerBuild;
-import com.aliucord.updater.PluginUpdater;
+import com.aliucord.updater.*;
 import com.aliucord.utils.ChangelogUtils;
 import com.aliucord.utils.ReflectUtils;
 import com.aliucord.views.Divider;
@@ -66,11 +66,11 @@ import com.lytefast.flexinput.R;
 
 import java.io.*;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.sql.Timestamp;
 import java.util.*;
 
 import dalvik.system.PathClassLoader;
+import kotlin.Unit;
 import kotlin.io.FilesKt;
 
 public final class Main {
@@ -164,7 +164,7 @@ public final class Main {
                 baseIndex++
             );
             layout.addView(
-                makeSettingsEntry(font, context, "Updater", R.e.ic_file_download_white_24dp, Updater.class),
+                makeSettingsEntry(font, context, "Updater", R.e.ic_file_download_white_24dp, UpdaterScreen.class),
                 baseIndex++
             );
             layout.addView(
@@ -540,7 +540,44 @@ public final class Main {
             }
         }
 
-        Utils.threadPool.execute(() -> PluginUpdater.checkUpdates(true));
+        Utils.threadPool.execute(() -> {
+            if (CoreUpdater.isUpdaterDisabled()) return;
+            CoreUpdater.checkForUpdates();
+
+            var updates = PluginUpdater.fetchUpdates(new PluginUpdaterSource());
+            if (updates.isEmpty()) return;
+
+            if (PluginUpdater.isAutoUpdateEnabled()) {
+                var failed = 0;
+                for (var update : updates) {
+                    if (!update.isUpdatePossible()) continue;
+                    if (!PluginUpdater.updatePlugin(update)) {
+                        failed++;
+                    }
+                }
+
+                if (failed > 0) {
+                    final var failedCount = failed;
+                    Utils.mainThread.post(() -> {
+                        Toast.makeText(Utils.getAppContext(),
+                            String.format("Failed to update %s plugins!", failedCount),
+                            Toast.LENGTH_SHORT
+                        ).show();
+                    });
+                }
+            } else {
+                var notificationData = new NotificationData()
+                    .setTitle("Updater")
+                    .setBody(String.format("Found %s available plugin updates! Click to view...", updates.size()))
+                    .setAutoDismissPeriodSecs(30)
+                    .setOnClick((view) -> {
+                        Utils.openPage(view.getContext(), UpdaterScreen.class);
+                        return Unit.a;
+                    });
+
+                NotificationsAPI.display(notificationData);
+            }
+        });
     }
 
     private static void permissionGrantedCallback(AppCompatActivity activity, boolean granted) {
