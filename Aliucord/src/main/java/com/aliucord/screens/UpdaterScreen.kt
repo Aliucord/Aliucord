@@ -8,8 +8,7 @@ import android.widget.Toast
 import com.aliucord.Utils
 import com.aliucord.fragments.SettingsPage
 import com.aliucord.settings.AliucordPage
-import com.aliucord.updater.CoreUpdater
-import com.aliucord.updater.PluginUpdater
+import com.aliucord.updater.*
 import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.widgets.UpdaterPluginCard
@@ -17,6 +16,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.lytefast.flexinput.R
 
 internal class UpdaterScreen : SettingsPage() {
+    private val updateSource = PluginUpdaterSource()
     private val updates = mutableListOf<PluginUpdater.PluginUpdate>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -83,7 +83,7 @@ internal class UpdaterScreen : SettingsPage() {
 
         Utils.threadPool.execute {
             updates.clear()
-            updates.addAll(PluginUpdater.fetchUpdates())
+            updates.addAll(PluginUpdater.fetchUpdates(updateSource))
 
             val noticeText = if (updates.isNotEmpty()) {
                 "Found ${Utils.pluralise(updates.size, "plugin update")}!"

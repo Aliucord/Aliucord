@@ -544,7 +544,7 @@ public final class Main {
             if (CoreUpdater.isUpdaterDisabled()) return;
             CoreUpdater.checkForUpdates();
 
-            var updates = PluginUpdater.fetchUpdates();
+            var updates = PluginUpdater.fetchUpdates(new PluginUpdaterSource());
             if (updates.isEmpty()) return;
 
             if (PluginUpdater.isAutoUpdateEnabled()) {

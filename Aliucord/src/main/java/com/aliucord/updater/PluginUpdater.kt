@@ -30,7 +30,7 @@ internal object PluginUpdater {
         /**
          * The fetched update info for the latest build of this plugin.
          */
-        val info: PluginRepoUpdater.PluginBuildInfo,
+        val info: PluginUpdaterSource.PluginBuildInfo,
     ) {
         /**
          * Whether the base Discord/Aliucord installation is outdated and
@@ -68,16 +68,15 @@ internal object PluginUpdater {
      * The resulting updates should not be held for long durations (ie, cached globally).
      */
     @JvmStatic
-    fun fetchUpdates(): List<PluginUpdate> {
+    fun fetchUpdates(source: PluginUpdaterSource): List<PluginUpdate> {
         logger.info("Checking for plugin updates...")
-        PluginRepoUpdater.clear()
 
         val updates = mutableListOf<PluginUpdate>()
         for (plugin in PluginManager.plugins.values) {
             try {
                 if (plugin is CorePlugin) continue
 
-                val info = PluginRepoUpdater.getPluginBuildInfo(
+                val info = source.getPluginBuildInfo(
                     pluginName = plugin.manifest.name ?: continue,
                     updateInfoUrl = plugin.manifest.updateUrl
                         ?.takeIf { it.isNotEmpty() }

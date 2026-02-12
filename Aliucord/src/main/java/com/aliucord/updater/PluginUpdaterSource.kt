@@ -12,22 +12,14 @@ import java.util.concurrent.TimeUnit
 /**
  * Handles fetching and caching update info from plugin repositories.
  */
-internal object PluginRepoUpdater {
-    private val logger = Logger("Updater/Plugins")
+internal class PluginUpdaterSource {
+    private val logger = Logger("Updater/Plugins/Source")
 
     /**
      * A TTL cache of updater data from plugin repositories.
      * This maps the **original** plugin update info url to the fetched json.
      */
     private val cachedRepoInfo = ConcurrentHashMap<String, RepoBuildInfo>()
-
-    /**
-     * Clears the update info cache
-     */
-    // TODO: this should be cleared after not being used for a while
-    fun clear() {
-        cachedRepoInfo.clear()
-    }
 
     /**
      * Retrieves the update info for a specific plugin.
