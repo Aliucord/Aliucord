@@ -1,30 +1,17 @@
 package org.webrtc
 
-/* loaded from: classes2.dex */
-interface Predicate<T> {
+fun interface Predicate<T> {
+    fun test(arg: T): Boolean
+
     fun and(predicate: Predicate<in T>): Predicate<T> {
-        return object : Predicate<T> {
-            override fun test(t10: T): Boolean {
-                return this@Predicate.test(t10) && predicate.test(t10)
-            }
-        }
+        return Predicate { test(it) && predicate.test(it) }
     }
 
     fun negate(): Predicate<T> {
-        return object : Predicate<T> {
-            override fun test(t10: T): Boolean {
-                return !this@Predicate.test(t10)
-            }
-        }
+        return Predicate { !test(it) }
     }
 
     fun or(predicate: Predicate<in T>): Predicate<T> {
-        return object : Predicate<T> {
-            override fun test(t10: T): Boolean {
-                return !(!this@Predicate.test(t10) && !predicate.test(t10))
-            }
-        }
+        return Predicate { test(it) || predicate.test(it) }
     }
-
-    fun test(t10: T): Boolean
 }

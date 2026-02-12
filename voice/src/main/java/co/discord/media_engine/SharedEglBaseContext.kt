@@ -14,7 +14,7 @@ object SharedEglBaseContext {
             if (eglBase_ == null) {
                 eglBase_ = EglHelper.create()
             }
-            eglBaseContext = eglBase_!!.getEglBaseContext()
+            eglBaseContext = eglBase_!!.eglBaseContext
         }
         return eglBaseContext!!
     }

@@ -3,28 +3,25 @@ package com.discord.native.engine
 import android.content.Context
 import co.discord.media_engine.CameraEnumeratorProvider
 import co.discord.media_engine.SharedEglBaseContext
-import com.google.gson.Gson
 import org.webrtc.EglBase
 import org.webrtc.VideoFrame
-
-private val gson = Gson()
 
 @Suppress("unused")
 class NativeEngine(
     context: Context,
-    private val logLevel: Int
+    logLevel: Int,
 ) {
     private val nativeInstance: Long
 
-    interface AudioInputInitializationCallback {
+    fun interface AudioInputInitializationCallback {
         fun onAudioInputInitialized(info: AudioInputInitializationInfo)
     }
 
-    interface ConnectToServerCallback {
+    fun interface ConnectToServerCallback {
         fun onConnectToServer(info: ConnectionInfo, error: String)
     }
 
-    interface DeviceChangeCallback {
+    fun interface DeviceChangeCallback {
         fun onChange(
             audioInputDevices: Array<AudioInputDeviceDescription?>,
             audioOutputDevices: Array<AudioOutputDeviceDescription?>,
@@ -32,55 +29,55 @@ class NativeEngine(
         )
     }
 
-    interface GetAudioInputDevicesCallback {
+    fun interface GetAudioInputDevicesCallback {
         fun onDevices(devices: Array<AudioInputDeviceDescription?>)
     }
 
-    interface GetAudioOutputDevicesCallback {
+    fun interface GetAudioOutputDevicesCallback {
         fun onDevices(devices: Array<AudioOutputDeviceDescription?>)
     }
 
-    interface GetAudioSubsystemCallback {
+    fun interface GetAudioSubsystemCallback {
         fun onAudioSubsystem(subsystem: String, audioLayer: String)
     }
 
-    interface GetCodecCapabilitiesCallback {
+    fun interface GetCodecCapabilitiesCallback {
         fun onCodecCapabilities(codecs: String)
     }
 
-    interface GetCodecSurveyCallback {
+    fun interface GetCodecSurveyCallback {
         fun onCodecSurvey(jsonStr: String)
     }
 
-    interface GetRankedRtcRegionsCallback {
+    fun interface GetRankedRtcRegionsCallback {
         fun onRankedRtcRegions(regions: Array<String>)
     }
 
-    interface GetVideoInputDevicesCallback {
+    fun interface GetVideoInputDevicesCallback {
         fun onDevices(devices: Array<VideoInputDeviceDescription?>)
     }
 
-    interface MLSSigningKeyCallback {
+    fun interface MLSSigningKeyCallback {
         fun onMLSSigningKey(key: String, signature: String)
     }
 
-    interface OnNoInputCallback {
+    fun interface OnNoInputCallback {
         fun onNoInput(input: Boolean)
     }
 
-    interface OnVoiceCallback {
+    fun interface OnVoiceCallback {
         fun onVoice(level: Float, speaking: Int)
     }
 
-    interface StartLocalAudioRecordingCallback {
+    fun interface StartLocalAudioRecordingCallback {
         fun onStartLocalAudioRecording(started: Boolean)
     }
 
-    interface StopLocalAudioRecordingCallback {
+    fun interface StopLocalAudioRecordingCallback {
         fun onStopLocalAudioRecording(fileName: String, durationMs: Int)
     }
 
-    interface VideoFrameCallback {
+    fun interface VideoFrameCallback {
         fun onFrame(frame: VideoFrame, mirror: Boolean): Boolean
     }
 
@@ -88,10 +85,12 @@ class NativeEngine(
         val appCtx = context.applicationContext!!
         CameraEnumeratorProvider.maybeInit(appCtx)
         val eglCtx = SharedEglBaseContext.getEglContext()
-        this.nativeInstance = nativeCreateInstance(appCtx,
+        this.nativeInstance = nativeCreateInstance(
+            appCtx,
             eglCtx,
             logLevel,
-            context.getSharedPreferences("MediaEngine", 0).getBoolean("offloadAdmControls", false))
+            context.getSharedPreferences("MediaEngine", 0).getBoolean("offloadAdmControls", false)
+        )
     }
 
     private external fun nativeCreateInstance(context: Context, eglContext: EglBase.Context, logLevel: Int, offloadAdmControls: Boolean): Long

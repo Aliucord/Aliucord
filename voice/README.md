@@ -65,7 +65,7 @@ JNI methods. This shouldn't be necessary if you already used jadx, but here it i
 <details>
     <summary>Frida script</summary>
 
-    ```js
+    ```javascript
     if (typeof stored === "undefined") var stored = {}
     stored = {};
 

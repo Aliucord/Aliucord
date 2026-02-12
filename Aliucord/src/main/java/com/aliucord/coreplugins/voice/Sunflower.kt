@@ -67,7 +67,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
             Int::class.javaPrimitiveType!!,
             Any::class.java
         ) { (param, opcode: Int, data: Any) ->
-            if (opcode == 0) {
+            if (opcode == Opcodes.IDENTIFY) {
                 val d = data as Payloads.Identify
                 param.args[1] = NewIdentify(
                     serverId = d.serverId,

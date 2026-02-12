@@ -2,7 +2,7 @@ package org.webrtc;
 
 import android.content.Context;
 
-/* loaded from: classes2.dex */
+/** @noinspection unused */
 public class ApplicationContextProvider {
     @CalledByNative
     public static Context getApplicationContext() {
