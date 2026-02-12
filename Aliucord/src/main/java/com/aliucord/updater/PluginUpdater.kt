@@ -31,20 +31,24 @@ internal object PluginUpdater {
          * The fetched update info for the latest build of this plugin.
          */
         val info: PluginRepoUpdater.PluginBuildInfo,
+    ) {
         /**
          * Whether the base Discord/Aliucord installation is outdated and
          * requires a reinstallation update through Aliucord Manager.
          */
-        val isBaseOutdated: Boolean,
+        val isBaseOutdated: Boolean = info.minimumDiscordVersion > Constants.DISCORD_VERSION ||
+            !ManagerBuild.hasKotlin(info.minimumKotlinVersion.toString())
+
         /**
          * Whether the current Aliucord core is outdated and requires an update.
          */
-        val isCoreOutdated: Boolean,
+        val isCoreOutdated: Boolean = (info.minimumAliucordVersion ?: SemVer.Zero) > SemVer.parse(BuildConfig.VERSION)
+
         /**
          * Whether the current Android version is too low to load the new plugin.
          */
-        val isAndroidOutdated: Boolean,
-    ) {
+        val isAndroidOutdated: Boolean = info.minimumApiLevel > Build.VERSION.SDK_INT
+
         /**
          * Whether this plugin should be allowed to update as
          * the new build will not cause issues upon loading.
@@ -92,10 +96,6 @@ internal object PluginUpdater {
                     plugin = plugin,
                     pluginName = plugin.name,
                     info = info,
-                    isBaseOutdated = info.minimumDiscordVersion > Constants.DISCORD_VERSION ||
-                        !ManagerBuild.hasKotlin(info.minimumKotlinVersion.toString()),
-                    isCoreOutdated = (info.minimumAliucordVersion ?: SemVer.Zero) > SemVer.parse(BuildConfig.VERSION),
-                    isAndroidOutdated = info.minimumApiLevel > Build.VERSION.SDK_INT,
                 )
             } catch (e: Exception) {
                 logger.error("Failed checking updates for plugin ${plugin.name} (${plugin.__filename}.zip)", e)

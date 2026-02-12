@@ -17,6 +17,7 @@ internal object PluginRepoUpdater {
 
     /**
      * A TTL cache of updater data from plugin repositories.
+     * This maps the **original** plugin update info url to the fetched json.
      */
     private val cachedRepoInfo = ConcurrentHashMap<String, RepoBuildInfo>()
 

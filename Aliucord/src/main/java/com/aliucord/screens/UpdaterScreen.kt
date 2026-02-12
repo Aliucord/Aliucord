@@ -112,14 +112,20 @@ internal class UpdaterScreen : SettingsPage() {
                 .filter { it.isUpdatePossible() }
                 .partition(PluginUpdater::updatePlugin)
 
-            val noticeText = if (failed.isEmpty()) {
-                "Successfully updated ${succeeded.size} plugins!"
-            } else {
-                "Failed to update ${failed.size} plugins!"
-            }
-
             Utils.mainThread.post {
                 setActionBarSubtitle(null)
+
+                val noticeText = buildString {
+                    append("Updated ")
+                    append(Utils.pluralise(succeeded.size, "plugin"))
+                    if (failed.isEmpty()) {
+                        append('!')
+                    } else {
+                        append(", but ")
+                        append(failed.size)
+                        append(" failed!")
+                    }
+                }
                 Toast.makeText(context, noticeText, Toast.LENGTH_SHORT).show()
             }
             refreshUpdates()
