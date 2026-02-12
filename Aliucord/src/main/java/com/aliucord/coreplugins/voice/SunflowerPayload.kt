@@ -1,6 +1,7 @@
 package com.aliucord.coreplugins.voice
 
 import com.aliucord.utils.GsonUtils.fromJson
+import com.aliucord.utils.SerializedName
 import com.discord.rtcconnection.socket.io.Opcodes
 import com.discord.rtcconnection.socket.io.Payloads
 import com.google.gson.Gson
@@ -28,21 +29,21 @@ sealed interface SunflowerPayload {
     }
 
     data class DavePrepareTransition(
-        val protocolVersion: Int,
-        val transitionId: Int,
+        @SerializedName("protocol_version") val protocolVersion: Int,
+        @SerializedName("transition_id") val transitionId: Int,
     ) : Incoming
 
     data class DaveExecuteTransition(
-        val transitionId: Int,
+        @SerializedName("transition_id") val transitionId: Int,
     ) : Incoming
 
     data class DavePrepareEpoch(
-        val protocolVersion: Int,
+        @SerializedName("protocol_version") val protocolVersion: Int,
         val epoch: Int,
     ) : Incoming
 
     data class DaveTransitionReady(
-        val transitionId: Int,
+        @SerializedName("transition_id") val transitionId: Int,
     ) : Outgoing
 
     // data class DaveInvalidCommitWelcome(

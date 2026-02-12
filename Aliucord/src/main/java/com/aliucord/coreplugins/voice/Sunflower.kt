@@ -120,7 +120,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                         connection.executeSecureFramesTransition(payload.transitionId)
                     }
                     is SunflowerPayload.DavePrepareEpoch -> {
-                        // TODO: transitionId should be grabbed from somewhere, maybe in secure frames callback's version?
+                        // TODO: where is transitionId from?
                         connection.prepareSecureFramesEpoch(
                             epoch = payload.epoch.toString(),
                             transitionId = payload.epoch,
@@ -194,24 +194,27 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                 }
             }
             Opcodes.DAVE_MLS_ANNOUNCE_COMMIT_TRANSITION -> {
-                reader.read(2) // An extra 2, sometimes 4, bytes need to be removed. When and why? idk TODO
+                val transitionId = reader.readUint16()
                 val encoded = reader.collectAsByteString().encodeBase64()
-                logger.debug("MLSAnnounceCommitTransition: $encoded") //encodeBase64
+                logger.debug("MLSAnnounceCommitTransition $transitionId: $encoded") //encodeBase64
                 socket.connections.forEach { connection ->
-                    // TODO: transitionId is from binary payload
-                    connection.prepareMLSCommitTransitionB64(0, encoded) { processedCommit, protocolVersion, rosterChange ->
+                    connection.prepareMLSCommitTransitionB64(
+                        transitionId = transitionId,
+                        commit = encoded,
+                    ) { processedCommit, protocolVersion, rosterChange ->
                         logger.debug("MLSAnnounceCommitTransition processed: $processedCommit, ver: $protocolVersion, changes: $rosterChange")
                     }
                 }
             }
             Opcodes.DAVE_MLS_WELCOME -> {
-                // An extra 2 bytes need to be removed. Why? idk yet TODO
-                reader.read(2)
+                val transitionId = reader.readUint16()
                 val encoded = reader.collectAsByteString().encodeBase64()
-                logger.debug("MLSWelcome: $encoded")
+                logger.debug("MLSWelcome $transitionId: $encoded")
                 socket.connections.forEach { connection ->
-                    // TODO: transitionId is from binary payload
-                    connection.processMLSWelcomeB64(0, encoded) { joinedGroup, protocolVersion, rosterChange ->
+                    connection.processMLSWelcomeB64(
+                        transitionId = transitionId,
+                        welcome = encoded,
+                    ) { joinedGroup, protocolVersion, rosterChange ->
                         logger.debug("MLSWelcome Processed, joined: $joinedGroup, ver: $protocolVersion, changes: $rosterChange")
                     }
                 }
