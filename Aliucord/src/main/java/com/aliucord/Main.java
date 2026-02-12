@@ -96,34 +96,13 @@ public final class Main {
 
         if (checkPermissions(activity)) preInitWithPermissions(activity);
 
-        Patcher.addPatch(AppActivity.class, "onCreate", new Class<?>[]{ Bundle.class }, new Hook(param ->
-            Utils.appActivity = (AppActivity) param.thisObject));
+        Patcher.addPatch(AppActivity.class, "onCreate", new Class<?>[]{ Bundle.class }, new Hook(param -> {
+            Utils.appActivity = (AppActivity) param.thisObject;
+        }));
 
-        Patcher.addPatch(WidgetChatList.class.getDeclaredConstructor(), new Hook(param ->
-            Utils.widgetChatList = (WidgetChatList) param.thisObject));
-
-        // Since 1.4.0, this is implemented via a smali patch to ensure it works even if Aliucord failed to load
-        if (!ManagerBuild.hasPatches("1.4.0")) {
-            // Fix 2025-04-03 gateway change that ported visual refresh theme names over the legacy user settings
-            // Theme entries like "darker" and "midnight" are unsupported
-            Patcher.addPatch(ModelUserSettings.class, "assignField", new Class<?>[]{ Model.JsonReader.class }, new Hook(param -> {
-                var $this = (ModelUserSettings) param.thisObject;
-
-                switch ($this.getTheme()) {
-                    case null:
-                    case ModelUserSettings.THEME_DARK:
-                    case ModelUserSettings.THEME_LIGHT:
-                    case ModelUserSettings.THEME_PURE_EVIL:
-                        return;
-                    default:
-                        try {
-                            ReflectUtils.setField($this, "theme", "dark");
-                        } catch (Exception e) {
-                            logger.error("Failed to fix ModelUserSettings theme", e);
-                        }
-                }
-            }));
-        }
+        Patcher.addPatch(WidgetChatList.class.getDeclaredConstructor(), new Hook(param -> {
+            Utils.widgetChatList = (WidgetChatList) param.thisObject;
+        }));
     }
 
     private static void preInitWithPermissions(AppCompatActivity activity) {
@@ -140,261 +119,7 @@ public final class Main {
         if (initialized) return;
         initialized = true;
 
-        Patcher.addPatch(WidgetSettings.class, "onViewBound", new Class<?>[]{ View.class }, new Hook(param -> {
-            ViewGroup layout = Utils.nestedChildAt((ViewGroup) param.args[0], 1, 0);
-            Context context = layout.getContext();
-
-            int baseIndex = layout.indexOfChild(layout.findViewById(Utils.getResId("developer_options_divider", "id")));
-
-            layout.addView(new Divider(context), baseIndex++);
-
-            var header = new TextView(context, null, 0, R.i.UiKit_Settings_Item_Header);
-            header.setText("Aliucord");
-            header.setTypeface(ResourcesCompat.getFont(context, Constants.Fonts.whitney_semibold));
-            layout.addView(header, baseIndex++);
-
-            var font = ResourcesCompat.getFont(context, Constants.Fonts.whitney_medium);
-
-            layout.addView(
-                makeSettingsEntry(font, context, "Settings", R.e.ic_behavior_24dp, AliucordPage.class),
-                baseIndex++
-            );
-            layout.addView(
-                makeSettingsEntry(font, context, "Plugins", R.e.ic_clear_all_white_24dp, Plugins.class),
-                baseIndex++
-            );
-            layout.addView(
-                makeSettingsEntry(font, context, "Updater", R.e.ic_file_download_white_24dp, Updater.class),
-                baseIndex++
-            );
-            layout.addView(
-                makeSettingsEntry(font, context, "Crashes", R.e.ic_history_white_24dp, Crashes.class),
-                baseIndex++
-            );
-            layout.addView(
-                makeSettingsEntry(font, context, "Open Debug Log", R.e.ic_audit_logs_24dp, WidgetDebugging.class),
-                baseIndex
-            );
-
-            TextView versionView = layout.findViewById(Utils.getResId("app_info_header", "id"));
-            var text = versionView.getText() + " | Aliucord " + BuildConfig.VERSION;
-            if (!BuildConfig.RELEASE) text += " (Custom)";
-            if (Utils.isDebuggable()) text += " [DEBUGGABLE]";
-            versionView.setText(text);
-
-            TextView uploadLogs = layout.findViewById(Utils.getResId("upload_debug_logs", "id"));
-            uploadLogs.setText("Aliucord Support Server");
-            uploadLogs.setOnClickListener(e -> Utils.joinSupportServer(e.getContext()));
-
-            // Remove Discord changelog button
-            TextView changelogBtn = layout.findViewById(Utils.getResId("changelog", "id"));
-            changelogBtn.setVisibility(View.GONE);
-        }));
-
-        // Add permanent indicator if safe mode is enabled.
-        Patcher.addPatch(WidgetGlobalStatusIndicator.class, "configureUI", new Class<?>[] {WidgetGlobalStatusIndicatorViewModel.ViewState.class }, new PreHook(param -> {
-            if (!PluginManager.isSafeModeEnabled()) {
-                return;
-            }
-            WidgetGlobalStatusIndicator indicator = (WidgetGlobalStatusIndicator) param.thisObject;
-            Context context = indicator.requireContext();
-
-            try {
-                var binding = (WidgetGlobalStatusIndicatorBinding) ReflectUtils.invokeMethod(indicator, "getBinding");
-                var indicatorState = (WidgetGlobalStatusIndicatorState) ReflectUtils.getField(indicator, "indicatorState");
-
-                int backgroundColor = Utils.getResId("colorBackgroundTertiary", "attr");
-                int textColor = Utils.getResId("colorHeaderPrimary", "attr");
-
-                LinearLayout linearLayout = binding.c;
-                TextView indicatorText = binding.i;
-                linearLayout.setBackgroundColor(ColorCompat.getThemedColor(context, backgroundColor));
-                linearLayout.setOnClickListener(widget -> safeModeDialog(indicator));
-                indicatorText.setTextColor(ColorCompat.getThemedColor(context, textColor));
-                indicatorText.setText("Safe mode enabled");
-                linearLayout.setVisibility(View.VISIBLE);
-
-                Utils.mainThread.post(() -> indicatorState.updateState(true, false, false));
-            } catch (Throwable e) {
-                logger.error(e);
-                return;
-            }
-
-            param.setResult(null);
-        }));
-
-        // Patch to repair built-in emotes is needed because installer doesn't recompile resources,
-        // so they stay in package com.discord instead of apk package name
-        Patcher.addPatch(ModelEmojiUnicode.class, "getImageUri", new Class<?>[]{ String.class, Context.class },
-            new InsteadHook(param -> "res:///" + Utils.getResId("emoji_" + param.args[0], "raw"))
-        );
-
-        // Patch to fix crash when displaying newer AutoMod embed types like "Quarantined a member at username update"
-        Patcher.addPatch(WidgetChatListAdapterItemAutoModSystemMessageEmbed.class, "onConfigure", new Class<?>[]{ int.class, ChatListEntry.class },
-            new PreHook(param -> {
-                try {
-                    var autoModEntry = (AutoModSystemMessageEmbedEntry) param.args[1];
-
-                    // If the channel_id embed field is missing, then just add one set to 0, it'll be displayed as null
-                    if ("".equals(AutoModUtils.INSTANCE.getEmbedFieldValue(autoModEntry.getEmbed(), "channel_id"))) {
-                        var fields = (ArrayList<EmbedField>) new MessageEmbedWrapper(autoModEntry.getEmbed()).getRawFields();
-
-                        var newField = ReflectUtils.allocateInstance(EmbedField.class);
-                        ReflectUtils.setField(newField, "name", "channel_id");
-                        ReflectUtils.setField(newField, "value", "0");
-
-                        fields.add(newField);
-                    }
-                } catch (Throwable e) { logger.error(e); }
-            })
-        );
-
-        // Patch to allow changelogs without media
-        Patcher.addPatch(WidgetChangeLog.class, "configureMedia", new Class<?>[]{ String.class }, new PreHook(param -> {
-            WidgetChangeLog _this = (WidgetChangeLog) param.thisObject;
-            String media = _this.getMostRecentIntent().getStringExtra("INTENT_EXTRA_VIDEO");
-
-            if (media == null) {
-                WidgetChangeLogBinding binding = WidgetChangeLog.access$getBinding$p(_this);
-                binding.i.setVisibility(View.GONE); // changeLogVideoOverlay
-                binding.h.setVisibility(View.GONE); // changeLogVideo
-                param.setResult(null);
-            }
-        }));
-
-        // Patch for custom footer actions
-        Patcher.addPatch(WidgetChangeLog.class, "configureFooter", new Class<?>[0], new PreHook(param -> {
-            WidgetChangeLog _this = (WidgetChangeLog) param.thisObject;
-            WidgetChangeLogBinding binding = WidgetChangeLog.access$getBinding$p(_this);
-
-            @SuppressWarnings({"deprecation", "RedundantSuppression"})
-            Parcelable[] actions = _this.getMostRecentIntent().getParcelableArrayExtra("INTENT_EXTRA_FOOTER_ACTIONS");
-
-            if (actions == null) {
-                return;
-            }
-
-            AppCompatImageButton twitterButton = binding.g;
-            LinearLayout parent = (LinearLayout) twitterButton.getParent();
-
-            parent.removeAllViewsInLayout();
-
-            for (Parcelable parcelable : actions) {
-                ChangelogUtils.FooterAction action = ((ChangelogUtils.FooterAction) parcelable);
-
-                ToolbarButton button = new ToolbarButton(parent.getContext());
-                button.setImageDrawable(ContextCompat.getDrawable(parent.getContext(), action.getDrawableResourceId()), false);
-
-                button.setPadding(twitterButton.getPaddingLeft(), twitterButton.getPaddingTop(), twitterButton.getPaddingRight(), twitterButton.getPaddingBottom());
-                button.setLayoutParams(twitterButton.getLayoutParams());
-
-                button.setOnClickListener(v -> Utils.launchUrl(action.getUrl()));
-
-                parent.addView(button);
-            }
-
-            param.setResult(null);
-        }));
-
-        // add stacktraces in debug logs page
-        try {
-            Class<WidgetDebugging.Adapter.Item> c = WidgetDebugging.Adapter.Item.class;
-            Field debugItemBinding = c.getDeclaredField("binding");
-            debugItemBinding.setAccessible(true);
-
-            Patcher.addPatch(c, "onConfigure", new Class<?>[]{ int.class, AppLog.LoggedItem.class }, new Hook(param -> {
-                AppLog.LoggedItem loggedItem = (AppLog.LoggedItem) param.args[1];
-                Throwable th = loggedItem.m;
-                if (th != null) try {
-                    TextView logMessage = ((WidgetDebuggingAdapterItemBinding) debugItemBinding.get(param.thisObject)).b;
-                    SpannableStringBuilder sb = new SpannableStringBuilder("\n  at ");
-                    StackTraceElement[] s = th.getStackTrace();
-                    sb.append(TextUtils.join("\n  at ", s.length > 12 ? Arrays.copyOfRange(s, 0, 12) : s));
-                    sb.setSpan(new AbsoluteSizeSpan(12, true), 0, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    logMessage.append(sb);
-                } catch (Throwable e) { logger.error(e); }
-            }));
-        } catch (Throwable e) { logger.error(e); }
-
         Thread.setDefaultUncaughtExceptionHandler(Main::crashHandler);
-
-        // use new member profile editor for nitro users
-        try {
-            Patcher.addPatch(
-                WidgetGuildProfileSheet$configureGuildActions$$inlined$apply$lambda$4.class.getDeclaredMethod("invoke", View.class),
-                new InsteadHook(param -> {
-                    var ctx = ((View) param.args[0]).getContext();
-                    var gId = ((WidgetGuildProfileSheet$configureGuildActions$$inlined$apply$lambda$4) param.thisObject).$guildId$inlined;
-                    if (UserUtils.INSTANCE.isPremiumTier2(StoreStream.getUsers().getMe()))
-                        WidgetEditUserOrGuildMemberProfile.Companion.launch(ctx, null, gId);
-                    else
-                        WidgetChangeGuildIdentity.Companion.launch(gId, "Guild Bottom Sheet", ctx);
-                    return null;
-                })
-            );
-        } catch (Throwable e) { logger.error(e); }
-
-        // not sure why this happens, reported on Android 15 Beta 4
-        // java.lang.IllegalArgumentException: Animators cannot have negative duration: -1
-        //   at android.view.ViewPropertyAnimator.setDuration(ViewPropertyAnimator.java:266)
-        //   at com.discord.widgets.chat.input.SmoothKeyboardReactionHelper$Callback.onStart(SmoothKeyboardReactionHelper.kt:5)
-        //   at android.view.View.dispatchWindowInsetsAnimationStart(View.java:12671)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            try {
-                Patcher.addPatch(
-                    SmoothKeyboardReactionHelper.Callback.class.getDeclaredMethod("onStart", WindowInsetsAnimation.class, WindowInsetsAnimation.Bounds.class),
-                    new PreHook(param -> {
-                        var animation = (WindowInsetsAnimation) param.args[0];
-                        if (animation.getDurationMillis() < 0) param.setResult(param.args[1]);
-                    })
-                );
-            } catch (Throwable e) {
-                logger.error("Couldn't patch possible Android 15 (?) crash", e);
-            }
-        }
-
-        // Disable the Discord changelog page
-        Patcher.addPatch(StoreChangeLog.class,
-            "shouldShowChangelog",
-            new Class[]{ Context.class, long.class, String.class, Integer.class },
-            new InsteadHook(param -> false)
-        );
-
-        // Disable the google play rating request dialog
-        Patcher.addPatch(StoreReviewRequest.class,
-            "handleConnectionOpen",
-            new Class[]{ ModelPayload.class },
-            new InsteadHook(param -> null)
-        );
-
-        // Disable school hubs dialog upon login
-        Patcher.addPatch(StoreNotices.class,
-            "hasBeenSeen",
-            new Class[]{ String.class },
-            new PreHook(param -> {
-                if ("WidgetHubEmailFlow".equals((String) param.args[0]))
-                    param.setResult(true);
-            })
-        );
-        Patcher.addPatch(WidgetHome.class,
-            "maybeShowHubEmailUpsell",
-            new InsteadHook(param -> null)
-        );
-
-        // Support webp emojis by forcing every emoji to be webp
-        Patcher.addPatch(ModelEmojiCustom.class,
-            "getImageUri",
-            new Class[]{ long.class, boolean.class, int.class },
-            new InsteadHook(param ->
-                String.format(
-                    Locale.ROOT,
-                    "https://cdn.discordapp.com/emojis/%s.webp?size=%s&animated=%s",
-                    param.args[0],
-                    param.args[2],
-                    param.args[1]
-                )
-            )
-        );
 
         if (loadedPlugins) {
             PluginManager.startCorePlugins();
@@ -464,19 +189,6 @@ public final class Main {
             Thread.sleep(4200); // Wait for toast to end
         } catch (InterruptedException ignored) {}
         System.exit(2);
-    }
-
-    private static TextView makeSettingsEntry(Typeface font, Context context, String text, @DrawableRes int resId, Class<? extends AppComponent> component) {
-        var view = new TextView(context, null, 0, R.i.UiKit_Settings_Item_Icon);
-        view.setText(text);
-        view.setTypeface(font);
-        var icon = ContextCompat.getDrawable(context, resId);
-        if (icon != null) {
-            icon.mutate().setTint(ColorCompat.getThemedColor(context, R.b.colorInteractiveNormal));
-            view.setCompoundDrawablesRelativeWithIntrinsicBounds(icon, null, null, null);
-        }
-        view.setOnClickListener(e -> Utils.openPage(e.getContext(), component));
-        return view;
     }
 
     private static void loadAllPlugins(Context context) {
@@ -576,21 +288,5 @@ public final class Main {
             granted -> permissionGrantedCallback(activity, granted)
         ).launch(perm);
         return false;
-    }
-
-    private static void safeModeDialog(Fragment fragment) {
-        var desc = """
-            You are currently in safe mode. Plugins are disabled.
-
-            Press OK to exit safe mode and restart Aliucord.
-            """;
-        new ConfirmDialog()
-            .setTitle("Safe Mode")
-            .setDescription(desc)
-            .setOnOkListener(widget -> {
-                settings.setBool(AliucordPageKt.ALIUCORD_SAFE_MODE_KEY, false);
-                Utils.restartAliucord(fragment.requireContext());
-            })
-            .show(fragment.getParentFragmentManager(), "Disable Safe Mode");
     }
 }
