@@ -7,60 +7,7 @@ import org.webrtc.VideoCapturer
 
 private val gson = Gson()
 
-data class TransportAudioDecoder(
-    val params: HashMap<String, String>,
-    val channels: Int,
-    val freq: Int,
-    val name: String,
-    val type: Int,
-) {
-    companion object {
-        fun from(decoder: AudioDecoder): TransportAudioDecoder {
-            with(decoder) {
-                val params = HashMap<String, String>()
-                paramsKeys.forEachIndexed { i, key -> params[key] = paramsValues[i] }
-                return TransportAudioDecoder(params, channels, freq, name, type)
-            }
-        }
-    }
-}
-
-data class TransportAudioEncoder(
-    val type: Int,
-    val rate: Int,
-    val name: String,
-    val freq: Int,
-    val channels: Int,
-    val pacsize: Int,
-) {
-    companion object {
-        fun from(decoder: AudioEncoder): TransportAudioEncoder {
-            with(decoder) {
-                return TransportAudioEncoder(type, rate, name, freq, channels, pacsize)
-            }
-        }
-    }
-}
-
-data class TransportVideoDecoder(
-    val params: HashMap<String, String>,
-    val channels: Int,
-    val freq: Int,
-    val name: String,
-    val type: Int,
-) {
-    companion object {
-        fun from(decoder: AudioDecoder) {
-            with(decoder) {
-                val params = HashMap<String, String>()
-                paramsKeys.forEachIndexed { i, key -> params[key] = paramsValues[i] }
-                TransportAudioDecoder(params, channels, freq, name, type)
-            }
-        }
-    }
-}
-
-data class TransportOptions(
+private data class TransportOptions(
     val attenuateWhileSpeakingOthers: Boolean? = null,
     val attenuateWhileSpeakingSelf: Boolean? = null,
     val attenuation: Boolean? = null,
@@ -100,10 +47,45 @@ data class TransportOptions(
     val videoDecoders: Any? = null,
     val videoEncoder: Any? = null,
     val videoEncoderExperiments: String? = null,
-)
+) {
+    data class TransportAudioDecoder(
+        val params: HashMap<String, String>,
+        val channels: Int,
+        val freq: Int,
+        val name: String,
+        val type: Int,
+    ) {
+        companion object {
+            fun from(decoder: AudioDecoder): TransportAudioDecoder {
+                with(decoder) {
+                    val params = HashMap<String, String>()
+                    paramsKeys.forEachIndexed { i, key -> params[key] = paramsValues[i] }
+                    return TransportAudioDecoder(params, channels, freq, name, type)
+                }
+            }
+        }
+    }
+
+    data class TransportAudioEncoder(
+        val type: Int,
+        val rate: Int,
+        val name: String,
+        val freq: Int,
+        val channels: Int,
+        val pacsize: Int,
+    ) {
+        companion object {
+            fun from(decoder: AudioEncoder): TransportAudioEncoder {
+                with(decoder) {
+                    return TransportAudioEncoder(type, rate, name, freq, channels, pacsize)
+                }
+            }
+        }
+    }
+}
 
 @Suppress("unused")
-class Connection : IConnection {
+class Connection(private val native: NativeConnection) : IConnection {
     fun interface EncryptionModesCallback {
         fun onEncryptionModes(strArr: Array<String?>?)
     }
@@ -139,17 +121,11 @@ class Connection : IConnection {
     )
 
     private var disposed: Boolean = false
-    private lateinit var native: NativeConnection
 
-    private constructor(nativeInstance: Long) {
-        throw IllegalStateException("ktConnection constructor called")
-    }
-
-    constructor(realInstance: NativeConnection) {
-        this.native = realInstance
-        // TODO
-        // this.native.setSecureFramesStateUpdateCallback { }
-    }
+    // TODO
+    // init {
+    //     this.native.setSecureFramesStateUpdateCallback { }
+    // }
 
     override fun connectUser(userId: Long, audioSsrc: Int, txVideoSsrc: Int, rxVideoSsrc: Int, isMuted: Boolean, volume: Float) {
         native.mergeUsers(gson.m(listOf(UserConnectionInfo(
@@ -163,18 +139,18 @@ class Connection : IConnection {
         ))))
     }
     override fun deafenLocalUser(isDeafened: Boolean) = native.setSelfDeafen(isDeafened)
+
     // TODO
     override fun disableVideo(userId: Long, isDisabled: Boolean) {}
     // fun disableVideo(j: Long, z2: Boolean) = userStreams[j]?.let { engine.setVideoOutputSink(it, null) }
+
     override fun dispose() {
         disposed = true
         native.dispose()
     }
+
     // TODO
     override fun enableForwardErrorCorrection(enabled: Boolean) {}
-    fun getEncryptionModes(encryptionModesCallback: EncryptionModesCallback?) {
-        native.getEncryptionModes { modes -> encryptionModesCallback?.onEncryptionModes(modes) }
-    }
 
     override fun getStats(getStatsCallback: GetStatsCallback) = getStats(getStatsCallback, -1)
 
@@ -207,8 +183,8 @@ class Connection : IConnection {
         videoDecoderArr: Array<VideoDecoder>
     ) {
         TransportOptions(
-            audioDecoders = audioDecoderArr.map { TransportAudioDecoder.from(it) },
-            audioEncoder = TransportAudioEncoder.from(audioEncoder)
+            audioDecoders = audioDecoderArr.map { TransportOptions.TransportAudioDecoder.from(it) },
+            audioEncoder = TransportOptions.TransportAudioEncoder.from(audioEncoder)
         ).set()
     }
 
