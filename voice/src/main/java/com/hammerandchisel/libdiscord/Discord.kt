@@ -10,7 +10,7 @@ import org.webrtc.VideoFrame
 
 private val gson = Gson()
 
-data class TransportOptions(
+private data class TransportOptions(
     val automaticGainControl: Boolean? = null,
     val automaticGainControlConfig: Any? = null,
     val av1Enabled: Boolean? = null,
@@ -29,23 +29,13 @@ data class TransportOptions(
     val voiceFilters: Boolean? = null,
 )
 
-@Suppress("ArrayInDataClass")
-data class ConnectionOptions(
-    val context: String,
-    val address: String,
-    val port: Int,
-    val ssrc: Int,
-    val experiments: Array<String>,
-    val modes: Array<String>,
-    val streamParameters: Array<Discord.NewStreamParameters>,
-    val qosEnabled: Boolean,
-)
-
 @Suppress("unused")
-class Discord @JvmOverloads constructor(private val context: Context, i: Int = -1) {
+class Discord @JvmOverloads constructor(private val context: Context, i: Int = -1) : IDiscord {
     private var localVoiceLevelChangedCallback: LocalVoiceLevelChangedCallback? = null
     private val nativeInstance: Long = 0
     private val nativeEngine: NativeEngine
+
+    // START - Callback interfaces as defined in original class, do not edit!
 
     data class ConnectionInfo(
         @JvmField
@@ -58,7 +48,78 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         val localPort: Int,
     )
 
-    data class NewStreamParameters(
+    fun interface AecConfigCallback {
+        fun onConfigureAEC(
+            requestEnable: Boolean,
+            enable: Boolean,
+            requestMobileMode: Boolean,
+            previouslyEnabled: Boolean,
+            previouslyMobileMode: Boolean,
+        )
+    }
+
+    fun interface BuiltinAECCallback {
+        fun onConfigureBuiltinAEC(enabled: Boolean, requestEnabled: Boolean, available: Boolean)
+    }
+
+    fun interface ConnectToServerCallback {
+        fun onConnectToServer(connectionInfo: ConnectionInfo, str: String)
+    }
+
+    fun interface GetAudioInputDevicesCallback {
+        fun onDevices(audioInputDeviceDescriptionArr: Array<AudioInputDeviceDescription?>)
+    }
+
+    fun interface GetAudioOutputDevicesCallback {
+        fun onDevices(audioOutputDeviceDescriptionArr: Array<AudioOutputDeviceDescription?>)
+    }
+
+    fun interface GetAudioSubsystemCallback {
+        fun onAudioSubsystem(subsystem: String, audioLayer: String)
+    }
+
+    fun interface GetRankedRtcRegionsCallback {
+        fun onRankedRtcRegions(regions: Array<String>)
+    }
+
+    fun interface GetSupportedVideoCodecsCallback {
+        fun onSupportedVideoCodecs(codecs: Array<String>)
+    }
+
+    fun interface GetVideoInputDevicesCallback {
+        fun onDevices(videoInputDeviceDescriptionArr: Array<VideoInputDeviceDescription?>)
+    }
+
+    fun interface LocalVoiceLevelChangedCallback {
+        fun onLocalVoiceLevelChanged(f: Float, i: Int)
+    }
+
+    fun interface NoAudioInputCallback {
+        fun onNoAudioInput(input: Boolean)
+    }
+
+    fun interface OnVideoCallback {
+        fun onVideo(j: Long, i: Int, str: String, streamParametersArr: Array<StreamParameters?>)
+    }
+
+    fun interface VideoFrameCallback {
+        fun onFrame(videoFrame: VideoFrame): Boolean
+    }
+
+    // END - Callback interfaces
+
+    private data class ConnectionOptions(
+        val context: String,
+        val address: String,
+        val port: Int,
+        val ssrc: Int,
+        val experiments: List<String>,
+        val modes: List<String>,
+        val streamParameters: List<NewStreamParameters>,
+        val qosEnabled: Boolean,
+    )
+
+    private data class NewStreamParameters(
         val type: String, // "audio" | "video"
         val rid: String,
         val ssrc: Int,
@@ -96,64 +157,6 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         }
     }
 
-    interface AecConfigCallback {
-        fun onConfigureAEC(
-            requestEnable: Boolean,
-            enable: Boolean,
-            requestMobileMode: Boolean,
-            previouslyEnabled: Boolean,
-            previouslyMobileMode: Boolean,
-        )
-    }
-
-    interface BuiltinAECCallback {
-        fun onConfigureBuiltinAEC(enabled: Boolean, requestEnabled: Boolean, available: Boolean)
-    }
-
-    interface ConnectToServerCallback {
-        fun onConnectToServer(connectionInfo: ConnectionInfo, str: String)
-    }
-
-    interface GetAudioInputDevicesCallback {
-        fun onDevices(audioInputDeviceDescriptionArr: Array<AudioInputDeviceDescription?>)
-    }
-
-    interface GetAudioOutputDevicesCallback {
-        fun onDevices(audioOutputDeviceDescriptionArr: Array<AudioOutputDeviceDescription?>)
-    }
-
-    interface GetAudioSubsystemCallback {
-        fun onAudioSubsystem(subsystem: String, audioLayer: String)
-    }
-
-    interface GetRankedRtcRegionsCallback {
-        fun onRankedRtcRegions(regions: Array<String>)
-    }
-
-    interface GetSupportedVideoCodecsCallback {
-        fun onSupportedVideoCodecs(codecs: Array<String>)
-    }
-
-    interface GetVideoInputDevicesCallback {
-        fun onDevices(videoInputDeviceDescriptionArr: Array<VideoInputDeviceDescription?>)
-    }
-
-    interface LocalVoiceLevelChangedCallback {
-        fun onLocalVoiceLevelChanged(f: Float, i: Int)
-    }
-
-    interface NoAudioInputCallback {
-        fun onNoAudioInput(input: Boolean)
-    }
-
-    interface OnVideoCallback {
-        fun onVideo(j: Long, i: Int, str: String, streamParametersArr: Array<StreamParameters?>)
-    }
-
-    interface VideoFrameCallback {
-        fun onFrame(videoFrame: VideoFrame): Boolean
-    }
-
     init {
         krispVersion = context.getString(R.string.krisp_model_version)
         CameraEnumeratorProvider.maybeInit(this.context)
@@ -164,7 +167,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
 
     private fun setLocalVoiceLevelChangedCallbackNative(z2: Boolean) { }
 
-    fun connectToServer(
+    override fun connectToServer(
         ssrc: Int,
         userId: Long,
         ip: String,
@@ -174,11 +177,11 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
     ): Connection {
         Log.i("Sunflower", "Hello!")
 
-        val streamParams = arrayOf(
+        val streamParams = listOf(
             NewStreamParameters(
                 type = "audio",
                 soundshare = false,
-                maxBitrate = 64000,
+                maxBitrate = 64000, // TODO: 96/128 kbps?
                 rid = "",
                 ssrc = ssrc,
             ),
@@ -192,8 +195,8 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
                 address = ip,
                 port = port,
                 ssrc = ssrc,
-                experiments = arrayOf(),
-                modes = arrayOf("aead_aes256_gcm_rtpsize", "aead_xchacha20_poly1305_rtpsize"),
+                experiments = listOf(),
+                modes = listOf("aead_aes256_gcm_rtpsize", "aead_xchacha20_poly1305_rtpsize"),
                 streamParameters = streamParams,
                 qosEnabled = false,
             ))
@@ -214,49 +217,28 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
     fun crash() {} // only used in developer options
     fun dispose() = nativeEngine.dispose()
 
-    fun enableBuiltInAEC(enabled: Boolean) = nativeEngine.enableBuiltInAEC(enabled)
-    fun enableBuiltInAEC(enabled: Boolean, builtinAECCallback: BuiltinAECCallback?) {
-        enableBuiltInAEC(enabled)
+    override fun enableBuiltInAEC(enabled: Boolean, callback: BuiltinAECCallback?) {
+        nativeEngine.enableBuiltInAEC(enabled)
         // TODO
-        builtinAECCallback?.onConfigureBuiltinAEC(enabled, requestEnabled = true, available = true)
+        callback?.onConfigureBuiltinAEC(enabled, requestEnabled = true, available = true)
     }
 
-    fun getAudioInputDevices(getAudioInputDevicesCallback: GetAudioInputDevicesCallback) {
-        nativeEngine.getInputDevices { devices ->
-            getAudioInputDevicesCallback.onDevices(devices.map {
-                it?.let {
-                    AudioInputDeviceDescription(it.name, it.guid)
-                }
-            }.toTypedArray())
-        }
-    }
-
-    fun getAudioOutputDevices(getAudioOutputDevicesCallback: GetAudioOutputDevicesCallback) {
-        nativeEngine.getOutputDevices { devices ->
-            getAudioOutputDevicesCallback.onDevices(devices.map {
-                it?.let {
-                    AudioOutputDeviceDescription(it.name, it.guid)
-                }
-            }.toTypedArray())
-        }
-    }
-
-    fun getAudioSubsystem(getAudioSubsystemCallback: GetAudioSubsystemCallback) {
+    override fun getAudioSubsystem(callback: GetAudioSubsystemCallback) {
         nativeEngine.getAudioSubsystem { subsystem, audioLayer ->
-            getAudioSubsystemCallback.onAudioSubsystem(subsystem, audioLayer)
+            callback.onAudioSubsystem(subsystem, audioLayer)
         }
     }
 
-    fun getRankedRtcRegions(rtcRegionArr: Array<RtcRegion>, getRankedRtcRegionsCallback: GetRankedRtcRegionsCallback) {
-        nativeEngine.rankRtcRegions(gson.m(rtcRegionArr)) { regions ->
-            getRankedRtcRegionsCallback.onRankedRtcRegions(regions)
+    override fun getRankedRtcRegions(regions: Array<RtcRegion>, callback: GetRankedRtcRegionsCallback) {
+        nativeEngine.rankRtcRegions(gson.m(regions)) { ranked ->
+            callback.onRankedRtcRegions(ranked)
         }
     }
 
     // TODO: last seen in 304.7/90.0.17-ptt-vad-arg-exposed
     // Likely reimpl in NativeEngine.getCodecCapabilities
-    fun getSupportedVideoCodecs(getSupportedVideoCodecsCallback: GetSupportedVideoCodecsCallback) {
-        getSupportedVideoCodecsCallback.onSupportedVideoCodecs(arrayOf("H264"))
+    override fun getSupportedVideoCodecs(callback: GetSupportedVideoCodecsCallback) {
+        callback.onSupportedVideoCodecs(arrayOf("H264"))
         // nativeEngine.getSupportedVideoCodecs(object : NativeEngine.GetSupportedVideoCodecsCallback {
         //     override fun onSupportedVideoCodecs(codecs: Array<String>) {
         //         getSupportedVideoCodecsCallback.onSupportedVideoCodecs(codecs)
@@ -264,9 +246,9 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         // })
     }
 
-    fun getVideoInputDevices(getVideoInputDevicesCallback: GetVideoInputDevicesCallback) {
+    override fun getVideoInputDevices(callback: GetVideoInputDevicesCallback) {
         nativeEngine.getVideoInputDevices { devices ->
-            getVideoInputDevicesCallback.onDevices(devices.map {
+            callback.onDevices(devices.map {
                 it?.let {
                     VideoInputDeviceDescription(it.name, it.guid, when (it.facing) {
                         VideoInputDeviceFacing.Back -> co.discord.media_engine.VideoInputDeviceFacing.Back
@@ -278,40 +260,28 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         }
     }
 
-    fun setAudioInputEnabled(enabled: Boolean) = nativeEngine.setAudioInputEnabled(enabled)
-    fun setAutomaticGainControl(enabled: Boolean) = TransportOptions(automaticGainControl = enabled).set()
+    override fun setAudioInputEnabled(enabled: Boolean) = nativeEngine.setAudioInputEnabled(enabled)
+    override fun setAutomaticGainControl(enabled: Boolean) = TransportOptions(automaticGainControl = enabled).set()
 
-    fun setEchoCancellation(enabled: Boolean) = TransportOptions(echoCancellation = enabled).set()
-    fun setEchoCancellation(enabled: Boolean, z3: Boolean, aecConfigCallback: AecConfigCallback) {
-        setEchoCancellation(enabled)
-        aecConfigCallback.onConfigureAEC(true, enabled, true, !enabled, true)
+    // No idea what z3 is, but it's always false
+    override fun setEchoCancellation(enabled: Boolean, z3: Boolean, callback: AecConfigCallback?) {
+        TransportOptions(echoCancellation = enabled).set()
+        callback?.onConfigureAEC(true, enabled, true, !enabled, true)
     }
 
-    // external fun setKeepAliveChannel(z2: Boolean)
-
-    fun setLocalVoiceLevelChangedCallback(localVoiceLevelChangedCallback: LocalVoiceLevelChangedCallback?) {
-        this.localVoiceLevelChangedCallback = localVoiceLevelChangedCallback
-        setLocalVoiceLevelChangedCallbackNative(localVoiceLevelChangedCallback != null)
+    override fun setLocalVoiceLevelChangedCallback(callback: LocalVoiceLevelChangedCallback?) {
+        this.localVoiceLevelChangedCallback = callback
+        setLocalVoiceLevelChangedCallbackNative(callback != null)
     }
 
-    fun setMicVolume(volume: Float) = nativeEngine.setInputVolume(volume)
+    override fun setNoiseCancellation(enabled: Boolean) = TransportOptions(noiseCancellation = enabled).set()
+    override fun setNoiseSuppression(enabled: Boolean) = TransportOptions(noiseSuppression = enabled).set()
+    override fun setSpeakerVolume(volume: Float) = nativeEngine.setOutputVolume(volume)
+    override fun setVideoInputDevice(deviceIndex: Int) = nativeEngine.setVideoInputDevice(deviceIndex.toString())
 
-    fun setNoAudioInputCallback(noAudioInputCallback: NoAudioInputCallback) {
-        nativeEngine.setOnNoInputCallback { input -> noAudioInputCallback.onNoAudioInput(input) }
-    }
-
-    fun setNoAudioInputThreshold(threshold: Float) = nativeEngine.setNoInputThreshold(threshold)
-
-    fun setNoiseCancellation(enabled: Boolean) = TransportOptions(noiseCancellation = enabled).set()
-    fun setNoiseSuppression(enabled: Boolean) = TransportOptions(noiseSuppression = enabled).set()
-    fun setPlayoutDevice(deviceIndex: Int) = nativeEngine.setOutputDevice(if (deviceIndex == -1) "default" else deviceIndex.toString())
-    fun setRecordingDevice(deviceIndex: Int) = nativeEngine.setInputDevice(if (deviceIndex == -1) "default" else deviceIndex.toString())
-    fun setSpeakerVolume(volume: Float) = nativeEngine.setOutputVolume(volume)
-    fun setVideoInputDevice(deviceIndex: Int) = nativeEngine.setVideoInputDevice(deviceIndex.toString())
-
-    fun setVideoOutputSink(identifier: String, videoFrameCallback: VideoFrameCallback) {
+    override fun setVideoOutputSink(identifier: String, callback: VideoFrameCallback?) {
         nativeEngine.setVideoOutputSink(identifier) { frame, mirror ->
-            videoFrameCallback.onFrame(frame)
+            callback?.onFrame(frame) == true
         }
     }
 
