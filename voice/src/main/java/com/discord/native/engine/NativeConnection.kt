@@ -2,7 +2,6 @@ package com.discord.native.engine
 
 import org.webrtc.VideoCapturer
 
-@Suppress("unused")
 class NativeConnection {
     private val nativeInstance: Long = 0
 

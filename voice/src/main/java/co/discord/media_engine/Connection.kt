@@ -103,43 +103,22 @@ data class TransportOptions(
 )
 
 @Suppress("unused")
-class Connection {
-    private var disposed: Boolean = false
-    private val nativeInstance: Long = 0
-    private lateinit var native: NativeConnection
-
-    private constructor(nativeInstance: Long) {
-        throw IllegalStateException("ktConnection constructor called")
-    }
-
-    constructor(realInstance: NativeConnection) {
-        this.native = realInstance
-        // TODO
-        this.native.setSecureFramesStateUpdateCallback { }
-    }
-
-    interface EncryptionModesCallback {
+class Connection : IConnection {
+    fun interface EncryptionModesCallback {
         fun onEncryptionModes(strArr: Array<String?>?)
     }
 
     interface GetStatsCallback {
         fun onStats(stats: Stats?)
-
         fun onStatsError(th: Throwable?)
     }
 
-    class GetStatsCallbackNative(private val callback: GetStatsCallback) {
-        fun onStats(str: String) {
-            try {
-                this.callback.onStats(TransformStats.transform(str))
-            } catch (e: Exception) {
-                this.callback.onStatsError(e)
-            }
-        }
+    fun interface OnVideoCallback {
+        fun onVideo(j: Long, i: Int, str: String?, streamParametersArr: Array<StreamParameters?>?)
     }
 
-    interface OnVideoCallback {
-        fun onVideo(j: Long, i: Int, str: String?, streamParametersArr: Array<StreamParameters?>?)
+    fun interface UserSpeakingStatusChangedCallback {
+        fun onUserSpeakingStatusChanged(j: Long, z2: Boolean, z3: Boolean)
     }
 
     object StatsFilter {
@@ -148,17 +127,6 @@ class Connection {
         const val OUTBOUND: Int = 2
         const val INBOUND: Int = 4
     }
-
-    interface UserSpeakingStatusChangedCallback {
-        fun onUserSpeakingStatusChanged(j: Long, z2: Boolean, z3: Boolean)
-    }
-
-    private fun getStatsNative(getStatsCallbackNative: GetStatsCallbackNative?, i: Int) {
-        if (disposed) return
-        native.getFilteredStats(i) { stats -> getStatsCallbackNative?.onStats(stats) }
-    }
-
-    val userStreams = HashMap<Long, String>()
 
     data class UserConnectionInfo(
         val id: String,
@@ -169,7 +137,21 @@ class Connection {
         val rtxSsrc: Int,
         val mute: Boolean,
     )
-    fun connectUser(userId: Long, audioSsrc: Int, txVideoSsrc: Int, rxVideoSsrc: Int, isMuted: Boolean, volume: Float) {
+
+    private var disposed: Boolean = false
+    private lateinit var native: NativeConnection
+
+    private constructor(nativeInstance: Long) {
+        throw IllegalStateException("ktConnection constructor called")
+    }
+
+    constructor(realInstance: NativeConnection) {
+        this.native = realInstance
+        // TODO
+        // this.native.setSecureFramesStateUpdateCallback { }
+    }
+
+    override fun connectUser(userId: Long, audioSsrc: Int, txVideoSsrc: Int, rxVideoSsrc: Int, isMuted: Boolean, volume: Float) {
         native.mergeUsers(gson.m(listOf(UserConnectionInfo(
             id = userId.toString(),
             videoSsrcs = listOf(),
@@ -180,42 +162,45 @@ class Connection {
             mute = isMuted,
         ))))
     }
-    fun deafenLocalUser(deafened: Boolean) = native.setSelfDeafen(deafened)
+    override fun deafenLocalUser(isDeafened: Boolean) = native.setSelfDeafen(isDeafened)
     // TODO
-    fun disableVideo(j: Long, z2: Boolean) {}
+    override fun disableVideo(userId: Long, isDisabled: Boolean) {}
     // fun disableVideo(j: Long, z2: Boolean) = userStreams[j]?.let { engine.setVideoOutputSink(it, null) }
-    fun disconnectUser(userId: Long) = native.destroyUser(userId.toString())
-    fun dispose() {
+    override fun dispose() {
         disposed = true
         native.dispose()
     }
     // TODO
-    fun enableDiscontinuousTransmission(z2: Boolean) {}
-    // TODO
-    fun enableForwardErrorCorrection(z2: Boolean) {}
+    override fun enableForwardErrorCorrection(enabled: Boolean) {}
     fun getEncryptionModes(encryptionModesCallback: EncryptionModesCallback?) {
         native.getEncryptionModes { modes -> encryptionModesCallback?.onEncryptionModes(modes) }
     }
 
-    fun getStats(getStatsCallback: GetStatsCallback) {
-        getStatsNative(GetStatsCallbackNative(getStatsCallback), -1)
+    override fun getStats(getStatsCallback: GetStatsCallback) = getStats(getStatsCallback, -1)
+
+    override fun getStats(getStatsCallback: GetStatsCallback, filter: Int) {
+        if (!disposed) {
+            native.getFilteredStats(filter) { statsStr ->
+                try {
+                    getStatsCallback.onStats(TransformStats.transform(statsStr))
+                } catch (e: Exception) {
+                    getStatsCallback.onStatsError(e)
+                }
+            }
+        }
     }
 
-    fun getStats(getStatsCallback: GetStatsCallback, i: Int) {
-        if (!disposed) getStatsNative(GetStatsCallbackNative(getStatsCallback), i)
+    override fun muteLocalUser(isMuted: Boolean) {
+        native.setSelfMute(isMuted)
+        TransportOptions(selfMute = isMuted).set()
     }
-
-    fun muteLocalUser(z2: Boolean) {
-        native.setSelfMute(z2)
-        TransportOptions(selfMute = z2).set()
-    }
-    fun muteUser(j: Long, z2: Boolean) = native.setLocalMute(j.toString(), z2)
+    override fun muteUser(userId: Long, isMuted: Boolean) = native.setLocalMute(userId.toString(), isMuted)
 
     // TODO
-    fun setAudioInputMode(i: Int) {}
+    override fun setAudioInputMode(mode: Int) {}
 
     // TODO
-    fun setCodecs(
+    override fun setCodecs(
         audioEncoder: AudioEncoder,
         videoEncoder: VideoEncoder,
         audioDecoderArr: Array<AudioDecoder>,
@@ -227,50 +212,46 @@ class Connection {
         ).set()
     }
 
-    fun setEncodingQuality(minBitrate: Int, maxBitrate: Int, width: Int, height: Int, framerate: Int) {
+    override fun setEncodingQuality(minBitrate: Int, maxBitrate: Int, width: Int, height: Int, framerate: Int) {
         TransportOptions(
             encodingVideoDegradationPreference = 2, // TODO: ?
             encodingVideoBitRate = maxBitrate,
             encodingVideoMinBitRate = minBitrate,
-            encodingVideoMaxBitRate = minBitrate,
+            encodingVideoMaxBitRate = maxBitrate,
             encodingVideoWidth = width,
             encodingVideoHeight = height,
             encodingVideoFrameRate = framerate,
         ).set()
     }
 
-    fun setEncryptionSettings(settings: EncryptionSettings?) = TransportOptions(encryptionSettings = settings).set()
-    fun setExpectedPacketLossRate(f: Float) = TransportOptions(packetLossRate = f).set()
-    fun setMinimumPlayoutDelay(delay: Int) = native.setMinimumOutputDelay(delay)
+    override fun setEncryptionSettings(settings: EncryptionSettings) = TransportOptions(encryptionSettings = settings).set()
+    override fun setExpectedPacketLossRate(lossRate: Float) = TransportOptions(packetLossRate = lossRate).set()
     // TODO
-    fun setOnVideoCallback(onVideoCallback: OnVideoCallback?) {}
-    fun setPTTActive(active: Boolean) = native.setPTTActive(active, false) // TODO: priority?
-    fun setQoS(enabled: Boolean) = TransportOptions(qos = enabled).set()
-    fun setUserPlayoutVolume(userId: Long, volume: Float) = native.setLocalVolume(userId.toString(), volume)
+    override fun setOnVideoCallback(onVideoCallback: OnVideoCallback) {}
+    override fun setPTTActive(isActive: Boolean) = native.setPTTActive(isActive, false) // TODO: priority?
+    override fun setUserPlayoutVolume(userId: Long, volume: Float) = native.setLocalVolume(userId.toString(), volume)
 
     // TODO
-    fun setVADAutoThreshold(i: Int) {}
+    override fun setVADAutoThreshold(threshold: Int) {}
     // TODO
-    fun setVADLeadingFramesToBuffer(i: Int) {}
+    override fun setVADLeadingFramesToBuffer(frameCount: Int) {}
     // TODO
-    fun setVADTrailingFramesToSend(i: Int) {}
+    override fun setVADTrailingFramesToSend(frameCount: Int) {}
     // TODO
-    fun setVADTriggerThreshold(f: Float) {}
+    override fun setVADTriggerThreshold(threshold: Float) {}
     // TODO
-    fun setVADUseKrisp(z2: Boolean) {}
+    override fun setVADUseKrisp(enabled: Boolean) {}
 
-    fun setVideoBroadcast(broadcasting: Boolean) {
+    override fun setVideoBroadcast(enabled: Boolean) {
         if (disposed) return
-        native.setVideoBroadcast(broadcasting)
+        native.setVideoBroadcast(enabled)
     }
 
-    // external fun simulatePacketLoss(f: Float)
+    override fun startScreenshareBroadcast(videoCapturer: VideoCapturer, nativeInstance: Long) =
+        native.startBroadcast(videoCapturer, nativeInstance)
+    override fun stopScreenshareBroadcast() = native.stopBroadcast()
 
-    fun startScreenshareBroadcast(capturer: VideoCapturer, nativeInstance: Long) =
-        native.startBroadcast(capturer, nativeInstance)
-    fun stopScreenshareBroadcast() = native.stopBroadcast()
-
-    fun setUserSpeakingStatusChangedCallback(userSpeakingStatusChangedCallback: UserSpeakingStatusChangedCallback) {
+    override fun setUserSpeakingStatusChangedCallback(userSpeakingStatusChangedCallback: UserSpeakingStatusChangedCallback) {
         native.setOnSpeakingCallback { userId, speakingFlags, voiceDb ->
             userSpeakingStatusChangedCallback.onUserSpeakingStatusChanged(
                 userId.toLong(),
