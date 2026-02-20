@@ -125,7 +125,7 @@ class NativeConnection {
 
     external fun setOnVideoCallback(callback: OnVideoCallback)
 
-    external fun setPTTActive(active: Boolean, priority: Boolean)
+    external fun setPTTActive(active: Boolean, priority: Boolean, muteOverride: Boolean)
 
     external fun setPingInterval(pingInterval: Int)
 

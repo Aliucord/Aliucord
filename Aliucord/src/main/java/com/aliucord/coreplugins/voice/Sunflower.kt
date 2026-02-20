@@ -26,6 +26,12 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
     override val isHidden = true
     override val isRequired = true
 
+    private val sunflowerLibVersion = runCatching {
+        Class.forName("com.aliucord.voice.BuildConfig")
+            .getField("VERSION")
+            .get(null) as String
+    }.getOrNull()
+
     init {
         manifest.description = "Adds support for end-to-end encrypted voice chat"
     }
@@ -33,6 +39,12 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
     override fun stop(context: Context) = patcher.unpatchAll()
 
     override fun start(context: Context) {
+        if (sunflowerLibVersion != null) {
+            logger.info("Sunflower version: $sunflowerLibVersion")
+        } else {
+            logger.warn("No sunflower lib found, will only patch transport encryption protocol")
+        }
+
         // Force usage of updated transport encryption
         // TODO: Ideally prefer "aead_aes256_gcm_rtpsize" instead somehow (not all voice servers support it)
         patcher.before<ProtocolInfo>(
@@ -41,7 +53,11 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
             String::class.java,
         ) { (param, _: String, _: Int, mode: String) ->
             if (mode == "xsalsa20_poly1305") {
-                param.args[2] = "aead_xchacha20_poly1305_rtpsize"
+                param.args[2] = if (sunflowerLibVersion != null) {
+                    "aead_xchacha20_poly1305_rtpsize"
+                } else {
+                    "xsalsa20_poly1305_lite_rtpsize"
+                }
             }
         }
 
@@ -88,7 +104,6 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
 
             // Not sure what this check is for but it's done in original code
             if (socket.s != this.`$webSocket`) {
-                param.result = Unit.a
                 return@after
             }
 
@@ -167,7 +182,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
     }
 
     private fun handleBinaryMessage(socket: RtcControlSocket, bytestr: ByteString) {
-        logger.debug("Received binary message ${bytestr.f()}") //encodeBase64
+        logger.debug("Received binary message ${bytestr.encodeBase64()}")
         val reader = ByteReader(bytestr)
         // First byte is the opcode, this is contrary to most docs because we are using an older version
         // of the voice gateway without resuming support.

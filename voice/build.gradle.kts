@@ -3,7 +3,7 @@
 version = "90.0.19-codec-api.0"
 
 plugins {
-    alias(libs.plugins.aliucord.core)
+    alias(libs.plugins.aliucord.injector)
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin)
 }
@@ -12,12 +12,10 @@ android {
     namespace = "com.aliucord.voice"
     compileSdk = 36
 
-    compileOptions {
-        isCoreLibraryDesugaringEnabled = true
-    }
-
     defaultConfig {
         minSdk = 24
+
+        buildConfigField("String", "VERSION", "\"$version\"")
     }
 
     buildTypes {
@@ -26,14 +24,19 @@ android {
         }
     }
 
+    androidResources {
+        enable = false
+    }
+
+    buildFeatures {
+        buildConfig = true
+        resValues = false
+    }
+
     androidComponents {
         beforeVariants(selector().withBuildType("release")) { variantBuilder ->
             variantBuilder.enable = false
         }
-    }
-
-    androidResources {
-        enable = false
     }
 }
 
@@ -45,7 +48,6 @@ kotlin {
             "-Xno-call-assertions",
             "-Xno-param-assertions",
             "-Xno-receiver-assertions",
-            "-Xallow-kotlin-package", // Workaround to adding kotlin.enums.EnumEntries polyfill
         )
     }
 }
@@ -53,5 +55,4 @@ kotlin {
 dependencies {
     compileOnly(libs.discord)
     compileOnly(libs.kotlin.stdlib)
-    coreLibraryDesugaring(libs.desugar)
 }

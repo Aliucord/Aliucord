@@ -4,9 +4,9 @@ import android.content.Context
 import android.util.Log
 import co.discord.media_engine.*
 import com.discord.native.engine.NativeEngine
-import com.discord.native.engine.VideoInputDeviceFacing
 import com.google.gson.Gson
 import org.webrtc.VideoFrame
+import com.discord.native.engine.VideoInputDeviceFacing as NewVideoInputDeviceFacing
 
 private val gson = Gson()
 
@@ -161,8 +161,28 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         krispVersion = context.getString(R.string.krisp_model_version)
         CameraEnumeratorProvider.maybeInit(this.context)
         this.nativeEngine = NativeEngine(context, i)
+        TransportOptions(
+            bypassSystemProcessing = true,
+            ducking = false,
+            idleJitterBufferFlush = true,
+        ).set()
+        nativeEngine.setSidechainCompression(true)
         nativeEngine.setInputDevice("default")
         nativeEngine.setOutputDevice("default")
+        nativeEngine.setInputVolume(1f)
+        nativeEngine.setOnVoiceCallback { level, speaking ->
+            localVoiceLevelChangedCallback?.onLocalVoiceLevelChanged(level, speaking)
+        }
+        nativeEngine.setOnDeviceChangeCallback { audioInputDevices, audioOutputDevices, videoInputDevices ->
+            val devices = audioInputDevices.toList() + audioOutputDevices + videoInputDevices
+            Log.d("Sunflower", "Devices changed: ${devices.joinToString(", ")}")
+        }
+        nativeEngine.setAudioInputInitializationCallback {
+            Log.d("Sunflower", "Audio input initialised in ${it.timeToInitializedNanos}ns: ${it.description}")
+            nativeEngine.getAudioSubsystem { subsystem, audioLayer ->
+                Log.d("Sunflower", "Subsystem $subsystem, layer $audioLayer")
+            }
+        }
     }
 
     private fun setLocalVoiceLevelChangedCallbackNative(z2: Boolean) { }
@@ -210,8 +230,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
                 )
             }, error)
         }
-        val conn = Connection(nativeConnection)
-        return conn
+        return Connection(nativeConnection)
     }
 
     fun crash() {} // only used in developer options
@@ -251,9 +270,9 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
             callback.onDevices(devices.map {
                 it?.let {
                     VideoInputDeviceDescription(it.name, it.guid, when (it.facing) {
-                        VideoInputDeviceFacing.Back -> co.discord.media_engine.VideoInputDeviceFacing.Back
-                        VideoInputDeviceFacing.Front -> co.discord.media_engine.VideoInputDeviceFacing.Front
-                        VideoInputDeviceFacing.Unknown -> co.discord.media_engine.VideoInputDeviceFacing.Unknown
+                        NewVideoInputDeviceFacing.Back -> VideoInputDeviceFacing.Back
+                        NewVideoInputDeviceFacing.Front -> VideoInputDeviceFacing.Front
+                        NewVideoInputDeviceFacing.Unknown -> VideoInputDeviceFacing.Unknown
                     })
                 }
             }.toTypedArray())
@@ -270,8 +289,8 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
     }
 
     override fun setLocalVoiceLevelChangedCallback(callback: LocalVoiceLevelChangedCallback?) {
+        nativeEngine.setEmitVADLevel2(callback != null)
         this.localVoiceLevelChangedCallback = callback
-        setLocalVoiceLevelChangedCallbackNative(callback != null)
     }
 
     override fun setNoiseCancellation(enabled: Boolean) = TransportOptions(noiseCancellation = enabled).set()

@@ -31,7 +31,7 @@ private data class TransportOptions(
     val fec: Boolean? = null,
     val hardwareH264: Boolean? = null,
     val inputMode: Int? = null,
-    val inputModeOptions: Any? = null,
+    val inputModeOptions: InputModeOptions? = null,
     val minimumJitterBufferLevel: Int? = null,
     val packetLossRate: Float? = null,
     val postponeDecodeLevel: Int? = null,
@@ -48,6 +48,15 @@ private data class TransportOptions(
     val videoEncoder: Any? = null,
     val videoEncoderExperiments: String? = null,
 ) {
+    data class InputModeOptions(
+        val vadAutoThreshold: Int? = null,
+        val vadDuringPreProcess: Boolean? = null,
+        val vadUseKrisp: Boolean? = null,
+        val vadThreshold: Int? = null,
+        val vadLeading: Int? = null,
+        val vadTrailing: Int? = null,
+        val vadKrispActivationThreshold: Float? = null,
+    )
     data class TransportAudioDecoder(
         val params: HashMap<String, String>,
         val channels: Int,
@@ -122,10 +131,41 @@ class Connection(private val native: NativeConnection) : IConnection {
 
     private var disposed: Boolean = false
 
-    // TODO
-    // init {
-    //     this.native.setSecureFramesStateUpdateCallback { }
-    // }
+    init {
+        // TODO
+        // this.native.setSecureFramesStateUpdateCallback { }
+        TransportOptions(
+            encodingVideoDegradationPreference = 2,
+            reconnectInterval = 60000,
+            callMaxBitRate = 10000000,
+            callBitRate = 600000,
+            qos = false,
+            attenuateWhileSpeakingSelf = false,
+            callMinBitRate = 16000,
+            attenuation = false,
+            fec = true,
+            inputModeOptions = TransportOptions.InputModeOptions(
+                vadAutoThreshold = 3,
+                vadDuringPreProcess = false,
+                // TODO: Krisp is likely broken
+                vadUseKrisp = false,
+                vadThreshold = -60,
+                vadLeading = 5,
+                vadTrailing = 25,
+                vadKrispActivationThreshold = 0.5f,
+            ),
+            prioritySpeakerDucking = 0.1,
+            packetLossRate = 0.3f,
+            minimumJitterBufferLevel = 80,
+            inputMode = 1,
+            attenuationFactor = 1.0,
+            encodingVoiceBitRate = 96000,
+            postponeDecodeLevel = 100,
+            attenuateWhileSpeakingOthers = true,
+            selfMute = false,
+            remoteAudioHistoryMs = 1000,
+        ).set()
+    }
 
     override fun connectUser(userId: Long, audioSsrc: Int, txVideoSsrc: Int, rxVideoSsrc: Int, isMuted: Boolean, volume: Float) {
         native.mergeUsers(gson.m(listOf(UserConnectionInfo(
@@ -172,8 +212,7 @@ class Connection(private val native: NativeConnection) : IConnection {
     }
     override fun muteUser(userId: Long, isMuted: Boolean) = native.setLocalMute(userId.toString(), isMuted)
 
-    // TODO
-    override fun setAudioInputMode(mode: Int) {}
+    override fun setAudioInputMode(mode: Int) = TransportOptions(inputMode = mode).set()
 
     // TODO
     override fun setCodecs(
@@ -204,7 +243,7 @@ class Connection(private val native: NativeConnection) : IConnection {
     override fun setExpectedPacketLossRate(lossRate: Float) = TransportOptions(packetLossRate = lossRate).set()
     // TODO
     override fun setOnVideoCallback(onVideoCallback: OnVideoCallback) {}
-    override fun setPTTActive(isActive: Boolean) = native.setPTTActive(isActive, false) // TODO: priority?
+    override fun setPTTActive(isActive: Boolean) = native.setPTTActive(isActive, priority = false, muteOverride = false) // TODO: priority? muteOverride?
     override fun setUserPlayoutVolume(userId: Long, volume: Float) = native.setLocalVolume(userId.toString(), volume)
 
     // TODO

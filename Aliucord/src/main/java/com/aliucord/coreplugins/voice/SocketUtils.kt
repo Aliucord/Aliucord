@@ -82,6 +82,6 @@ fun RtcControlSocket.send(data: ByteString): Boolean {
 fun RtcControlSocket.send(opcode: Int, bytes: ByteString) {
     // Prepend the opcode as the first byte before the data
     val data = bytes.prepend(opcode.toByte())
-    Logger("Sunflower").debug("Sending opcode ${Opcodes.friendly(opcode)}: ${data.encodeBase64()} ")
+    logger.debug("Sending opcode ${Opcodes.friendly(opcode)}: ${data.encodeBase64()} ")
     send(data)
 }
