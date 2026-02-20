@@ -11,11 +11,17 @@ DiscordKt's library is old and does not support, amongst other things:
 - New transport encryption algorithms; the old ones are almost entirely phased out
 - End-to-end encryption, also known as DAVE.
 
-This module will translate the old native calls to the new ones:
+For the DAVE implementation, see the [coreplugin](../Aliucord/src/main/java/com/aliucord/coreplugins/voice).
+
+## Structure
+
+This module translates the old native calls to the new ones:
 - `co.discord.media_engine.Connection` translates to `com.discord.native.engine.NativeConnection`
 - `com.hammerandchisel.libdiscord.Discord` translates to `com.discord.native.engine.NativeEngine`
 
-For the DAVE implementation, see the [coreplugin](../Aliucord/src/main/java/com/aliucord/coreplugins/voice).
+For organisation, the original methods of each class are stored in `IConnection` and `IDiscord` respectively, to
+ensure that method signatures aren't accidentally changed. Callback interfaces however must still live in `Connection` and
+`Discord`, these also must not be changed.
 
 ## Development
 - These docs demonstrate black box reverse engineering. It is possible to decompile and inspect RNA's code,
