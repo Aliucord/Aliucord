@@ -26,5 +26,6 @@ include(":Injector")
 include(":patches")
 include(":kotlin-stdlib")
 include(":voice")
+include(":voice:webrtc")
 
 rootProject.name = "Aliucord"
