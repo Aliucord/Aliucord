@@ -1,9 +1,9 @@
-# `org/webrtc`
-This code is lifted from https://github.com/webrtc-sdk/webrtc/tree/13e377b804f68aa9c20ea5e449666ea5248e3286:
-- [`sdk/android/api/org/webrtc`](https://github.com/webrtc-sdk/webrtc/commit/13e377b804f68aa9c20ea5e449666ea5248e3286/sdk/android/api/org/webrtc)
-- [`sdk/android/src/java/org/webrtc`](https://github.com/webrtc-sdk/webrtc/commit/13e377b804f68aa9c20ea5e449666ea5248e3286/sdk/android/src/java/org/webrtc)
-- [`rtc_base/java/src/org/webrtc`](https://github.com/webrtc-sdk/webrtc/commit/13e377b804f68aa9c20ea5e449666ea5248e3286/rtc_base/java/src/org/webrtc)
-- [`api/video/video_frame_buffer.h`](https://github.com/webrtc-sdk/webrtc/commit/13e377b804f68aa9c20ea5e449666ea5248e3286/api/video/video_frame_buffer.h) (VideoFrameBuffer.Type) -> `org/webrtc/VideoFrameBufferType.java`
+# WebRTC
+This code is lifted from [webrtc-sdk/webrtc@13e377b](https://github.com/webrtc-sdk/webrtc/tree/13e377b804f68aa9c20ea5e449666ea5248e3286):
+- [`sdk/android/api/org/webrtc`](https://github.com/webrtc-sdk/webrtc/tree/13e377b804f68aa9c20ea5e449666ea5248e3286/sdk/android/api/org/webrtc)
+- [`sdk/android/src/java/org/webrtc`](https://github.com/webrtc-sdk/webrtc/tree/13e377b804f68aa9c20ea5e449666ea5248e3286/sdk/android/src/java/org/webrtc)
+- [`rtc_base/java/src/org/webrtc`](https://github.com/webrtc-sdk/webrtc/tree/13e377b804f68aa9c20ea5e449666ea5248e3286/rtc_base/java/src/org/webrtc)
+- [`api/video/video_frame_buffer.h`](https://github.com/webrtc-sdk/webrtc/tree/13e377b804f68aa9c20ea5e449666ea5248e3286/api/video/video_frame_buffer.h) (VideoFrameBuffer.Type) -> `org/webrtc/VideoFrameBufferType.java`
 
 `org/webrtc/EglBaseFactory.kt` is written so that `h0.c.n0` can access the package-private `EglBase14Impl` class.
 
