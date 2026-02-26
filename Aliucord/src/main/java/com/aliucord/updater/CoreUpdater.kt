@@ -2,18 +2,14 @@ package com.aliucord.updater
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.util.Log
 import com.aliucord.*
 import com.aliucord.api.NotificationsAPI
 import com.aliucord.entities.NotificationData
 import com.aliucord.fragments.ConfirmDialog
-import com.aliucord.settings.ALIUCORD_DISABLE_UPDATER
-import com.aliucord.settings.ALIUCORD_FROM_STORAGE_KEY
-import com.aliucord.settings.AUTO_UPDATE_ALIUCORD_KEY
+import com.aliucord.settings.*
 import com.aliucord.updater.CoreUpdater.UPDATER_DATA_URL
-import com.aliucord.utils.ReflectUtils
-import com.aliucord.utils.SemVer
-import com.aliucord.utils.SerializedName
+import com.aliucord.updater.CoreUpdater.isCustomCoreLoaded
+import com.aliucord.utils.*
 import dalvik.system.BaseDexClassLoader
 import java.io.File
 
@@ -90,10 +86,8 @@ internal object CoreUpdater {
         } catch (_: ActivityNotFoundException) {
             ConfirmDialog()
                 .setTitle("Updater")
-                .setDescription("""
-                    Aliucord Manager is not installed on this device.
-                    Open Github releases?
-                    """.trimIndent())
+                .setDescription("Aliucord Manager is not installed on this device.\n" +
+                    "Open latest Github releases to download Manager?")
                 .setOnOkListener { Utils.launchUrl("https://github.com/Aliucord/Manager/releases/latest") }
                 .show(Utils.appActivity.supportFragmentManager, "No Manager")
         }
