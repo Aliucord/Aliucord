@@ -1,26 +1,22 @@
 package com.aliucord.coreplugins.voice
 
+import android.annotation.SuppressLint
 import android.content.Context
+import co.discord.media_engine.VideoInputDeviceDescription
+import com.aliucord.coreplugins.voice.SunflowerPayload.DaveInvalidCommitWelcome
 import com.aliucord.coreplugins.voice.SunflowerPayload.DaveTransitionReady
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
-import com.aliucord.utils.SerializedName
 import com.discord.rtcconnection.socket.io.Opcodes
 import com.discord.rtcconnection.socket.io.Payloads
 import com.discord.rtcconnection.socket.io.Payloads.Protocol.ProtocolInfo
+import com.discord.stores.StoreMediaEngine
+import com.discord.utilities.debug.DebugPrintBuilder
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
 import b.a.q.n0.a as RtcControlSocket
 import b.a.q.n0.`a$j` as RtcControlSocket_OnMessage
-
-data class NewIdentify(
-    @SerializedName("server_id") val serverId: String,
-    @SerializedName("user_id") val userId: String,
-    @SerializedName("session_id") val sessionId: String,
-    val token: String,
-    @SerializedName("max_dave_protocol_version") val maxDaveProtocolVersion: Int,
-)
 
 internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
     override val isHidden = true
@@ -39,12 +35,6 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
     override fun stop(context: Context) = patcher.unpatchAll()
 
     override fun start(context: Context) {
-        if (sunflowerLibVersion != null) {
-            logger.info("Sunflower version: $sunflowerLibVersion")
-        } else {
-            logger.warn("No sunflower lib found, will only patch transport encryption protocol")
-        }
-
         // Force usage of updated transport encryption
         // TODO: Ideally prefer "aead_aes256_gcm_rtpsize" instead somehow (not all voice servers support it)
         patcher.before<ProtocolInfo>(
@@ -59,6 +49,12 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                     "xsalsa20_poly1305_lite_rtpsize"
                 }
             }
+        }
+
+        if (sunflowerLibVersion != null) {
+            logger.info("Sunflower version: $sunflowerLibVersion")
+        } else {
+            logger.warn("No sunflower lib found, will only patch transport encryption protocol")
         }
 
         // Handle new binary voice gateway events
@@ -85,7 +81,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
         ) { (param, opcode: Int, data: Any) ->
             if (opcode == Opcodes.IDENTIFY) {
                 val d = data as Payloads.Identify
-                param.args[1] = NewIdentify(
+                param.args[1] = NewIdentifyPayload(
                     serverId = d.serverId,
                     userId = d.userId.toString(),
                     sessionId = d.sessionId,
@@ -96,8 +92,33 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                 logger.debug("Before: $d")
                 logger.debug("After: ${param.args[1]}")
             }
+
+            // Patch protocol payload to include encode/decode fields
+            if (opcode == Opcodes.SELECT_PROTOCOL) {
+                val d = data as Payloads.Protocol
+                param.args[1] = NewSelectProtocolPayload.from(d)
+                logger.debug("Replacing Protocol payload")
+                logger.debug("Before: $d")
+                logger.debug("After: ${param.args[1]}")
+            }
         }
 
+
+        patcher.before<RtcControlSocket_OnMessage>(
+            RtcControlSocket::class.java,
+            WebSocket::class.java,
+            Payloads.Incoming::class.java,
+        ) { param ->
+            val message = param.args[2] as Payloads.Incoming
+            if (message.opcode == Opcodes.MEDIA_SINK_WANTS) {
+                param.args[2] = Payloads.Incoming(message.opcode, message.data.d().apply {
+                    // Remove pixelCounts since it messes up the default handler's conversion from
+                    // JsonObject to Map<String, Number>
+                    @SuppressLint("CheckResult")
+                    a.remove("pixelCounts")
+                })
+            }
+        }
         // Handle new (json) voice gateway events
         patcher.after<RtcControlSocket_OnMessage>("invoke") { param ->
             val socket: RtcControlSocket = this.`this$0`
@@ -135,12 +156,14 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                         connection.executeSecureFramesTransition(payload.transitionId)
                     }
                     is SunflowerPayload.DavePrepareEpoch -> {
+                        val channelId = socket.rtcConnection?.channelId
+                        logger.debug("Preparing secure frames epoch (request) for $channelId")
                         // TODO: where is transitionId from?
                         connection.prepareSecureFramesEpoch(
                             epoch = payload.epoch.toString(),
                             transitionId = payload.epoch,
                             // socket.rtcConnection?.getMetadata()?.channelId?.toString()
-                            groupId = socket.rtcConnection?.i()?.c?.toString() ?: ""
+                            groupId = channelId?.toString() ?: ""
                         )
                         connection.getMLSKeyPackageB64 { keyPackageB64 ->
                             val bytes = keyPackageB64.decodeBase64ToArray()
@@ -151,12 +174,23 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                 }
             }
         }
+
+        // Use guid-based device selection rather than index-based
+        patcher.before<StoreMediaEngine>(
+            "handleVideoInputDevices",
+            Array<VideoInputDeviceDescription>::class.java,
+            String::class.java,
+            Function1::class.java
+        ) { (_, _: Any, guid: String?) ->
+            val device = guid ?: "default"
+            logger.debug("Setting video input device $device")
+            mediaEngine.i().setVideoInputDevice(device)
+        }
     }
 
     // Upon protocol selection ack, start preparing for dave
     private fun handleOnProtocolSelectAck(socket: RtcControlSocket, version: Int) {
-        // socket.rtcConnection?.getMetadata()?.channelId
-        val channelId = socket.rtcConnection?.i()?.c
+        val groupId = socket.rtcConnection?.groupId
             ?: return logger.error("No rtc connection upon protocol select ack", null)
         socket.connections.forEach { connection ->
             if (version == 0) {
@@ -167,9 +201,16 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                 }
                 return@forEach
             }
-            logger.debug("Preparing secure frames epoch..")
+            socket.rtcConnection?.run {
+                logger.debug("conn - ch ${this.channelId} sr ${this.rtcServerId} gr ${groupId} sk ${d0}")
+                StringBuilder().let {
+                    debugPrint(DebugPrintBuilder(it))
+                    logger.debug("debg - ${it.toString()}")
+                }
+            }
+            logger.debug("Preparing secure frames epoch for $groupId")
             // TODO: Are these values correct?
-            connection.prepareSecureFramesEpoch("1", 1, channelId.toString())
+            connection.prepareSecureFramesEpoch("1", 1, groupId.toString())
             logger.debug("Grabbing MLS Key..")
             connection.getMLSKeyPackageB64 { keyPackageB64 ->
                 val bytes = keyPackageB64.decodeBase64ToArray()
@@ -231,6 +272,9 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                         welcome = encoded,
                     ) { joinedGroup, protocolVersion, rosterChange ->
                         logger.debug("MLSWelcome Processed, joined: $joinedGroup, ver: $protocolVersion, changes: $rosterChange")
+                        if (!joinedGroup) {
+                            socket.send(DaveInvalidCommitWelcome(transitionId = transitionId))
+                        }
                     }
                 }
             }

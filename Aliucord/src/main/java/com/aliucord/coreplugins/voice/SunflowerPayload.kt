@@ -12,6 +12,7 @@ sealed interface SunflowerPayload {
         val opcode: Int get() {
             return when (this) {
                 is DaveTransitionReady -> Opcodes.DAVE_TRANSITION_READY
+                is DaveInvalidCommitWelcome -> Opcodes.DAVE_MLS_INVALID_COMMIT_WELCOME
             }
         }
     }
@@ -46,7 +47,7 @@ sealed interface SunflowerPayload {
         @SerializedName("transition_id") val transitionId: Int,
     ) : Outgoing
 
-    // data class DaveInvalidCommitWelcome(
-    //     val transitionId: Int,
-    // ) : Outgoing
+    data class DaveInvalidCommitWelcome(
+        @SerializedName("transition_id") val transitionId: Int,
+    ) : Outgoing
 }

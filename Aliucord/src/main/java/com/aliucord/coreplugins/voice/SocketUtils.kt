@@ -37,6 +37,19 @@ val RtcControlSocket.rtcConnection: RtcConnection? get() {
     return connections.getOrNull(0)
 }
 
+inline val RtcConnection.channelId get() = P
+inline val RtcConnection.rtcServerId: String get() = S
+
+val RtcConnection.groupId: Long get() {
+    val streamKey: String? = d0
+    val isScreenshare = streamKey != null
+    return if (isScreenshare) {
+        rtcServerId.toLong() - 1
+    } else {
+        channelId
+    }
+}
+
 val RtcControlSocket.connections: List<Connection> get() {
     val connections = rtcConnections.map {
         // rtcConnection.mediaEngineConnection

@@ -1,5 +1,6 @@
 package co.discord.media_engine
 
+import android.media.MediaCodecInfo
 import org.webrtc.*
 import org.webrtc.VideoEncoder
 
@@ -7,9 +8,9 @@ import org.webrtc.VideoEncoder
 @Suppress("unused")
 class DiscordVideoEncoderFactory(context: EglBase.Context) : VideoEncoderFactory {
     private val fwd: HardwareVideoEncoderFactory =
-        HardwareVideoEncoderFactory(context, false, true) { codecInfo ->
+        HardwareVideoEncoderFactory(context, false, true, PredicateSAM<MediaCodecInfo> { codecInfo ->
             !KNOWN_BAD_ENCODERS.contains(codecInfo.name.lowercase())
-        }
+        })
 
     companion object {
         private val KNOWN_BAD_ENCODERS = HashSet<String?>(mutableListOf<String?>("c2.mtk.hevc.encoder", "omx.mtk.video.encoder.hevc"))

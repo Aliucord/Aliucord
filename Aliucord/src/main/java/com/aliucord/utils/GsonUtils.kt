@@ -11,6 +11,8 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import java.io.Reader
 import java.lang.reflect.Type
+import kotlin.reflect.javaType
+import kotlin.reflect.typeOf
 import b.a.b.a as TypeAdapterRegistrar
 import b.i.d.c as FieldNamingPolicy
 import b.i.d.e as GsonBuilder
@@ -93,6 +95,9 @@ object GsonUtils {
      */
     @JvmStatic
     fun <T> Gson.fromJson(json: String?, type: Type?): T = g(json, type)
+
+    @OptIn(ExperimentalStdlibApi::class)
+    inline fun <reified T> Gson.fromJson(json: String?): T = g(json, typeOf<T>().javaType)
 
     @JvmStatic
     @Deprecated("Use kt extension for Gson", ReplaceWith("gson.fromJson(json, type)"))

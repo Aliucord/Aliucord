@@ -108,6 +108,12 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
 
     // END - Callback interfaces
 
+    data class CodecCapability(
+        val codec: String,
+        val decode: Boolean,
+        val encode: Boolean,
+    )
+
     private data class ConnectionOptions(
         val context: String,
         val address: String,
@@ -119,7 +125,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         val qosEnabled: Boolean,
     )
 
-    private data class NewStreamParameters(
+    data class NewStreamParameters(
         val type: String, // "audio" | "video"
         val rid: String,
         val ssrc: Int,
@@ -197,6 +203,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
     ): Connection {
         Log.i("Sunflower", "Hello!")
 
+        val nParams = NewStreamParameters.from(streamParametersArr[0])
         val streamParams = listOf(
             NewStreamParameters(
                 type = "audio",
@@ -205,7 +212,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
                 rid = "",
                 ssrc = ssrc,
             ),
-            NewStreamParameters.from(streamParametersArr[0])
+            nParams
         )
         val nativeConnection = nativeEngine.createVoiceConnection(
             userId.toString(),
@@ -230,7 +237,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
                 )
             }, error)
         }
-        return Connection(nativeConnection)
+        return Connection(nativeConnection, nParams)
     }
 
     fun crash() {} // only used in developer options
@@ -254,19 +261,26 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         }
     }
 
-    // TODO: last seen in 304.7/90.0.17-ptt-vad-arg-exposed
-    // Likely reimpl in NativeEngine.getCodecCapabilities
+    // We *could* return the whole lot w/ decode/encode information,
+    // replace b.a.q.m0.a (Codec) with new one with decode/encode fields,
+    // then patch b.a.q.m0.c.p.onSupportedVideoCodecs to return full decode/encode info for
+    // all codecs to send in select protocol; this potentially lets the server know we can
+    // decode more things
+    // However, RN just only uses codecs that are both decodable and encodable, so we will
+    // copy that behaviour for now
     override fun getSupportedVideoCodecs(callback: GetSupportedVideoCodecsCallback) {
-        callback.onSupportedVideoCodecs(arrayOf("H264"))
-        // nativeEngine.getSupportedVideoCodecs(object : NativeEngine.GetSupportedVideoCodecsCallback {
-        //     override fun onSupportedVideoCodecs(codecs: Array<String>) {
-        //         getSupportedVideoCodecsCallback.onSupportedVideoCodecs(codecs)
-        //     }
-        // })
+        nativeEngine.getCodecCapabilities { capabilitiesJson ->
+            val capabilities = gson.g<Array<CodecCapability>>(capabilitiesJson, Array<CodecCapability>::class.java)
+            capabilities
+                .filter { it.decode && it.encode }
+                .map { it.codec }
+                .let { callback.onSupportedVideoCodecs(it.toTypedArray()); Log.d("Sunflower", "Supported codecs: $it") }
+        }
     }
 
     override fun getVideoInputDevices(callback: GetVideoInputDevicesCallback) {
         nativeEngine.getVideoInputDevices { devices ->
+            Log.i("Sunflower", "inputs: \n  - ${devices.joinToString("\n  - ")}")
             callback.onDevices(devices.map {
                 it?.let {
                     VideoInputDeviceDescription(it.name, it.guid, when (it.facing) {
@@ -296,10 +310,15 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
     override fun setNoiseCancellation(enabled: Boolean) = TransportOptions(noiseCancellation = enabled).set()
     override fun setNoiseSuppression(enabled: Boolean) = TransportOptions(noiseSuppression = enabled).set()
     override fun setSpeakerVolume(volume: Float) = nativeEngine.setOutputVolume(volume)
-    override fun setVideoInputDevice(deviceIndex: Int) = nativeEngine.setVideoInputDevice(deviceIndex.toString())
+
+    // Noop, this is set in a .before patch in Sunflower core plugin, to use guids instead of indices
+    override fun setVideoInputDevice(deviceIndex: Int) {}
+    fun setVideoInputDevice(deviceGuid: String) = nativeEngine.setVideoInputDevice(deviceGuid)
 
     override fun setVideoOutputSink(identifier: String, callback: VideoFrameCallback?) {
+        Log.i("Sunflower", "Outputsink set $identifier")
         nativeEngine.setVideoOutputSink(identifier) { frame, mirror ->
+            // Log.i("Sunflower", "frame ${frame.timestampNs}")
             callback?.onFrame(frame) == true
         }
     }

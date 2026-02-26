@@ -34,7 +34,6 @@ object Opcodes {
     const val DAVE_MLS_COMMIT_WELCOME = 28 // client, binary
     const val DAVE_MLS_ANNOUNCE_COMMIT_TRANSITION = 29 // server, binary
     const val DAVE_MLS_WELCOME = 30 // server, binary
-    // TODO
     const val DAVE_MLS_INVALID_COMMIT_WELCOME = 31 // client
 
     val nameLookup: Map<Int, String> = mapOf(

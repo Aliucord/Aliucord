@@ -1,8 +1,9 @@
 package co.discord.media_engine
 
-import co.discord.media_engine.internal.TransformStats
+import android.util.Log
 import com.discord.native.engine.NativeConnection
 import com.google.gson.Gson
+import com.hammerandchisel.libdiscord.Discord
 import org.webrtc.VideoCapturer
 
 private val gson = Gson()
@@ -12,8 +13,8 @@ private data class TransportOptions(
     val attenuateWhileSpeakingSelf: Boolean? = null,
     val attenuation: Boolean? = null,
     val attenuationFactor: Double? = null,
-    val audioDecoders: List<TransportAudioDecoder>? = null,
-    val audioEncoder: TransportAudioEncoder? = null,
+    val audioDecoders: List<AudioDecoder>? = null,
+    val audioEncoder: AudioEncoder? = null,
     val callBitRate: Int? = null,
     val callMaxBitRate: Int? = null,
     val callMinBitRate: Int? = null,
@@ -43,9 +44,9 @@ private data class TransportOptions(
     val remoteSinkWantsPixelCount: Int? = null,
     val selfMute: Boolean? = null,
     val softwareH264: Boolean? = null,
-    val streamParameters: Any? = null,
-    val videoDecoders: Any? = null,
-    val videoEncoder: Any? = null,
+    val streamParameters: List<Discord.NewStreamParameters>? = null,
+    val videoDecoders: List<VideoDecoder>? = null,
+    val videoEncoder: VideoEncoder? = null,
     val videoEncoderExperiments: String? = null,
 ) {
     data class InputModeOptions(
@@ -57,44 +58,10 @@ private data class TransportOptions(
         val vadTrailing: Int? = null,
         val vadKrispActivationThreshold: Float? = null,
     )
-    data class TransportAudioDecoder(
-        val params: HashMap<String, String>,
-        val channels: Int,
-        val freq: Int,
-        val name: String,
-        val type: Int,
-    ) {
-        companion object {
-            fun from(decoder: AudioDecoder): TransportAudioDecoder {
-                with(decoder) {
-                    val params = HashMap<String, String>()
-                    paramsKeys.forEachIndexed { i, key -> params[key] = paramsValues[i] }
-                    return TransportAudioDecoder(params, channels, freq, name, type)
-                }
-            }
-        }
-    }
-
-    data class TransportAudioEncoder(
-        val type: Int,
-        val rate: Int,
-        val name: String,
-        val freq: Int,
-        val channels: Int,
-        val pacsize: Int,
-    ) {
-        companion object {
-            fun from(decoder: AudioEncoder): TransportAudioEncoder {
-                with(decoder) {
-                    return TransportAudioEncoder(type, rate, name, freq, channels, pacsize)
-                }
-            }
-        }
-    }
 }
 
 @Suppress("unused")
-class Connection(private val native: NativeConnection) : IConnection {
+class Connection(private val native: NativeConnection, streamParameters: Discord.NewStreamParameters) : IConnection {
     fun interface EncryptionModesCallback {
         fun onEncryptionModes(strArr: Array<String?>?)
     }
@@ -105,7 +72,7 @@ class Connection(private val native: NativeConnection) : IConnection {
     }
 
     fun interface OnVideoCallback {
-        fun onVideo(j: Long, i: Int, str: String?, streamParametersArr: Array<StreamParameters?>?)
+        fun onVideo(userId: Long, ssrc: Int, streamId: String, streamParametersArr: Array<StreamParameters>)
     }
 
     fun interface UserSpeakingStatusChangedCallback {
@@ -133,8 +100,10 @@ class Connection(private val native: NativeConnection) : IConnection {
 
     init {
         // TODO
-        // this.native.setSecureFramesStateUpdateCallback { }
-        TransportOptions(
+        this.native.setSecureFramesStateUpdateCallback {
+            Log.d("Sunflower", "secureFramesUpdate: $it")
+        }
+        set(TransportOptions(
             encodingVideoDegradationPreference = 2,
             reconnectInterval = 60000,
             callMaxBitRate = 10000000,
@@ -164,17 +133,18 @@ class Connection(private val native: NativeConnection) : IConnection {
             attenuateWhileSpeakingOthers = true,
             selfMute = false,
             remoteAudioHistoryMs = 1000,
-        ).set()
+            streamParameters = listOf(streamParameters),
+        ))
     }
 
     override fun connectUser(userId: Long, audioSsrc: Int, txVideoSsrc: Int, rxVideoSsrc: Int, isMuted: Boolean, volume: Float) {
         native.mergeUsers(gson.m(listOf(UserConnectionInfo(
             id = userId.toString(),
-            videoSsrcs = listOf(),
+            videoSsrcs = listOf(txVideoSsrc),
             volume = volume,
             ssrc = audioSsrc,
-            videoSsrc = 0,
-            rtxSsrc = 0,
+            videoSsrc = txVideoSsrc,
+            rtxSsrc = rxVideoSsrc,
             mute = isMuted,
         ))))
     }
@@ -195,40 +165,44 @@ class Connection(private val native: NativeConnection) : IConnection {
     override fun getStats(getStatsCallback: GetStatsCallback) = getStats(getStatsCallback, -1)
 
     override fun getStats(getStatsCallback: GetStatsCallback, filter: Int) {
-        if (!disposed) {
-            native.getFilteredStats(filter) { statsStr ->
-                try {
-                    getStatsCallback.onStats(TransformStats.transform(statsStr))
-                } catch (e: Exception) {
-                    getStatsCallback.onStatsError(e)
-                }
-            }
-        }
+        // if (!disposed) {
+        //     native.getFilteredStats(filter) { statsStr ->
+        //         try {
+        //             getStatsCallback.onStats(TransformStats.transform(statsStr))
+        //         } catch (e: Exception) {
+        //             getStatsCallback.onStatsError(e)
+        //         }
+        //     }
+        // }
     }
 
     override fun muteLocalUser(isMuted: Boolean) {
         native.setSelfMute(isMuted)
-        TransportOptions(selfMute = isMuted).set()
+        set(TransportOptions(selfMute = isMuted))
     }
     override fun muteUser(userId: Long, isMuted: Boolean) = native.setLocalMute(userId.toString(), isMuted)
 
-    override fun setAudioInputMode(mode: Int) = TransportOptions(inputMode = mode).set()
+    override fun setAudioInputMode(mode: Int) = set(TransportOptions(inputMode = mode))
 
-    // TODO
     override fun setCodecs(
         audioEncoder: AudioEncoder,
         videoEncoder: VideoEncoder,
         audioDecoderArr: Array<AudioDecoder>,
-        videoDecoderArr: Array<VideoDecoder>
+        videoDecoderArr: Array<VideoDecoder>,
     ) {
-        TransportOptions(
-            audioDecoders = audioDecoderArr.map { TransportOptions.TransportAudioDecoder.from(it) },
-            audioEncoder = TransportOptions.TransportAudioEncoder.from(audioEncoder)
-        ).set()
+        set(TransportOptions(
+            audioEncoder = audioEncoder,
+            videoEncoder = videoEncoder,
+            audioDecoders = audioDecoderArr.toList(),
+            videoDecoders = videoDecoderArr.apply { forEach { it.params.run {
+                set("reset-on-errors", "1")
+                set("fallback-on-consecutive-errors", "1")
+            } } }.toList(),
+        ))
     }
 
     override fun setEncodingQuality(minBitrate: Int, maxBitrate: Int, width: Int, height: Int, framerate: Int) {
-        TransportOptions(
+        set(TransportOptions(
             encodingVideoDegradationPreference = 2, // TODO: ?
             encodingVideoBitRate = maxBitrate,
             encodingVideoMinBitRate = minBitrate,
@@ -236,13 +210,16 @@ class Connection(private val native: NativeConnection) : IConnection {
             encodingVideoWidth = width,
             encodingVideoHeight = height,
             encodingVideoFrameRate = framerate,
-        ).set()
+        ))
     }
 
-    override fun setEncryptionSettings(settings: EncryptionSettings) = TransportOptions(encryptionSettings = settings).set()
-    override fun setExpectedPacketLossRate(lossRate: Float) = TransportOptions(packetLossRate = lossRate).set()
-    // TODO
-    override fun setOnVideoCallback(onVideoCallback: OnVideoCallback) {}
+    override fun setEncryptionSettings(settings: EncryptionSettings) = set(TransportOptions(encryptionSettings = settings))
+    override fun setExpectedPacketLossRate(lossRate: Float) = set(TransportOptions(packetLossRate = lossRate))
+    override fun setOnVideoCallback(onVideoCallback: OnVideoCallback) {
+        native.setOnVideoCallback { userId, ssrc, streamId, videoStreamParametersJson ->
+            onVideoCallback.onVideo(userId.toLong(), ssrc.toInt(), streamId, arrayOf())
+        }
+    }
     override fun setPTTActive(isActive: Boolean) = native.setPTTActive(isActive, priority = false, muteOverride = false) // TODO: priority? muteOverride?
     override fun setUserPlayoutVolume(userId: Long, volume: Float) = native.setLocalVolume(userId.toString(), volume)
 
@@ -276,10 +253,10 @@ class Connection(private val native: NativeConnection) : IConnection {
         }
     }
 
-    private fun setTransportOptions(options: TransportOptions) {
+    private fun set(options: TransportOptions) {
+        Log.d("Sunflower", "trwansportOptions: ${gson.m(options)}")
         native.setTransportOptions(gson.m(options))
     }
-    private fun TransportOptions.set() = setTransportOptions(this)
 
     // New DAVE-related functions
     fun getMLSKeyPackageB64(callback: NativeConnection.MLSKeyPackageCallback) = native.getMLSKeyPackageB64(callback)

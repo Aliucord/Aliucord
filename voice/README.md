@@ -66,47 +66,8 @@ JNI methods. This shouldn't be necessary if you already used jadx, but here it i
     - Sometimes some classes are not loaded and the above command will miss them. Most notably these are the
       `com.discord.media.engine.*!on*` event handlers. You might have to join a voice call and mess around a bit
       to get these event handlers to load. Then you can run the command and instrument them.
-- For transport options, there is no strongly typed interface anywhere apart from the native code. You can inspect
-  the native code's setTransportOptions function to find all the options, or use this (cursed) frida script:
-<details>
-    <summary>Frida script</summary>
-
-    ```javascript
-    if (typeof stored === "undefined") var stored = {}
-    stored = {};
-
-    function parse(key, obj) {
-        if (!stored[key]) stored[key] = new Map()
-            const target = stored[key]
-
-        for (const key in obj) {
-            if (!target.has(key)) target.set(key, [typeof obj[key], []])
-                if (typeof obj[key] == "object") {
-                    target.get(key)[1][0] = parse(key, obj[key])
-                } else {
-                    target.get(key)[1].push(obj[key])
-                }
-        }
-        return "\n    " + [...target.entries()]
-            .map(([k, v]) => `${k} (${v[0]}): ${v[1].join(", ")}`)
-            .sort()
-            .join("\n")
-            .split("\n")
-            .join("\n    ")
-    }
-
-    defineHandler({
-        onEnter(log, args, state) {
-            let e = JSON.parse(args[0]);
-            log(
-                "NativeConnection.setTransportOptions: " +
-                    JSON.stringify(e, null, 2).split("\n").join("\n    ") +
-                    `\n  - opts:${parse("root", e)}`
-            );
-        }
-    });
-    ```
-</details>
+    - For transport options, there is no strongly typed interface anywhere apart from reading the native code that
+      parses the JSON. You can instrument setTransportOptions function to find all the options set.
 
 ### mitmproxy
 - Install mitmproxy: https://docs.mitmproxy.org/stable/overview/installation/
