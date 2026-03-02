@@ -7,6 +7,7 @@ import com.aliucord.coreplugins.voice.SunflowerPayload.DaveInvalidCommitWelcome
 import com.aliucord.coreplugins.voice.SunflowerPayload.DaveTransitionReady
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
+import com.aliucord.updater.ManagerBuild
 import com.discord.rtcconnection.socket.io.Opcodes
 import com.discord.rtcconnection.socket.io.Payloads
 import com.discord.rtcconnection.socket.io.Payloads.Protocol.ProtocolInfo
@@ -51,10 +52,20 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
             }
         }
 
-        if (sunflowerLibVersion != null) {
-            logger.info("Sunflower version: $sunflowerLibVersion")
-        } else {
-            logger.warn("No sunflower lib found, will only patch transport encryption protocol")
+        val injector = ManagerBuild.metadata?.injectorVersion
+        val patches = ManagerBuild.metadata?.patchesVersion
+        logger.info("Core: ${com.aliucord.BuildConfig.VERSION}")
+        logger.info("Injector: $injector")
+        logger.info("Patches: $patches")
+        logger.info("Sunflower: $sunflowerLibVersion")
+        if (
+            sunflowerLibVersion != "90.0.19-codec-api.0-b1" ||
+            injector.toString() != "2.4.10" ||
+            patches.toString() != "1.4.10"
+        ) {
+            // logger.warn("No sunflower lib found, will only patch transport encryption protocol")
+            logger.warn("Mismatched versions, will only patch transport encryption protocol")
+            return
         }
 
         // Handle new binary voice gateway events
