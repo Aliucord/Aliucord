@@ -323,6 +323,7 @@ object PluginManager {
             RemoveBilling(),
             RestartButton(),
             ShowReplyMention(),
+            SlowmodeFix(),
             StickerCrashFix(),
             Sunflower(),
             SupportWarn(),

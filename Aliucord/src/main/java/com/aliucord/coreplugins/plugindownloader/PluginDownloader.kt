@@ -189,6 +189,7 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
         sheet: AppBottomSheet,
     ): List<View> {
         val entries = mutableListOf<View>()
+        val urls = mutableSetOf<String>() // Deduplication
 
         // Only scan for repo links in #plugins-list and #new-plugins
         if (channelId == Constants.PLUGIN_LINKS_CHANNEL_ID ||
@@ -196,8 +197,11 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
         ) {
             repoPattern.matcher(messageContent).run {
                 while (find()) {
+                    val url = group(0)!!
                     val author = group(1)!!
                     val repo = group(2)!!
+
+                    if (!urls.add(url)) continue
 
                     entries += makeContextMenuEntry(
                         ctx = sheet.requireContext(),
@@ -213,10 +217,13 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
 
         zipPattern.matcher(messageContent).run {
             while (find()) {
+                val url = group(0)!!
                 val author = group(1)!!
                 val repo = group(2)!!
                 val commit = group(3)!!
                 val name = group(4)!!
+
+                if (!urls.add(url)) continue
 
                 // Don't accidentally install core as a plugin
                 if (name == "Aliucord") continue

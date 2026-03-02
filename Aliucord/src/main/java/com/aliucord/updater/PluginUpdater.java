@@ -52,6 +52,8 @@ public class PluginUpdater {
     public static void checkUpdates(boolean notify) {
         CoreUpdater.checkForUpdates();
 
+        if (CoreUpdater.isUpdaterDisabled()) return;
+
         updates.clear();
         for (Map.Entry<String, Plugin> plugin : PluginManager.plugins.entrySet()) {
             if (checkPluginUpdate(plugin.getValue()))
