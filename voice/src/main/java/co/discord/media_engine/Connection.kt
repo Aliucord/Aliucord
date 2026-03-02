@@ -259,6 +259,22 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
     }
 
     // New DAVE-related functions
+    fun connectUsers(userIds: List<String>) {
+        val users = userIds.map { id ->
+            UserConnectionInfo(
+                id = id,
+                videoSsrcs = listOf(),
+                volume = 0f,
+                ssrc = 0,
+                videoSsrc = 0,
+                rtxSsrc = 0,
+                mute = false,
+            )
+        }
+        native.mergeUsers(gson.m(users))
+    }
+    fun destroyUser(userId: String) = native.destroyUser(userId)
+
     fun getMLSKeyPackageB64(callback: NativeConnection.MLSKeyPackageCallback) = native.getMLSKeyPackageB64(callback)
 
     fun prepareMLSCommitTransitionB64(transitionId: Int, commit: String, callback: NativeConnection.MLSCommitTransitionCallback) {

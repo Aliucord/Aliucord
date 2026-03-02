@@ -157,7 +157,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
             }
         }
         // Handle new (json) voice gateway events
-        patcher.after<RtcControlSocket_OnMessage>("invoke") { param ->
+        patcher.after<RtcControlSocket_OnMessage>("invoke") {
             val socket: RtcControlSocket = this.`this$0`
 
             // Not sure what this check is for but it's done in original code
@@ -181,6 +181,15 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
 
             socket.connections.forEach { connection ->
                 when (payload) {
+                    is SunflowerPayload.ClientsConnect -> {
+                        // TODO: native can handle a list of users
+                        logger.debug("Connect: ${payload.userIds}")
+                        connection.connectUsers(payload.userIds)
+                    }
+                    is SunflowerPayload.ClientDisconnect -> {
+                        logger.debug("Disconnect: ${payload.userId}")
+                        connection.destroyUser(payload.userId)
+                    }
                     is SunflowerPayload.DavePrepareTransition -> {
                         connection.prepareSecureFramesTransition(
                             transitionId = payload.transitionId,
@@ -239,10 +248,10 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                 return@forEach
             }
             socket.rtcConnection?.run {
-                logger.debug("conn - ch ${this.channelId} sr ${this.rtcServerId} gr ${groupId} sk ${d0}")
+                logger.debug("conn - ch ${this.channelId} sr ${this.rtcServerId} gr $groupId sk $d0")
                 StringBuilder().let {
                     debugPrint(DebugPrintBuilder(it))
-                    logger.debug("debg - ${it.toString()}")
+                    logger.debug("debg - $it")
                 }
             }
             logger.debug("Preparing secure frames epoch for $groupId")
@@ -331,7 +340,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
         patcher.after<StoreMediaEngine>(
             "handleNewConnection",
             MediaEngineConnection::class.java,
-        ) { (param, conn: b.a.q.m0.c.e) ->
+        ) { (_, conn: b.a.q.m0.c.e) ->
             if (conn.type != MediaEngineConnection.Type.DEFAULT) return@after
             logger.debug("setting secure frames callback...")
             newestCode = ""

@@ -20,6 +20,8 @@ sealed interface SunflowerPayload {
     companion object {
         fun deserialize(gson: Gson, payload: Payloads.Incoming): Incoming? {
             val clazz = when (payload.opcode) {
+                Opcodes.CLIENTS_CONNECT -> ClientsConnect::class
+                Opcodes.CLIENT_DISCONNECT -> ClientDisconnect::class
                 Opcodes.DAVE_PREPARE_TRANSITION -> DavePrepareTransition::class
                 Opcodes.DAVE_EXECUTE_TRANSITION -> DaveExecuteTransition::class
                 Opcodes.DAVE_PREPARE_EPOCH -> DavePrepareEpoch::class
@@ -28,6 +30,14 @@ sealed interface SunflowerPayload {
             return clazz?.java?.let { gson.fromJson(payload.data, it) }
         }
     }
+
+    data class ClientsConnect(
+        @SerializedName("user_ids") val userIds: List<String>,
+    ) : Incoming
+
+    data class ClientDisconnect(
+        @SerializedName("user_id") val userId: String,
+    ) : Incoming
 
     data class DavePrepareTransition(
         @SerializedName("protocol_version") val protocolVersion: Int,
