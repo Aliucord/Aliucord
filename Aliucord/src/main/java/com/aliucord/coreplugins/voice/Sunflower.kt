@@ -2,22 +2,46 @@ package com.aliucord.coreplugins.voice
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.*
+import androidx.cardview.widget.CardView
+import androidx.core.content.res.ResourcesCompat
 import co.discord.media_engine.VideoInputDeviceDescription
+import com.aliucord.Constants
+import com.aliucord.Utils
 import com.aliucord.coreplugins.voice.SunflowerPayload.DaveInvalidCommitWelcome
 import com.aliucord.coreplugins.voice.SunflowerPayload.DaveTransitionReady
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.updater.ManagerBuild
+import com.aliucord.utils.DimenUtils.dp
+import com.aliucord.utils.GsonUtils
+import com.aliucord.utils.GsonUtils.fromJson
+import com.aliucord.utils.ViewUtils.addTo
+import com.aliucord.utils.ViewUtils.topPadding
+import com.discord.rtcconnection.mediaengine.MediaEngineConnection
 import com.discord.rtcconnection.socket.io.Opcodes
 import com.discord.rtcconnection.socket.io.Payloads
 import com.discord.rtcconnection.socket.io.Payloads.Protocol.ProtocolInfo
 import com.discord.stores.StoreMediaEngine
+import com.discord.utilities.color.ColorCompat
 import com.discord.utilities.debug.DebugPrintBuilder
+import com.discord.widgets.voice.controls.VoiceControlsSheetView
+import com.lytefast.flexinput.R
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
+import kotlin.math.pow
 import b.a.q.n0.a as RtcControlSocket
 import b.a.q.n0.`a$j` as RtcControlSocket_OnMessage
+
+data class SecureFrames(
+    val epochAuthenticator: String,
+    val version: Int,
+)
 
 internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
     override val isHidden = true
@@ -59,7 +83,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
         logger.info("Patches: $patches")
         logger.info("Sunflower: $sunflowerLibVersion")
         if (
-            sunflowerLibVersion != "90.0.19-codec-api.0-b1" ||
+            sunflowerLibVersion != "90.0.19-codec-api.b0" ||
             injector.toString() != "2.4.10" ||
             patches.toString() != "1.4.10"
         ) {
@@ -67,6 +91,8 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
             logger.warn("Mismatched versions, will only patch transport encryption protocol")
             return
         }
+
+        patchPrivacyCodeView()
 
         // Handle new binary voice gateway events
         // WebSocketListener is RtcControlSocket's superclass; the child class doesn't have
@@ -270,6 +296,9 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                         commit = encoded,
                     ) { processedCommit, protocolVersion, rosterChange ->
                         logger.debug("MLSAnnounceCommitTransition processed: $processedCommit, ver: $protocolVersion, changes: $rosterChange")
+                        if (!processedCommit) {
+                            socket.send(DaveInvalidCommitWelcome(transitionId = transitionId))
+                        }
                     }
                 }
             }
@@ -287,6 +316,120 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                             socket.send(DaveInvalidCommitWelcome(transitionId = transitionId))
                         }
                     }
+                }
+            }
+        }
+    }
+
+    val encryptionViewId = View.generateViewId()
+    var newestCode = ""
+    var onCodeUpdate: (String) -> Unit = {}
+
+    // Adds encryption info and voice privacy code to the voice bottom sheet
+    private fun patchPrivacyCodeView() {
+        // Patches on new connection to add our callback when the epoch authenticator changes
+        patcher.after<StoreMediaEngine>(
+            "handleNewConnection",
+            MediaEngineConnection::class.java,
+        ) { (param, conn: b.a.q.m0.c.e) ->
+            if (conn.type != MediaEngineConnection.Type.DEFAULT) return@after
+            logger.debug("setting secure frames callback...")
+            newestCode = ""
+            onCodeUpdate("")
+            conn.j.setSecureFramesStateUpdateCallback { epochStr ->
+                val frames = GsonUtils.gson.fromJson(epochStr, SecureFrames::class.java)
+                logger.info("cb $epochStr -> $frames")
+                if (frames.version < 1) {
+                    newestCode = ""
+                } else {
+                    var text = ""
+                    if (frames.epochAuthenticator.isNotEmpty()) {
+                        var result = ""
+                        val groupSize = 5
+                        val desiredLen = 30
+                        val data = frames.epochAuthenticator.decodeBase64ToArray()!!
+                        logger.info("data length: ${data.size}")
+                        val groupModulus = 10.0.pow(groupSize).toULong()
+                        var i = 0
+                        while (i < desiredLen) {
+                            var groupValue = 0UL
+                            var j = groupSize
+                            while (j >= 1) {
+                                val n = data[i + groupSize - j].toUByte().toULong()
+                                groupValue = (groupValue shl 8) or n
+                                j -= 1
+                            }
+
+                            result += " " + (groupValue % groupModulus).toString().padStart(groupSize, '0')
+
+                            i += groupSize
+                        }
+                        text += result
+                        logger.info("RES: $text")
+                    }
+                    newestCode = text.trimStart()
+                }
+                onCodeUpdate(newestCode)
+            }
+        }
+
+        // Patches view to add our encryption info if not already added
+        patcher.patch(
+            // every part of this signature is hell
+            VoiceControlsSheetView::class.java.declaredMethods.find { it.name == "configureUI-3jxq49Y" }!!
+        ) { param ->
+            val self = param.thisObject as VoiceControlsSheetView
+            if (self.findViewById<TextView?>(encryptionViewId) != null) return@patch
+            val ctx = self.context
+
+            CardView(ctx).addTo(self, 1) card@{
+                setCardBackgroundColor(ColorCompat.getColor(this, R.c.white_alpha_24))
+                radius = 8.dp.toFloat()
+                elevation = 0f
+                id = encryptionViewId
+
+                layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+                    bottomMargin = 16.dp
+                }
+
+                LinearLayout(ctx).addTo(this) {
+                    layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+                    orientation = LinearLayout.VERTICAL
+
+                    val t1 = TextView(ctx, null, 0, R.i.UiKit_ListItem_Icon).addTo(this)
+                    val t2 = TextView(ctx, null, 0, R.i.UiKit_ListItem_Icon).addTo(this) {
+                        layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+                        typeface = ResourcesCompat.getFont(ctx, Constants.Fonts.sourcecodepro_semibold)
+                        gravity = Gravity.CENTER
+                        topPadding = 0
+                    }
+
+                    onCodeUpdate = { code ->
+                        Utils.mainThread.post {
+                            if (code.isNotEmpty()) {
+                                t1.setCompoundDrawablesWithIntrinsicBounds(
+                                    ResourcesCompat.getDrawable(ctx.resources, R.e.ic_small_lock_green_24dp, null),
+                                    null, null, null
+                                )
+                                t1.text = "End-to-end encrypted"
+                                t2.text = code.replaceRange(17, 18, "\n").replace(" ", "     ")
+                                t2.visibility = View.VISIBLE
+                                this@card.setOnClickListener {
+                                    Utils.setClipboard("Voice privacy code", code)
+                                    Utils.showToast("Copied to clipboard")
+                                }
+                            } else {
+                                t1.setCompoundDrawablesWithIntrinsicBounds(
+                                    ResourcesCompat.getDrawable(ctx.resources, R.e.ic_x_red_24dp, null),
+                                    null, null, null
+                                )
+                                t1.text = "Not end-to-end encrypted"
+                                t2.visibility = View.GONE
+                                this@card.setOnClickListener(null)
+                            }
+                        }
+                    }
+                    onCodeUpdate(newestCode)
                 }
             }
         }

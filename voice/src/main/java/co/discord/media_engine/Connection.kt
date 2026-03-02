@@ -285,6 +285,10 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
         native.processMLSWelcomeB64(transitionId, welcome, callback)
     }
 
+    fun setSecureFramesStateUpdateCallback(callback: NativeConnection.SecureFramesStateUpdateCallback) {
+        native.setSecureFramesStateUpdateCallback(callback)
+    }
+
     fun updateMLSExternalSenderB64(externalSenderB64: String) {
         native.updateMLSExternalSenderB64(externalSenderB64)
     }
