@@ -22,7 +22,7 @@ class ByteReader(bytes: ByteArray) {
         return Array(remaining) { read() }.toByteArray()
     }
     fun readUint8() = read().toUInt().toInt()
-    fun readUint16() = readUint8() shl 8 + readUint8()
+    fun readUint16() = (readUint8() shl 8) + readUint8()
     fun collect() = read(remaining)
     fun collectAsByteString() = ByteString(collect())
 }
