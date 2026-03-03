@@ -6,11 +6,13 @@ import android.os.Build
 import android.view.View
 import android.view.WindowInsetsAnimation
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.aliucord.Main
 import com.aliucord.Utils.getResId
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
+import com.aliucord.utils.DimenUtils.dp
 import com.aliucord.utils.ReflectUtils
 import com.aliucord.utils.accessField
 import com.aliucord.wrappers.ChannelWrapper.Companion.id
@@ -20,16 +22,19 @@ import com.discord.api.message.embed.EmbedField
 import com.discord.models.domain.emoji.ModelEmojiCustom
 import com.discord.models.domain.emoji.ModelEmojiUnicode
 import com.discord.rtcconnection.socket.io.Payloads.Protocol.ProtocolInfo
+import com.discord.utilities.drawable.DrawableCompat
 import com.discord.utilities.embed.EmbedResourceUtils
 import com.discord.utilities.guildautomod.AutoModUtils
 import com.discord.utilities.lazy.memberlist.ChannelMemberList
 import com.discord.utilities.lazy.memberlist.MemberListRow
 import com.discord.widgets.channels.list.*
 import com.discord.widgets.chat.input.SmoothKeyboardReactionHelper
+import com.discord.widgets.chat.list.actions.`WidgetChatListActions$binding$2`
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemAutoModSystemMessageEmbed
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemThreadDraftForm
 import com.discord.widgets.chat.list.entries.*
 import com.linecorp.apng.decoder.Apng
+import com.lytefast.flexinput.R
 
 // Contains various small fixes for Discord
 internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
@@ -54,6 +59,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixPrivateThreads()
         fixPrivateChannelScroll()
         fixVoiceCodec()
+        fixThreadsIcon()
     }
 
     private fun fixStockEmojis() = tryPatch("Fix built-in emojis") {
@@ -229,6 +235,39 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             if (mode == "xsalsa20_poly1305") {
                 param.args[2] = "xsalsa20_poly1305_lite_rtpsize"
             }
+        }
+    }
+
+    private fun fixThreadsIcon() = tryPatch("Fix threads icon alignment in channel context menu") {
+        fun adjustThreadIcon(rootView: View, textViewId: Int, themed: Boolean) {
+            val iconId = if (themed) {
+                DrawableCompat.getThemedDrawableRes(rootView.context, R.b.ic_thread)
+            } else {
+                R.e.ic_thread
+            }
+            val icon = ContextCompat.getDrawable(rootView.context, iconId)!!.apply {
+                val size = 24.dp
+                setBounds(0, 0, size, size)
+            }
+
+            val textView = rootView.findViewById<TextView>(textViewId)
+            textView.setCompoundDrawables(icon, null, null, null)
+        }
+
+        patcher.after<`WidgetChannelsListItemChannelActions$binding$2`>("invoke", View::class.java) { (_, view: View) ->
+            adjustThreadIcon(
+                rootView = view,
+                textViewId = getResId("text_action_thread_browser", "id"),
+                themed = true,
+            )
+        }
+
+        patcher.after<`WidgetChatListActions$binding$2`>("invoke", View::class.java) { (_, view: View) ->
+            adjustThreadIcon(
+                rootView = view,
+                textViewId = getResId("dialog_chat_actions_start_thread", "id"),
+                themed = false,
+            )
         }
     }
 
