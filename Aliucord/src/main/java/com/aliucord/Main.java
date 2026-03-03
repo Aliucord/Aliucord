@@ -591,6 +591,7 @@ public final class Main {
         } else {
             notification
                 .setAutoDismissPeriodSecs(10)
+                .setOnClick((view) -> Unit.a)
                 .setBody("Automatically updated plugins: "
                     + String.join(", ", CollectionsKt.take(succeeded, 5))
                     + (succeeded.size() > 5 ? String.format(", and %s others.", succeeded.size()) : ""));

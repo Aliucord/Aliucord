@@ -88,11 +88,15 @@ internal class PluginUpdaterSource {
         var changelogMedia: String? = null,
         var minimumDiscordVersion: Int = 0,
         var minimumAliucordVersion: SemVer? = null,
-        // Default used to be 1.5.21 before this property was introduced
-        var minimumKotlinVersion: SemVer = SemVer(1, 5, 21),
+        @SerializedName("minimumKotlinVersion")
+        var minimumKotlinVersionInternal: SemVer? = null,
         // Default used to be 24 before this property was introduced
         var minimumApiLevel: Int = 24,
-    )
+    ) {
+        // Default used to be 1.5.21 before this property was introduced
+        val minimumKotlinVersion: SemVer
+            get() = SemVer(1, 5, 21)
+    }
 
     /**
      * A record of fetched build data for all plugins in a plugin repository.

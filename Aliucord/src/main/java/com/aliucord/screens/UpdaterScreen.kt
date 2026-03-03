@@ -24,6 +24,12 @@ internal class UpdaterScreen : SettingsPage() {
 
         if (!CoreUpdater.isUpdaterDisabled()) {
             setActionBarSubtitle("Checking for updates...")
+
+            Utils.threadPool.execute {
+                // FIXME: notifications aren't shown on updater screen, make this a card instead
+                CoreUpdater.checkForUpdates()
+            }
+
             refreshUpdates()
         }
     }
@@ -70,17 +76,12 @@ internal class UpdaterScreen : SettingsPage() {
             }
         } else {
             for (update in updates) {
-                UpdaterPluginCard(context, update, this::reRender).addTo(linearLayout)
+                UpdaterPluginCard(context, update, this::refreshUpdates).addTo(linearLayout)
             }
         }
     }
 
     private fun refreshUpdates() {
-        Utils.threadPool.execute {
-            // FIXME: notifications aren't shown on updater screen, make this a card instead
-            CoreUpdater.checkForUpdates()
-        }
-
         Utils.threadPool.execute {
             updates.clear()
             updates.addAll(PluginUpdater.fetchUpdates(updateSource))
@@ -94,7 +95,7 @@ internal class UpdaterScreen : SettingsPage() {
             Utils.mainThread.post {
                 setActionBarSubtitle(null)
                 Toast.makeText(context, noticeText, Toast.LENGTH_SHORT).show()
-                this.reRender()
+                reRender()
             }
         }
     }
@@ -127,6 +128,7 @@ internal class UpdaterScreen : SettingsPage() {
                     }
                 }
                 Toast.makeText(context, noticeText, Toast.LENGTH_SHORT).show()
+                reRender()
             }
             refreshUpdates()
         }
