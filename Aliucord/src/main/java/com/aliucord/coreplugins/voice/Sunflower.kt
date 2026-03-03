@@ -388,7 +388,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
             VoiceControlsSheetView::class.java.declaredMethods.find { it.name == "configureUI-3jxq49Y" }!!
         ) { param ->
             val self = param.thisObject as VoiceControlsSheetView
-            if (self.findViewById<TextView?>(encryptionViewId) != null) return@patch
+            if (self.findViewById<CardView?>(encryptionViewId) != null) return@patch
             val ctx = self.context
 
             CardView(ctx).addTo(self, 1) card@{

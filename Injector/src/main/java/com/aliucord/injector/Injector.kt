@@ -70,7 +70,18 @@ internal fun init(appCtx: Application) {
         }
 
         // Copy core bundle from external storage to internal cache to prevent deletion while running
-        if (customCore) {
+        Logger.d("Trying bundled core...")
+        val stream = Logger::class.java.classLoader?.getResourceAsStream("Aliucord.zip")
+
+        if (stream != null) {
+            stream.use { input ->
+                internalCustomCoreFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+            Logger.d("Bundled core copied...")
+        } else if (customCore) {
+            Logger.d("No bundled core, using external")
             externalCustomCoreFile.copyTo(internalCustomCoreFile, overwrite = true)
         }
         // Download new stable core
@@ -91,8 +102,8 @@ internal fun init(appCtx: Application) {
             }
         }
 
-        val loadTarget = if (customCore) internalCustomCoreFile else internalCoreFile
-        Logger.d("Adding Aliucord core ${loadTarget.absolutePath} the classpath...")
+        val loadTarget = if (customCore || stream != null) internalCustomCoreFile else internalCoreFile
+        Logger.d("Adding Aliucord core ${loadTarget.absolutePath} to the classpath...")
         addDexToClasspath(
             dexFile = loadTarget,
             classLoader = appCtx.classLoader,
