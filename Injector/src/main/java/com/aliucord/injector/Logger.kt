@@ -7,10 +7,7 @@
 package com.aliucord.injector
 
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
-import android.widget.Toast
 import com.discord.app.AppLog
 import com.discord.utilities.logging.LoggingProvider
 
@@ -50,8 +47,6 @@ internal object Logger {
 
     fun errorToast(ctx: Context, msg: String, e: Throwable? = null) {
         e(msg, e)
-        Handler(Looper.getMainLooper()).post {
-            Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show()
-        }
+        mainThread { ctx.showToast(msg) }
     }
 }

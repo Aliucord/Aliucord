@@ -2,6 +2,9 @@ package com.aliucord.injector
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.widget.Toast
 import dalvik.system.BaseDexClassLoader
 import java.io.File
 import java.io.FileOutputStream
@@ -39,4 +42,12 @@ internal fun pruneArtProfile(ctx: Context) {
             Logger.w("Failed to clear ART usage profile", e)
         }
     }
+}
+
+internal fun mainThread(runnable: Runnable) {
+    Handler(Looper.getMainLooper()).post(runnable)
+}
+
+internal fun Context.showToast(text: String, length: Int = Toast.LENGTH_LONG) {
+    Toast.makeText(this, text, length).show()
 }
