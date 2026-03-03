@@ -71,6 +71,7 @@ import java.util.*;
 
 import dalvik.system.PathClassLoader;
 import kotlin.Unit;
+import kotlin.collections.CollectionsKt;
 import kotlin.io.FilesKt;
 
 public final class Main {
@@ -544,40 +545,57 @@ public final class Main {
             if (CoreUpdater.isUpdaterDisabled()) return;
             CoreUpdater.checkForUpdates();
 
-            var updates = PluginUpdater.fetchUpdates(new PluginUpdaterSource());
-            if (updates.isEmpty()) return;
-
-            if (PluginUpdater.isAutoUpdateEnabled()) {
-                var failed = 0;
-                for (var update : updates) {
-                    if (!update.isUpdatePossible()) continue;
-                    if (!PluginUpdater.updatePlugin(update)) {
-                        failed++;
-                    }
-                }
-
-                if (failed > 0) {
-                    final var failedCount = failed;
-                    Utils.mainThread.post(() -> {
-                        Toast.makeText(Utils.getAppContext(),
-                            String.format("Failed to update %s plugins!", failedCount),
-                            Toast.LENGTH_SHORT
-                        ).show();
-                    });
-                }
-            } else {
-                var notificationData = new NotificationData()
-                    .setTitle("Updater")
-                    .setBody(String.format("Found %s available plugin updates! Click to view...", updates.size()))
-                    .setAutoDismissPeriodSecs(30)
-                    .setOnClick((view) -> {
-                        Utils.openPage(view.getContext(), UpdaterScreen.class);
-                        return Unit.a;
-                    });
-
-                NotificationsAPI.display(notificationData);
-            }
+            checkForPluginUpdates();
         });
+    }
+
+    private static void checkForPluginUpdates() {
+        var updates = PluginUpdater.fetchUpdates(new PluginUpdaterSource());
+        if (updates.isEmpty()) return;
+
+        if (!PluginUpdater.isAutoUpdateEnabled()) {
+            var notificationData = new NotificationData()
+                .setTitle("Updater")
+                .setBody(String.format("Found %s available plugin updates! Click to view...", updates.size()))
+                .setAutoDismissPeriodSecs(30)
+                .setOnClick((view) -> {
+                    Utils.openPage(view.getContext(), UpdaterScreen.class);
+                    return Unit.a;
+                });
+
+            NotificationsAPI.display(notificationData);
+            return;
+        }
+
+        var failed = 0;
+        var succeeded = new ArrayList<String>();
+        for (var update : updates) {
+            if (!update.isUpdatePossible()) continue;
+            if (PluginUpdater.updatePlugin(update)) {
+                succeeded.add(update.getPluginName());
+            } else {
+                failed++;
+            }
+        }
+
+        var notification = new NotificationData()
+            .setTitle("Updater");
+        if (failed > 0) {
+            notification
+                .setAutoDismissPeriodSecs(30)
+                .setBody(String.format("Failed to update %s plugins! Click to view...", failed))
+                .setOnClick((view) -> {
+                    Utils.openPage(view.getContext(), UpdaterScreen.class);
+                    return Unit.a;
+                });
+        } else {
+            notification
+                .setAutoDismissPeriodSecs(10)
+                .setBody("Automatically updated plugins: "
+                    + String.join(", ", CollectionsKt.take(succeeded, 5))
+                    + (succeeded.size() > 5 ? String.format(", and %s others.", succeeded.size()) : ""));
+        }
+        NotificationsAPI.display(notification);
     }
 
     private static void permissionGrantedCallback(AppCompatActivity activity, boolean granted) {
