@@ -17,8 +17,6 @@ import com.aliucord.wrappers.ChannelWrapper.Companion.id
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper
 import com.discord.api.channel.Channel
 import com.discord.api.message.embed.EmbedField
-import com.discord.models.domain.Model
-import com.discord.models.domain.ModelUserSettings
 import com.discord.models.domain.emoji.ModelEmojiCustom
 import com.discord.models.domain.emoji.ModelEmojiUnicode
 import com.discord.rtcconnection.socket.io.Payloads.Protocol.ProtocolInfo
@@ -42,9 +40,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         manifest.description = "Applies critical patches and fixes to ensure Aliucord functions correctly without errors"
     }
 
-    @Suppress("UNCHECKED_CAST")
     override fun start(context: Context) {
-        fixUnsupportedThemes()
         fixStockEmojis()
         fixAutoModEmbed()
         fixKeyboardCrash()
@@ -58,25 +54,6 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixPrivateThreads()
         fixPrivateChannelScroll()
         fixVoiceCodec()
-    }
-
-    private fun fixUnsupportedThemes() = tryPatch("Fix unsupported themes") {
-        // Fix 2025-04-03 gateway change that ported visual refresh theme names over the legacy user settings
-        // Theme entries like "darker" and "midnight" are unsupported
-        patcher.after<ModelUserSettings>("assignField", Model.JsonReader::class.java) {
-            if (
-                theme == null ||
-                theme == ModelUserSettings.THEME_DARK ||
-                theme == ModelUserSettings.THEME_LIGHT ||
-                theme == ModelUserSettings.THEME_PURE_EVIL
-            ) return@after
-
-            try {
-                ReflectUtils.setField(this, "theme", "dark")
-            } catch (e: Exception) {
-                Main.logger.error("Failed to fix ModelUserSettings theme", e)
-            }
-        }
     }
 
     private fun fixStockEmojis() = tryPatch("Fix built-in emojis") {
@@ -126,15 +103,14 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     }
 
     private fun fixWebpEmojis() = tryPatch("Fix emoji formats") {
+        ModelEmojiCustom::getImageUri
         // Support webp emojis by forcing every emoji to be webp
-        patcher.patch(
-            ModelEmojiCustom::class.java,
+        patcher.instead<ModelEmojiCustom?>(
             "getImageUri",
-            arrayOf(Long::class.javaPrimitiveType!!, Boolean::class.javaPrimitiveType!!, Int::class.javaPrimitiveType!!),
-            InsteadHook { param ->
-                "https://cdn.discordapp.com/emojis/${param.args[0]}.webp?size=${param.args[2]}&animated=${param.args[1]}"
-            }
-        )
+            Long::class.javaPrimitiveType!!, Boolean::class.javaPrimitiveType!!, Int::class.javaPrimitiveType!!,
+        ) { param ->
+            "https://cdn.discordapp.com/emojis/${param.args[0]}.webp?size=${param.args[2]}&animated=${param.args[1]}"
+        }
     }
 
     private fun fixGifPreviews() = tryPatch("Fix GIF previews") {

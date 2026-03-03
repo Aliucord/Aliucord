@@ -96,6 +96,29 @@ public final class Main {
 
         if (checkPermissions(activity)) preInitWithPermissions(activity);
 
+        // Since 1.4.0, this is implemented via a smali patch to ensure it works even if Aliucord failed to load
+        if (!ManagerBuild.hasPatches("1.4.0")) {
+            // Fix 2025-04-03 gateway change that ported visual refresh theme names over the legacy user settings
+            // Theme entries like "darker" and "midnight" are unsupported
+            Patcher.addPatch(ModelUserSettings.class, "assignField", new Class<?>[]{ Model.JsonReader.class }, new Hook(param -> {
+                var $this = (ModelUserSettings) param.thisObject;
+
+                switch ($this.getTheme()) {
+                    case null:
+                    case ModelUserSettings.THEME_DARK:
+                    case ModelUserSettings.THEME_LIGHT:
+                    case ModelUserSettings.THEME_PURE_EVIL:
+                        return;
+                    default:
+                        try {
+                            ReflectUtils.setField($this, "theme", "dark");
+                        } catch (Exception e) {
+                            logger.error("Failed to fix ModelUserSettings theme", e);
+                        }
+                }
+            }));
+        }
+
         Patcher.addPatch(AppActivity.class, "onCreate", new Class<?>[]{ Bundle.class }, new Hook(param -> {
             Utils.appActivity = (AppActivity) param.thisObject;
         }));
