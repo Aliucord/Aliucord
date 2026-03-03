@@ -117,8 +117,11 @@ internal class AvatarDecorator() : Decorator() {
         // Removes padding from layout to make space for deco
         layout.padding -= memberListSpacing.dp
 
+        val decoMargin: Int
+
         // Re-add left padding to avatar view, that was removed above
         avatarView.layoutParams = (avatarView.layoutParams as RelativeLayout.LayoutParams).apply {
+            decoMargin = marginStart
             marginStart += memberListSpacing.dp
         }
 
@@ -126,7 +129,7 @@ internal class AvatarDecorator() : Decorator() {
             layoutParams = RelativeLayout.LayoutParams(0, 0).apply {
                 height = size
                 width = size
-                marginStart = memberListSpacing.dp
+                marginStart = decoMargin
             }
         }
     }

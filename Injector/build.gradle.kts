@@ -7,11 +7,14 @@ plugins {
 }
 
 android {
-    namespace = "com.aliucord"
+    namespace = "com.aliucord.injector"
     compileSdk = 36
 
     defaultConfig {
         minSdk = 24
+
+        buildConfigField("String", "VERSION", "\"$version\"")
+        buildConfigField("String", "TAG", "\"Injector\"")
     }
 
     buildTypes {
@@ -25,7 +28,8 @@ android {
     }
 
     buildFeatures {
-        buildConfig = false
+        buildConfig = true
+        resValues = false
     }
 
     lint {

@@ -251,6 +251,9 @@ public class Http {
 
     /** Request Builder */
     public static class Request implements Closeable {
+        private static final String USER_AGENT =
+            String.format("Aliucord/%s (https://github.com/Aliucord/Aliucord)", BuildConfig.VERSION);
+
         /** The connection of this Request */
         public final HttpURLConnection conn;
 
@@ -284,7 +287,7 @@ public class Http {
         public Request(String url, String method) throws IOException {
             conn = (HttpURLConnection) new URL(url).openConnection();
             conn.setRequestMethod(method.toUpperCase());
-            conn.addRequestProperty("User-Agent", "Aliucord (https://github.com/Aliucord/Aliucord)");
+            conn.addRequestProperty("User-Agent", USER_AGENT);
         }
 
         /**
@@ -671,6 +674,7 @@ public class Http {
          * @param sha1sum checksum to check the file's integrity. May be null to skip integrity check
          * @throws IOException If an I/O error occurred: No such file, file is directory, integrity check failed, etc
          */
+        // TODO: download to tmp file and then rename
         public void saveToFile(@NonNull File file, @Nullable String sha1sum) throws IOException {
             if (file.exists()) {
                 if (!file.canWrite())

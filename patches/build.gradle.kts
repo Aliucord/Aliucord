@@ -4,7 +4,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import java.io.ByteArrayOutputStream
 import java.util.Properties
 
-version = "1.3.2"
+version = "1.4.0"
 
 // --- Android --- //
 
@@ -251,6 +251,7 @@ tasks.register<DeployComponentTask>("deployWithAdb") {
 
 tasks.register("writePatches") {
     group = TASK_GROUP
+    outputs.upToDateWhen { false }
     mustRunAfter(applyPatches) // When applyPatches is also being run, it must come before
 
     // Configuration cache workaround

@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "com.aliucord"
-version = "2.6.0"
+version = "2.7.1"
 
 android {
     namespace = "com.aliucord"
@@ -56,6 +56,7 @@ kotlin {
             "-Xno-call-assertions",
             "-Xno-param-assertions",
             "-Xno-receiver-assertions",
+            "-Xannotation-default-target=param-property",
         )
     }
 }

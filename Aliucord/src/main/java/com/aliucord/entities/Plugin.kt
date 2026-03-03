@@ -50,7 +50,7 @@ abstract class Plugin internal constructor(manifest: Manifest? = null) {
 
         /** The current version of this plugin */
         @JvmField
-        var version: String = "1.0.0"
+        var version: String = "0.0.0"
 
         /** The updater JSON url */
         @JvmField

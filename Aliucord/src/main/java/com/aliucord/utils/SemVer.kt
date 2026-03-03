@@ -3,10 +3,10 @@ package com.aliucord.utils
 import com.google.gson.TypeAdapter
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
-import java.lang.IllegalArgumentException
 
 /**
- * Parses a Semantic version in the format of `v1.0.0`
+ * Parses a Semantic version in the format of `v1.0.0`.
+ * This is always serialized without the `v` prefix.
  */
 @JsonAdapter(SemVer.Adapter::class)
 data class SemVer(
@@ -15,16 +15,15 @@ data class SemVer(
     val patch: Int,
 ) : Comparable<SemVer> {
     override fun compareTo(other: SemVer): Int {
-        val pairs = arrayOf(
-            major to other.major,
-            minor to other.minor,
-            patch to other.patch,
-        )
+        var cmp = 0
+        if (0 != major.compareTo(other.major).also { cmp = it })
+            return cmp
+        if (0 != minor.compareTo(other.minor).also { cmp = it })
+            return cmp
+        if (0 != patch.compareTo(other.patch).also { cmp = it })
+            return cmp
 
-        return pairs
-            .map { (first, second) -> first.compareTo(second) }
-            .find { it != 0 }
-            ?: 0
+        return 0
     }
 
     override fun equals(other: Any?): Boolean {
@@ -53,17 +52,17 @@ data class SemVer(
 
         @JvmStatic
         fun parseOrNull(version: String?): SemVer? {
-            // Handle 'v' prefix
-            val versionString = version?.removePrefix("v")
-                ?: return null
+            if (version == null) return null
 
-            val parts = versionString
-                .split(".")
-                .mapNotNull { it.toIntOrNull() }
-                .takeIf { it.size == 3 }
-                ?: return null
+            val parts = version.removePrefix("v").split(".")
+            if (parts.size != 3)
+                return null
 
-            return SemVer(parts[0], parts[1], parts[2])
+            val major = parts[0].toIntOrNull() ?: return null
+            val minor = parts[1].toIntOrNull() ?: return null
+            val patch = parts[2].toIntOrNull() ?: return null
+
+            return SemVer(major, minor, patch)
         }
 
         @JvmStatic
