@@ -84,7 +84,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
         logger.info("Sunflower: $sunflowerLibVersion")
         if (
             sunflowerLibVersion != "90.0.19-codec-api.b0" ||
-            injector.toString() != "2.4.10" ||
+            injector.toString() != "2.4.11" ||
             patches.toString() != "1.4.10"
         ) {
             // logger.warn("No sunflower lib found, will only patch transport encryption protocol")
