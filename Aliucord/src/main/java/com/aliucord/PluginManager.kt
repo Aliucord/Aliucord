@@ -322,7 +322,7 @@ object PluginManager {
             SupportWarn(),
             SupporterBadges(),
             TokenLogin(),
-            UploadSize()
+            UploadSize(),
         )
 
         val safeMode = isSafeModeEnabled();

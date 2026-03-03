@@ -12,6 +12,7 @@ import com.aliucord.Utils.getResId
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.utils.ReflectUtils
+import com.aliucord.utils.accessField
 import com.aliucord.wrappers.ChannelWrapper.Companion.id
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper
 import com.discord.api.channel.Channel
@@ -81,9 +82,9 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     private fun fixStockEmojis() = tryPatch("Fix built-in emojis") {
         // Patch to repair built-in emotes is needed because installer doesn't recompile resources,
         // so they stay in package com.discord instead of apk package name
-        Patcher.addPatch(ModelEmojiUnicode::class.java, "getImageUri", arrayOf(String::class.java, Context::class.java),
-            InsteadHook { param -> "res:///${getResId("emoji_${param.args[0]}", "raw")}" }
-        )
+        patcher.instead<ModelEmojiUnicode?>("getImageUri", String::class.java, Context::class.java) { param ->
+            "res:///${getResId("emoji_${param.args[0]}", "raw")}"
+        }
     }
 
     private fun fixAutoModEmbed() = tryPatch("Fix AutoMod embed crashes") {
@@ -113,14 +114,13 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         //   at android.view.View.dispatchWindowInsetsAnimationStart(View.java:12671)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             tryPatch("Fix keyboard animation crash on Android 15") {
-                Patcher.addPatch(
-                    SmoothKeyboardReactionHelper.Callback::class.java.getDeclaredMethod("onStart",
-                        WindowInsetsAnimation::class.java,
-                        WindowInsetsAnimation.Bounds::class.java),
-                    PreHook { (param, animation: WindowInsetsAnimation) ->
-                        if (animation.durationMillis < 0) param.result = param.args[1]
-                    }
-                )
+                patcher.before<SmoothKeyboardReactionHelper.Callback>(
+                    "onStart",
+                    WindowInsetsAnimation::class.java,
+                    WindowInsetsAnimation.Bounds::class.java
+                ) { (param, animation: WindowInsetsAnimation) ->
+                    if (animation.durationMillis < 0) param.result = param.args[1]
+                }
             }
         }
     }
@@ -163,13 +163,12 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         }
     }
 
+    private val ChannelMemberList.groups by accessField<Map<String, MemberListRow>>("groups")
+
     private fun fixMemberListGroups() = tryPatch("Fix member list groups") {
-        val memberListGroupsField = ChannelMemberList::class.java.getDeclaredField("groups")
-            .apply { isAccessible = true }
         @Suppress("UNCHECKED_CAST")
         patcher.after<ChannelMemberList>("setGroups", List::class.java, Function1::class.java) {
-            val groupsMap = memberListGroupsField[this] as Map<String, MemberListRow>
-            groupIndices.forEach { (idx, id) -> rows[idx] = groupsMap[id] }
+            groupIndices.forEach { (idx, id) -> rows[idx] = groups[id] }
         }
     }
 
@@ -199,7 +198,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         patcher.after<`WidgetChannelListModel$Companion$guildListBuilder$$inlined$forEach$lambda$1$1`>("invoke") { param ->
             val builder = this.`this$0`
             val threadId = this.`$textChannel`.id
-            val mentionCount = builder.`$mentionCounts$inlined`[threadId] as Int? ?: return@after
+            val mentionCount = builder.`$mentionCounts$inlined`[threadId] as? Int? ?: return@after
 
             if (mentionCount > 0) {
                 builder.`$hiddenChannelsIds$inlined`.remove(threadId)

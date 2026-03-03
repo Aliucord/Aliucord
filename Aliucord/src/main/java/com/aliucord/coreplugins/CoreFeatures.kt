@@ -26,6 +26,7 @@ import com.aliucord.patcher.*
 import com.aliucord.settings.*
 import com.aliucord.utils.ChangelogUtils.FooterAction
 import com.aliucord.utils.ReflectUtils
+import com.aliucord.utils.accessField
 import com.aliucord.views.Divider
 import com.aliucord.views.ToolbarButton
 import com.discord.app.AppComponent
@@ -50,6 +51,8 @@ import com.lytefast.flexinput.R
 internal class CoreFeatures : CorePlugin(Manifest("CoreBase")) {
     override val isHidden = true
     override val isRequired = true
+
+    private val WidgetDebugging.Adapter.Item.binding by accessField<WidgetDebuggingAdapterItemBinding>("binding")
 
     init {
         manifest.description = "Provides core Aliucord features"
@@ -187,11 +190,6 @@ internal class CoreFeatures : CorePlugin(Manifest("CoreBase")) {
         }
 
         // add stacktraces in debug logs page
-        val c = WidgetDebugging.Adapter.Item::class.java
-        val debugItemBinding = c.getDeclaredField("binding").apply {
-            isAccessible = true
-        }
-
         patcher.after<WidgetDebugging.Adapter.Item>(
             "onConfigure",
             Int::class.javaPrimitiveType!!,
@@ -199,13 +197,14 @@ internal class CoreFeatures : CorePlugin(Manifest("CoreBase")) {
         ) { (param, _: Any, loggedItem: LoggedItem) ->
             val th = loggedItem.m ?: return@after
 
-            val logMessage = (debugItemBinding[param.thisObject] as WidgetDebuggingAdapterItemBinding).b
             val sb = SpannableStringBuilder("\n  at ").apply {
                 val s = th.stackTrace
                 append(TextUtils.join("\n  at ", if (s.size > 12) s.copyOfRange(0, 12) else s))
                 setSpan(AbsoluteSizeSpan(12, true), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             }
-            logMessage.append(sb)
+
+            // Log message content
+            binding.b.append(sb)
         }
 
         // use new member profile editor for nitro users
