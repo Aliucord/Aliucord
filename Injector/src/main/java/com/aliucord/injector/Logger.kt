@@ -47,6 +47,6 @@ internal object Logger {
 
     fun errorToast(ctx: Context, msg: String, e: Throwable? = null) {
         e(msg, e)
-        mainThread { ctx.showToast(msg) }
+        ctx.showToast(msg)
     }
 }

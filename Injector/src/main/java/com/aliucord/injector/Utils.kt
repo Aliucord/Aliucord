@@ -49,5 +49,9 @@ internal fun mainThread(runnable: Runnable) {
 }
 
 internal fun Context.showToast(text: String, length: Int = Toast.LENGTH_LONG) {
-    Toast.makeText(this, text, length).show()
+    if (Looper.getMainLooper() == Looper.myLooper()) {
+        Toast.makeText(this, text, length).show()
+    } else mainThread {
+        Toast.makeText(this, text, length).show()
+    }
 }

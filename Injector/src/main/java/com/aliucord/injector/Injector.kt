@@ -128,7 +128,7 @@ private class Injector(private val appCtx: Application) {
 
         // Start the loaded core
         try {
-            startAliucord(appCtx)
+            startAliucord()
         } catch (t: Throwable) {
             Logger.errorToast(appCtx, "Failed to start Aliucord!", t)
 
@@ -153,8 +153,10 @@ private class Injector(private val appCtx: Application) {
      */
     fun restoreCoreFlow() {
         hookActivityOnCreate { activity ->
+            val permissionsResult = ::requestPermissions.takeIf { !isPermissionsGranted() }?.invoke(activity)
+
             Thread {
-                if (!isPermissionsGranted() && !requestPermissions(activity).get())
+                if (permissionsResult?.get() == false)
                     return@Thread
 
                 if (!isUsingCustomCore() && !installCore())
@@ -165,12 +167,16 @@ private class Injector(private val appCtx: Application) {
         }
     }
 
+    /**
+     * Requests the necessary storage permissions and returns a future whether they were granted.
+     * This should be called on or before [AppActivity.onCreate] before the lifecycle is RESUMED.
+     */
     @SuppressLint("UseKtx")
     fun requestPermissions(activity: AppActivity): CompletableFuture<Boolean> {
         val future = CompletableFuture<Boolean>()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val userMsg = "Aliucord requires the 'all files' permissions to use its folder in Internal Storage!"
+            val userMsg = "Aliucord requires the 'All files access' permission to use its folder in Internal Storage!"
             appCtx.showToast(userMsg)
 
             activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -231,7 +237,45 @@ private class Injector(private val appCtx: Application) {
         }
     }
 
+    // -------- Starting Aliucord -------- //
+    /**
+     * Finds the correct Aliucord core entrypoint and runs it.
+     */
+    private fun startAliucord() {
+        Logger.d("Obtaining Aliucord core entrypoints...")
+
+        try {
+            val c = Class.forName("com.aliucord.Main")
+            val onApplicationInit = c.getDeclaredMethod("onApplicationInit", Application::class.java)
+
+            Logger.d("Starting Aliucord core...")
+            onApplicationInit.invoke(null, appCtx)
+        } catch (_: NoSuchMethodException) {
+            startLegacyAliucord()
+        }
+
+        Logger.d("Finished starting Aliucord")
+    }
+
+    /**
+     * Finds the old Aliucord core entrypoints and runs it.
+     * Old Aliucord core did not support early init, so we wait for Activity creation.
+     */
+    private fun startLegacyAliucord() {
+        Logger.d("Obtaining Aliucord core legacy entrypoints...")
+        val c = Class.forName("com.aliucord.Main")
+        val preInit = c.getDeclaredMethod("preInit", AppActivity::class.java)
+        val init = c.getDeclaredMethod("init", AppActivity::class.java)
+
+        hookActivityOnCreate { activity ->
+            Logger.d("Starting Aliucord core...")
+            preInit.invoke(null, activity)
+            init.invoke(null, activity)
+        }
+    }
+
     // -------- Utilities -------- //
+
     /**
      * Checks whether external storage write permissions have been granted.
      */
@@ -247,6 +291,7 @@ private class Injector(private val appCtx: Application) {
      * Forcefully restarts the Aliucord app process.
      */
     private fun restartAliucord(): Nothing {
+        Logger.i("Force restarting Aliucord...")
         try {
             val intent = appCtx.packageManager.getLaunchIntentForPackage(appCtx.packageName)
                 .let { Intent.makeRestartActivityTask(it?.component) }
@@ -306,63 +351,32 @@ private class Injector(private val appCtx: Application) {
             return false
         }
     }
-}
 
-/**
- * Finds the correct Aliucord core entrypoint and runs it.
- */
-private fun startAliucord(appCtx: Application) {
-    Logger.d("Obtaining Aliucord core entrypoints...")
+    /**
+     * Attempts to hook [AppActivity.onCreate] if it has not been invoked yet and run a [callback]
+     * when it is executed. This should not be used multiple times within the same part of the initialization flow.
+     */
+    private fun hookActivityOnCreate(callback: (AppActivity) -> Unit) {
+        Logger.d("Hooking AppActivity.onCreate")
 
-    try {
-        val c = Class.forName("com.aliucord.Main")
-        val onApplicationInit = c.getDeclaredMethod("onApplicationInit", Application::class.java)
+        if (activityInitialized.get())
+            throw IllegalStateException("Cannot hook AppActivity.onCreate when it was already invoked!")
 
-        Logger.d("Starting Aliucord core...")
-        onApplicationInit.invoke(null, appCtx)
-    } catch (_: NoSuchMethodException) {
-        startLegacyAliucord()
+        try {
+            var unhook: XC_MethodHook.Unhook? = null
+            unhook = XposedBridge.hookMethod(
+                AppActivity::class.java.getDeclaredMethod("onCreate", Bundle::class.java),
+                object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        unhook!!.unhook()
+                        activityInitialized.set(true)
+                        callback(param.thisObject as AppActivity)
+                    }
+                },
+            )
+        } catch (e: Exception) {
+            Logger.errorToast(appCtx, "Failed to initialize Aliuhook!", e)
+            throw e
+        }
     }
-
-    Logger.d("Finished starting Aliucord")
-}
-
-/**
- * Finds the old Aliucord core entrypoints and runs it.
- * Old Aliucord core did not support early init, so we wait for Activity creation.
- */
-private fun startLegacyAliucord() {
-    Logger.d("Obtaining Aliucord core legacy entrypoints...")
-    val c = Class.forName("com.aliucord.Main")
-    val preInit = c.getDeclaredMethod("preInit", AppActivity::class.java)
-    val init = c.getDeclaredMethod("init", AppActivity::class.java)
-
-    hookActivityOnCreate { activity ->
-        Logger.d("Starting Aliucord core...")
-        preInit.invoke(null, activity)
-        init.invoke(null, activity)
-    }
-}
-
-/**
- * Attempts to hook [AppActivity.onCreate] if it has not been invoked yet and run a [callback]
- * when it is executed. This should not be used multiple times within the same part of the initialization flow.
- */
-private fun hookActivityOnCreate(callback: (AppActivity) -> Unit) {
-    Logger.d("Hooking AppActivity.onCreate")
-
-    if (activityInitialized.get())
-        throw IllegalStateException("Cannot hook AppActivity.onCreate when it was already invoked!")
-
-    var unhook: XC_MethodHook.Unhook? = null
-    unhook = XposedBridge.hookMethod(
-        AppActivity::class.java.getDeclaredMethod("onCreate", Bundle::class.java),
-        object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                unhook!!.unhook()
-                activityInitialized.set(true)
-                callback(param.thisObject as AppActivity)
-            }
-        },
-    )
 }
