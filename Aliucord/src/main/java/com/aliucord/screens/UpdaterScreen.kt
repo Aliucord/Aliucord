@@ -47,7 +47,7 @@ internal class UpdaterScreen : SettingsPage() {
             true
         }
 
-        addHeaderButton("Update All", R.e.ic_file_download_white_24dp) { item: MenuItem ->
+        addHeaderButton("Update All", R.e.ic_file_download_white_24dp) { item ->
             item.isEnabled = false
             setActionBarSubtitle("Updating...")
             updateAll()
