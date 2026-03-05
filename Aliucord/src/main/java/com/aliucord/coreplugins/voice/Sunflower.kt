@@ -37,6 +37,7 @@ import okio.ByteString
 import kotlin.math.pow
 import b.a.q.n0.a as RtcControlSocket
 import b.a.q.n0.`a$j` as RtcControlSocket_OnMessage
+import b.a.q.n0.`a$k` as RtcControlSocket_Connect
 
 data class SecureFrames(
     val epochAuthenticator: String,
@@ -156,6 +157,16 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                 })
             }
         }
+
+        // Never allow resuming; this is because DAVE state may be inconsistent upon resuming.
+        // Normally, newer clients handle this with buffered resume — which replays DAVE messages —
+        // but DiscordKt does not use this new feature as it's on an older voice gateway version.
+        // TODO maybe: implement buffered resume properly, since this may be disruptive when for example
+        // roaming on a mobile connection (fresh connections are slightly slower)
+        patcher.before<RtcControlSocket_Connect>("invoke") {
+            `this$0`.C = false // RtcControlSocket.resumable = false
+        }
+
         // Handle new (json) voice gateway events
         patcher.after<RtcControlSocket_OnMessage>("invoke") {
             val socket: RtcControlSocket = this.`this$0`
@@ -212,7 +223,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                             groupId = channelId?.toString() ?: ""
                         )
                         connection.getMLSKeyPackageB64 { keyPackageB64 ->
-                            val bytes = keyPackageB64.decodeBase64ToArray()
+                            val bytes = keyPackageB64.decodeBase64ToArray()!!
                             logger.debug("Received MLS Key package, sending over")
                             socket.send(Opcodes.DAVE_MLS_KEY_PACKAGE, ByteString(bytes))
                         }
@@ -259,9 +270,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
             connection.prepareSecureFramesEpoch("1", 1, groupId.toString())
             logger.debug("Grabbing MLS Key..")
             connection.getMLSKeyPackageB64 { keyPackageB64 ->
-                val bytes = keyPackageB64.decodeBase64ToArray()
-                    // XXX: This should never happen, but if it does, does this handle gracefully?
-                    ?: throw IllegalArgumentException("MLS Key Package from native binary undecodable")
+                val bytes = keyPackageB64.decodeBase64ToArray()!!
                 logger.debug("Received MLS Key package, sending over")
                 socket.send(Opcodes.DAVE_MLS_KEY_PACKAGE, ByteString(bytes))
             }
