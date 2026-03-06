@@ -25,8 +25,9 @@ import com.aliucord.fragments.ConfirmDialog
 import com.aliucord.patcher.*
 import com.aliucord.settings.*
 import com.aliucord.utils.ChangelogUtils.FooterAction
-import com.aliucord.utils.ReflectUtils
+import com.aliucord.utils.ViewUtils.findViewById
 import com.aliucord.utils.accessField
+import com.aliucord.utils.accessGetter
 import com.aliucord.views.Divider
 import com.aliucord.views.ToolbarButton
 import com.discord.app.AppComponent
@@ -53,6 +54,8 @@ internal class CoreFeatures : CorePlugin(Manifest("CoreBase")) {
     override val isRequired = true
 
     private val WidgetDebugging.Adapter.Item.binding by accessField<WidgetDebuggingAdapterItemBinding>("binding")
+    private val WidgetGlobalStatusIndicator.binding by accessGetter<WidgetGlobalStatusIndicatorBinding>("getBinding")
+    private val WidgetGlobalStatusIndicator.indicatorState by accessField<WidgetGlobalStatusIndicatorState>()
 
     init {
         manifest.description = "Provides core Aliucord features"
@@ -62,7 +65,7 @@ internal class CoreFeatures : CorePlugin(Manifest("CoreBase")) {
         // Adds Aliucord section in settings with links to plugins, settings, etc
         patcher.after<WidgetSettings>("onViewBound", View::class.java) { (param, root: ViewGroup) ->
             val layout = Utils.nestedChildAt<ViewGroup>(root, 1, 0)
-            var baseIndex = layout.indexOfChild(layout.findViewById(getResId("developer_options_divider", "id")))
+            var baseIndex = layout.indexOfChild(layout.findViewById("developer_options_divider"))
             val context = layout.context
 
             layout.addView(Divider(context), baseIndex++)
@@ -96,7 +99,7 @@ internal class CoreFeatures : CorePlugin(Manifest("CoreBase")) {
                 baseIndex
             )
 
-            val versionView = layout.findViewById<TextView>(getResId("app_info_header", "id"))!!
+            val versionView = layout.findViewById<TextView>("app_info_header")
 
             versionView.text = buildString {
                 append(versionView.text.toString() + " | Aliucord " + BuildConfig.VERSION)
@@ -104,13 +107,13 @@ internal class CoreFeatures : CorePlugin(Manifest("CoreBase")) {
                 if (isDebuggable) append(" [DEBUGGABLE]")
             }
 
-            layout.findViewById<TextView>(getResId("upload_debug_logs", "id"))!!.apply {
+            layout.findViewById<TextView>("upload_debug_logs").apply {
                 text = "Aliucord Support Server"
                 setOnClickListener { v -> joinSupportServer(v.context) }
             }
 
             // Remove Discord changelog button
-            layout.findViewById<TextView>(getResId("changelog", "id")).apply {
+            layout.findViewById<TextView>("changelog").apply {
                 visibility = View.GONE
             }
         }
@@ -122,11 +125,7 @@ internal class CoreFeatures : CorePlugin(Manifest("CoreBase")) {
         ) { param ->
             if (!isSafeModeEnabled()) return@before
 
-            val indicator = param.thisObject as WidgetGlobalStatusIndicator
-            val context = indicator.requireContext()
-
-            val binding = ReflectUtils.invokeMethod(indicator, "getBinding") as WidgetGlobalStatusIndicatorBinding
-            val indicatorState = ReflectUtils.getField(indicator, "indicatorState") as WidgetGlobalStatusIndicatorState
+            val context = requireContext()
 
             val backgroundColor = getResId("colorBackgroundTertiary", "attr")
             val textColor = getResId("colorHeaderPrimary", "attr")
@@ -134,7 +133,7 @@ internal class CoreFeatures : CorePlugin(Manifest("CoreBase")) {
             // Layout
             binding.c.apply {
                 setBackgroundColor(ColorCompat.getThemedColor(context, backgroundColor))
-                setOnClickListener { safeModeDialog(indicator) }
+                setOnClickListener { safeModeDialog(this@before) }
                 visibility = View.VISIBLE
             }
 

@@ -1,40 +1,54 @@
 package com.aliucord.coreplugins
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.view.View
 import android.view.WindowInsetsAnimation
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.aliucord.Main
+import com.aliucord.Utils
 import com.aliucord.Utils.getResId
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.utils.DimenUtils.dp
 import com.aliucord.utils.ReflectUtils
+import com.aliucord.utils.ViewUtils.findViewById
 import com.aliucord.utils.accessField
 import com.aliucord.wrappers.ChannelWrapper.Companion.id
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper
 import com.discord.api.channel.Channel
 import com.discord.api.message.embed.EmbedField
+import com.discord.api.permission.Permission
 import com.discord.models.domain.emoji.ModelEmojiCustom
 import com.discord.models.domain.emoji.ModelEmojiUnicode
 import com.discord.rtcconnection.socket.io.Payloads.Protocol.ProtocolInfo
+import com.discord.stores.StoreSlowMode
+import com.discord.stores.StoreStream
 import com.discord.utilities.drawable.DrawableCompat
 import com.discord.utilities.embed.EmbedResourceUtils
 import com.discord.utilities.guildautomod.AutoModUtils
 import com.discord.utilities.lazy.memberlist.ChannelMemberList
 import com.discord.utilities.lazy.memberlist.MemberListRow
+import com.discord.utilities.permissions.PermissionUtils
 import com.discord.widgets.channels.list.*
 import com.discord.widgets.chat.input.SmoothKeyboardReactionHelper
 import com.discord.widgets.chat.list.actions.`WidgetChatListActions$binding$2`
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemAutoModSystemMessageEmbed
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemThreadDraftForm
 import com.discord.widgets.chat.list.entries.*
+import com.discord.widgets.chat.overlay.WidgetChatOverlay
 import com.linecorp.apng.decoder.Apng
 import com.lytefast.flexinput.R
+import de.robv.android.xposed.XC_MethodHook.MethodHookParam
+
+const val BYPASS_SLOWMODE_PERMISSION = 1L shl 52
 
 // Contains various small fixes for Discord
 internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
@@ -60,6 +74,8 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixPrivateChannelScroll()
         fixVoiceCodec()
         fixThreadsIcon()
+        fixSlowmode()
+        fixExternalLinks()
     }
 
     private fun fixStockEmojis() = tryPatch("Fix built-in emojis") {
@@ -109,13 +125,12 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     }
 
     private fun fixWebpEmojis() = tryPatch("Fix emoji formats") {
-        ModelEmojiCustom::getImageUri
         // Support webp emojis by forcing every emoji to be webp
         patcher.instead<ModelEmojiCustom?>(
             "getImageUri",
             Long::class.javaPrimitiveType!!, Boolean::class.javaPrimitiveType!!, Int::class.javaPrimitiveType!!,
-        ) { param ->
-            "https://cdn.discordapp.com/emojis/${param.args[0]}.webp?size=${param.args[2]}&animated=${param.args[1]}"
+        ) { (_, id: Long, animated: Boolean, size: Int) ->
+            "https://cdn.discordapp.com/emojis/$id.webp?size=$size&animated=$animated}"
         }
     }
 
@@ -148,7 +163,6 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     private val ChannelMemberList.groups by accessField<Map<String, MemberListRow>>("groups")
 
     private fun fixMemberListGroups() = tryPatch("Fix member list groups") {
-        @Suppress("UNCHECKED_CAST")
         patcher.after<ChannelMemberList>("setGroups", List::class.java, Function1::class.java) {
             groupIndices.forEach { (idx, id) -> rows[idx] = groups[id] }
         }
@@ -183,7 +197,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             val mentionCount = builder.`$mentionCounts$inlined`[threadId] as? Int? ?: return@after
 
             if (mentionCount > 0) {
-                builder.`$hiddenChannelsIds$inlined`.remove(threadId)
+                builder.`$hiddenChannelsIds$inlined` -= threadId
                 param.result = false
             }
         }
@@ -201,7 +215,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             val hasChildMentions = childThreads?.any { mentionCountMap.getOrDefault(it.id, 0) > 0 } == true
 
             if (hasMentions || hasChildMentions) {
-                builder.`$hiddenChannelsIds$inlined`.remove(channelId)
+                builder.`$hiddenChannelsIds$inlined` -= channelId
                 param.result = false
             }
         }
@@ -210,7 +224,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     private fun fixPrivateThreads() = tryPatch("Fix private threads") {
         patcher.instead<ThreadDraftFormEntry>("getCanCreatePrivateThread") { true }
         patcher.after<WidgetChatListAdapterItemThreadDraftForm>("onConfigure", Int::class.javaPrimitiveType!!, ChatListEntry::class.java) {
-            itemView.findViewById<TextView>(getResId("private_thread_toggle_badge", "id")).visibility = View.GONE
+            itemView.findViewById<TextView>("private_thread_toggle_badge").visibility = View.GONE
         }
     }
 
@@ -239,25 +253,26 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     }
 
     private fun fixThreadsIcon() = tryPatch("Fix threads icon alignment in channel context menu") {
-        fun adjustThreadIcon(rootView: View, textViewId: Int, themed: Boolean) {
+        fun adjustThreadIcon(rootView: View, textViewIdName: String, themed: Boolean) {
             val iconId = if (themed) {
                 DrawableCompat.getThemedDrawableRes(rootView.context, R.b.ic_thread)
             } else {
                 R.e.ic_thread
             }
+
             val icon = ContextCompat.getDrawable(rootView.context, iconId)!!.apply {
                 val size = 24.dp
                 setBounds(0, 0, size, size)
             }
 
-            val textView = rootView.findViewById<TextView>(textViewId)
+            val textView = rootView.findViewById<TextView>(textViewIdName)
             textView.setCompoundDrawables(icon, null, null, null)
         }
 
         patcher.after<`WidgetChannelsListItemChannelActions$binding$2`>("invoke", View::class.java) { (_, view: View) ->
             adjustThreadIcon(
                 rootView = view,
-                textViewId = getResId("text_action_thread_browser", "id"),
+                textViewIdName = "text_action_thread_browser",
                 themed = true,
             )
         }
@@ -265,10 +280,57 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         patcher.after<`WidgetChatListActions$binding$2`>("invoke", View::class.java) { (_, view: View) ->
             adjustThreadIcon(
                 rootView = view,
-                textViewId = getResId("dialog_chat_actions_start_thread", "id"),
+                textViewIdName = "dialog_chat_actions_start_thread",
                 themed = false,
             )
         }
+    }
+
+    private fun fixSlowmode() = tryPatch("Fix slowmode permissions") {
+        // Patches the bypass slowmode permission checker to use the new permission instead
+        patcher.instead<PermissionUtils>(
+            "hasBypassSlowmodePermissions",
+            Long::class.javaObjectType,
+            StoreSlowMode.Type::class.java,
+        ) { (_, permissions: Long?) ->
+            PermissionUtils.can(Permission.ADMINISTRATOR, permissions)
+                || PermissionUtils.can(BYPASS_SLOWMODE_PERMISSION, permissions)
+        }
+
+        // Configures the slowmode text indicator to show immunity status
+        patcher.after<WidgetChatOverlay.TypingIndicatorViewHolder>(
+            "getSlowmodeText",
+            Int::class.javaPrimitiveType!!,
+            Int::class.javaPrimitiveType!!,
+            Boolean::class.javaPrimitiveType!!,
+        ) { param ->
+            // Empty only if there's no slow mode
+            if (param.result == "") return@after
+
+            val channel = StoreStream.getChannelsSelected().selectedChannel
+            val permissions = StoreStream.getPermissions().permissionsByChannel[channel.id]
+            if (PermissionUtils.INSTANCE.hasBypassSlowmodePermissions(permissions, StoreSlowMode.Type.MessageSend.INSTANCE)) {
+                param.result = Utils.appContext.resources.getString(R.h.channel_slowmode_desc_immune)
+            }
+        }
+    }
+
+    // Forces app links to always open in a separate window, except for custom tab. This addresses an issue where some links are opened internally on certain ROMs
+    private fun fixExternalLinks() = tryPatch("Fixes app links not being handled by their respective app") {
+        @Suppress("UnusedReceiverParameter")
+        fun Activity.handleIntent(param: MethodHookParam) {
+            val intent = param.args[0] as? Intent ?: return
+            val pm = Utils.appContext.packageManager
+            val handlers = pm.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+            if (handlers.isEmpty()) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+
+        patcher.before<Activity>("startActivity", Intent::class.java, callback = Activity::handleIntent)
+        patcher.before<Activity>(
+            "startActivityForResult",
+            Intent::class.java, Int::class.javaPrimitiveType!!, Bundle::class.java,
+            callback = Activity::handleIntent
+        )
     }
 
     private fun tryPatch(label: String, block: () -> Unit) {
