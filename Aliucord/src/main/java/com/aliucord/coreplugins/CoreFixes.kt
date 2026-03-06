@@ -130,7 +130,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             "getImageUri",
             Long::class.javaPrimitiveType!!, Boolean::class.javaPrimitiveType!!, Int::class.javaPrimitiveType!!,
         ) { (_, id: Long, animated: Boolean, size: Int) ->
-            "https://cdn.discordapp.com/emojis/$id.webp?size=$size&animated=$animated}"
+            "https://cdn.discordapp.com/emojis/$id.webp?size=$size&animated=$animated"
         }
     }
 
