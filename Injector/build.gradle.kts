@@ -1,4 +1,4 @@
-version = "2.3.2"
+version = "2.4.0"
 
 plugins {
     alias(libs.plugins.aliucord.injector)
@@ -45,6 +45,7 @@ kotlin {
             "-Xno-call-assertions",
             "-Xno-param-assertions",
             "-Xno-receiver-assertions",
+            "-Xallow-kotlin-package", // Workaround to adding kotlin.enums.EnumEntries polyfill
         )
     }
 }
