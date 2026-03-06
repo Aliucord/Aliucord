@@ -106,6 +106,8 @@ private class Injector(private val appCtx: Application) {
         // Delete old custom cores copied to code cache if they exist
         if (!useCustomCore) {
             internalCustomCoreFile.delete()
+        } else {
+            Logger.d("Using external custom Aliucord core!")
         }
 
         // Copy core bundle from external storage to internal cache to prevent deletion while running
@@ -248,13 +250,12 @@ private class Injector(private val appCtx: Application) {
             val c = Class.forName("com.aliucord.Main")
             val onApplicationInit = c.getDeclaredMethod("onApplicationInit", Application::class.java)
 
-            Logger.d("Starting Aliucord core...")
+            Logger.d("Starting early Aliucord core...")
             onApplicationInit.invoke(null, appCtx)
+            Logger.d("Finished early starting Aliucord")
         } catch (_: NoSuchMethodException) {
             startLegacyAliucord()
         }
-
-        Logger.d("Finished starting Aliucord")
     }
 
     /**
@@ -271,6 +272,7 @@ private class Injector(private val appCtx: Application) {
             Logger.d("Starting Aliucord core...")
             preInit.invoke(null, activity)
             init.invoke(null, activity)
+            Logger.d("Finished starting Aliucord")
         }
     }
 
@@ -325,11 +327,7 @@ private class Injector(private val appCtx: Application) {
             return false
         }
 
-        val customCoreEnabled = settings.optBoolean(ALIUCORD_FROM_STORAGE_KEY, false)
-        if (customCoreEnabled)
-            Logger.d("Loading external custom Aliucord core!")
-
-        return customCoreEnabled
+        return settings.optBoolean(ALIUCORD_FROM_STORAGE_KEY, false)
     }
 
     /**
@@ -337,18 +335,19 @@ private class Injector(private val appCtx: Application) {
      * If permissions were not granted to read/write to the external settings, then this fails silently.
      */
     private fun disableCustomCore(): Boolean {
-        try {
+        return try {
             if (!externalSettingsFile.exists()) return true
 
             val settings = JSONObject(externalSettingsFile.readText())
-            if (!settings.optBoolean(ALIUCORD_FROM_STORAGE_KEY, false))
+            if (!settings.optBoolean(ALIUCORD_FROM_STORAGE_KEY, false)) {
                 return true
+            }
 
             settings.put(ALIUCORD_FROM_STORAGE_KEY, false)
             externalSettingsFile.writeText(settings.toString())
-            return true
+            true
         } catch (_: Exception) {
-            return false
+            false
         }
     }
 
@@ -359,8 +358,9 @@ private class Injector(private val appCtx: Application) {
     private fun hookActivityOnCreate(callback: (AppActivity) -> Unit) {
         Logger.d("Hooking AppActivity.onCreate")
 
-        if (activityInitialized.get())
+        if (activityInitialized.get()) {
             throw IllegalStateException("Cannot hook AppActivity.onCreate when it was already invoked!")
+        }
 
         try {
             var unhook: XC_MethodHook.Unhook? = null
