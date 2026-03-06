@@ -127,19 +127,16 @@ internal class CoreFeatures : CorePlugin(Manifest("CoreBase")) {
 
             val context = requireContext()
 
-            val backgroundColor = getResId("colorBackgroundTertiary", "attr")
-            val textColor = getResId("colorHeaderPrimary", "attr")
-
             // Layout
             binding.c.apply {
-                setBackgroundColor(ColorCompat.getThemedColor(context, backgroundColor))
+                setBackgroundColor(ColorCompat.getThemedColor(context, getResId("colorBackgroundTertiary", "attr")))
                 setOnClickListener { safeModeDialog(this@before) }
                 visibility = View.VISIBLE
             }
 
             // Indicator text
             binding.i.apply {
-                setTextColor(ColorCompat.getThemedColor(context, textColor))
+                setTextColor(ColorCompat.getThemedColor(context, getResId("colorHeaderPrimary", "attr")))
                 text = "Safe mode enabled"
             }
 
