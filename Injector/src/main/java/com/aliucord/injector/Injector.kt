@@ -353,7 +353,9 @@ private class Injector(private val appCtx: Application) {
 
     /**
      * Attempts to hook [AppActivity.onCreate] if it has not been invoked yet and run a [callback]
-     * when it is executed. This should not be used multiple times within the same part of the initialization flow.
+     * when it is executed. This allows for an unlimited amount of callbacks to be registered prior to
+     * the activity initializing, however disallows hooking once it's initialized. As such, it should not
+     * be used multiple times throughout different parts of the same initialization flow.
      */
     private fun hookActivityOnCreate(callback: (AppActivity) -> Unit) {
         Logger.d("Hooking AppActivity.onCreate")
