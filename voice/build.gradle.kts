@@ -1,6 +1,6 @@
 // Please update the reference RNA version when bumping libdiscord.so!
 // Reference: 314.13 - Stable
-version = "90.0.19-codec-api.b0"
+version = "90.0.19-codec-api.b1"
 
 plugins {
     alias(libs.plugins.aliucord.injector)
