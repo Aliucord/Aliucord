@@ -9,6 +9,7 @@ import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.*
 import androidx.cardview.widget.CardView
 import androidx.core.content.res.ResourcesCompat
+import co.discord.media_engine.VideoDecoder
 import co.discord.media_engine.VideoInputDeviceDescription
 import com.aliucord.Constants
 import com.aliucord.Utils
@@ -35,6 +36,8 @@ import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
 import kotlin.math.pow
+import b.a.q.m0.c.e as MediaEngineConnectionLegacy
+import b.a.q.m0.c.`e$h` as MediaEngineConnectionLegacy_SetCodecs
 import b.a.q.n0.a as RtcControlSocket
 import b.a.q.n0.`a$j` as RtcControlSocket_OnMessage
 import b.a.q.n0.`a$k` as RtcControlSocket_Connect
@@ -141,6 +144,28 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
             }
         }
 
+        // Patches codec setter to pass all available codecs to native lib
+        patcher.before<MediaEngineConnectionLegacy>(
+            "z", // runSynchronized
+            Function1::class.java,
+        ) { (param, callback: Function1<*, *>) ->
+            if (callback is MediaEngineConnectionLegacy_SetCodecs) {
+                val params = mapOf(
+                    "level-asymmetry-allowed" to "1",
+                    "packetization-mode" to "1",
+                    "profile-level-id" to "42e01f",
+                )
+                j.setCodecs(
+                    callback.`$audioEncoder`,
+                    callback.`$videoEncoder`,
+                    arrayOf(callback.`$audioDecoder`),
+                    this.i.filter { it.c == "video" }.map { codec ->
+                        VideoDecoder(codec.a, codec.d, codec.e, params)
+                    }.toTypedArray()
+                )
+                param.result = null
+            }
+        }
 
         patcher.before<RtcControlSocket_OnMessage>(
             RtcControlSocket::class.java,
