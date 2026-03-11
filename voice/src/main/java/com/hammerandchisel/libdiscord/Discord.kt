@@ -324,6 +324,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
     }
 
     private fun setTransportOptions(options: TransportOptions) {
+        Log.d("Sunflower", "engine/trwansportOptions: ${gson.m(options)}")
         nativeEngine.setTransportOptions(gson.m(options))
     }
     private fun TransportOptions.set() = setTransportOptions(this)

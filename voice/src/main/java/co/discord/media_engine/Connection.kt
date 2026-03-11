@@ -53,7 +53,7 @@ private data class TransportOptions(
         val vadAutoThreshold: Int? = null,
         val vadDuringPreProcess: Boolean? = null,
         val vadUseKrisp: Boolean? = null,
-        val vadThreshold: Int? = null,
+        val vadThreshold: Float? = null,
         val vadLeading: Int? = null,
         val vadTrailing: Int? = null,
         val vadKrispActivationThreshold: Float? = null,
@@ -118,7 +118,7 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
                 vadDuringPreProcess = false,
                 // TODO: Krisp is likely broken
                 vadUseKrisp = false,
-                vadThreshold = -60,
+                vadThreshold = -60f,
                 vadLeading = 5,
                 vadTrailing = 25,
                 vadKrispActivationThreshold = 0.5f,
@@ -159,11 +159,12 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
         native.dispose()
     }
 
-    // TODO
+    // TODO?
     override fun enableForwardErrorCorrection(enabled: Boolean) {}
 
     override fun getStats(getStatsCallback: GetStatsCallback) = getStats(getStatsCallback, -1)
 
+    // TODO
     override fun getStats(getStatsCallback: GetStatsCallback, filter: Int) {
         // if (!disposed) {
         //     native.getFilteredStats(filter) { statsStr ->
@@ -223,16 +224,16 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
     override fun setPTTActive(isActive: Boolean) = native.setPTTActive(isActive, priority = false, muteOverride = false) // TODO: priority? muteOverride?
     override fun setUserPlayoutVolume(userId: Long, volume: Float) = native.setLocalVolume(userId.toString(), volume)
 
-    // TODO
-    override fun setVADAutoThreshold(threshold: Int) {}
-    // TODO
-    override fun setVADLeadingFramesToBuffer(frameCount: Int) {}
-    // TODO
-    override fun setVADTrailingFramesToSend(frameCount: Int) {}
-    // TODO
-    override fun setVADTriggerThreshold(threshold: Float) {}
-    // TODO
-    override fun setVADUseKrisp(enabled: Boolean) {}
+    override fun setVADAutoThreshold(threshold: Int)
+        = set(TransportOptions.InputModeOptions(vadAutoThreshold = threshold))
+    override fun setVADLeadingFramesToBuffer(frameCount: Int)
+        = set(TransportOptions.InputModeOptions(vadLeading = frameCount))
+    override fun setVADTrailingFramesToSend(frameCount: Int)
+        = set(TransportOptions.InputModeOptions(vadTrailing = frameCount))
+    override fun setVADTriggerThreshold(threshold: Float)
+        = set(TransportOptions.InputModeOptions(vadThreshold = threshold))
+    override fun setVADUseKrisp(enabled: Boolean)
+        = set(TransportOptions.InputModeOptions(vadUseKrisp = enabled))
 
     override fun setVideoBroadcast(enabled: Boolean) {
         if (disposed) return
@@ -254,9 +255,12 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
     }
 
     private fun set(options: TransportOptions) {
-        Log.d("Sunflower", "trwansportOptions: ${gson.m(options)}")
+        Log.d("Sunflower", "connection/trwansportOptions: ${gson.m(options)}")
         native.setTransportOptions(gson.m(options))
     }
+
+    private fun set(options: TransportOptions.InputModeOptions) =
+        set(TransportOptions(inputModeOptions = options))
 
     // New DAVE-related functions
     fun connectUsers(userIds: List<String>) {
