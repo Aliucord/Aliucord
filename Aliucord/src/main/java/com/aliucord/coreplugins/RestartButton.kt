@@ -15,12 +15,14 @@ import java.io.InputStreamReader
 import java.text.SimpleDateFormat
 import java.util.*
 
+private const val LOG_SIZE = 40000
+
 internal class RestartButton : CorePlugin(Manifest("RestartButton")) {
     init {
         manifest.description = "Adds a restart button for Aliucord to the settings page"
     }
 
-    var logs = ArrayDeque<String>(10000)
+    var logs = ArrayDeque<String>(LOG_SIZE)
     override fun start(context: Context) {
         val dateFormat = SimpleDateFormat("yyyyMMdd_HHmmssSSS", Locale.getDefault())
         val time = dateFormat.format(Date())
@@ -30,7 +32,7 @@ internal class RestartButton : CorePlugin(Manifest("RestartButton")) {
             while (true) {
                 val nextLine = reader.readLine() ?: break
                 logs.add(nextLine)
-                if (logs.size > 10000) {
+                if (logs.size > LOG_SIZE) {
                     logs.removeFirst()
                 }
             }
