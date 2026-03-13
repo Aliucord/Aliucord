@@ -17,6 +17,7 @@ import com.discord.api.channel.`ChannelUtils$getDisplayName$1`
 import com.discord.api.message.embed.EmbedType
 import com.discord.api.message.embed.MessageEmbed
 import com.discord.api.role.GuildRoleColors
+import com.discord.api.sticker.BaseSticker
 import com.discord.api.sticker.Sticker
 import com.discord.api.sticker.StickerFormatType
 import com.discord.api.sticker.StickerPartial
@@ -243,11 +244,13 @@ fun patchStickers() {
     val hook = Hook {
         if (it.result == StickerFormatType.UNKNOWN) it.result = StickerFormatType.PNG
     }
+    Patcher.addPatch(BaseSticker::class.java.getDeclaredMethod("a"), hook)
     Patcher.addPatch(Sticker::class.java.getDeclaredMethod("a"), hook)
     Patcher.addPatch(StickerPartial::class.java.getDeclaredMethod("a"), hook)
     val hook2 = Hook {
         if (it.result == "") it.result = ".gif"
     }
+    Patcher.addPatch(BaseSticker::class.java.getDeclaredMethod("b"), hook2)
     Patcher.addPatch(Sticker::class.java.getDeclaredMethod("b"), hook2)
     Patcher.addPatch(StickerPartial::class.java.getDeclaredMethod("b"), hook2)
 }
