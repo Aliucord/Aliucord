@@ -43,11 +43,12 @@ internal fun init(appCtx: Application) {
     Logger.d("Started Aliucord Injector!")
 
     try {
-        if (!XposedBridge.disableHiddenApiRestrictions())
+        if (!XposedBridge.disableHiddenApiRestrictions()) {
             Logger.w("Failed to disable hidden api restrictions")
-
-        if (!XposedBridge.disableProfileSaver())
+        }
+        if (!XposedBridge.disableProfileSaver()) {
             Logger.w("Failed to disable profile saver")
+        }
 
         pruneArtProfile(appCtx)
     } catch (e: Exception) {
@@ -93,7 +94,6 @@ private class Injector(private val appCtx: Application) {
      * This is invoked when [App.onCreate] is called, triggering a possible early initialization of the Aliucord core
      * if permissions have been granted and the core has already been downloaded during a prior launch.
      */
-    @Throws(Exception::class)
     fun onApplicationCreate() {
         if (!isPermissionsGranted()) {
             restoreCoreFlow()
@@ -107,7 +107,7 @@ private class Injector(private val appCtx: Application) {
         if (!useCustomCore) {
             internalCustomCoreFile.delete()
         } else {
-            Logger.d("Using external custom Aliucord core!")
+            Logger.d("Using custom Aliucord core!")
         }
 
         // Copy core bundle from external storage to internal cache to prevent deletion while running
@@ -219,12 +219,8 @@ private class Injector(private val appCtx: Application) {
             val data = fetchBuildData()
             Logger.d("Retrieved remote build data: $data")
 
-            val kotlinSemver = data.kotlinVersion
-                .split('.')
-                .map { it.toInt() }
-
             if (data.discordVersion > com.discord.BuildConfig.VERSION_CODE ||
-                !KotlinVersion.CURRENT.isAtLeast(kotlinSemver[0], kotlinSemver[1], kotlinSemver[2])
+                KotlinVersion.CURRENT < data.kotlinVersionParsed
             ) {
                 // TODO: launch aliucord manager reinstall
                 Logger.errorToast(appCtx, "Your base Discord is outdated. Please reinstall using Aliucord Manager.")
@@ -316,7 +312,7 @@ private class Injector(private val appCtx: Application) {
                 return false
             }
             if (!externalCustomCoreFile.exists()) {
-                Logger.d("Aliucord external custom core missing, skipping custom core check...")
+                Logger.d("Aliucord custom core missing, skipping custom core check...")
                 return false
             }
 

@@ -37,10 +37,11 @@ internal fun downloadLatestCore(outputFile: File) {
                 val newProgress = (downloaded + bytes) / length.toFloat()
                 if (newProgress >= oldProgress + 0.1f) {
                     oldProgress = newProgress
-                    Logger.d(String.format(Locale.ROOT,
-                        "Downloaded %.2f%% after %sms",
+                    Logger.d("Downloaded %.2f%% after %sms".format(
+                        Locale.ROOT,
                         newProgress * 100,
-                        System.currentTimeMillis() - startTime))
+                        System.currentTimeMillis() - startTime,
+                    ))
                 }
 
                 downloaded += bytes
@@ -58,7 +59,20 @@ internal fun downloadLatestCore(outputFile: File) {
 internal data class BuildData(
     var discordVersion: Int,
     var kotlinVersion: String,
-)
+) {
+    val kotlinVersionParsed: KotlinVersion
+        get() {
+            return try {
+                val parts = kotlinVersion
+                    .split('.')
+                    .map { it.toInt() }
+
+                KotlinVersion(parts[0], parts[1], parts[2])
+            } catch (_: Exception) {
+                throw IllegalArgumentException("Invalid remote Kotlin version '$kotlinVersion'")
+            }
+        }
+}
 
 /**
  * Fetches and parses the remote build data that is used to determine if update is possible.
