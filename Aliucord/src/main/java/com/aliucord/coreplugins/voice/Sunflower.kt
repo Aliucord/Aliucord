@@ -28,9 +28,12 @@ import com.discord.rtcconnection.socket.io.Opcodes
 import com.discord.rtcconnection.socket.io.Payloads
 import com.discord.rtcconnection.socket.io.Payloads.Protocol.ProtocolInfo
 import com.discord.stores.StoreMediaEngine
+import com.discord.stores.StoreMediaSettings
 import com.discord.utilities.color.ColorCompat
 import com.discord.utilities.debug.DebugPrintBuilder
+import com.discord.widgets.settings.WidgetSettingsVoice
 import com.discord.widgets.voice.controls.VoiceControlsSheetView
+import com.discord.widgets.voice.sheet.WidgetVoiceSettingsBottomSheet
 import com.lytefast.flexinput.R
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
@@ -268,6 +271,8 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
             logger.debug("Setting video input device $device")
             mediaEngine.i().setVideoInputDevice(device)
         }
+
+        patchKrisp()
     }
 
     // Upon protocol selection ack, start preparing for dave
@@ -474,6 +479,56 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                     }
                     onCodeUpdate(newestCode)
                 }
+            }
+        }
+    }
+
+    // TODO: Krisp
+    // Disable krisp-related settings as they are broken; Krisp is fetched from play delivery assets
+    // which is likely a huge pain to use properly on a patched app
+    private fun patchKrisp() {
+        patcher.after<WidgetSettingsVoice>(
+            "configureUI",
+            WidgetSettingsVoice.Model::class.java,
+        ) {
+            val binding = WidgetSettingsVoice.`access$getBinding$p`(this)
+
+            val krispToggle = binding.k;
+            krispToggle.l.b().isClickable = false
+            krispToggle.alpha = 0.3f
+
+            val krispVadToggle = binding.h;
+            krispVadToggle.l.b().isClickable = false
+            krispVadToggle.alpha = 0.3f
+        }
+        patcher.after<WidgetVoiceSettingsBottomSheet>(
+            "configureUI",
+            WidgetVoiceSettingsBottomSheet.ViewState::class.java,
+        ) {
+            val binding = WidgetVoiceSettingsBottomSheet.`access$getBinding$p`(this)
+            val krispToggle = binding.d
+            krispToggle.visibility = View.GONE
+        }
+        patcher.before<StoreMediaSettings.VoiceConfiguration>(
+            Boolean::class.javaPrimitiveType!!,
+            Boolean::class.javaPrimitiveType!!,
+            Boolean::class.javaPrimitiveType!!,
+            StoreMediaSettings.VadUseKrisp::class.java,
+            Boolean::class.javaPrimitiveType!!,
+            Boolean::class.javaPrimitiveType!!,
+            StoreMediaSettings.NoiseProcessing::class.java,
+            Float::class.javaPrimitiveType!!,
+            MediaEngineConnection.InputMode::class.java,
+            Float::class.javaPrimitiveType!!,
+            Map::class.java,
+            Map::class.java,
+            Map::class.java,
+            Boolean::class.javaPrimitiveType!!,
+            Boolean::class.javaPrimitiveType!!,
+        ) { param ->
+            param.args[3] = StoreMediaSettings.VadUseKrisp.Disabled
+            if (param.args[6] != StoreMediaSettings.NoiseProcessing.None) {
+                param.args[6] = StoreMediaSettings.NoiseProcessing.Suppression
             }
         }
     }
