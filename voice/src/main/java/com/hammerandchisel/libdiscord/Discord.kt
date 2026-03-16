@@ -271,8 +271,11 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
     override fun getSupportedVideoCodecs(callback: GetSupportedVideoCodecsCallback) {
         nativeEngine.getCodecCapabilities { capabilitiesJson ->
             val capabilities = gson.g<Array<CodecCapability>>(capabilitiesJson, Array<CodecCapability>::class.java)
+            Log.d("Sunflower", "Codec Capabilities: $capabilities")
             capabilities
-                .filter { it.decode && it.encode }
+                // TODO FIXME: changed to any decodable for video codec
+                .filter { it.decode }
+                // .filter { it.decode && it.encode }
                 .map { it.codec }
                 .let { callback.onSupportedVideoCodecs(it.toTypedArray()); Log.d("Sunflower", "Supported codecs: $it") }
         }
