@@ -157,6 +157,11 @@ class WebRtcAudioTrack {
         null /* stateCallback */, false /* useLowLatency */, true /* enableVolumeLogger */);
   }
 
+  @CalledByNative
+  WebRtcAudioTrack(Context context, AudioManager audioManager, boolean z10) {
+    this(context, audioManager, computeAttributes(z10), null, null, false, true);
+  }
+
   WebRtcAudioTrack(Context context, AudioManager audioManager,
       @Nullable AudioAttributes audioAttributes, @Nullable AudioTrackErrorCallback errorCallback,
       @Nullable AudioTrackStateCallback stateCallback, boolean useLowLatency,
@@ -523,6 +528,16 @@ class WebRtcAudioTrack {
 
   private int channelCountToConfiguration(int channels) {
     return (channels == 1 ? AudioFormat.CHANNEL_OUT_MONO : AudioFormat.CHANNEL_OUT_STEREO);
+  }
+
+  private static AudioAttributes computeAttributes(boolean z10) {
+    if (!z10) {
+      return null;
+    }
+    AudioAttributes.Builder builder = new AudioAttributes.Builder();
+    builder.setContentType(AudioAttributes.CONTENT_TYPE_MUSIC);
+    builder.setUsage(AudioAttributes.USAGE_MEDIA);
+    return builder.build();
   }
 
   private static native void nativeCacheDirectBufferAddress(
