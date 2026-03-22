@@ -128,9 +128,22 @@ public final class Main {
     }
 
     private static void preInitWithPermissions(AppCompatActivity activity) {
+        createDirectories();
         settings = new SettingsUtilsJSON("Aliucord");
         PluginManager.loadCorePlugins(activity);
         loadAllPlugins(activity);
+    }
+
+    private static void createDirectories() {
+        var settingsDir = new File(Constants.SETTINGS_PATH);
+        if (!settingsDir.exists() && !settingsDir.mkdirs()) {
+            throw new RuntimeException(new IOException("Failed to create Aliucord settings directory"));
+        }
+
+        var pluginsDir = new File(Constants.PLUGINS_PATH);
+        if (!pluginsDir.exists() && !pluginsDir.mkdirs()) {
+            throw new RuntimeException(new IOException("Failed to create Aliucord plugins directory"));
+        }
     }
 
     /**

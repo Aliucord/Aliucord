@@ -1,7 +1,6 @@
 package com.aliucord
 
 import com.aliucord.PluginManager.logger
-import com.aliucord.settings.*
 import com.aliucord.utils.GsonUtils.fromJson
 import com.aliucord.utils.GsonUtils.gson
 import com.aliucord.utils.GsonUtils.toJson
@@ -10,36 +9,36 @@ import org.json.JSONObject
 import java.io.File
 import java.lang.reflect.Type
 import java.math.BigDecimal
-import java.util.*
 
 @Suppress("unused")
 /** Utility class to store and retrieve preferences  */
 class SettingsUtilsJSON(plugin: String) {
-    private val settingsPath = Constants.SETTINGS_PATH + "/"
-    private val settingsFile = "$settingsPath$plugin.json"
+    private val settingsFile = File("${Constants.SETTINGS_PATH}/$plugin.json")
     private val cache: MutableMap<String, Any> = HashMap()
     private val settings: JSONObject by lazy {
-        val file = File(settingsFile)
-        if (file.exists()) {
-            val read = file.readText()
-            if (read != "") return@lazy JSONObject(read)
-        }
-        JSONObject()
-    }
+        val contents = takeIf { settingsFile.exists() }
+            ?.let { settingsFile.readText() }
+            ?.takeIf { it.isNotBlank() }
 
-    init {
-        val dir = File(settingsPath)
-        if (!dir.exists() && !dir.mkdir()) throw RuntimeException("Failed to create settings dir")
+        if (contents != null) {
+            JSONObject(contents)
+        } else {
+            JSONObject()
+        }
     }
 
     private fun writeData() {
-        if (settings.length() > 0) {
-            val file = File(settingsFile)
-            try {
-                file.writeText(settings.toString(4))
-            } catch (e: Throwable) {
-                logger.error("Failed to save settings", e)
-            }
+        if (settings.length() <= 0) return
+
+        val settingsDir = settingsFile.parentFile!!
+        if (!settingsDir.exists() && !settingsDir.mkdirs()) {
+            throw RuntimeException("Failed to create settings directory")
+        }
+
+        try {
+            settingsFile.writeText(settings.toString(4))
+        } catch (e: Throwable) {
+            logger.error("Failed to save settings", e)
         }
     }
 
@@ -47,7 +46,7 @@ class SettingsUtilsJSON(plugin: String) {
      * Resets All Settings
      * @return true if successful, else false
      */
-    fun resetFile() = File(settingsFile).delete()
+    fun resetFile() = settingsFile.delete()
 
     /**
      * Toggles Boolean and returns it
