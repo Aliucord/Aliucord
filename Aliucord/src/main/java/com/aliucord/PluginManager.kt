@@ -324,6 +324,7 @@ object PluginManager {
             RemoveBilling(),
             RestartButton(),
             ShowReplyMention(),
+            SlowmodeFix(),
             StickerCrashFix(),
             SupportWarn(),
             SupporterBadges(),

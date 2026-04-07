@@ -1,5 +1,5 @@
 name: Feature Request
-description: Create a feature or backport request to be built into Aliucord itself. To request new plugins, please go to Aliucord/plugin-requests.
+description: Create a feature or backport request to be built into Aliucord itself.
 labels: [enhancement]
 body:
   - type: textarea

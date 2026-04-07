@@ -1,5 +1,5 @@
 name: Bug/Crash Report
-description: Report a bug or crash in Aliucord. For plugin issues, please use the plugin's repo or our support server.
+description: Report a bug or crash in Aliucord. For plugin issues, please use our support server or create an issue in the plugin author's repository!
 labels: [bug]
 body:
   - type: input
