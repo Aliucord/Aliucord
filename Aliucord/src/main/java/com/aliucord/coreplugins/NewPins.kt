@@ -1,9 +1,6 @@
 package com.aliucord.coreplugins
 
 import android.content.Context
-import android.text.SpannableString
-import android.text.SpannableStringBuilder
-import android.text.style.ForegroundColorSpan
 import android.util.TypedValue
 import android.view.View
 import android.widget.LinearLayout
@@ -15,11 +12,11 @@ import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.utils.GsonUtils
 import com.aliucord.utils.RxUtils
-import com.aliucord.utils.SerializedName
 import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.utils.ViewUtils.label
 import com.aliucord.utils.ViewUtils.subtext
 import com.aliucord.wrappers.GuildRoleWrapper.Companion.permissions
+import com.discord.api.permission.Permission
 import com.discord.models.message.Message
 import com.discord.models.user.MeUser
 import com.discord.restapi.RestAPIParams
@@ -38,43 +35,14 @@ import com.discord.widgets.chat.pins.WidgetChannelPinnedMessages
 import com.discord.widgets.servers.WidgetServerSettingsEditRole
 import com.discord.widgets.servers.WidgetServerSettingsEditRole.Model.ManageStatus
 import com.lytefast.flexinput.R
-import rx.Observable
 import java.net.URLEncoder
-import java.util.Date
 import java.util.WeakHashMap
 import com.discord.api.message.Message as ApiMessage
 
 private const val PIN_MESSAGES_PERMISSION = 1L shl 51
 
-// After 2026/01/12, users will no longer be able to pin messages with the
-// Manage Messages permission.
-// https://discord.com/developers/docs/change-log#pin-permission-split
-// This constant is the Unix timestamp in ms at 2026/01/11, one day before the
-// breaking change. Code relating to this constant can be safely removed after
-// the switch.
-private const val MIGRATION_DEADLINE = 1768003200000L
-private val isPastDeadline get() = Date().time > MIGRATION_DEADLINE
-
-// TODO: Post migration strings are made up, and might differ from official clients later.
-private val MANAGE_MESSAGES_TEXT = if (!isPastDeadline) {
-    "Manage Messages ⚠"
-} else {
-    "Manage Messages"
-}
-
-private val MANAGE_MESSAGES_SUBTEXT = if (!isPastDeadline) {
-    SpannableStringBuilder().apply {
-        append("Members with this permission can delete messages by other members or pin any message.*\n\n")
-        append(
-            "* Pinning messages now has a separate permission. This setting's behaviour will change soon.",
-            ForegroundColorSpan(Utils.appContext.getColor(R.c.status_yellow)),
-            SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-    }
-} else {
-    "Members with this permission can delete messages by other members."
-}
-
+private const val MANAGE_MESSAGES_TEXT = "Manage Messages"
+private const val MANAGE_MESSAGES_SUBTEXT = "Members with this permission can delete messages by other members."
 private const val PIN_MESSAGES_TEXT = "Pin Messages"
 private const val PIN_MESSAGES_SUBTEXT = "Allows members to pin or unpin any message."
 
@@ -104,10 +72,10 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
 
     private data class GetChannelPinsResponse(
         val items: List<MessagePin>,
-        @SerializedName("has_more") val hasMore: Boolean,
+        val hasMore: Boolean,
     ) {
         data class MessagePin(
-            @SerializedName("pinned_at") val pinnedAt: String,
+            val pinnedAt: String,
             val message: ApiMessage,
         )
     }
@@ -236,11 +204,10 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
             ) ->
             val result = param.result as ManageMessageContext
 
-            // TODO: This line can be removed after 2026/01/12
-            if (result.canTogglePinned && !isPastDeadline) return@after
-
             val isPrivateDM = isPrivateChannel && !isSystemDM
-            val isPinPermitted = isPrivateDM || PermissionUtils.can(PIN_MESSAGES_PERMISSION, permissions)
+            val isPinPermitted = isPrivateDM
+                || PermissionUtils.can(PIN_MESSAGES_PERMISSION, permissions)
+                || PermissionUtils.can(Permission.ADMINISTRATOR, permissions)
             val canPin = isPinPermitted && !isArchivedThread
             param.result = ManageMessageContext(
                 result.canManageMessages,

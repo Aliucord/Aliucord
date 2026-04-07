@@ -8,9 +8,6 @@ package com.aliucord;
 
 import android.os.Environment;
 
-import com.aliucord.utils.ReflectUtils;
-import com.discord.stores.StoreStream;
-
 @SuppressWarnings("unused")
 public final class Constants {
     public static final class Icons {
@@ -49,7 +46,6 @@ public final class Constants {
     public static final long BOT_SPAM_CHANNEL_ID = 811263527239024640L; // #bot-spam
 
     /** Path of Aliucord folder */
-    @SuppressWarnings("deprecation")
     public static final String BASE_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Aliucord";
     /** Path of Plugin folder */
     public static final String PLUGINS_PATH = BASE_PATH + "/plugins";
@@ -74,37 +70,24 @@ public final class Constants {
      */
     public static final String RELEASE_SUFFIX;
 
-    /** The version int of the currently running Discord, currently {@value BuildConfig#DISCORD_VERSION} */
-    public static final int DISCORD_VERSION;
+    /** The version int of the currently running Discord. */
+    public static final int DISCORD_VERSION = com.discord.BuildConfig.VERSION_CODE;
 
     static {
-        int version;
         String suffix;
 
-        try {
-            //noinspection ConstantConditions
-            version = (int) ReflectUtils.getField(
-                    ReflectUtils.getField(StoreStream.Companion.access$getCollector$p(StoreStream.Companion), "clientVersion"),
-                    "clientVersion"
-            );
-
-        } catch (Throwable e) {
-            Main.logger.error("Failed to retrieve client version", e);
-            version = BuildConfig.DISCORD_VERSION;
-        }
         try {
             // Calculate the third digit of the number:
             //      101207 -> 2
             //      101107 -> 1
             //      101007 -> 0
-            int release = (version / 100) % 10;
+            int release = (DISCORD_VERSION / 100) % 10;
             suffix = new String[] { "app_productionGoogleRelease", "app_productionBetaRelease", "app_productionCanaryRelease" }[release];
         } catch (Throwable e) {
             Main.logger.error("Failed to determine discord release. Defaulting to beta", e);
             suffix = "app_productionBetaRelease";
         }
 
-        DISCORD_VERSION = version;
         RELEASE_SUFFIX = suffix;
     }
 }

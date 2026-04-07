@@ -42,12 +42,13 @@ import java.util.regex.Pattern
 private val pluginDownloaderViewId = View.generateViewId()
 
 /**
- * Intent argument key for toggling plugin downloader scanning for plugin links.
+ * Intent argument key for specifying the link's original message's channel id.
+ * The existence of this key also indicates to scan the provided url for plugin links.
  */
-private const val INTENT_ENABLED = "INTENT_PLUGIN_DOWNLOADER_ENABLED"
+private const val INTENT_CHANNEL_ID = "INTENT_PLUGIN_DOWNLOADER_CHANNEL_ID"
 
 /**
- * Github Repository regex in the format of `https://github.com/$USER/$REPO` matching `$USER` and `$REPO`.
+ * GitHub Repository regex in the format of `https://github.com/$USER/$REPO` matching `$USER` and `$REPO`.
  */
 private val repoPattern = Pattern.compile(
     """https?://github\.com/([A-Za-z0-9\-_.]+)/([A-Za-z0-9\-_.]+)""")
@@ -83,16 +84,14 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
             WidgetChatListActions.Model::class.java,
         ) { (_, model: WidgetChatListActions.Model) ->
             val message = model.message
+            if (!shouldScanForPlugins(message)) return@after
+
             val layout = (this.requireView() as ViewGroup)
                 .findViewById<LinearLayout>("dialog_chat_actions_container")
-
             if (layout.findViewById<View>(pluginDownloaderViewId) != null) return@after
-            if (message.content.isNullOrEmpty()) return@after
 
-            val member = StoreStream.getGuilds().getMember(Constants.ALIUCORD_GUILD_ID, message.author.id)
-            if (!shouldScanForPlugins(message, member)) return@after
-
-            val entries = getEntriesForPluginsListing(
+            val entries = getPluginEntries(
+                channelId = message.channelId,
                 messageContent = message.content,
                 messageAttachments = message.attachments,
                 sheet = this,
@@ -121,7 +120,7 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
                 val urlActions = WidgetUrlActions().apply {
                     arguments = Bundle().apply {
                         putString("INTENT_URL", url) // Part of original intent
-                        putBoolean(INTENT_ENABLED, true)
+                        putLong(INTENT_CHANNEL_ID, messageEntry.message.channelId)
                     }
                 }
                 urlActions.show(this.adapter.fragmentManager, WidgetUrlActions::class.java.getName())
@@ -132,10 +131,12 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
 
         // Add items to links context menu
         patcher.after<WidgetUrlActions>("onViewCreated", View::class.java, Bundle::class.java) {
-            if (this.arguments?.getBoolean(INTENT_ENABLED, false) != true)
-                return@after
+            val channelId = this.arguments
+                ?.getLong(INTENT_CHANNEL_ID, -1)
+                ?.takeIf { it > 0 } ?: return@after
 
-            val entries = getEntriesForPluginsListing(
+            val entries = getPluginEntries(
+                channelId = channelId,
                 messageContent = this.url, // Only this url should be scanned
                 messageAttachments = null,
                 sheet = this,
@@ -157,7 +158,7 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
      * Checks whether a message should be scanned for plugin links to be added to context menus.
      * This implies that the message comes from a **trusted** source.
      */
-    private fun shouldScanForPlugins(message: Message, authorMember: GuildMember?): Boolean {
+    private fun shouldScanForPlugins(message: Message, authorMember: GuildMember? = null): Boolean {
         return when (message.channelId) {
             Constants.PLUGIN_LINKS_CHANNEL_ID,
             Constants.PLUGIN_LINKS_UPDATES_CHANNEL_ID,
@@ -166,11 +167,13 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
             Constants.SUPPORT_CHANNEL_ID,
             Constants.PLUGIN_SUPPORT_CHANNEL_ID,
             Constants.BOT_SPAM_CHANNEL_ID -> {
-                val isTrusted = authorMember?.roles
+                val member = authorMember ?: StoreStream.getGuilds()
+                    .getMember(Constants.ALIUCORD_GUILD_ID, message.author.id)
+                val isTrusted = member?.roles
                     ?.any { it == Constants.SUPPORT_HELPER_ROLE_ID || it == Constants.PLUGIN_DEVELOPER_ROLE_ID }
                     ?: false
 
-                return isTrusted
+                isTrusted
             }
 
             else -> false
@@ -180,33 +183,48 @@ internal class PluginDownloader : CorePlugin(Manifest("PluginDownloader")) {
     /**
      * Scans message content & attachments and generates view entries to be added to a context menu.
      */
-    private fun getEntriesForPluginsListing(
+    private fun getPluginEntries(
+        channelId: Long,
         messageContent: String,
         messageAttachments: List<MessageAttachment>?,
         sheet: AppBottomSheet,
     ): List<View> {
         val entries = mutableListOf<View>()
+        val urls = mutableSetOf<String>() // Deduplication
 
-        repoPattern.matcher(messageContent).takeIf { it.find() }?.run {
-            val author = group(1)!!
-            val repo = group(2)!!
+        // Only scan for repo links in #plugins-list and #new-plugins
+        if (channelId == Constants.PLUGIN_LINKS_CHANNEL_ID ||
+            channelId == Constants.PLUGIN_LINKS_UPDATES_CHANNEL_ID
+        ) {
+            repoPattern.matcher(messageContent).run {
+                while (find()) {
+                    val url = group(0)!!
+                    val author = group(1)!!
+                    val repo = group(2)!!
 
-            entries += makeContextMenuEntry(
-                ctx = sheet.requireContext(),
-                text = "View Author's Plugins",
-                onClick = {
-                    Utils.openPageWithProxy(it.context, PluginRepoModal(author, repo))
-                    sheet.dismiss()
-                },
-            )
+                    if (!urls.add(url)) continue
+
+                    entries += makeContextMenuEntry(
+                        ctx = sheet.requireContext(),
+                        text = "View $author's Plugins",
+                        onClick = {
+                            Utils.openPageWithProxy(it.context, PluginRepoModal(author, repo))
+                            sheet.dismiss()
+                        },
+                    )
+                }
+            }
         }
 
         zipPattern.matcher(messageContent).run {
             while (find()) {
+                val url = group(0)!!
                 val author = group(1)!!
                 val repo = group(2)!!
                 val commit = group(3)!!
                 val name = group(4)!!
+
+                if (!urls.add(url)) continue
 
                 // Don't accidentally install core as a plugin
                 if (name == "Aliucord") continue
