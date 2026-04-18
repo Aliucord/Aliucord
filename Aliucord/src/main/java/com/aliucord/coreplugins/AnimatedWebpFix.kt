@@ -1,5 +1,6 @@
 package com.aliucord.coreplugins
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import com.aliucord.entities.CorePlugin
@@ -11,6 +12,7 @@ import com.discord.utilities.string.StringUtilsKt
 import com.discord.widgets.chat.list.InlineMediaView
 import de.robv.android.xposed.XposedBridge
 
+@SuppressLint("UseKtx")
 internal class AnimatedWebpFix: CorePlugin(Manifest("AnimatedWebpFix")) {
 
     init {
@@ -50,7 +52,7 @@ internal class AnimatedWebpFix: CorePlugin(Manifest("AnimatedWebpFix")) {
         // add animated query to emoji url
         patcher.after<EmbedResourceUtils>(
             "getPreviewUrls",
-            String::class.java, Int::class.javaPrimitiveType!!, Int::class.javaPrimitiveType!!, Boolean::class.javaPrimitiveType!!,
+            String::class.java, Int::class.javaPrimitiveType!!, Int::class.javaPrimitiveType!!, Boolean::class.javaPrimitiveType!!
         ) { (param, _: String, _: Int, _: Int, animated: Boolean) ->
             if (!animated) return@after
 
@@ -81,7 +83,6 @@ internal class AnimatedWebpFix: CorePlugin(Manifest("AnimatedWebpFix")) {
         }
 
         // add animated query for user and guild member avatar
-
         patcher.after<IconUtils?>("getForUser",
             Long::class.javaObjectType,
             String::class.java,
@@ -106,7 +107,7 @@ internal class AnimatedWebpFix: CorePlugin(Manifest("AnimatedWebpFix")) {
             Long::class.javaPrimitiveType!!,
             Long::class.javaPrimitiveType!!,
             Int::class.javaObjectType,
-            Boolean::class.javaPrimitiveType!!,
+            Boolean::class.javaPrimitiveType!!
         ) { (param, _: String, _: Long, _: Long, _: Int, animated: Boolean) ->
             if (animated) {
                 val result = param.result as? String ?: return@after
