@@ -51,8 +51,7 @@ internal class AnimatedWebpFix: CorePlugin(Manifest("AnimatedWebpFix")) {
         patcher.after<EmbedResourceUtils>(
             "getPreviewUrls",
             String::class.java, Int::class.javaPrimitiveType!!, Int::class.javaPrimitiveType!!, Boolean::class.javaPrimitiveType!!,
-        ) { param ->
-            val animated = param.args[3] as Boolean
+        ) { (param, _: String, _: Int, _: Int, animated: Boolean) ->
             if (!animated) return@after
 
             @Suppress("UNCHECKED_CAST")
