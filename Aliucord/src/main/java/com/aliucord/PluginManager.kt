@@ -298,6 +298,7 @@ object PluginManager {
     fun loadCorePlugins(context: Context) {
         val corePlugins = arrayOf(
             AlignThreads(),
+            AnimatedWebpFix(),
             AppBarFix(),
             ButtonsAPI(),
             CommandHandler(),
