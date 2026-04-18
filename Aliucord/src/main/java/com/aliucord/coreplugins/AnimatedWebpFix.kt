@@ -19,6 +19,8 @@ internal class AnimatedWebpFix: CorePlugin(Manifest("AnimatedWebpFix")) {
         manifest.description = "Fixes animated emojis and avatars by adding animated webp support."
     }
 
+    val animatedRegex = Regex("[?&]animated=true")
+
     override fun start(context: Context) {
         // deoptimize overloads and remove inlining
         val methodsToDeoptimize = mapOf(
@@ -42,7 +44,7 @@ internal class AnimatedWebpFix: CorePlugin(Manifest("AnimatedWebpFix")) {
             val path = uri.path ?: return@before
             val isWebp = path.endsWith(".webp")
             // proxy url queries are impossible to access via Uri class
-            val isWebpAnimated = path.contains("&animated=true")
+            val isWebpAnimated = path.contains(animatedRegex)
             if (isWebpAnimated && isWebp) {
                 // might seem counterintuitive but trust
                 param.result = false
