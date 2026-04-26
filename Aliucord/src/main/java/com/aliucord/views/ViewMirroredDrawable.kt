@@ -1,13 +1,14 @@
-package com.aliucord.coreplugins.forwardedmessages
+package com.aliucord.views
 
 import android.content.res.ColorStateList
 import android.graphics.Canvas
 import android.graphics.ColorFilter
+import android.graphics.PorterDuff
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import androidx.core.graphics.drawable.DrawableCompat
 
-class MirroredDrawable(base: Drawable) : Drawable() {
+class ViewMirroredDrawable(base: Drawable) : Drawable() {
     private val wrapped: Drawable = DrawableCompat.wrap(base).mutate()
 
     override fun onBoundsChange(bounds: Rect) {
@@ -45,8 +46,8 @@ class MirroredDrawable(base: Drawable) : Drawable() {
         DrawableCompat.setTint(wrapped, tint)
     }
 
-    override fun setTintMode(mode: android.graphics.PorterDuff.Mode?) {
-        if (mode != null) DrawableCompat.setTintMode(wrapped, mode) else DrawableCompat.setTintMode(wrapped, android.graphics.PorterDuff.Mode.SRC_IN)
+    override fun setTintMode(mode: PorterDuff.Mode?) {
+        DrawableCompat.setTintMode(wrapped, mode ?: PorterDuff.Mode.SRC_IN)
     }
 
     override fun setAutoMirrored(mirrored: Boolean) = wrapped.setAutoMirrored(mirrored)

@@ -10,6 +10,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.widget.NestedScrollView
 import androidx.core.content.res.ResourcesCompat
 import com.aliucord.wrappers.messages.AttachmentWrapper
+import com.aliucord.views.ViewMirroredDrawable
 import com.aliucord.*
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.PreHook
@@ -39,7 +40,7 @@ private const val EXTRA_MESSAGE_ID_INTENT = "com.aliucord.coreplugins.forwardedm
 private const val EXTRA_CHANNEL_ID_INTENT = "com.aliucord.coreplugins.forwardedmessages.EXTRA_CHANNEL_ID"
 private const val EXTRA_ATTACHMENTS_INTENT = "com.aliucord.coreplugins.forwardedmessages.EXTRA_ATTACHMENTS"
 
-internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
+internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages", "Forwards messages to other channels")) {
 
     init {
         settingsTab = SettingsTab(ForwardSettings.Sheet::class.java, SettingsTab.Type.BOTTOM_SHEET)
@@ -50,7 +51,7 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
 
         val replyIcon: Drawable? = ContextCompat.getDrawable(context, R.e.ic_reply_24dp)?.mutate()
         replyIcon?.isAutoMirrored = true
-        val forwardIcon = MirroredDrawable(replyIcon!!)
+        val forwardIcon = ViewMirroredDrawable(replyIcon!!)
 
         val bindingReflection: Method = WidgetIncomingShare::class.java.getDeclaredMethod("getBinding")
         bindingReflection.isAccessible = true
@@ -105,7 +106,7 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                             .putExtra(EXTRA_CONTENT_INTENT, messageContent)
                             .putExtra(EXTRA_MESSAGE_ID_INTENT, messageId)
                             .putExtra(EXTRA_CHANNEL_ID_INTENT, channelId)
-                            .putExtra(EXTRA_ATTACHMENTS_INTENT, attachmentInfo?.let { ArrayList(it) } ?: ArrayList<ForwardedAttachment>())
+                            .putExtra(EXTRA_ATTACHMENTS_INTENT, attachmentInfo?.toTypedArray())
 
                         Utils.mainThread.post {
                             if (context !is android.app.Activity) {
@@ -296,21 +297,28 @@ internal class ForwardMessages : CorePlugin(Manifest("ForwardMessages")) {
                             .newDiscordRNRequest("/channels/$selectedChannel/messages", "POST")
                             .executeWithJson(forwardMsg)
 
-                        if (!res.ok())
-                            Toast.makeText(context, "Forwarding failed: ${res.statusCode}", Toast.LENGTH_SHORT).show()
-                        else {
-                            if (commentMessage.isNotEmpty()) {
-
-                            }
-
+                        if (!res.ok()) {
                             Utils.mainThread.post {
-                                if (ForwardSettings.showToast) {
-                                    Toast.makeText(context, "Message forwarded!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Forwarding failed: ${res.statusCode}", Toast.LENGTH_SHORT).show()
+                            }
+                            return@submit
+                        }
+
+                        if (commentMessage.isNotEmpty()) {
+                            val commentMsg = Message(content = commentMessage)
+                            val res2 = Http.Request
+                                .newDiscordRNRequest("/channels/$selectedChannel/messages", "POST")
+                                .executeWithJson(commentMsg)
+                            if (!res2.ok()) {
+                                Utils.mainThread.post {
+                                    Toast.makeText(context, "Failed to send comment: ${res2.statusCode}", Toast.LENGTH_SHORT).show()
                                 }
                             }
                         }
                     } catch (e: IOException) {
-                        throw RuntimeException(e)
+                        Utils.mainThread.post {
+                            Toast.makeText(context, "Forwarding failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
 
