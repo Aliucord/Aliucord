@@ -30,8 +30,6 @@ class SettingsUtilsJSON(private val pluginName: String) {
     }
 
     private fun writeData() {
-        if (settings.length() <= 0) return
-
         val settingsDir = settingsFile.parentFile!!
         if (!settingsDir.exists() && !settingsDir.mkdirs()) {
             throw RuntimeException("Failed to create settings directory")
