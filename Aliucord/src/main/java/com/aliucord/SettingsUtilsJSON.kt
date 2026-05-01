@@ -1,6 +1,5 @@
 package com.aliucord
 
-import com.aliucord.PluginManager.logger
 import com.aliucord.utils.GsonUtils.fromJson
 import com.aliucord.utils.GsonUtils.gson
 import com.aliucord.utils.GsonUtils.toJson
@@ -10,18 +9,21 @@ import java.io.File
 import java.lang.reflect.Type
 import java.math.BigDecimal
 
+private val logger = Logger("SettingsUtilsJSON")
+
 @Suppress("unused")
 /** Utility class to store and retrieve preferences  */
-class SettingsUtilsJSON(plugin: String) {
-    private val settingsFile = File("${Constants.SETTINGS_PATH}/$plugin.json")
+class SettingsUtilsJSON(private val pluginName: String) {
+    private val settingsFile = File(Constants.SETTINGS_PATH, "$pluginName.json")
     private val cache: MutableMap<String, Any> = HashMap()
     private val settings: JSONObject by lazy {
-        val contents = takeIf { settingsFile.exists() }
-            ?.let { settingsFile.readText() }
-            ?.takeIf { it.isNotBlank() }
-
-        if (contents != null) {
-            JSONObject(contents)
+        if (settingsFile.exists()) {
+            try {
+                JSONObject(settingsFile.readText())
+            } catch (e: Exception) {
+                logger.error("Failed to read plugin settings for '$pluginName'", e)
+                JSONObject()
+            }
         } else {
             JSONObject()
         }
@@ -38,7 +40,7 @@ class SettingsUtilsJSON(plugin: String) {
         try {
             settingsFile.writeText(settings.toString(4))
         } catch (e: Throwable) {
-            logger.error("Failed to save settings", e)
+            logger.error("Failed to save settings for plugin '$pluginName'", e)
         }
     }
 
