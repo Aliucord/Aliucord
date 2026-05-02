@@ -17,7 +17,7 @@ internal class PluginUpdaterSource {
 
     /**
      * A TTL cache of updater data from plugin repositories.
-     * This maps the **original** plugin update info url to the fetched json.
+     * This maps the **original** plugin update info url to the fetched JSON.
      */
     private val cachedRepoInfo = ConcurrentHashMap<String, RepoBuildInfo>()
 
@@ -35,9 +35,9 @@ internal class PluginUpdaterSource {
      * @return Record of plugin name -> plugin updater info, or `null` if data failed to fetch.
      */
     fun getRepoBuildInfo(updateInfoUrl: String): Map<String, PluginBuildInfo>? {
-        // Replace raw.githubusercontent.com urls with jsdelivr to avoid ratelimiting
-        val realUpdateInfoUrl = updateInfoUrl.replaceFirst(
-            "https://raw\\.githubusercontent\\.com/(.+?)/(.+?)/(.+)",
+        // Replace raw.githubusercontent.com urls with jsdelivr to avoid rate limiting
+        val realUpdateInfoUrl = updateInfoUrl.replace(
+            "https://raw\\.githubusercontent\\.com/(.+?)/(.+?)/(.+)".toRegex(),
             "https://cdn.jsdelivr.net/gh/$1/$2@$3"
         )
 
