@@ -14,15 +14,10 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import com.aliucord.*
 import com.aliucord.PluginManager.isSafeModeEnabled
-import com.aliucord.Utils.getResId
-import com.aliucord.Utils.isDebuggable
-import com.aliucord.Utils.joinSupportServer
-import com.aliucord.Utils.launchUrl
-import com.aliucord.Utils.openPage
-import com.aliucord.Utils.restartAliucord
 import com.aliucord.entities.CorePlugin
 import com.aliucord.fragments.ConfirmDialog
 import com.aliucord.patcher.*
+import com.aliucord.screens.UpdaterScreen
 import com.aliucord.settings.*
 import com.aliucord.utils.ChangelogUtils.FooterAction
 import com.aliucord.utils.ViewUtils.findViewById
@@ -48,8 +43,10 @@ import com.discord.widgets.settings.profile.WidgetEditUserOrGuildMemberProfile
 import com.discord.widgets.status.*
 import com.lytefast.flexinput.R
 
-// Contains core features like the Aliucord section in settings, and other small features
-internal class CoreFeatures : CorePlugin(Manifest("CoreBase")) {
+/**
+ * Adds Aliucord-specific core features to the stock app.
+ */
+internal class CoreFeatures : CorePlugin(Manifest("CoreFeatures")) {
     override val isHidden = true
     override val isRequired = true
 
@@ -63,7 +60,7 @@ internal class CoreFeatures : CorePlugin(Manifest("CoreBase")) {
 
     override fun start(context: Context) {
         // Adds Aliucord section in settings with links to plugins, settings, etc
-        patcher.after<WidgetSettings>("onViewBound", View::class.java) { (param, root: ViewGroup) ->
+        patcher.after<WidgetSettings>("onViewBound", View::class.java) { (_, root: ViewGroup) ->
             val layout = Utils.nestedChildAt<ViewGroup>(root, 1, 0)
             var baseIndex = layout.indexOfChild(layout.findViewById("developer_options_divider"))
             val context = layout.context
@@ -87,7 +84,7 @@ internal class CoreFeatures : CorePlugin(Manifest("CoreBase")) {
                 baseIndex++
             )
             layout.addView(
-                makeSettingsEntry(context, font, "Updater", R.e.ic_file_download_white_24dp, Updater::class.java),
+                makeSettingsEntry(context, font, "Updater", R.e.ic_file_download_white_24dp, UpdaterScreen::class.java),
                 baseIndex++
             )
             layout.addView(
@@ -101,15 +98,16 @@ internal class CoreFeatures : CorePlugin(Manifest("CoreBase")) {
 
             val versionView = layout.findViewById<TextView>("app_info_header")
 
+            @Suppress("KotlinConstantConditions")
             versionView.text = buildString {
                 append(versionView.text.toString() + " | Aliucord " + BuildConfig.VERSION)
                 if (!BuildConfig.RELEASE) append(" (Custom)")
-                if (isDebuggable) append(" [DEBUGGABLE]")
+                if (Utils.isDebuggable) append(" [DEBUGGABLE]")
             }
 
             layout.findViewById<TextView>("upload_debug_logs").apply {
                 text = "Aliucord Support Server"
-                setOnClickListener { v -> joinSupportServer(v.context) }
+                setOnClickListener { v -> Utils.joinSupportServer(v.context) }
             }
 
             // Remove Discord changelog button
@@ -129,14 +127,14 @@ internal class CoreFeatures : CorePlugin(Manifest("CoreBase")) {
 
             // Layout
             binding.c.apply {
-                setBackgroundColor(ColorCompat.getThemedColor(context, getResId("colorBackgroundTertiary", "attr")))
+                setBackgroundColor(ColorCompat.getThemedColor(context, Utils.getResId("colorBackgroundTertiary", "attr")))
                 setOnClickListener { safeModeDialog(this@before) }
                 visibility = View.VISIBLE
             }
 
             // Indicator text
             binding.i.apply {
-                setTextColor(ColorCompat.getThemedColor(context, getResId("colorHeaderPrimary", "attr")))
+                setTextColor(ColorCompat.getThemedColor(context, Utils.getResId("colorHeaderPrimary", "attr")))
                 text = "Safe mode enabled"
             }
 
@@ -176,7 +174,7 @@ internal class CoreFeatures : CorePlugin(Manifest("CoreBase")) {
                     setImageDrawable(ContextCompat.getDrawable(parent.context, action.drawableResourceId), false)
                     setPadding(twitterButton.paddingLeft, twitterButton.paddingTop, twitterButton.paddingRight, twitterButton.paddingBottom)
                     setLayoutParams(twitterButton.layoutParams)
-                    setOnClickListener { launchUrl(action.url) }
+                    setOnClickListener { Utils.launchUrl(action.url) }
                 }
 
                 parent.addView(button)
@@ -204,7 +202,10 @@ internal class CoreFeatures : CorePlugin(Manifest("CoreBase")) {
         }
 
         // use new member profile editor for nitro users
-        patcher.instead<`WidgetGuildProfileSheet$configureGuildActions$$inlined$apply$lambda$4`>("invoke", View::class.java) { (param, layout: View) ->
+        patcher.instead<`WidgetGuildProfileSheet$configureGuildActions$$inlined$apply$lambda$4`>(
+            "invoke",
+            View::class.java,
+        ) { (param, layout: View) ->
             val ctx = layout.context
             val guildId = (param.thisObject as `WidgetGuildProfileSheet$configureGuildActions$$inlined$apply$lambda$4`).`$guildId$inlined`
 
@@ -223,7 +224,7 @@ internal class CoreFeatures : CorePlugin(Manifest("CoreBase")) {
             Context::class.java, Long::class.javaPrimitiveType!!, String::class.java, Int::class.javaObjectType
         ) { false }
 
-        // Disable the google play rating request dialog
+        // Disable the Google play rating request dialog
         patcher.instead<StoreReviewRequest>("handleConnectionOpen", ModelPayload::class.java) { null }
 
         // Disable school hubs dialog upon login
@@ -250,7 +251,7 @@ internal class CoreFeatures : CorePlugin(Manifest("CoreBase")) {
         }
 
         setCompoundDrawablesRelativeWithIntrinsicBounds(icon, null, null, null)
-        setOnClickListener { v -> openPage(v.context, component) }
+        setOnClickListener { v -> Utils.openPage(v.context, component) }
     }
 
     private fun safeModeDialog(fragment: Fragment) {
@@ -265,7 +266,7 @@ internal class CoreFeatures : CorePlugin(Manifest("CoreBase")) {
             .setDescription(desc)
             .setOnOkListener {
                 Main.settings.setBool(ALIUCORD_SAFE_MODE_KEY, false)
-                restartAliucord(fragment.requireContext())
+                Utils.restartAliucord(fragment.requireContext())
             }
             .show(fragment.getParentFragmentManager(), "Disable Safe Mode")
     }

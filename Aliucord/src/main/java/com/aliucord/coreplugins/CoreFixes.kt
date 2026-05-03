@@ -1,5 +1,6 @@
 package com.aliucord.coreplugins
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -14,7 +15,6 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.aliucord.Main
 import com.aliucord.Utils
-import com.aliucord.Utils.getResId
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.utils.DimenUtils.dp
@@ -49,9 +49,11 @@ import com.linecorp.apng.decoder.Apng
 import com.lytefast.flexinput.R
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
-const val BYPASS_SLOWMODE_PERMISSION = 1L shl 52
+private const val BYPASS_SLOWMODE_PERMISSION = 1L shl 52
 
-// Contains various small fixes for Discord
+/**
+ * Contains various fixes for stock Discord that ensure "proper" behavior.
+ */
 internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     override val isHidden = true
     override val isRequired = true
@@ -84,7 +86,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         // Patch to repair built-in emotes is needed because installer doesn't recompile resources,
         // so they stay in package com.discord instead of apk package name
         patcher.instead<ModelEmojiUnicode?>("getImageUri", String::class.java, Context::class.java) { param ->
-            "res:///${getResId("emoji_${param.args[0]}", "raw")}"
+            "res:///${Utils.getResId("emoji_${param.args[0]}", "raw")}"
         }
     }
 
@@ -146,6 +148,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             @Suppress("UNCHECKED_CAST")
             val urls = (params.result as List<String>).toMutableList()
 
+            @SuppressLint("UseKtx")
             val uri = Uri.parse(urls[0].replace("&?", "&"))
                 ?.takeIf { it.path?.endsWith(".gif") == true }
                 ?: return@after
@@ -228,8 +231,11 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             "invoke",
             Channel::class.java,
         ) { (param, channel: Channel) ->
-            val result = param.result as Boolean
-            param.result = result || channel.id in this.`$mentionCounts`.keys
+            val hasMentions = channel.id in this.`$mentionCounts`.keys
+
+            if (hasMentions) {
+                param.result = true
+            }
         }
     }
 
@@ -246,7 +252,6 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                 val manager = WidgetChannelsList.`access$getBinding$p`(this).c.layoutManager as LinearLayoutManager
                 if (manager.findFirstVisibleItemPosition() != 0) {
                     manager.scrollToPosition(0)
-                    patcher.unpatchAll()
                 }
             }
         }
