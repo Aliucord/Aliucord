@@ -44,7 +44,7 @@ val TASK_GROUP = "aliucord"
 
 /** Task group for all private tasks */
 @Suppress("PropertyName")
-val TASK_GROUP_INTERNAL = "aliucordInternal"
+val TASK_GROUP_INTERNAL = "aliucord-internal"
 
 val localPropertiesFile = project.rootProject.file("local.properties")
 val localProperties = Properties().apply {

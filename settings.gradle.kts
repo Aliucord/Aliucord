@@ -24,5 +24,6 @@ dependencyResolutionManagement {
 include(":Aliucord")
 include(":Injector")
 include(":patches")
+include(":kotlin-stdlib")
 
 rootProject.name = "Aliucord"

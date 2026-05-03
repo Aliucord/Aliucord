@@ -2,17 +2,15 @@ package com.aliucord.updater
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.util.Log
+import android.os.Build
 import com.aliucord.*
 import com.aliucord.api.NotificationsAPI
 import com.aliucord.entities.NotificationData
 import com.aliucord.fragments.ConfirmDialog
-import com.aliucord.settings.ALIUCORD_FROM_STORAGE_KEY
-import com.aliucord.settings.AUTO_UPDATE_ALIUCORD_KEY
+import com.aliucord.settings.*
 import com.aliucord.updater.CoreUpdater.UPDATER_DATA_URL
-import com.aliucord.utils.ReflectUtils
-import com.aliucord.utils.SemVer
-import com.aliucord.utils.SerializedName
+import com.aliucord.updater.CoreUpdater.isCustomCoreLoaded
+import com.aliucord.utils.*
 import dalvik.system.BaseDexClassLoader
 import java.io.File
 
@@ -50,7 +48,7 @@ internal object CoreUpdater {
                         .setTitle("Updater")
                         .setBody("This installation is outdated!\n" +
                             "Click to reinstall Aliucord using Aliucord Manager...")
-                        .setAutoDismissPeriodSecs(30)
+                        .setAutoDismissPeriodSecs(10)
                         .setOnClick { reinstallAliucord() }
 
                     NotificationsAPI.display(notificationData)
@@ -59,7 +57,7 @@ internal object CoreUpdater {
                         .setTitle("Updater")
                         .setBody("Aliucord has an update available!\n" +
                             "Click to automatically update...")
-                        .setAutoDismissPeriodSecs(30)
+                        .setAutoDismissPeriodSecs(10)
                         // TODO: open Updater screen instead once it support showing core updates
                         .setOnClick { updateAliucord() }
 
@@ -89,10 +87,8 @@ internal object CoreUpdater {
         } catch (_: ActivityNotFoundException) {
             ConfirmDialog()
                 .setTitle("Updater")
-                .setDescription("""
-                    Aliucord Manager is not installed on this device.
-                    Open Github releases?
-                    """.trimIndent())
+                .setDescription("Aliucord Manager is not installed on this device.\n" +
+                    "Open latest Github releases to download Manager?")
                 .setOnOkListener { Utils.launchUrl("https://github.com/Aliucord/Manager/releases/latest") }
                 .show(Utils.appActivity.supportFragmentManager, "No Manager")
         }
@@ -115,12 +111,10 @@ internal object CoreUpdater {
     }
 
     /**
-     * Determines whether the updater is disabled
-     *
-     * @return Whether preference "disableAliucordUpdater" is set to true
+     * Determines whether the updater has been disabled by the user.
      */
     @JvmStatic
-    fun isUpdaterDisabled(): Boolean = Main.settings.getBool("disableAliucordUpdater", false)
+    fun isUpdaterDisabled(): Boolean = Main.settings.getBool(ALIUCORD_DISABLE_UPDATER, false)
 
     /**
      * Determines whether automatic core updates have been disabled by the user.
@@ -160,11 +154,16 @@ internal object CoreUpdater {
             "dexElements",
         )!! as Array<Any>
 
-        dexElements.findLast { element ->
-            val path = ReflectUtils.getField(element, "path")!! as File
+        val fieldName = when {
+            Build.VERSION.SDK_INT < 23 -> "file"
+            Build.VERSION.SDK_INT < 26 -> "zip"
+            else -> "path"
+        }
 
-            path.name == "Aliucord.custom.zip"
-        } != null
+        dexElements.any { element ->
+            val file = ReflectUtils.getField(element, fieldName)!! as File
+            file.name == "Aliucord.custom.zip"
+        }
     }
 
     /**

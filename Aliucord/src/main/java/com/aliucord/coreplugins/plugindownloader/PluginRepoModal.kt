@@ -20,7 +20,7 @@ import com.aliucord.views.Button
 import com.aliucord.views.DangerButton
 import com.google.gson.reflect.TypeToken
 
-internal class Modal(private val author: String, private val repo: String) : SettingsPage() {
+internal class PluginRepoModal(private val author: String, private val repo: String) : SettingsPage() {
     private val resType = TypeToken.getParameterized(MutableMap::class.java, String::class.java, PluginInfo::class.java).getType()
 
     private var throwable = null as Throwable?

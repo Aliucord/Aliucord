@@ -298,9 +298,9 @@ object PluginManager {
     @JvmStatic
     fun loadCorePlugins(context: Context) {
         val corePlugins = arrayOf(
+            CoreFixes(),
+            CoreFeatures(),
             AccountStanding(),
-            AlignThreads(),
-            AppBarFix(),
             ButtonsAPI(),
             CommandHandler(),
             CoreCommands(),
@@ -309,26 +309,19 @@ object PluginManager {
             DiscordBadges(),
             ExperimentDefaults(),
             ForwardedMessages(),
-            GifPreviewFix(),
-            MembersListFix(),
             NewPins(),
             NoTrack(),
-            OpenLinksExternallyFix(),
             PluginDownloader(),
             Polls(),
-            PrivateChannelsListScroll(),
-            PrivateThreads(),
             Pronouns(),
             RNAPI(),
             RemoveBilling(),
             RestartButton(),
-            ShowReplyMention(),
-            StickerCrashFix(),
+            ShowReplyMentionFix(),
             SupportWarn(),
             SupporterBadges(),
             TokenLogin(),
             UploadSize(),
-            VoiceFix(),
         )
 
         val safeMode = isSafeModeEnabled();
