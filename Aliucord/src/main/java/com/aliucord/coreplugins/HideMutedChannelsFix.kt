@@ -3,10 +3,13 @@ package com.aliucord.coreplugins
 import android.content.Context
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.after
+import com.aliucord.patcher.component1
+import com.aliucord.patcher.component2
 import com.aliucord.wrappers.ChannelWrapper.Companion.id
 import com.discord.api.channel.Channel
 import com.discord.widgets.channels.list.`WidgetChannelListModel$Companion$guildListBuilder$$inlined$forEach$lambda$1$1`
 import com.discord.widgets.channels.list.`WidgetChannelListModel$Companion$guildListBuilder$$inlined$forEach$lambda$1$2`
+import com.discord.widgets.guilds.list.`WidgetGuildsListViewModel$createDirectMessageItems$1`
 
 internal class HideMutedChannelsFix : CorePlugin(Manifest("HideMutedChannelsFix")) {
     init {
@@ -14,7 +17,7 @@ internal class HideMutedChannelsFix : CorePlugin(Manifest("HideMutedChannelsFix"
     }
 
     override fun start(context: Context) {
-        // Fix hiding muted threads
+        // Threads
         patcher.after<`WidgetChannelListModel$Companion$guildListBuilder$$inlined$forEach$lambda$1$1`>("invoke") { param ->
             val builder = this.`this$0`
             val threadId = this.`$textChannel`.id
@@ -25,7 +28,7 @@ internal class HideMutedChannelsFix : CorePlugin(Manifest("HideMutedChannelsFix"
             }
         }
 
-        // Fix hiding muted channels
+        // Channels
         @Suppress("UNCHECKED_CAST")
         patcher.after<`WidgetChannelListModel$Companion$guildListBuilder$$inlined$forEach$lambda$1$2`>("invoke") { param ->
             val builder = this.`this$0`
@@ -40,6 +43,12 @@ internal class HideMutedChannelsFix : CorePlugin(Manifest("HideMutedChannelsFix"
                 builder.`$hiddenChannelsIds$inlined`.remove(this.`$textChannelId`)
                 param.result = false
             }
+        }
+
+        // DMs
+        patcher.after<`WidgetGuildsListViewModel$createDirectMessageItems$1`>("invoke", Channel::class.java) { (param, channel: Channel) ->
+            val result = param.result as Boolean
+            param.result = result || channel.id in this.`$mentionCounts`.keys
         }
     }
 
