@@ -154,15 +154,14 @@ internal object CoreUpdater {
             "dexElements",
         )!! as Array<Any>
 
+        val fieldName = when {
+            Build.VERSION.SDK_INT < 23 -> "file"
+            Build.VERSION.SDK_INT < 26 -> "zip"
+            else -> "path"
+        }
+
         dexElements.any { element ->
-            val fieldName = when {
-                Build.VERSION.SDK_INT < 23 -> "file"
-                Build.VERSION.SDK_INT < 26 -> "zip"
-                else -> "path"
-            }
-
             val file = ReflectUtils.getField(element, fieldName)!! as File
-
             file.name == "Aliucord.custom.zip"
         }
     }
