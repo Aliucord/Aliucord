@@ -47,7 +47,7 @@ internal object CoreUpdater {
                         .setTitle("Updater")
                         .setBody("This installation is outdated!\n" +
                             "Click to reinstall Aliucord using Aliucord Manager...")
-                        .setAutoDismissPeriodSecs(30)
+                        .setAutoDismissPeriodSecs(10)
                         .setOnClick { reinstallAliucord() }
 
                     NotificationsAPI.display(notificationData)
@@ -56,7 +56,7 @@ internal object CoreUpdater {
                         .setTitle("Updater")
                         .setBody("Aliucord has an update available!\n" +
                             "Click to automatically update...")
-                        .setAutoDismissPeriodSecs(30)
+                        .setAutoDismissPeriodSecs(10)
                         // TODO: open Updater screen instead once it support showing core updates
                         .setOnClick { updateAliucord() }
 

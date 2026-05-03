@@ -44,6 +44,7 @@ import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemAutoModSys
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemThreadDraftForm
 import com.discord.widgets.chat.list.entries.*
 import com.discord.widgets.chat.overlay.WidgetChatOverlay
+import com.discord.widgets.guilds.list.`WidgetGuildsListViewModel$createDirectMessageItems$1`
 import com.linecorp.apng.decoder.Apng
 import com.lytefast.flexinput.R
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
@@ -70,6 +71,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixStickerCrash()
         fixHidingMutedThreads()
         fixHidingMutedChannels()
+        fixHidingMutedDMs()
         fixPrivateThreads()
         fixPrivateChannelScroll()
         fixVoiceCodec()
@@ -190,7 +192,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         }
     }
 
-    private fun fixHidingMutedThreads() = tryPatch("Fix hiding muted threads") {
+    private fun fixHidingMutedThreads() = tryPatch("Fix hiding muted threads with mentions") {
         patcher.after<`WidgetChannelListModel$Companion$guildListBuilder$$inlined$forEach$lambda$1$1`>("invoke") { param ->
             val builder = this.`this$0`
             val threadId = this.`$textChannel`.id
@@ -203,7 +205,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         }
     }
 
-    private fun fixHidingMutedChannels() = tryPatch("Fix hiding muted channels") {
+    private fun fixHidingMutedChannels() = tryPatch("Fix hiding muted channels with mentions") {
         @Suppress("UNCHECKED_CAST")
         patcher.after<`WidgetChannelListModel$Companion$guildListBuilder$$inlined$forEach$lambda$1$2`>("invoke") { param ->
             val builder = `this$0`
@@ -218,6 +220,16 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                 builder.`$hiddenChannelsIds$inlined` -= channelId
                 param.result = false
             }
+        }
+    }
+
+    private fun fixHidingMutedDMs() = tryPatch("Fix hiding muted DMs with mentions") {
+        patcher.after<`WidgetGuildsListViewModel$createDirectMessageItems$1`>(
+            "invoke",
+            Channel::class.java,
+        ) { (param, channel: Channel) ->
+            val result = param.result as Boolean
+            param.result = result || channel.id in this.`$mentionCounts`.keys
         }
     }
 
