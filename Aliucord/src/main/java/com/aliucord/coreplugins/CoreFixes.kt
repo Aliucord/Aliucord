@@ -87,12 +87,6 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixClock()
     }
 
-    private fun fixClock() = tryPatch("Fix Clock provider") {
-        // Replace NTP clock with local system clock
-        // SAFETY: This is safe to run directly since ClockFactory initializes before Aliucord core initializes.
-        val ntpClock = NtpClock(AndroidClock())
-        ReflectUtils.setField(ClockFactory.INSTANCE, "ntpClock", ntpClock)
-    }
     private fun fixStockEmojis() = tryPatch("Fix built-in emojis") {
         // Patch to repair built-in emotes is needed because installer doesn't recompile resources,
         // so they stay in package com.discord instead of apk package name
@@ -366,6 +360,13 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         )
     }
 
+    private fun fixClock() = tryPatch("Fix Clock provider") {
+        // Replace NTP clock with local system clock
+        // SAFETY: This is safe to run directly since ClockFactory initializes before Aliucord core initializes.
+        val ntpClock = NtpClock(AndroidClock())
+        ReflectUtils.setField(ClockFactory.INSTANCE, "ntpClock", ntpClock)
+    }
+
     private fun tryPatch(label: String, block: () -> Unit) {
         try {
             block()
@@ -375,9 +376,8 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     }
 }
 
-class AndroidClock: KronosClock {
+private class AndroidClock: KronosClock {
     override fun a(): Long = System.currentTimeMillis()
-
 
     override fun b(): Long = SystemClock.elapsedRealtime()
 }
