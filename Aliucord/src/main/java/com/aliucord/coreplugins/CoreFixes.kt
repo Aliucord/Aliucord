@@ -89,7 +89,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
 
     private fun fixClock() = tryPatch("Fix Clock provider") {
         // Replace NTP clock with local system clock
-        // SAFETY: This is safe to run directly since ClockFactory initializes before Aliucord core.
+        // SAFETY: This is safe to run directly since ClockFactory initializes before Aliucord core initializes.
         val ntpClock = NtpClock(AndroidClock())
         ReflectUtils.setField(ClockFactory.INSTANCE, "ntpClock", ntpClock)
     }
