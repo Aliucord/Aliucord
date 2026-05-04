@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.View
 import android.view.WindowInsetsAnimation
 import android.widget.TextView
@@ -37,6 +38,8 @@ import com.discord.utilities.guildautomod.AutoModUtils
 import com.discord.utilities.lazy.memberlist.ChannelMemberList
 import com.discord.utilities.lazy.memberlist.MemberListRow
 import com.discord.utilities.permissions.PermissionUtils
+import com.discord.utilities.time.ClockFactory
+import com.discord.utilities.time.NtpClock
 import com.discord.widgets.channels.list.*
 import com.discord.widgets.chat.input.SmoothKeyboardReactionHelper
 import com.discord.widgets.chat.list.actions.`WidgetChatListActions$binding$2`
@@ -46,6 +49,7 @@ import com.discord.widgets.chat.list.entries.*
 import com.discord.widgets.chat.overlay.WidgetChatOverlay
 import com.discord.widgets.guilds.list.`WidgetGuildsListViewModel$createDirectMessageItems$1`
 import com.linecorp.apng.decoder.Apng
+import com.lyft.kronos.KronosClock
 import com.lytefast.flexinput.R
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 
@@ -80,6 +84,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixThreadsIcon()
         fixSlowmode()
         fixExternalLinks()
+        fixClock()
     }
 
     private fun fixStockEmojis() = tryPatch("Fix built-in emojis") {
@@ -355,6 +360,12 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         )
     }
 
+    private fun fixClock() = tryPatch("Fix Clock provider") {
+        // Replace NTP clock with local system clock
+        // SAFETY: This is safe to run directly since ClockFactory initializes before Aliucord core initializes.
+        ReflectUtils.setField(ClockFactory.INSTANCE, "ntpClock", NtpClock(AndroidClock()))
+    }
+
     private fun tryPatch(label: String, block: () -> Unit) {
         try {
             block()
@@ -362,4 +373,10 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             Main.logger.error("Failed to apply patch: \"$label\"", e)
         }
     }
+}
+
+private class AndroidClock: KronosClock {
+    override fun a(): Long = System.currentTimeMillis()
+
+    override fun b(): Long = SystemClock.elapsedRealtime()
 }
