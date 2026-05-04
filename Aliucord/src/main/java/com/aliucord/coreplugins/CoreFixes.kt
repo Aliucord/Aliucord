@@ -247,10 +247,15 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     }
 
     private fun fixPrivateChannelScroll() = tryPatch("Fix private channel scroll") {
+        var executed = false
+
         patcher.after<WidgetChannelsList>("configureUI", WidgetChannelListModel::class.java) { (_, model: WidgetChannelListModel) ->
+            if (executed) return@after
+
             if (!model.isGuildSelected && model.items.size > 1) {
                 val manager = WidgetChannelsList.`access$getBinding$p`(this).c.layoutManager as LinearLayoutManager
                 if (manager.findFirstVisibleItemPosition() != 0) {
+                    executed = true
                     manager.scrollToPosition(0)
                 }
             }
