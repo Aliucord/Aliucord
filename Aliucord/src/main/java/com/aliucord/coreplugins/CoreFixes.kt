@@ -22,6 +22,7 @@ import com.aliucord.utils.ReflectUtils
 import com.aliucord.utils.ViewUtils.findViewById
 import com.aliucord.utils.accessField
 import com.aliucord.wrappers.ChannelWrapper.Companion.id
+import com.aliucord.wrappers.GuildRoleWrapper.Companion.name
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper
 import com.discord.api.channel.Channel
 import com.discord.api.message.embed.EmbedField
@@ -37,8 +38,10 @@ import com.discord.utilities.guildautomod.AutoModUtils
 import com.discord.utilities.lazy.memberlist.ChannelMemberList
 import com.discord.utilities.lazy.memberlist.MemberListRow
 import com.discord.utilities.permissions.PermissionUtils
+import com.discord.utilities.user.UserUtils
 import com.discord.widgets.channels.list.*
 import com.discord.widgets.chat.input.SmoothKeyboardReactionHelper
+import com.discord.widgets.chat.input.autocomplete.*
 import com.discord.widgets.chat.list.actions.`WidgetChatListActions$binding$2`
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemAutoModSystemMessageEmbed
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemThreadDraftForm
@@ -80,6 +83,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixThreadsIcon()
         fixSlowmode()
         fixExternalLinks()
+        fixMissingAutocomplete()
     }
 
     private fun fixStockEmojis() = tryPatch("Fix built-in emojis") {
@@ -354,6 +358,32 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             callback = Activity::handleIntent
         )
     }
+
+    private fun fixMissingAutocomplete() = tryPatch("Fixes missing autocomplete entries which have the same name") {
+        patcher.before<AutocompletableComparator>(
+            "compare",
+            Autocompletable::class.java,
+            Autocompletable::class.java,
+        ) { (param, p1: Autocompletable, p2: Autocompletable) ->
+            // For roles
+            if (p1 is RoleAutocompletable && p2 is RoleAutocompletable) {
+                param.result = compareValuesBy(
+                    p1, p2,
+                    { it.role.name }, // Compare by name first
+                    { it.role.id }, // Then compare by id
+                )
+            }
+            // For users
+            if (p1 is UserAutocompletable && p2 is UserAutocompletable) {
+                param.result = compareValuesBy(
+                    p1, p2,
+                    { it.nickname ?: it.user.username }, // Compare by nickname/display name first
+                    { it.user.username + UserUtils.INSTANCE.getDiscriminatorWithPadding(it.user) }, // Then compare by username[#discrim] (always unique)
+                )
+            }
+        }
+    }
+
 
     private fun tryPatch(label: String, block: () -> Unit) {
         try {
