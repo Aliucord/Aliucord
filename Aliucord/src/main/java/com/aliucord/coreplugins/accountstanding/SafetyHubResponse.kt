@@ -70,11 +70,3 @@ internal data class AccountStandingPageResponse(
     }
 }
 
-// Only really store the classification IDs on the cache with the plugin
-internal data class AccountStandingResponse(
-    val classifications: List<Classifications>?
-) {
-    data class Classifications(
-        val id: Long
-    )
-}
