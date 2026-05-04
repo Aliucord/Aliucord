@@ -26,41 +26,47 @@ internal data class AccountStandingPageResponse(
 
     enum class AccountStanding(
         val state: Int,
+        val status: String,
         val header: String,
         val body: String,
         private val colorRes: Int
     ) {
         ALL_GOOD(
             100,
+            "All good!",
             "Your account is all good",
             "Thank you for upholding Discord's Terms of Service and Community Guidelines. If you break the rules, it will show up here.",
             R.c.uikit_btn_bg_color_selector_green
         ),
         LIMITED(
             200,
+            "Limited",
             "Your account is limited",
             "You may lose access to some parts of Discord if you break the rules again.",
             R.c.status_yellow
         ),
         VERY_LIMITED(
             300,
+            "Very limited",
             "Your account is very limited",
             "You can't use some parts of Discord. You may be suspended if you break the rules again.",
             R.c.status_orange
         ),
         AT_RISK(
             400,
+            "At risk",
             "Your account is at risk",
             "You broke Discord's rules. You will be permanently suspended if you break them again.",
             R.c.uikit_btn_bg_color_selector_red
         ),
         SUSPENDED(
             500,
+            "Suspended",
             "Your account is suspended",
             "Due to serious policy violations, your account is permanently suspended. You can no longer use Discord.",
             R.c.uikit_btn_bg_color_selector_red
         ),
-        UNKNOWN(-1, "Unknown", "Unknown", R.c.uikit_btn_bg_color_selector_red);
+        UNKNOWN(-1, "Unknown", "Unknown", "Unknown", R.c.uikit_btn_bg_color_selector_red);
 
         val color: Int get() = Utils.appContext.getColor(colorRes)
 
