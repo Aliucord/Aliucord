@@ -6,9 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
-import android.os.Bundle
-import android.os.SystemClock
+import android.os.*
 import android.view.View
 import android.view.WindowInsetsAnimation
 import android.widget.TextView
@@ -346,7 +344,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     }
 
     // Forces app links to always open in a separate window, except for custom tab. This addresses an issue where some links are opened internally on certain ROMs
-    private fun fixExternalLinks() = tryPatch("Fixes app links not being handled by their respective app") {
+    private fun fixExternalLinks() = tryPatch("Fix app links not being handled by their respective app") {
         @Suppress("UnusedReceiverParameter")
         fun Activity.handleIntent(param: MethodHookParam) {
             val intent = param.args[0] as? Intent ?: return
@@ -369,7 +367,10 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         ReflectUtils.setField(ClockFactory.INSTANCE, "ntpClock", NtpClock(AndroidClock()))
     }
 
-    private fun fixMissingAutocomplete() = tryPatch("Fixes missing autocomplete entries which have the same name") {
+    private fun fixMissingAutocomplete() = tryPatch("Fix missing autocomplete entries which have the same name") {
+        // Replaces the comparator used to add entries to the autocomplete set.
+        // Fixes an issue where entries with the same name won't show up apart from the first one
+        // e.g. setting your nickname the same as someone else
         patcher.before<AutocompletableComparator>(
             "compare",
             Autocompletable::class.java,
