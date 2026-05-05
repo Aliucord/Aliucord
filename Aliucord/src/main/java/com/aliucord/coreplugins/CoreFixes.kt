@@ -38,7 +38,6 @@ import com.discord.utilities.guildautomod.AutoModUtils
 import com.discord.utilities.lazy.memberlist.ChannelMemberList
 import com.discord.utilities.lazy.memberlist.MemberListRow
 import com.discord.utilities.permissions.PermissionUtils
-import com.discord.utilities.user.UserUtils
 import com.discord.widgets.channels.list.*
 import com.discord.widgets.chat.input.SmoothKeyboardReactionHelper
 import com.discord.widgets.chat.input.autocomplete.*
@@ -372,13 +371,13 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                     { it.role.name }, // Compare by name first
                     { it.role.id }, // Then compare by id
                 )
-            }
             // For users
-            if (p1 is UserAutocompletable && p2 is UserAutocompletable) {
+            } else if (p1 is UserAutocompletable && p2 is UserAutocompletable) {
                 param.result = compareValuesBy(
                     p1, p2,
                     { it.nickname ?: it.user.username }, // Compare by nickname/display name first
-                    { it.user.username + UserUtils.INSTANCE.getDiscriminatorWithPadding(it.user) }, // Then compare by username[#discrim] (always unique)
+                    { it.user.username }, // Then compare by username
+                    { it.user.discriminator }, // Then compare by discrim
                 )
             }
         }
