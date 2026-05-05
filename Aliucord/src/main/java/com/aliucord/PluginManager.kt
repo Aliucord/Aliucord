@@ -11,6 +11,7 @@ import android.content.res.AssetManager
 import android.content.res.Resources
 import com.aliucord.Utils.appContext
 import com.aliucord.coreplugins.*
+import com.aliucord.coreplugins.accountstanding.AccountStanding
 import com.aliucord.coreplugins.badges.DiscordBadges
 import com.aliucord.coreplugins.badges.SupporterBadges
 import com.aliucord.coreplugins.plugindownloader.PluginDownloader
@@ -299,6 +300,7 @@ object PluginManager {
         val corePlugins = arrayOf(
             CoreFixes(),
             CoreFeatures(),
+            AccountStanding(),
             ButtonsAPI(),
             CommandHandler(),
             CoreCommands(),
