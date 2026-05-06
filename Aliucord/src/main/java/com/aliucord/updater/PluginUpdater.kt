@@ -88,7 +88,7 @@ internal object PluginUpdater {
                 }
 
                 // Plugin is already up-to-date
-                if (SemVer.parse(plugin.manifest.version) >= info.version)
+                if (plugin.manifest.version == info.version)
                     continue
 
                 updates += PluginUpdate(
