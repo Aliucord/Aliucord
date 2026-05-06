@@ -48,6 +48,10 @@ import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemThreadDraf
 import com.discord.widgets.chat.list.entries.*
 import com.discord.widgets.chat.overlay.WidgetChatOverlay
 import com.discord.widgets.guilds.list.`WidgetGuildsListViewModel$createDirectMessageItems$1`
+import com.discord.widgets.settings.profile.SettingsUserProfileViewModel
+import com.discord.widgets.settings.profile.WidgetEditUserOrGuildMemberProfile
+import com.discord.widgets.user.usersheet.WidgetUserSheet
+import com.discord.widgets.user.usersheet.WidgetUserSheetViewModel
 import com.linecorp.apng.decoder.Apng
 import com.lyft.kronos.KronosClock
 import com.lytefast.flexinput.R
@@ -86,6 +90,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixExternalLinks()
         fixClock()
         fixMissingAutocomplete()
+        fixBioHeightLimit()
     }
 
     private fun fixStockEmojis() = tryPatch("Fix built-in emojis") {
@@ -392,6 +397,27 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                     { it.user.discriminator }, // Then compare by discrim
                 )
             }
+        }
+    }
+
+    private fun fixBioHeightLimit() = tryPatch("Fix user bios getting truncated to 6 lines") {
+        // Unset maxLines for user profile sheet
+        patcher.after<WidgetUserSheet>(
+            "configureAboutMe",
+            WidgetUserSheetViewModel.ViewState.Loaded::class.java,
+        ) {
+            val binding = WidgetUserSheet.`access$getBinding$p`(this)
+            binding.g.maxLines = Int.MAX_VALUE // bio
+        }
+
+        // Unset maxLines for profile editing widget
+        patcher.after<WidgetEditUserOrGuildMemberProfile>(
+            "configureBio",
+            SettingsUserProfileViewModel.ViewState.Loaded::class.java,
+        ) {
+            val binding = WidgetEditUserOrGuildMemberProfile.`access$getBinding$p`(this)
+            binding.c.maxLines = Int.MAX_VALUE // bio editor input
+            binding.h.maxLines = Int.MAX_VALUE // bio preview
         }
     }
 
