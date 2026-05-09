@@ -80,6 +80,9 @@ internal class PluginUpdaterSource {
      * Latest build info for a specific plugin.
      */
     data class PluginBuildInfo(
+        /**
+         * A plugin's version is not necessarily defined to be a semver due to backwards compatibility.
+         */
         var version: String,
         @SerializedName("build")
         var buildUrl: String,
