@@ -82,13 +82,17 @@ internal object PluginUpdater {
                         ?.takeIf { it.isNotEmpty() }
                         ?: continue,
                 )
+                // Previous attempt at retrieving updater data failed
                 if (info == null) {
                     logger.warn("Failed to check updates for plugin ${plugin.name} (${plugin.__filename}.zip)")
                     continue
                 }
 
+                // Assume invalid local versions are always out of date
+                val localVersion = SemVer.parseOrNull(plugin.manifest.version) ?: SemVer.Zero
+
                 // Plugin is already up-to-date
-                if (SemVer.parse(plugin.manifest.version) >= info.version)
+                if (localVersion >= info.version)
                     continue
 
                 updates += PluginUpdate(
