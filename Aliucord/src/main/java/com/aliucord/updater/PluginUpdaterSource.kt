@@ -2,10 +2,10 @@ package com.aliucord.updater
 
 import com.aliucord.Http
 import com.aliucord.Logger
-import com.aliucord.entities.Plugin
 import com.aliucord.utils.*
 import com.aliucord.utils.GsonUtils.fromJson
 import com.google.gson.reflect.TypeToken
+import java.lang.reflect.Type
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
@@ -14,6 +14,8 @@ import java.util.concurrent.TimeUnit
  */
 internal class PluginUpdaterSource {
     private val logger = Logger("Updater/Plugins/Source")
+    private val rawGithubRegex =
+        "https://raw\\.githubusercontent\\.com/(.+?)/(.+?)/(.+)".toRegex()
 
     /**
      * A TTL cache of updater data from plugin repositories.
@@ -22,56 +24,37 @@ internal class PluginUpdaterSource {
     private val cachedRepoInfo = ConcurrentHashMap<String, RepoBuildInfo>()
 
     /**
-     * Retrieves the update info for a specific plugin.
-     * @param pluginName The plugin's manifest name.
-     * @param updateInfoUrl The plugin's repository's update info url. [Plugin.Manifest.updateUrl]
-     */
-    fun getPluginBuildInfo(pluginName: String, updateInfoUrl: String): PluginBuildInfo? {
-        return getRepoBuildInfo(updateInfoUrl)?.get(pluginName)
-    }
-
-    /**
      * Retrieves the update info for a plugin repository.
      * @return Record of plugin name -> plugin updater info, or `null` if data failed to fetch.
      */
     fun getRepoBuildInfo(updateInfoUrl: String): Map<String, PluginBuildInfo>? {
-        // Replace raw.githubusercontent.com urls with jsdelivr to avoid rate limiting
-        val realUpdateInfoUrl = updateInfoUrl.replace(
-            "https://raw\\.githubusercontent\\.com/(.+?)/(.+?)/(.+)".toRegex(),
-            "https://cdn.jsdelivr.net/gh/$1/$2@$3"
-        )
+        val url = updateInfoUrl.replace(rawGithubRegex, "https://cdn.jsdelivr.net/gh/$1/$2@$3")
 
-        cachedRepoInfo[realUpdateInfoUrl]?.let {
-            if (System.currentTimeMillis() < it.expiration) {
-                return it.plugins
-            } else {
-                cachedRepoInfo.remove(realUpdateInfoUrl)
-            }
+        cachedRepoInfo[url]?.let {
+            if (System.currentTimeMillis() < it.expiration) return it.plugins
+            cachedRepoInfo.remove(url)
         }
 
+        val json = fetchJson<Map<String, PluginBuildInfo>>(url)
+        cachedRepoInfo[url] = RepoBuildInfo(plugins = json)
+        return json
+    }
+
+    fun getMainManifestBuildInfo(): Map<String, PluginBuildInfo>? {
+        return fetchJson<List<PluginBuildInfo>>("https://plugins.aliucord.com/manifest.json")
+            ?.associateBy { it.name!! }
+    }
+
+    private inline fun <reified T> fetchJson(url: String, type: Type = object : TypeToken<T>() {}.type): T? {
         try {
-            val resp = Http.Request(realUpdateInfoUrl).execute()
-
-            // If update url doesn't exist, don't retry
-            if (resp.statusCode == 404) {
-                cachedRepoInfo[realUpdateInfoUrl] = RepoBuildInfo(plugins = null)
-            }
-
+            val resp = Http.Request(url).execute()
             if (!resp.ok()) {
-                logger.warn("Failed to fetch plugin update info from $realUpdateInfoUrl, " +
-                    "Status ${resp.statusCode}, " +
-                    "Response: ${resp.text()}")
+                logger.warn("Failed to fetch $url, Status ${resp.statusCode}, Response: ${resp.text()}")
                 return null
             }
-
-            val jsonType = TypeToken.getParameterized(Map::class.java, String::class.java, PluginBuildInfo::class.java).getType()
-            val json = GsonUtils.gson.fromJson<Map<String, PluginBuildInfo>>(resp.text(), jsonType)
-
-            cachedRepoInfo[realUpdateInfoUrl] = RepoBuildInfo(plugins = json)
-            return json
+            return GsonUtils.gson.fromJson(resp.text(), type)
         } catch (e: Exception) {
-            cachedRepoInfo[realUpdateInfoUrl] = RepoBuildInfo(plugins = null)
-            logger.warn("Failed to fetch plugin update info from $realUpdateInfoUrl", e)
+            logger.warn("Failed to fetch plugin update info from $url", e)
             return null
         }
     }
@@ -80,8 +63,9 @@ internal class PluginUpdaterSource {
      * Latest build info for a specific plugin.
      */
     data class PluginBuildInfo(
+        var name: String? = null,
         var version: SemVer,
-        @SerializedName("build")
+        @SerializedName("build", alternate = ["url"])
         var buildUrl: String,
         var buildCrc32: String? = null,
         var changelog: String? = null,

@@ -7,6 +7,7 @@ import com.aliucord.entities.Plugin
 import com.aliucord.settings.AUTO_UPDATE_PLUGINS_KEY
 import com.aliucord.utils.SemVer
 import java.io.File
+import java.util.concurrent.Executors
 
 /**
  * Manages fetching and installing plugin updates.
@@ -72,39 +73,53 @@ internal object PluginUpdater {
         logger.info("Checking for plugin updates...")
 
         val updates = mutableListOf<PluginUpdate>()
-        for (plugin in PluginManager.plugins.values) {
-            try {
-                if (plugin is CorePlugin) continue
+        val mainInfo = source.getMainManifestBuildInfo()
 
-                val info = source.getPluginBuildInfo(
-                    pluginName = plugin.manifest.name ?: continue,
-                    updateInfoUrl = plugin.manifest.updateUrl
-                        ?.takeIf { it.isNotEmpty() }
-                        ?: continue,
-                )
-                // Previous attempt at retrieving updater data failed
-                if (info == null) {
-                    logger.warn("Failed to check updates for plugin ${plugin.name} (${plugin.__filename}.zip)")
-                    continue
-                }
+        // Check if a plugin has an update available and add it to the list
+        fun checkAndAdd(plugin: Plugin, name: String, repo: Map<String, PluginUpdaterSource.PluginBuildInfo>?): Boolean {
+            try {
+                // Plugin not found in repo
+                val info = repo?.get(name) ?: return false
 
                 // Assume invalid local versions are always out of date
-                val localVersion = SemVer.parseOrNull(plugin.manifest.version) ?: SemVer.Zero
+                val local = SemVer.parseOrNull(plugin.manifest.version) ?: SemVer.Zero
 
                 // Plugin is already up-to-date
-                if (localVersion >= info.version)
-                    continue
+                if (local >= info.version) return true
 
-                updates += PluginUpdate(
-                    plugin = plugin,
-                    pluginName = plugin.name,
-                    info = info,
-                )
+                updates += PluginUpdate(plugin, name, info)
+                return true
             } catch (e: Exception) {
-                logger.error("Failed checking updates for plugin ${plugin.name} (${plugin.__filename}.zip)", e)
-                continue
+                logger.error("Failed checking updates for ${plugin.name} (${plugin.__filename}.zip)", e)
+                return false
             }
         }
+
+        // Check main manifest first, group remaining plugins by their update URL for parallel fetching
+        val fallback = mutableMapOf<String, MutableList<Pair<Plugin, String>>>()
+        for (plugin in PluginManager.plugins.values) {
+            if (plugin is CorePlugin) continue
+            val name = plugin.manifest.name ?: continue
+            val url = plugin.manifest.updateUrl?.takeIf(String::isNotEmpty) ?: continue
+            if (!checkAndAdd(plugin, name, mainInfo)) fallback.getOrPut(url) { mutableListOf() }.add(plugin to name)
+        }
+
+        // Fetch all remaining repos in parallel
+        val executor = Executors.newFixedThreadPool(4)
+        try {
+            fallback.mapValues { (url, plugins) ->
+                plugins to executor.submit<Map<String, PluginUpdaterSource.PluginBuildInfo>?> {
+                    source.getRepoBuildInfo(url)
+                }
+            }.forEach { (_, value) ->
+                val (plugins, future) = value
+                val repo = future.get() ?: return@forEach
+                plugins.forEach { (plugin, name) -> checkAndAdd(plugin, name, repo) }
+            }
+        } finally {
+            executor.shutdown()
+        }
+
         return updates
     }
 
@@ -122,26 +137,13 @@ internal object PluginUpdater {
                 resp.saveToFile(File(Constants.PLUGINS_PATH, "${update.plugin.__filename}.zip"))
             }
 
-            reloadPlugin(update.plugin)
+            Utils.mainThread.post {
+                PluginManager.remountPlugin(update.plugin.name)
+            }
             true
         } catch (e: Exception) {
             logger.error("Failed to update plugin ${update.plugin} (${update.plugin.__filename}.zip)", e)
             false
-        }
-    }
-
-    private fun reloadPlugin(plugin: Plugin) {
-        // FIXME: plugin not reloaded when disabled
-        if (!PluginManager.isPluginEnabled(plugin.name)) return
-
-        Utils.mainThread.post {
-            PluginManager.remountPlugin(plugin.name)
-            val newPlugin = PluginManager.plugins[plugin.name] ?: return@post
-
-            // FIXME: only prompt once when updating all plugins at once
-            if (plugin.requiresRestart() || newPlugin.requiresRestart()) {
-                Utils.promptRestart("Plugin update requires a restart. Restart now?")
-            }
         }
     }
 }
