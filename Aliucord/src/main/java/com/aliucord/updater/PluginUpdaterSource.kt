@@ -65,6 +65,7 @@ internal class PluginUpdaterSource {
     data class PluginBuildInfo(
         var name: String? = null,
         var version: SemVer,
+        var repoUrl: String? = null,
         @SerializedName("build", alternate = ["url"])
         var buildUrl: String,
         var buildCrc32: String? = null,

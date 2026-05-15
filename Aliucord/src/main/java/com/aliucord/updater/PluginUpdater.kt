@@ -7,6 +7,7 @@ import com.aliucord.entities.Plugin
 import com.aliucord.settings.AUTO_UPDATE_PLUGINS_KEY
 import com.aliucord.utils.SemVer
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 
 /**
@@ -74,12 +75,38 @@ internal object PluginUpdater {
 
         val updates = mutableListOf<PluginUpdate>()
         val mainInfo = source.getMainManifestBuildInfo()
+        val regex = Regex(
+            """(?:cdn\.jsdelivr\.net/gh/|raw\.githubusercontent\.com/|github\.com/)([^/]+)/([^/@]+)"""
+        )
+
+        val urlsCache = ConcurrentHashMap<String, Pair<String, String>>()
+        val comparisonCache = ConcurrentHashMap<Pair<String, String>, Boolean>()
+
+        fun compareUrls(a: String?, b: String?): Boolean {
+            if (a == null || b == null) return false
+
+            val key = if (a <= b) a to b else b to a
+
+            return comparisonCache.getOrPut(key) {
+                fun parse(url: String): Pair<String, String>? {
+                    return urlsCache.getOrPut(url) {
+                        val m = regex.find(url, 0) ?: return@getOrPut null
+                        m.groupValues[1] to m.groupValues[2]
+                    }
+                }
+
+                val p1 = parse(a) ?: return@getOrPut false
+                val p2 = parse(b) ?: return@getOrPut false
+                p1 == p2
+            }
+        }
 
         // Check if a plugin has an update available and add it to the list
         fun checkAndAdd(plugin: Plugin, name: String, repo: Map<String, PluginUpdaterSource.PluginBuildInfo>?): Boolean {
             try {
                 // Plugin not found in repo
                 val info = repo?.get(name) ?: return false
+                if (!compareUrls(info.repoUrl, plugin.manifest.updateUrl)) return false
 
                 // Assume invalid local versions are always out of date
                 val local = SemVer.parseOrNull(plugin.manifest.version) ?: SemVer.Zero
@@ -107,12 +134,11 @@ internal object PluginUpdater {
         // Fetch all remaining repos in parallel
         val executor = Executors.newFixedThreadPool(4)
         try {
-            fallback.mapValues { (url, plugins) ->
+            fallback.map { (url, plugins) ->
                 plugins to executor.submit<Map<String, PluginUpdaterSource.PluginBuildInfo>?> {
                     source.getRepoBuildInfo(url)
                 }
-            }.forEach { (_, value) ->
-                val (plugins, future) = value
+            }.forEach { (plugins, future) ->
                 val repo = future.get() ?: return@forEach
                 plugins.forEach { (plugin, name) -> checkAndAdd(plugin, name, repo) }
             }
