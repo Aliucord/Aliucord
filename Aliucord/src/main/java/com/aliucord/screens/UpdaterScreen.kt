@@ -39,6 +39,7 @@ internal class UpdaterScreen : SettingsPage() {
 
         super.onViewBound(view)
         setActionBarTitle("Updater")
+        linearLayout.removeAllViews()
 
         addHeaderButton("Refresh", R.e.ic_refresh_white_a60_24dp) { item ->
             item.isEnabled = false
