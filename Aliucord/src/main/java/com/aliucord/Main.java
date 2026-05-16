@@ -281,7 +281,7 @@ public final class Main {
 
             msg
                 .replace(msg.length()-2, msg.length(), ".")
-                .insert(0, String.format("Updates for %d plugins: ", updates.size());
+                .insert(0, String.format("Updates for %d plugins: ", updates.size()));
             var notification = new NotificationData()
                 .setTitle("Updater")
                 .setBody(msg)
