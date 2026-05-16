@@ -280,8 +280,8 @@ public final class Main {
             }
 
             msg
-                .replace(msg.length()-2, msg.length(), ".");
-                .insert(0, String.format("Updates for %d plugins: ", updates.size())
+                .replace(msg.length()-2, msg.length(), ".")
+                .insert(0, String.format("Updates for %d plugins: ", updates.size());
             var notification = new NotificationData()
                 .setTitle("Updater")
                 .setBody(msg)
@@ -303,7 +303,7 @@ public final class Main {
             if (!update.isUpdatePossible()) continue;
             if (PluginUpdater.updatePlugin(update)) {
                 if(succeeded > 0) succeededMsg.append(", ");
-                succeeded++
+                succeeded++;
                 succeededMsg
                     .append("**")
                     .append(update.getName())
@@ -326,7 +326,7 @@ public final class Main {
             .setTitle("Updater");
         if (failed == 0) {
             succeededMsg
-                .replace(succeededMsg.length()-2, succeededMsg.length(), ".");
+                .replace(succeededMsg.length()-2, succeededMsg.length(), ".")
                 .insert(0, String.format("Automatically updated %s plugins: ", succeeded));
             notification
                 .setAutoDismissPeriodSecs(10)
@@ -334,7 +334,7 @@ public final class Main {
                 .setOnClick((view) -> Unit.a);
         } else {
             failedMsg
-                .replace(failedMsg.length()-2, failedMsg.length(), ".");
+                .replace(failedMsg.length()-2, failedMsg.length(), ".")
                 .insert(0, String.format("Failed to update %s plugins: ", failed));
             notification
                 .setAutoDismissPeriodSecs(30)
