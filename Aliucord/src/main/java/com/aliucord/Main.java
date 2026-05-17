@@ -298,13 +298,13 @@ public final class Main {
         for (var update : updates) {
             if (!update.isUpdatePossible()) continue;
             if (PluginUpdater.updatePlugin(update)) {
-                if(succeeded > 0) succeededMsg.append(", ");
+                if (succeeded > 0) succeededMsg.append(", ");
                 succeeded++;
                 succeededMsg.append(
                     String.format("**%s**\u00A0(%s)", update.getPluginName(),
                         update.getInfo().getVersion().toString()));
             } else {
-                if(failed > 0) failedMsg.append(", ");
+                if (failed > 0) failedMsg.append(", ");
                 failed++;
                 failedMsg.append(
                     String.format("**%s**\u00A0(%s)", update.getPluginName(),
