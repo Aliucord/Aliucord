@@ -252,20 +252,6 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         }
     }
 
-    private fun fixThreads() = tryPatch("Fix threads") {
-        // Fix create private thread
-        patcher.instead<ThreadDraftFormEntry>("getCanCreatePrivateThread") { true }
-        patcher.after<WidgetChatListAdapterItemThreadDraftForm>("onConfigure", Int::class.javaPrimitiveType!!, ChatListEntry::class.java) {
-            itemView.findViewById<TextView>("private_thread_toggle_badge").visibility = View.GONE
-        }
-        // Fix create thread experiment
-        patcher.instead<CreateThreadsFeatureFlag.Companion>("computeIsEnabled",
-            Experiment::class.java,
-            Experiment::class.java,
-            Guild::class.java
-        ) { true }
-    }
-
     private fun fixPrivateChannelScroll() = tryPatch("Fix private channel scroll") {
         var executed = false
 
@@ -292,6 +278,20 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                 param.args[2] = "xsalsa20_poly1305_lite_rtpsize"
             }
         }
+    }
+
+    private fun fixThreads() = tryPatch("Fix threads") {
+        // Fix create private thread
+        patcher.instead<ThreadDraftFormEntry>("getCanCreatePrivateThread") { true }
+        patcher.after<WidgetChatListAdapterItemThreadDraftForm>("onConfigure", Int::class.javaPrimitiveType!!, ChatListEntry::class.java) {
+            itemView.findViewById<TextView>("private_thread_toggle_badge").visibility = View.GONE
+        }
+        // Fix create thread experiment
+        patcher.instead<CreateThreadsFeatureFlag.Companion>("computeIsEnabled",
+            Experiment::class.java,
+            Experiment::class.java,
+            Guild::class.java
+        ) { true }
     }
 
     private fun fixThreadsIcon() = tryPatch("Fix threads icon alignment in channel context menu") {
