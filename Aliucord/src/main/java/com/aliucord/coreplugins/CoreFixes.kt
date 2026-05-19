@@ -24,16 +24,16 @@ import com.aliucord.wrappers.ChannelWrapper.Companion.id
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper
 import com.discord.api.channel.Channel
 import com.discord.api.message.embed.EmbedField
+import com.discord.api.message.embed.EmbedType
 import com.discord.api.permission.Permission
 import com.discord.models.domain.emoji.ModelEmojiCustom
 import com.discord.models.domain.emoji.ModelEmojiUnicode
 import com.discord.rtcconnection.socket.io.Payloads.Protocol.ProtocolInfo
-import com.discord.stores.StoreReadStates
-import com.discord.stores.StoreSlowMode
-import com.discord.stores.StoreStream
+import com.discord.stores.*
 import com.discord.utilities.drawable.DrawableCompat
 import com.discord.utilities.embed.EmbedResourceUtils
 import com.discord.utilities.guildautomod.AutoModUtils
+import com.discord.utilities.icon.IconUtils
 import com.discord.utilities.lazy.memberlist.ChannelMemberList
 import com.discord.utilities.lazy.memberlist.MemberListRow
 import com.discord.utilities.permissions.PermissionUtils
@@ -47,6 +47,7 @@ import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemThreadDraf
 import com.discord.widgets.chat.list.entries.*
 import com.discord.widgets.chat.overlay.WidgetChatOverlay
 import com.discord.widgets.guilds.list.`WidgetGuildsListViewModel$createDirectMessageItems$1`
+import com.discord.widgets.media.WidgetMedia
 import com.discord.widgets.settings.profile.SettingsUserProfileViewModel
 import com.discord.widgets.settings.profile.WidgetEditUserOrGuildMemberProfile
 import com.discord.widgets.user.usersheet.WidgetUserSheet
@@ -73,8 +74,8 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixStockEmojis()
         fixAutoModEmbed()
         fixKeyboardCrash()
-        fixWebpEmojis()
-        fixGifPreviews()
+        fixAnimatedWebp()
+        fixAnimatedPreviews()
         fixMemberListGroups()
         fixAppBar()
         fixStickerCrash()
@@ -138,7 +139,46 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         }
     }
 
-    private fun fixWebpEmojis() = tryPatch("Fix emoji formats") {
+    private fun patchIconU(name: String, animatedIdx: Int, vararg paramTypes: Class<*>) {
+        patcher.patch(IconUtils::class.java.getDeclaredMethod(name, *paramTypes)) {
+            val url = it.result as? String
+                ?: return@patch
+
+            val animated = (it.args[animatedIdx] as Boolean).toString()
+            it.result = when (url.contains("?")) {
+                true -> url.replaceFirst("?", "?animated=$animated&")
+                false -> "$url?animated=$animated"
+            }
+        }
+    }
+
+    private fun fixAnimatedWebp() = tryPatch("Fix animated webps not displaying") {
+        // Patch various functions that retrieve the url for a (possibly animated) resource
+        @Suppress("LocalVariableName")
+        run {
+            val S = String::class.java
+            val L = Long::class.javaObjectType
+            val l = Long::class.javaPrimitiveType!!
+            val I = Int::class.javaObjectType
+            val b = Boolean::class.javaPrimitiveType!!
+            patchIconU("getForGuild", 3, L, S, S, b, I)
+            patchIconU("getForUser", 3, L, S, I, b, I)
+            patchIconU("getBannerForGuild", 3, L, S, I, b)
+            patchIconU("getForGuildMember", 4, S, l, l, I, b)
+            patchIconU("getForGuildMemberBanner", 4, S, l, l, I, b)
+            patchIconU("getForUserBanner", 3, l, S, I, b)
+        }
+
+        // Use webp for all icons — this is called only by all the above functions
+        // TODO: The static image extension uses png instead of webp only specifically for
+        // api level 28 and 29, needs testing to see if there's some weird bug for those two
+        // specific versions that forced them to do this
+        patcher.instead<IconUtils>(
+            "getImageExtension",
+            String::class.java,
+            Boolean::class.javaPrimitiveType!!,
+        ) { "webp" }
+
         // Support webp emojis by forcing every emoji to be webp
         patcher.instead<ModelEmojiCustom?>(
             "getImageUri",
@@ -146,28 +186,56 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         ) { (_, id: Long, animated: Boolean, size: Int) ->
             "https://cdn.discordapp.com/emojis/$id.webp?size=$size&animated=$animated"
         }
+
+        // Animate webp properly in fullscreen media view
+        patcher.before<WidgetMedia>(
+            "getFormattedUrl",
+            Context::class.java,
+            Uri::class.java
+        ) { (param, _: Context, uri: Uri) ->
+            if (uri.path?.endsWith(".webp") == true)
+                param.result = uri
+                    .buildUpon()
+                    .appendQueryParameter("animated", "true")
+                    .toString()
+        }
+
+        // Mark webp images in [inline] embeds as animated
+        // This exists solely to make reduced motion have an effect on animated webps
+        // A caveat is that static webps will also display as "GIF" under such conditions; a proper
+        // fix would be to check embed.image.flags shr 5 and 1 == 1 to determine if it is animated,
+        // but that would be far too complicated for this edge case
+        patcher.before<EmbedResourceUtils>(
+            "isAnimated",
+            EmbedType::class.java,
+            String::class.java,
+        ) { (param, _: EmbedType, url: String?) ->
+            if (url?.contains(".webp") == true) {
+                param.result = true
+            }
+        }
     }
 
-    private fun fixGifPreviews() = tryPatch("Fix GIF previews") {
+    // This patch serves two purposes: fixing broken gif previews, and enabling support for animated webp
+    private fun fixAnimatedPreviews() = tryPatch("Fix animated previews") {
         patcher.after<EmbedResourceUtils>(
             "getPreviewUrls",
             String::class.java, Int::class.java, Int::class.java, Boolean::class.java,
         ) { (params, _: String, _: Int, _: Int, animated: Boolean) ->
-            if (!animated) return@after
-
             @Suppress("UNCHECKED_CAST")
             val urls = (params.result as List<String>).toMutableList()
 
             @SuppressLint("UseKtx")
             val uri = Uri.parse(urls[0].replace("&?", "&"))
-                ?.takeIf { it.path?.endsWith(".gif") == true }
+                ?.takeIf { (it.path?.endsWith(".gif") == true && animated) || it.path?.endsWith(".webp") == true }
                 ?: return@after
 
-            val filteredQueryKeys = uri.queryParameterNames.filter { it != "format" }
+            val filteredQueryKeys = uri.queryParameterNames.filter { it != "format" && it != "animated" }
 
             val newUri = uri.buildUpon()
                 .clearQuery()
                 .apply { filteredQueryKeys.forEach { appendQueryParameter(it, uri.getQueryParameter(it)) } }
+                .apply { appendQueryParameter("animated", animated.toString()) }
                 .build()
 
             urls[0] = newUri.toString()
