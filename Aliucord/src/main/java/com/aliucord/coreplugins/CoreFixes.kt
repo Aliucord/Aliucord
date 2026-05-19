@@ -27,6 +27,8 @@ import com.discord.api.message.embed.EmbedField
 import com.discord.api.permission.Permission
 import com.discord.models.domain.emoji.ModelEmojiCustom
 import com.discord.models.domain.emoji.ModelEmojiUnicode
+import com.discord.models.experiments.domain.Experiment
+import com.discord.models.guild.Guild
 import com.discord.rtcconnection.socket.io.Payloads.Protocol.ProtocolInfo
 import com.discord.stores.StoreReadStates
 import com.discord.stores.StoreSlowMode
@@ -41,6 +43,7 @@ import com.discord.utilities.time.ClockFactory
 import com.discord.utilities.time.NtpClock
 import com.discord.widgets.channels.list.*
 import com.discord.widgets.chat.input.SmoothKeyboardReactionHelper
+import com.discord.widgets.chat.list.CreateThreadsFeatureFlag
 import com.discord.widgets.chat.list.actions.`WidgetChatListActions$binding$2`
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemAutoModSystemMessageEmbed
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemThreadDraftForm
@@ -81,9 +84,9 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixHidingMutedThreads()
         fixHidingMutedChannels()
         fixHidingMutedDMs()
-        fixPrivateThreads()
         fixPrivateChannelScroll()
         fixVoiceCodec()
+        fixThreads()
         fixThreadsIcon()
         fixSlowmode()
         fixExternalLinks()
@@ -249,13 +252,6 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         }
     }
 
-    private fun fixPrivateThreads() = tryPatch("Fix private threads") {
-        patcher.instead<ThreadDraftFormEntry>("getCanCreatePrivateThread") { true }
-        patcher.after<WidgetChatListAdapterItemThreadDraftForm>("onConfigure", Int::class.javaPrimitiveType!!, ChatListEntry::class.java) {
-            itemView.findViewById<TextView>("private_thread_toggle_badge").visibility = View.GONE
-        }
-    }
-
     private fun fixPrivateChannelScroll() = tryPatch("Fix private channel scroll") {
         var executed = false
 
@@ -282,6 +278,20 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                 param.args[2] = "xsalsa20_poly1305_lite_rtpsize"
             }
         }
+    }
+
+    private fun fixThreads() = tryPatch("Fix threads") {
+        // Fix create private thread
+        patcher.instead<ThreadDraftFormEntry>("getCanCreatePrivateThread") { true }
+        patcher.after<WidgetChatListAdapterItemThreadDraftForm>("onConfigure", Int::class.javaPrimitiveType!!, ChatListEntry::class.java) {
+            itemView.findViewById<TextView>("private_thread_toggle_badge").visibility = View.GONE
+        }
+        // Fix create thread experiment
+        patcher.instead<CreateThreadsFeatureFlag.Companion>("computeIsEnabled",
+            Experiment::class.java,
+            Experiment::class.java,
+            Guild::class.java
+        ) { true }
     }
 
     private fun fixThreadsIcon() = tryPatch("Fix threads icon alignment in channel context menu") {
