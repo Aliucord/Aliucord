@@ -25,6 +25,7 @@ import com.aliucord.patcher.Patcher;
 import com.aliucord.screens.UpdaterScreen;
 import com.aliucord.settings.AliucordPageKt;
 import com.aliucord.updater.*;
+import com.aliucord.utils.MDUtils;
 import com.aliucord.utils.ReflectUtils;
 import com.discord.app.AppActivity;
 import com.discord.models.domain.Model;
@@ -268,48 +269,68 @@ public final class Main {
         if (updates.isEmpty()) return;
 
         if (!PluginUpdater.isAutoUpdateEnabled()) {
-            var notificationData = new NotificationData()
+            var msg = new StringBuilder();
+            for (var update : updates) {
+                if (msg.length() > 0) msg.append(", ");
+                msg.append(
+                    String.format("**%s**\u00A0(%s)", update.getPluginName(),
+                        update.getInfo().getVersion().toString()));
+            }
+
+            var notification = new NotificationData()
                 .setTitle("Updater")
-                .setBody(String.format("Found %s available plugin updates! Click to view...", updates.size()))
+                .setBody(MDUtils.render(String.format("Updates for %d plugins: ", updates.size())
+                    + msg))
                 .setAutoDismissPeriodSecs(30)
                 .setOnClick((view)-> {
                     Utils.openPage(Utils.appActivity, UpdaterScreen.class);
                     return Unit.a;
                 });
 
-            NotificationsAPI.display(notificationData);
+            NotificationsAPI.display(notification);
             return;
         }
 
+        var succeeded = 0;
+        var succeededMsg = new StringBuilder();
         var failed = 0;
-        var succeeded = new ArrayList<String>();
+        var failedMsg = new StringBuilder();
         for (var update : updates) {
             if (!update.isUpdatePossible()) continue;
             if (PluginUpdater.updatePlugin(update)) {
-                succeeded.add(update.getPluginName());
+                if (succeeded > 0) succeededMsg.append(", ");
+                succeeded++;
+                succeededMsg.append(
+                    String.format("**%s**\u00A0(%s)", update.getPluginName(),
+                        update.getInfo().getVersion().toString()));
             } else {
+                if (failed > 0) failedMsg.append(", ");
                 failed++;
+                failedMsg.append(
+                    String.format("**%s**\u00A0(%s)", update.getPluginName(),
+                        update.getInfo().getVersion().toString()));
             }
         }
 
         var notification = new NotificationData()
             .setTitle("Updater");
-        if (failed > 0) {
+        if (failed == 0) {
+            notification
+                .setAutoDismissPeriodSecs(10)
+                .setBody(MDUtils.render(String.format("Automatically updated %s plugins: ", succeeded)
+                    + succeededMsg))
+                .setOnClick((view) -> Unit.a);
+        } else {
             notification
                 .setAutoDismissPeriodSecs(30)
-                .setBody(String.format("Failed to update %s plugins! Click to view...", failed))
+                .setBody(MDUtils.render(String.format("Failed to update %s plugins: ", failed)
+                    + failedMsg))
                 .setOnClick((view) -> {
                     Utils.openPage(Utils.appActivity, UpdaterScreen.class);
                     return Unit.a;
                 });
-        } else {
-            notification
-                .setAutoDismissPeriodSecs(10)
-                .setOnClick((view) -> Unit.a)
-                .setBody("Automatically updated plugins: "
-                    + String.join(", ", CollectionsKt.take(succeeded, 5))
-                    + (succeeded.size() > 5 ? String.format(", and %s others.", succeeded.size()) : ""));
         }
+
         NotificationsAPI.display(notification);
     }
 
