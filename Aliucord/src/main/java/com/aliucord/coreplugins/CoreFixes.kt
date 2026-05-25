@@ -26,14 +26,17 @@ import com.discord.api.channel.Channel
 import com.discord.api.message.embed.EmbedField
 import com.discord.api.message.embed.EmbedType
 import com.discord.api.permission.Permission
+import com.discord.databinding.WidgetGuildsListItemGuildBinding
 import com.discord.models.domain.emoji.ModelEmojiCustom
 import com.discord.models.domain.emoji.ModelEmojiUnicode
+import com.discord.models.guild.Guild
 import com.discord.rtcconnection.socket.io.Payloads.Protocol.ProtocolInfo
 import com.discord.stores.*
 import com.discord.utilities.drawable.DrawableCompat
 import com.discord.utilities.embed.EmbedResourceUtils
 import com.discord.utilities.guildautomod.AutoModUtils
 import com.discord.utilities.icon.IconUtils
+import com.discord.utilities.images.MGImages
 import com.discord.utilities.lazy.memberlist.ChannelMemberList
 import com.discord.utilities.lazy.memberlist.MemberListRow
 import com.discord.utilities.permissions.PermissionUtils
@@ -46,6 +49,7 @@ import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemAutoModSys
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemThreadDraftForm
 import com.discord.widgets.chat.list.entries.*
 import com.discord.widgets.chat.overlay.WidgetChatOverlay
+import com.discord.widgets.guilds.list.GuildListViewHolder
 import com.discord.widgets.guilds.list.`WidgetGuildsListViewModel$createDirectMessageItems$1`
 import com.discord.widgets.media.WidgetMedia
 import com.discord.widgets.settings.profile.SettingsUserProfileViewModel
@@ -139,45 +143,51 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         }
     }
 
-    private fun patchIconU(name: String, animatedIdx: Int, vararg paramTypes: Class<*>) {
-        patcher.patch(IconUtils::class.java.getDeclaredMethod(name, *paramTypes)) {
-            val url = it.result as? String
-                ?: return@patch
+    private val GuildListViewHolder.GuildViewHolder.bindingGuild
+        by accessField<WidgetGuildsListItemGuildBinding>()
 
-            val animated = (it.args[animatedIdx] as Boolean).toString()
-            it.result = when (url.contains("?")) {
-                true -> url.replaceFirst("?", "?animated=$animated&")
-                false -> "$url?animated=$animated"
-            }
+    private fun patchIconU(name: String, vararg paramTypes: Class<*>) {
+        patcher.patch(IconUtils::class.java.getDeclaredMethod(name, *paramTypes)) {
+            it.result = (it.result as? String)
+                ?.replace("?size=", "&size=")
+                ?: return@patch
         }
     }
 
     private fun fixAnimatedWebp() = tryPatch("Fix animated webps not displaying") {
-        // Patch various functions that retrieve the url for a (possibly animated) resource
-        @Suppress("LocalVariableName")
-        run {
-            val S = String::class.java
-            val L = Long::class.javaObjectType
-            val l = Long::class.javaPrimitiveType!!
-            val I = Int::class.javaObjectType
-            val b = Boolean::class.javaPrimitiveType!!
-            patchIconU("getForGuild", 3, L, S, S, b, I)
-            patchIconU("getForUser", 3, L, S, I, b, I)
-            patchIconU("getBannerForGuild", 3, L, S, I, b)
-            patchIconU("getForGuildMember", 4, S, l, l, I, b)
-            patchIconU("getForGuildMemberBanner", 4, S, l, l, I, b)
-            patchIconU("getForUserBanner", 3, l, S, I, b)
-        }
-
-        // Use webp for all icons — this is called only by all the above functions
-        // TODO: The static image extension uses png instead of webp only specifically for
-        // api level 28 and 29, needs testing to see if there's some weird bug for those two
-        // specific versions that forced them to do this
+        // Use webp for all icons
+        // I have tested with api level 28 to ensure that static webp works correctly; it is
+        // still unclear why they specifically blacklisted api 28 and 29 from using static webp
+        // - cilly
         patcher.instead<IconUtils>(
             "getImageExtension",
-            String::class.java,
-            Boolean::class.javaPrimitiveType!!,
-        ) { "webp" }
+            String::class.java, Boolean::class.javaPrimitiveType!!,
+        ) { (_, hash: String, animated: Boolean) ->
+            if (hash.startsWith("a_") && animated) "webp?animated=true" else "webp?animated=false"
+        }
+
+        // Fixup methods that add a ?size= to the url, to replace them with &size instead since
+        // we already have ?animated=... above
+        @Suppress("LocalVariableName")
+        run {
+            val String = String::class.java
+            val Long = Long::class.javaObjectType
+            val Integer = Int::class.javaObjectType
+            val boolean = Boolean::class.javaPrimitiveType!!
+            patchIconU("getForGuild", Long, String, String, boolean, Integer)
+            patchIconU("getBannerForGuild", Long, String, Integer, boolean)
+            patchIconU("withSize", String, Integer)
+        }
+        patcher.after<GuildListViewHolder.GuildViewHolder>(
+            "configureGuildIconImage",
+            Guild::class.java, Boolean::class.javaPrimitiveType!!,
+        ) { (_, guild: Guild, animated: Boolean) ->
+            if (!guild.hasIcon()) return@after
+
+            val size = IconUtils.getMediaProxySize(bindingGuild.d.layoutParams.height)
+            val url = IconUtils.getForGuild(guild, null, animated) + "&size=${size}"
+            MGImages.`setImage$default`(bindingGuild.d, url, size, size, false, null, null, 112, null);
+        }
 
         // Support webp emojis by forcing every emoji to be webp
         patcher.instead<ModelEmojiCustom?>(
@@ -190,8 +200,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         // Animate webp properly in fullscreen media view
         patcher.before<WidgetMedia>(
             "getFormattedUrl",
-            Context::class.java,
-            Uri::class.java
+            Context::class.java, Uri::class.java,
         ) { (param, _: Context, uri: Uri) ->
             if (uri.path?.endsWith(".webp") == true)
                 param.result = uri
@@ -200,15 +209,14 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                     .toString()
         }
 
-        // Mark webp images in [inline] embeds as animated
+        // Mark webp images in (inline) embeds as animated
         // This exists solely to make reduced motion have an effect on animated webps
         // A caveat is that static webps will also display as "GIF" under such conditions; a proper
         // fix would be to check embed.image.flags shr 5 and 1 == 1 to determine if it is animated,
         // but that would be far too complicated for this edge case
         patcher.before<EmbedResourceUtils>(
             "isAnimated",
-            EmbedType::class.java,
-            String::class.java,
+            EmbedType::class.java, String::class.java,
         ) { (param, _: EmbedType, url: String?) ->
             if (url?.contains(".webp") == true) {
                 param.result = true
