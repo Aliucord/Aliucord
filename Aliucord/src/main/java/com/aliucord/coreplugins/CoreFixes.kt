@@ -170,15 +170,14 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
 
         // Fixup methods that add a ?size= to the url, to replace them with &size instead since
         // we already have ?animated=... above
-        @Suppress("LocalVariableName")
         run {
-            val String = String::class.java
-            val Long = Long::class.javaObjectType
-            val Integer = Int::class.javaObjectType
-            val boolean = Boolean::class.javaPrimitiveType!!
-            patchIconU("getForGuild", Long, String, String, boolean, Integer)
-            patchIconU("getBannerForGuild", Long, String, Integer, boolean)
-            patchIconU("withSize", String, Integer)
+            patchIconU("getForGuild",
+                Long::class.javaObjectType, String::class.java, String::class.java,
+                Boolean::class.javaPrimitiveType!!, Int::class.javaObjectType)
+            patchIconU("getBannerForGuild",
+                Long::class.javaObjectType, String::class.java, Int::class.javaObjectType,
+                Boolean::class.javaPrimitiveType!!)
+            patchIconU("withSize", String::class.java, Int::class.javaObjectType)
         }
         patcher.after<GuildListViewHolder.GuildViewHolder>(
             "configureGuildIconImage",
@@ -204,11 +203,12 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             "getFormattedUrl",
             Context::class.java, Uri::class.java,
         ) { (param, _: Context, uri: Uri) ->
-            if (uri.path?.endsWith(".webp") == true)
-                param.result = uri
-                    .buildUpon()
-                    .appendQueryParameter("animated", "true")
-                    .toString()
+            if (uri.path?.endsWith(".webp") != true) return@before
+
+            param.result = uri
+                .buildUpon()
+                .appendQueryParameter("animated", "true")
+                .toString()
         }
 
         // Mark webp images in (inline) embeds as animated
@@ -245,7 +245,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             val newUri = uri.buildUpon()
                 .clearQuery()
                 .apply { filteredQueryKeys.forEach { appendQueryParameter(it, uri.getQueryParameter(it)) } }
-                .apply { appendQueryParameter("animated", animated.toString()) }
+                .appendQueryParameter("animated", animated.toString())
                 .build()
 
             urls[0] = newUri.toString()
