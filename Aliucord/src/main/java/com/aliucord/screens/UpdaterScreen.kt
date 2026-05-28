@@ -16,8 +16,11 @@ import com.google.android.material.snackbar.Snackbar
 import com.lytefast.flexinput.R
 
 internal class UpdaterScreen : SettingsPage() {
+    companion object {
+        var updates = mutableListOf<PluginUpdater.PluginUpdate>()
+    }
+
     private val updateSource = PluginUpdaterSource()
-    private val updates = mutableListOf<PluginUpdater.PluginUpdate>()
     private var isRefreshing = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,7 +34,7 @@ internal class UpdaterScreen : SettingsPage() {
                 CoreUpdater.checkForUpdates()
             }
 
-            refreshUpdates()
+            if (updates.isEmpty()) refreshUpdates()
         }
     }
 

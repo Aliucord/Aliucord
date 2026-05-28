@@ -273,6 +273,7 @@ public final class Main {
                 .setBody(String.format("Found %s available plugin updates! Click to view...", updates.size()))
                 .setAutoDismissPeriodSecs(30)
                 .setOnClick((view)-> {
+                    UpdaterScreen.Companion.setUpdates(updates);
                     Utils.openPage(Utils.appActivity, UpdaterScreen.class);
                     return Unit.a;
                 });
@@ -299,6 +300,7 @@ public final class Main {
                 .setAutoDismissPeriodSecs(30)
                 .setBody(String.format("Failed to update %s plugins! Click to view...", failed))
                 .setOnClick((view) -> {
+                    UpdaterScreen.Companion.setUpdates(updates);
                     Utils.openPage(Utils.appActivity, UpdaterScreen.class);
                     return Unit.a;
                 });
