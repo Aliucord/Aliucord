@@ -31,10 +31,7 @@ import com.discord.api.message.embed.EmbedField
 import com.discord.api.message.embed.EmbedType
 import com.discord.api.permission.Permission
 import com.discord.app.AppFragment
-import com.discord.databinding.WidgetChatListBinding
-import com.discord.databinding.WidgetForumPostStatusBinding
-import com.discord.databinding.WidgetGuildsListItemGuildBinding
-import com.discord.databinding.WidgetHomeBinding
+import com.discord.databinding.*
 import com.discord.models.domain.emoji.ModelEmojiCustom
 import com.discord.models.domain.emoji.ModelEmojiUnicode
 import com.discord.models.experiments.domain.Experiment
@@ -54,10 +51,7 @@ import com.discord.utilities.time.ClockFactory
 import com.discord.utilities.time.NtpClock
 import com.discord.utilities.viewbinding.FragmentViewBindingDelegate
 import com.discord.widgets.channels.list.*
-import com.discord.widgets.chat.input.OnBackspacePressedListener
-import com.discord.widgets.chat.input.SmoothKeyboardReactionHelper
-import com.discord.widgets.chat.input.WidgetChatInputAttachments
-import com.discord.widgets.chat.input.autocomplete.*
+import com.discord.widgets.chat.input.*
 import com.discord.widgets.chat.input.autocomplete.adapter.ChatInputAutocompleteAdapter
 import com.discord.widgets.chat.input.autocomplete.adapter.`ChatInputAutocompleteAdapter$setupScrollObservables$1`
 import com.discord.widgets.chat.input.emoji.EmojiPickerListener
@@ -66,9 +60,7 @@ import com.discord.widgets.chat.input.expression.WidgetExpressionTray
 import com.discord.widgets.chat.list.CreateThreadsFeatureFlag
 import com.discord.widgets.chat.list.WidgetChatList
 import com.discord.widgets.chat.list.actions.`WidgetChatListActions$binding$2`
-import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterEventsHandler
-import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemAutoModSystemMessageEmbed
-import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemThreadDraftForm
+import com.discord.widgets.chat.list.adapter.*
 import com.discord.widgets.chat.list.entries.*
 import com.discord.widgets.chat.overlay.WidgetChatOverlay
 import com.discord.widgets.guilds.list.GuildListViewHolder
@@ -88,6 +80,7 @@ import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 import rx.Emitter
 import rx.Observable
 import rx.subjects.Subject
+import j0.l.a.i.a as BaseEmitter
 
 private const val BYPASS_SLOWMODE_PERMISSION = 1L shl 52
 
@@ -138,7 +131,8 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     private val WidgetExpressionTray.emojiPickerListener by accessField<EmojiPickerListener?>()
     private val WidgetExpressionTray.onBackspacePressedListener by accessField<OnBackspacePressedListener>()
 
-    private var <T: ViewBinding> FragmentViewBindingDelegate<T>.onBindingDestroy by accessField<(T) -> Unit>("onViewBindingDestroy")
+    private var <T : ViewBinding> FragmentViewBindingDelegate<T>.onBindingDestroy
+        by accessField<(T) -> Unit>("onViewBindingDestroy")
 
     private val expressionTrayPickerId = Utils.getResId("expression_tray_emoji_picker_content", "id")
 
@@ -541,6 +535,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             param.args[7] = joinedForumThreadsMap
         }
     }
+
     private fun fixMemoryLeak() = tryPatch("Fix base memory leak") {
         // Patch some fragment binding onDestroy callbacks to ensure backend stuff doesn't outlive the fragment itself.
         patcher.after<WidgetForumPostStatus> {
@@ -562,7 +557,8 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             binding?.onBindingDestroy = { binding ->
                 unsubscribeSignal.onNext(null)
                 val adapter = WidgetChatList.`access$getAdapter$p`(this)
-                val handler = WidgetChatListAdapterEventsHandler.`access$getUserReactionHandler$p`(adapter.eventHandler as WidgetChatListAdapterEventsHandler)
+                val handler = WidgetChatListAdapterEventsHandler.`access$getUserReactionHandler$p`(
+                    adapter.eventHandler as WidgetChatListAdapterEventsHandler)
                 handler.requestStream.onCompleted()
                 adapter.dispose()
                 adapter.disposeHandlers()
@@ -578,8 +574,11 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         }
 
         // Patch expression tray initializers to ensure they won't get instantiated multiple times due to activity recreation.
-        patcher.before<WidgetChatInputAttachments>("createAndConfigureExpressionFragment", FragmentManager::class.java,
-            TextView::class.java) { param ->
+        patcher.before<WidgetChatInputAttachments>(
+            "createAndConfigureExpressionFragment",
+            FragmentManager::class.java,
+            TextView::class.java,
+        ) { param ->
             val flexInput = WidgetChatInputAttachments.`access$getFlexInputFragment$p`(this)
             // I'm not sure how they managed to do it, but they mixed up
             // FlexInput fragment manager with App fragment manager,
@@ -599,11 +598,14 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         }
 
         // Patch some special Observables created with a custom emitter to ensure they respect unsubscription signals.
-        patcher.instead<`ChatInputAutocompleteAdapter$setupScrollObservables$1`<*>>("call", Emitter::class.java) { (_, emitter: Emitter<Any>) ->
-            val emitter = emitter as j0.l.a.i.a // BaseEmitter
+        patcher.instead<`ChatInputAutocompleteAdapter$setupScrollObservables$1`<*>>(
+            "call",
+            Emitter::class.java,
+        ) { (_, emitter: Emitter<Any>) ->
+            val emitter = emitter as BaseEmitter
 
             if (!emitter.isUnsubscribed) {
-                ChatInputAutocompleteAdapter.`access$setOnScrollListener$p`(this.`this$0`, object: RecyclerView.OnScrollListener() {
+                ChatInputAutocompleteAdapter.`access$setOnScrollListener$p`(this.`this$0`, object : RecyclerView.OnScrollListener() {
                     override fun onScrolled(p0: RecyclerView, p1: Int, p2: Int) {
                         super.onScrolled(p0, p1, p2)
                         if (!emitter.isUnsubscribed) emitter.onNext(0)
@@ -616,13 +618,20 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                 ChatInputAutocompleteAdapter.`access$setOnScrollListener$p`(this.`this$0`, null)
             })
         }
-        patcher.instead<ObservationDeck>("connectRx",
-            Array<ObservationDeck.UpdateSource>::class.java, Boolean::class.javaPrimitiveType!!,
-            Emitter.BackpressureMode::class.java, String::class.java) { (_, sources: Array<ObservationDeck.UpdateSource>, updateOnConnect: Boolean, backpressureMode: Emitter.BackpressureMode, observerName: String ) ->
+        patcher.instead<ObservationDeck>(
+            "connectRx",
+            Array<ObservationDeck.UpdateSource>::class.java,
+            Boolean::class.javaPrimitiveType!!,
+            Emitter.BackpressureMode::class.java,
+            String::class.java,
+        ) { (_, sources: Array<ObservationDeck.UpdateSource>,
+                updateOnConnect: Boolean,
+                backpressureMode: Emitter.BackpressureMode,
+                observerName: String) ->
 
             // Observable.create
             val observable = Observable.o<Void?>({ emitter ->
-                val emitter = emitter as j0.l.a.i.a // BaseEmitter
+                val emitter = emitter as BaseEmitter
 
                 val observer = this@instead.connect(sources, updateOnConnect, observerName) {
                     if (!emitter.isUnsubscribed) {
