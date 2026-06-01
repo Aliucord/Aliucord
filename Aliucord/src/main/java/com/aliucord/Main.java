@@ -10,62 +10,28 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.*;
 import android.provider.Settings;
-import android.text.*;
-import android.text.style.AbsoluteSizeSpan;
-import android.view.*;
-import android.widget.*;
+import android.widget.Toast;
 
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.DrawableRes;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatImageButton;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.res.ResourcesCompat;
-import androidx.fragment.app.Fragment;
 
 import com.aliucord.api.NotificationsAPI;
 import com.aliucord.entities.*;
-import com.aliucord.fragments.ConfirmDialog;
-import com.aliucord.patcher.*;
+import com.aliucord.patcher.Hook;
+import com.aliucord.patcher.Patcher;
 import com.aliucord.screens.UpdaterScreen;
-import com.aliucord.settings.*;
+import com.aliucord.settings.AliucordPageKt;
 import com.aliucord.updater.*;
-import com.aliucord.utils.ChangelogUtils;
 import com.aliucord.utils.ReflectUtils;
-import com.aliucord.views.Divider;
-import com.aliucord.views.ToolbarButton;
-import com.aliucord.wrappers.embeds.MessageEmbedWrapper;
-import com.discord.api.message.embed.EmbedField;
-import com.discord.app.*;
-import com.discord.databinding.*;
-import com.discord.models.domain.*;
-import com.discord.models.domain.emoji.ModelEmojiCustom;
-import com.discord.models.domain.emoji.ModelEmojiUnicode;
-import com.discord.stores.*;
-import com.discord.utilities.color.ColorCompat;
-import com.discord.utilities.guildautomod.AutoModUtils;
-import com.discord.utilities.user.UserUtils;
-import com.discord.widgets.changelog.WidgetChangeLog;
-import com.discord.widgets.chat.input.SmoothKeyboardReactionHelper;
+import com.discord.app.AppActivity;
+import com.discord.models.domain.Model;
+import com.discord.models.domain.ModelUserSettings;
 import com.discord.widgets.chat.list.WidgetChatList;
-import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemAutoModSystemMessageEmbed;
-import com.discord.widgets.chat.list.entries.AutoModSystemMessageEmbedEntry;
-import com.discord.widgets.chat.list.entries.ChatListEntry;
-import com.discord.widgets.debugging.WidgetDebugging;
-import com.discord.widgets.guilds.profile.WidgetChangeGuildIdentity;
-import com.discord.widgets.guilds.profile.WidgetGuildProfileSheet$configureGuildActions$$inlined$apply$lambda$4;
-import com.discord.widgets.home.WidgetHome;
-import com.discord.widgets.settings.WidgetSettings;
-import com.discord.widgets.settings.profile.WidgetEditUserOrGuildMemberProfile;
-import com.discord.widgets.status.*;
-import com.lytefast.flexinput.R;
 
 import java.io.*;
-import java.lang.reflect.Field;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -306,8 +272,8 @@ public final class Main {
                 .setTitle("Updater")
                 .setBody(String.format("Found %s available plugin updates! Click to view...", updates.size()))
                 .setAutoDismissPeriodSecs(30)
-                .setOnClick((view) -> {
-                    Utils.openPage(view.getContext(), UpdaterScreen.class);
+                .setOnClick((view)-> {
+                    Utils.openPage(Utils.appActivity, UpdaterScreen.class);
                     return Unit.a;
                 });
 
@@ -333,7 +299,7 @@ public final class Main {
                 .setAutoDismissPeriodSecs(30)
                 .setBody(String.format("Failed to update %s plugins! Click to view...", failed))
                 .setOnClick((view) -> {
-                    Utils.openPage(view.getContext(), UpdaterScreen.class);
+                    Utils.openPage(Utils.appActivity, UpdaterScreen.class);
                     return Unit.a;
                 });
         } else {
