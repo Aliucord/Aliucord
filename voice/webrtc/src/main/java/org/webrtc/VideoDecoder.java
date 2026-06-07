@@ -91,4 +91,11 @@ public interface VideoDecoder {
    * called from arbitrary thread.
    */
   @CalledByNative String getImplementationName();
+
+  /**
+   * Calls this via JNI after constructing the VideoDecoder interface.
+   * A default no-op here satisfies the JNI GetMethodID and prevents a SIGTRAP (DecodingQueue moment).
+   * Implementations that access the stream id may override this.
+   */
+  @CalledByNative default void setStreamId(String streamId) {}
 }

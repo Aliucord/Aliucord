@@ -254,6 +254,11 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
         }
     }
 
+    fun setRawTransportOptions(optionsJson: String) {
+        Log.d("Sunflower", "connection/rawTransportOptions: $optionsJson")
+        native.setTransportOptions(optionsJson)
+    }
+
     private fun set(options: TransportOptions) {
         Log.d("Sunflower", "connection/trwansportOptions: ${gson.m(options)}")
         native.setTransportOptions(gson.m(options))

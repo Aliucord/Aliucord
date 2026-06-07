@@ -53,6 +53,10 @@ class NativeConnection {
         fun onSpeaking(userId: String, speakingFlags: Int, voiceDb: Float)
     }
 
+    fun interface OnSpeakingWhileMutedCallback {
+        fun onSpeakingWhileMuted()
+    }
+
     fun interface OnVideoCallback {
         fun onVideo(userId: String, ssrc: Long, streamId: String, videoStreamParametersJson: String)
     }
@@ -122,6 +126,8 @@ class NativeConnection {
     external fun setOnPingTimeoutCallback(callback: OnPingTimeoutCallback)
 
     external fun setOnSpeakingCallback(callback: OnSpeakingCallback)
+
+    external fun setOnSpeakingWhileMutedCallback(callback: OnSpeakingWhileMutedCallback)
 
     external fun setOnVideoCallback(callback: OnVideoCallback)
 

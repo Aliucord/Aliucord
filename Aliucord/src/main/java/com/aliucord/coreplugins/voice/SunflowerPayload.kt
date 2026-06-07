@@ -51,6 +51,7 @@ sealed interface SunflowerPayload {
     data class DavePrepareEpoch(
         @SerializedName("protocol_version") val protocolVersion: Int,
         val epoch: Int,
+        @SerializedName("transition_id") val transitionId: Int? = null,
     ) : Incoming
 
     data class DaveTransitionReady(

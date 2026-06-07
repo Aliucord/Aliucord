@@ -81,6 +81,10 @@ class NativeEngine(
         fun onFrame(frame: VideoFrame, mirror: Boolean): Boolean
     }
 
+    fun interface VoiceProcessingErrorCallback {
+        fun onVoiceProcessingError(error: Int)
+    }
+
     init {
         val appCtx = context.applicationContext!!
         CameraEnumeratorProvider.maybeInit(appCtx)
@@ -161,6 +165,8 @@ class NativeEngine(
     external fun setVideoInputDeviceIndex(deviceIndex: Int)
 
     external fun setVideoOutputSink(streamIdentifier: String, callback: VideoFrameCallback?)
+
+    external fun setVoiceProcessingErrorCallback(callback: VoiceProcessingErrorCallback)
 
     external fun startLocalAudioRecording(optionsJSON: String, callback: StartLocalAudioRecordingCallback)
 

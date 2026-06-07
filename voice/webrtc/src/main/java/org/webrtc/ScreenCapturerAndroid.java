@@ -48,7 +48,7 @@ public class ScreenCapturerAndroid implements VideoCapturer, VideoSink {
   @Nullable private SurfaceTextureHelper surfaceTextureHelper;
   @Nullable private CapturerObserver capturerObserver;
   private long numCapturedFrames;
-  @Nullable private MediaProjection mediaProjection;
+  @Nullable protected MediaProjection mediaProjection;
   private boolean isDisposed;
   @Nullable private MediaProjectionManager mediaProjectionManager;
 
@@ -184,7 +184,7 @@ public class ScreenCapturerAndroid implements VideoCapturer, VideoSink {
         surfaceTextureHelper.getHandler(), this::updateVirtualDisplay);
   }
 
-  private void updateVirtualDisplay() {
+  protected void updateVirtualDisplay() {
     surfaceTextureHelper.setTextureSize(width, height);
     // Before Android S (12), resizing the virtual display can cause the captured screen to be
     // scaled incorrectly, so keep the behavior of recreating the virtual display prior to Android

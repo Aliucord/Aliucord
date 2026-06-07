@@ -171,6 +171,10 @@ public class SurfaceTextureHelper {
         updateTexImage();
         hasPendingTexture = false;
       }
+      // Start the static-screen frame-repeat watchdog for this listening session.
+      lastFrameDeliveredNs = System.nanoTime();
+      handler.removeCallbacks(frameRepeatWatchdog);
+      handler.postDelayed(frameRepeatWatchdog, FRAME_REPEAT_INTERVAL_MS);
     }
   };
 
@@ -227,6 +231,7 @@ public class SurfaceTextureHelper {
   public void stopListening() {
     Logging.d(TAG, "stopListening()");
     handler.removeCallbacks(setListenerRunnable);
+    handler.removeCallbacks(frameRepeatWatchdog);
     ThreadUtils.invokeAtFrontUninterruptibly(handler, () -> {
       listener = null;
       pendingListener = null;
@@ -335,6 +340,33 @@ public class SurfaceTextureHelper {
     }
   }
 
+  // Last delivered frame timestamp; used to keep timestamps strictly monotonic.
+  // Screenshare via MediaProjection can re-deliver frames with identical/regressing
+  // SurfaceTexture timestamps on a static screen, which newer webrtc drops
+  // ("Same/old timestamp ... dead"). Bumping keeps the encoder alive.
+  private long lastDeliveredTimestampNs = 0;
+
+  // Frame-repeat watchdog. MediaProjection stops producing frames when the screen is static,
+  // which starves the video encoder (webrtc logs "0 Hz mode disabled" and stops emitting,
+  // so viewers see a frozen/black stream). Periodically re-deliver the last frame while idle so
+  // the encoder keeps producing output. Camera capture delivers frames continuously, so
+  // lastFrameDeliveredNs stays fresh and the watchdog naturally no-ops there.
+  private static final long FRAME_REPEAT_INTERVAL_MS = 100; // ~10 fps floor
+  private long lastFrameDeliveredNs = 0;
+  private final Runnable frameRepeatWatchdog = new Runnable() {
+    @Override
+    public void run() {
+      if (isQuitting || listener == null) {
+        return;
+      }
+      if (!isTextureInUse && System.nanoTime() - lastFrameDeliveredNs > FRAME_REPEAT_INTERVAL_MS * 1_000_000L) {
+        hasPendingTexture = true;
+        tryDeliverTextureFrame();
+      }
+      handler.postDelayed(this, FRAME_REPEAT_INTERVAL_MS);
+    }
+  };
+
   private void tryDeliverTextureFrame() {
     if (handler.getLooper().getThread() != Thread.currentThread()) {
       throw new IllegalStateException("Wrong thread.");
@@ -359,6 +391,12 @@ public class SurfaceTextureHelper {
     if (timestampAligner != null) {
       timestampNs = timestampAligner.translateTimestamp(timestampNs);
     }
+    // Enforce strictly monotonic timestamps so newer webrtc doesn't drop frames
+    // on static screenshares (duplicate/regressing SurfaceTexture timestamps).
+    if (timestampNs <= lastDeliveredTimestampNs) {
+      timestampNs = lastDeliveredTimestampNs + 1;
+    }
+    lastDeliveredTimestampNs = timestampNs;
     final VideoFrame.TextureBuffer buffer =
         new TextureBufferImpl(textureWidth, textureHeight, TextureBuffer.Type.OES, oesTextureId,
             RendererCommon.convertMatrixToAndroidGraphicsMatrix(transformMatrix), handler,
@@ -367,6 +405,7 @@ public class SurfaceTextureHelper {
       frameRefMonitor.onNewBuffer(buffer);
     }
     final VideoFrame frame = new VideoFrame(buffer, frameRotation, timestampNs);
+    lastFrameDeliveredNs = System.nanoTime();
     listener.onFrame(frame);
     frame.release();
   }
