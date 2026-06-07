@@ -1,0 +1,21 @@
+--- smali_original/com/discord/api/message/embed/MessageEmbed.smali
++++ smali/com/discord/api/message/embed/MessageEmbed.smali
+@@ -111,12 +111,18 @@
+     .end annotation
+ .end field
+ 
++.field public contentScanVersion:Ljava/lang/Integer;
++
++.field public flags:Ljava/lang/Integer;
++
+ .field private final footer:Lcom/discord/api/message/embed/EmbedFooter;
+ 
+ .field private final image:Lcom/discord/api/message/embed/EmbedImage;
+ 
+ .field private final provider:Lcom/discord/api/message/embed/EmbedProvider;
+ 
++.field public referenceId:Ljava/lang/Long;
++
+ .field private final thumbnail:Lcom/discord/api/message/embed/EmbedThumbnail;
+ 
+ .field private final timestamp:Lcom/discord/api/utcdatetime/UtcDateTime;
