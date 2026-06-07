@@ -19,7 +19,6 @@ import androidx.core.content.ContextCompat;
 
 import com.aliucord.PluginManager;
 import com.aliucord.Utils;
-import com.aliucord.entities.Plugin;
 import com.aliucord.updater.PluginUpdater;
 import com.aliucord.utils.ChangelogUtils;
 import com.aliucord.utils.DimenUtils;
@@ -28,9 +27,11 @@ import com.discord.utilities.color.ColorCompat;
 import com.google.android.material.card.MaterialCardView;
 import com.lytefast.flexinput.R;
 
+// TODO: add support for displaying reason why plugins are not updatable
+
 @SuppressLint({"ViewConstructor"})
 public class UpdaterPluginCard extends MaterialCardView {
-    public UpdaterPluginCard(Context context, String plugin, Runnable forceUpdate) {
+    public UpdaterPluginCard(Context context, PluginUpdater.PluginUpdate update, Runnable forceUpdate) {
         super(context);
         int padding = DimenUtils.getDefaultPadding();
         int paddingHalf = padding / 2;
@@ -43,12 +44,9 @@ public class UpdaterPluginCard extends MaterialCardView {
         setRadius(DimenUtils.getDefaultCardRadius());
         setContentPadding(padding, padding, padding, padding);
 
-        Plugin p = PluginManager.plugins.get(plugin);
-        assert p != null;
-
         ConstraintLayout layout = new ConstraintLayout(context);
         TextView tv = new TextView(context, null, 0, R.i.UiKit_TextView_H2);
-        tv.setText(plugin);
+        tv.setText(update.getPluginName());
         int id = View.generateViewId();
         tv.setId(id);
         layout.addView(tv);
@@ -70,13 +68,17 @@ public class UpdaterPluginCard extends MaterialCardView {
 
         tv = new TextView(context, null, 0, R.i.UiKit_TextView_Subtext);
         try {
-            PluginUpdater.UpdateInfo info = PluginUpdater.getUpdateInfo(p);
-            tv.setText(String.format("v%s -> v%s", p.getManifest().version, info != null ? info.version : "?"));
-            if (info != null && info.changelog != null) {
+            tv.setText(String.format("v%s -> v%s", update.getPlugin().getManifest().version, update.getInfo().getVersion()));
+            if (update.getInfo().getChangelog() != null) {
                 ToolbarButton changeLogButton = new ToolbarButton(context);
                 changeLogButton.setImageDrawable(ContextCompat.getDrawable(context, R.e.ic_history_white_24dp));
                 changeLogButton.setPadding(paddingHalf, paddingHalf, paddingHalf, paddingHalf);
-                changeLogButton.setOnClickListener(e -> ChangelogUtils.show(context, p.getName() + " v" + info.version, info.changelogMedia, info.changelog));
+                changeLogButton.setOnClickListener(e ->
+                    ChangelogUtils.show(context,
+                        update.getPluginName() + " v" + update.getInfo().getVersion(),
+                        update.getInfo().getChangelogMedia(),
+                        update.getInfo().getChangelog())
+                );
 
                 GridLayout.LayoutParams clParams = new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(0));
                 clParams.setGravity(Gravity.CENTER_VERTICAL);
@@ -94,18 +96,18 @@ public class UpdaterPluginCard extends MaterialCardView {
         set.connect(verid, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM);
         set.applyTo(layout);
 
-        ToolbarButton update = new ToolbarButton(context);
-        update.setImageDrawable(ContextCompat.getDrawable(context, R.e.ic_file_download_white_24dp));
-        update.setPadding(paddingHalf, paddingHalf, 0, paddingHalf);
-        update.setOnClickListener(e -> {
-            update.setEnabled(false);
+        ToolbarButton updateBtn = new ToolbarButton(context);
+        updateBtn.setImageDrawable(ContextCompat.getDrawable(context, R.e.ic_file_download_white_24dp));
+        updateBtn.setPadding(paddingHalf, paddingHalf, 0, paddingHalf);
+        updateBtn.setEnabled(update.isUpdatePossible());
+        updateBtn.setOnClickListener(e -> {
+            updateBtn.setEnabled(false);
             Utils.threadPool.execute(() -> {
                 try {
-                    PluginUpdater.update(plugin);
-                    PluginUpdater.updates.remove(plugin);
-                    PluginManager.logger.infoToast("Successfully updated " + p.getName());
+                    PluginUpdater.updatePlugin(update);
+                    PluginManager.logger.infoToast("Successfully updated " + update.getPluginName());
                 } catch (Throwable t) {
-                    PluginManager.logger.errorToast("Sorry, something went wrong while updating " + p.getName(), t);
+                    PluginManager.logger.errorToast("Sorry, something went wrong while updating " + update.getPluginName(), t);
                 } finally {
                     Utils.mainThread.post(forceUpdate);
                 }
@@ -114,7 +116,7 @@ public class UpdaterPluginCard extends MaterialCardView {
 
         GridLayout.LayoutParams updateParams = new GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(1));
         updateParams.setGravity(Gravity.CENTER_VERTICAL);
-        buttonLayout.addView(update, updateParams);
+        buttonLayout.addView(updateBtn, updateParams);
         layout.addView(buttonLayout);
 
         set = new ConstraintSet();

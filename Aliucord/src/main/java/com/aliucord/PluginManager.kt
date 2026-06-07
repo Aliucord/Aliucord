@@ -298,8 +298,8 @@ object PluginManager {
     @JvmStatic
     fun loadCorePlugins(context: Context) {
         val corePlugins = arrayOf(
-            AlignThreads(),
-            AppBarFix(),
+            CoreFixes(),
+            CoreFeatures(),
             ButtonsAPI(),
             CommandHandler(),
             CoreCommands(),
@@ -308,16 +308,10 @@ object PluginManager {
             DiscordBadges(),
             ExperimentDefaults(),
             ForwardedMessages(),
-            GifPreviewFix(),
-            HideMutedChannelsFix(),
-            MembersListFix(),
             NewPins(),
             NoTrack(),
-            OpenLinksExternallyFix(),
             PluginDownloader(),
             Polls(),
-            PrivateChannelsListScroll(),
-            PrivateThreads(),
             Pronouns(),
             RNAPI(),
             RemoveBilling(),

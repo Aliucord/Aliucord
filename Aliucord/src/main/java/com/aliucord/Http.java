@@ -674,6 +674,7 @@ public class Http {
          * @param sha1sum checksum to check the file's integrity. May be null to skip integrity check
          * @throws IOException If an I/O error occurred: No such file, file is directory, integrity check failed, etc
          */
+        // TODO: download to tmp file and then rename
         public void saveToFile(@NonNull File file, @Nullable String sha1sum) throws IOException {
             if (file.exists()) {
                 if (!file.canWrite())
