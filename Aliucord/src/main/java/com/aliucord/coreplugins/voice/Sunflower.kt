@@ -2,6 +2,8 @@ package com.aliucord.coreplugins.voice
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -22,7 +24,6 @@ import com.aliucord.utils.DimenUtils.dp
 import com.aliucord.utils.GsonUtils
 import com.aliucord.utils.GsonUtils.fromJson
 import com.aliucord.utils.ViewUtils.addTo
-import com.aliucord.utils.ViewUtils.topPadding
 import com.discord.rtcconnection.mediaengine.MediaEngineConnection
 import com.discord.rtcconnection.socket.io.Opcodes
 import com.discord.rtcconnection.socket.io.Payloads
@@ -51,7 +52,7 @@ data class SecureFrames(
 )
 
 internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
-    override val isHidden = true
+    override val isHidden = false
     override val isRequired = true
 
     private val sunflowerLibVersion = runCatching {
@@ -62,6 +63,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
 
     init {
         manifest.description = "Adds support for end-to-end encrypted voice chat"
+        settingsTab = SettingsTab(SunflowerSettings.Sheet::class.java, SettingsTab.Type.BOTTOM_SHEET)
     }
 
     override fun stop(context: Context) = patcher.unpatchAll()
@@ -69,6 +71,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
     override fun start(context: Context) {
         // Force usage of updated transport encryption
         // TODO: Ideally prefer "aead_aes256_gcm_rtpsize" instead somehow (not all voice servers support it)
+        //  Edit: yes they do, E2EE isnt used while youre alone in a vc
         patcher.before<ProtocolInfo>(
             String::class.java,
             Int::class.javaPrimitiveType!!,
@@ -81,6 +84,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                     "xsalsa20_poly1305_lite_rtpsize"
                 }
             }
+            setDebug("Transport", param.args[2] as String)
         }
 
         val injector = ManagerBuild.metadata?.injectorVersion
@@ -153,6 +157,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
             Function1::class.java,
         ) { (param, callback: Function1<*, *>) ->
             if (callback is MediaEngineConnectionLegacy_SetCodecs) {
+                // org.webrtc.H264Utils.getDefaultH264Params()
                 val params = mapOf(
                     "level-asymmetry-allowed" to "1",
                     "packetization-mode" to "1",
@@ -166,6 +171,10 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                         VideoDecoder(codec.a, codec.d, codec.e, params)
                     }.toTypedArray()
                 )
+                this.i.filter { it.c == "audio" }.map { it.a }.distinct().takeIf { it.isNotEmpty() }
+                    ?.let { setDebug("Audio", it.joinToString(", ")) }
+                this.i.filter { it.c == "video" }.map { it.a }.distinct().takeIf { it.isNotEmpty() }
+                    ?.let { setDebug("Video", it.joinToString(", ")) }
                 param.result = null
             }
         }
@@ -177,7 +186,26 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
         ) { param ->
             val message = param.args[2] as Payloads.Incoming
             if (message.opcode == Opcodes.MEDIA_SINK_WANTS) {
-                param.args[2] = Payloads.Incoming(message.opcode, message.data.d().apply {
+                val data = message.data.d()
+                // pixelCounts is only mentioned in streams/screenshare if
+                // RtcConnection has enableMediaSinkWants == false
+                // We need to call the encoder so screenshares actually display something
+                if (data.a.containsKey("pixelCounts")) {
+                    val socket = param.args[0] as? RtcControlSocket
+                    runCatching {
+                        socket?.connections?.forEach { conn ->
+                            // TODO: Make these configurable
+                            conn.setEncodingQuality(
+                                150_000,
+                                SunflowerSettings.videoBitrateKbps * 1000,
+                                1280,
+                                720,
+                                30,
+                            )
+                        }
+                    }.onFailure { logger.error("Failed to activate screenshare encode", it) }
+                }
+                param.args[2] = Payloads.Incoming(message.opcode, data.apply {
                     // Remove pixelCounts since it messes up the default handler's conversion from
                     // JsonObject to Map<String, Number>
                     @SuppressLint("CheckResult")
@@ -203,6 +231,9 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
             if (socket.s != this.`$webSocket`) {
                 return@after
             }
+
+            lastSocket = socket
+            refreshConnInfo()
 
             val message = this.`$message`
             val gson = socket.n
@@ -241,14 +272,17 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                         connection.executeSecureFramesTransition(payload.transitionId)
                     }
                     is SunflowerPayload.DavePrepareEpoch -> {
-                        val channelId = socket.rtcConnection?.channelId
-                        logger.debug("Preparing secure frames epoch (request) for $channelId")
-                        // TODO: where is transitionId from?
+                        // MLS group id is the rtcServerId-derived groupId, NOT the channelId.
+                        // Using channelId reinitialises the MLS session with the wrong group, so the
+                        // server's commit/welcome no longer match ("Unexpected group ID in MLS welcome"),
+                        // the join fails (joined:false -> DAVE_MLS_INVALID_COMMIT_WELCOME) and the
+                        // encryptor falls back to a dead key ratchet, leaving viewers unable to decrypt.
+                        val groupId = socket.rtcConnection?.groupId
+                        logger.debug("Preparing secure frames epoch (request) for $groupId")
                         connection.prepareSecureFramesEpoch(
                             epoch = payload.epoch.toString(),
                             transitionId = payload.epoch,
-                            // socket.rtcConnection?.getMetadata()?.channelId?.toString()
-                            groupId = channelId?.toString() ?: ""
+                            groupId = groupId?.toString() ?: ""
                         )
                         connection.getMLSKeyPackageB64 { keyPackageB64 ->
                             val bytes = keyPackageB64.decodeBase64ToArray()!!
@@ -277,6 +311,10 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
 
     // Upon protocol selection ack, start preparing for dave
     private fun handleOnProtocolSelectAck(socket: RtcControlSocket, version: Int) {
+        lastSocket = socket
+        socket.rtcConnection?.rtcServerId?.let { setDebug("Server", it) }
+        setDebug("E2EE", if (version >= 1) "DAVE v$version" else "Off (transport only)")
+
         val groupId = socket.rtcConnection?.groupId
             ?: return logger.error("No rtc connection upon protocol select ack", null)
         socket.connections.forEach { connection ->
@@ -370,8 +408,81 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
     }
 
     val encryptionViewId = View.generateViewId()
+    private val connInfoViewId = View.generateViewId()
     var newestCode = ""
     var onCodeUpdate: (String) -> Unit = {}
+    private val debugInfo = LinkedHashMap<String, String>()
+    private var lastSocket: RtcControlSocket? = null
+    private var connInfoText = "Not connected"
+    var onConnInfoUpdate: (String) -> Unit = {}
+
+    private fun setDebug(key: String, value: String) {
+        debugInfo[key] = value
+        refreshConnInfo()
+    }
+
+    private fun renderDebugInfo(): String =
+        debugInfo.entries.joinToString("\n") { "${it.key}:  ${it.value}" }
+
+    private fun refreshConnInfo() {
+        val sb = StringBuilder()
+        val head = renderDebugInfo()
+        if (head.isNotEmpty()) sb.append(head).append("\n\n")
+        val rtc = lastSocket?.rtcConnection
+        if (rtc != null) {
+            runCatching {
+                val b = StringBuilder()
+                rtc.debugPrint(DebugPrintBuilder(b))
+                sb.append(b.toString().trim())
+            }.onFailure { sb.append("(debugPrint failed: ${it.message})") }
+        } else if (head.isEmpty()) {
+            sb.append("Not connected")
+        }
+        connInfoText = sb.toString().ifEmpty { "Not connected" }
+        onConnInfoUpdate(connInfoText)
+    }
+
+    private fun codeBlock(ctx: Context): TextView = TextView(ctx).apply {
+        typeface = ResourcesCompat.getFont(ctx, Constants.Fonts.sourcecodepro_semibold)
+        setTextColor(Color.WHITE)
+        textSize = 11f
+        gravity = Gravity.START
+        isSingleLine = false
+        maxLines = 400
+        setLineSpacing(2.dp.toFloat(), 1f)
+        background = GradientDrawable().apply {
+            cornerRadius = 8.dp.toFloat()
+            setColor(0x1E1F22)
+        }
+        setPadding(12.dp, 10.dp, 12.dp, 10.dp)
+    }
+
+    private fun cardTitle(ctx: Context, text: String): TextView =
+        TextView(ctx, null, 0, R.i.UiKit_ListItem_Icon).apply {
+            this.text = text
+            setTextColor(Color.WHITE)
+        }
+
+    private fun collapsibleTitle(ctx: Context, label: String, body: View, expanded: Boolean = false): TextView {
+        body.visibility = if (expanded) View.VISIBLE else View.GONE
+        return cardTitle(ctx, (if (expanded) "▾ " else "▸ ") + label).apply {
+            setOnClickListener {
+                val show = body.visibility != View.VISIBLE
+                body.visibility = if (show) View.VISIBLE else View.GONE
+                text = (if (show) "▾ " else "▸ ") + label
+            }
+        }
+    }
+
+    private fun newCard(ctx: Context, cardId: Int): CardView = CardView(ctx).apply {
+        setCardBackgroundColor(ColorCompat.getColor(this, R.c.white_alpha_24))
+        radius = 8.dp.toFloat()
+        elevation = 0f
+        id = cardId
+        layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+            bottomMargin = 16.dp
+        }
+    }
 
     // Adds encryption info and voice privacy code to the voice bottom sheet
     private fun patchPrivacyCodeView() {
@@ -384,6 +495,8 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
             logger.debug("setting secure frames callback...")
             newestCode = ""
             onCodeUpdate("")
+            debugInfo.clear()
+            setDebug("Status", "Connected")
             conn.j.setSecureFramesStateUpdateCallback { epochStr ->
                 val frames = GsonUtils.gson.fromJson(epochStr, SecureFrames::class.java)
                 logger.info("cb $epochStr -> $frames")
@@ -430,26 +543,18 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
             if (self.findViewById<CardView?>(encryptionViewId) != null) return@patch
             val ctx = self.context
 
-            CardView(ctx).addTo(self, 1) card@{
-                setCardBackgroundColor(ColorCompat.getColor(this, R.c.white_alpha_24))
-                radius = 8.dp.toFloat()
-                elevation = 0f
-                id = encryptionViewId
-
-                layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
-                    bottomMargin = 16.dp
-                }
-
+            newCard(ctx, encryptionViewId).addTo(self, 1) card@{
                 LinearLayout(ctx).addTo(this) {
                     layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
                     orientation = LinearLayout.VERTICAL
 
                     val t1 = TextView(ctx, null, 0, R.i.UiKit_ListItem_Icon).addTo(this)
-                    val t2 = TextView(ctx, null, 0, R.i.UiKit_ListItem_Icon).addTo(this) {
-                        layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
-                        typeface = ResourcesCompat.getFont(ctx, Constants.Fonts.sourcecodepro_semibold)
+                    val t2 = codeBlock(ctx).addTo(this) {
+                        layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+                            topMargin = 8.dp
+                        }
                         gravity = Gravity.CENTER
-                        topPadding = 0
+                        textSize = 13f
                     }
 
                     onCodeUpdate = { code ->
@@ -478,6 +583,29 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                         }
                     }
                     onCodeUpdate(newestCode)
+                }
+            }
+
+            newCard(ctx, connInfoViewId).addTo(self, 2) {
+                LinearLayout(ctx).addTo(this) {
+                    layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+                    orientation = LinearLayout.VERTICAL
+
+                    val info = codeBlock(ctx).apply {
+                        layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+                            topMargin = 8.dp
+                        }
+                    }
+                    collapsibleTitle(ctx, "Connection Info", info).addTo(this)
+                    info.addTo(this)
+                    onConnInfoUpdate = { text ->
+                        Utils.mainThread.post { info.text = text }
+                    }
+                    info.setOnClickListener {
+                        Utils.setClipboard("Sunflower connection info", connInfoText)
+                        Utils.showToast("Copied to clipboard")
+                    }
+                    refreshConnInfo()
                 }
             }
         }
