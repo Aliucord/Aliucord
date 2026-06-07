@@ -66,11 +66,11 @@ dependencies {
     api(libs.aliuhook)
     compileOnly(libs.appcompat)
     compileOnly(libs.constraintlayout)
+    compileOnly(project(":Injector")) // Needed to access certain stubs
+    compileOnly(project(":voice")) // Needed to access certain stubs
     compileOnly(libs.discord)
     compileOnly(libs.kotlin.stdlib)
     compileOnly(libs.material)
-    compileOnly(project(":Injector")) // Needed to access certain stubs
-    compileOnly(project(":voice")) // Needed to access certain stubs
     coreLibraryDesugaring(libs.desugar)
 }
 
