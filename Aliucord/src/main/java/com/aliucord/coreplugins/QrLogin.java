@@ -6,127 +6,89 @@
 
 package com.aliucord.coreplugins;
 
+import android.graphics.drawable.ColorDrawable;
 import android.text.InputType;
+import android.view.View;
+import android.widget.EditText;
 
-import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.Fragment;
 
 import com.aliucord.Http;
 import com.aliucord.Logger;
 import com.aliucord.Utils;
-import com.aliucord.fragments.ConfirmDialog;
 import com.aliucord.fragments.InputDialog;
 import com.aliucord.utils.IOUtils;
-import com.discord.app.AppActivity;
 import com.discord.app.AppFragment;
-import com.discord.views.LoadingButton;
+import com.discord.utilities.color.ColorCompat;
+import com.discord.widgets.auth.WidgetRemoteAuthViewModel;
+import com.google.android.material.button.MaterialButton;
+import com.lytefast.flexinput.R;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 final class QrLogin {
-    private static final String QR_PREFIX = "https://discord.com/ra/";
     private static final int TIMEOUT = 15000;
+    private static final String LOGIN_BUTTON = "remote_auth_login_button";
+    private static final String MFA_TAG = "qr_mfa";
+    private static final String EXPIRED_MESSAGE =
+        "Try scanning again and tap Log In before leaving the app — Discord expires the QR session otherwise.";
+
+    private static final int FINISH_SUCCESS = 0;
+    private static final int FINISH_MFA = 1;
+    private static final int FINISH_FAIL = 2;
+
     private static final Logger logger = new Logger("QrLogin");
-    private static final AtomicBoolean busy = new AtomicBoolean(false);
+
+    private static volatile String handshakeToken;
+    private static volatile String mfaTicket;
+    private static volatile String mfaType;
+    private static volatile boolean mfaNumeric;
+    private static volatile JSONObject pendingMfa;
+    private static volatile String pendingError;
 
     private QrLogin() {}
 
-    static boolean tryHandleScan(AppFragment host, Object zxingResult) {
-        if (zxingResult == null) return false;
-        String url = zxingResult.toString();
-        if (!url.startsWith(QR_PREFIX)) return false;
-        if (!busy.compareAndSet(false, true)) return true;
-
-        String fingerprint = url.substring(QR_PREFIX.length());
-        AppActivity activity = host.requireAppActivity();
-        FragmentManager fm = activity.getSupportFragmentManager();
-        Utils.mainThread.post(() -> {
-            try {
-                activity.onBackPressed();
-            } catch (Throwable ignored) {}
-            confirm(fm, fingerprint);
-        });
-        return true;
-    }
-
-    private static void confirm(FragmentManager fm, String fingerprint) {
-        ConfirmDialog dialog = new ConfirmDialog()
-            .setTitle("QR Login")
-            .setDescription("Log in using the scanned QR code?");
-        dialog.setOnOkListener(v -> {
-            setLoading(dialog);
-            Utils.threadPool.submit(() -> authorize(fm, dialog, fingerprint));
-        });
-        dialog.setOnCancelListener(v -> {
-            dialog.dismiss();
-            reset();
-        });
-        dialog.show(fm, "qr_confirm");
-    }
-
-    private static void authorize(FragmentManager fm, ConfirmDialog dialog, String fingerprint) {
-        try {
-            String body = new JSONObject().put("fingerprint", fingerprint).toString();
-            String response = post("/users/@me/remote-auth", body, null);
-            JSONObject json = parse(response);
-            if (json == null || !json.has("handshake_token")) {
-                String message = json == null
-                    ? "Remote auth request failed"
-                    : "Remote auth failed: " + json.optString("message", "request failed");
-                dismissThen(dialog, () -> { logger.errorToast(message); reset(); });
-                return;
-            }
-            finishRemoteAuth(fm, dialog, json.getString("handshake_token"), null);
-        } catch (Exception e) {
-            dismissThen(dialog, () -> { logger.errorToast("Remote auth error", e); reset(); });
+    static void onRemoteAuthState(AppFragment host, Object viewState) {
+        if (viewState instanceof WidgetRemoteAuthViewModel.ViewState.Loaded loaded) {
+            if (loaded.getLoginAllowed()) bindLogin(host, loaded.getHandshakeToken());
+        } else if (viewState instanceof WidgetRemoteAuthViewModel.ViewState.Failed) {
+            logger.errorToast(EXPIRED_MESSAGE);
         }
     }
 
-    private static void finishRemoteAuth(FragmentManager fm, ConfirmDialog dialog, String handshakeToken, String mfaToken) {
-        String response;
-        try {
-            String body = new JSONObject().put("handshake_token", handshakeToken).toString();
-            response = post("/users/@me/remote-auth/finish", body, mfaToken);
-        } catch (Exception e) {
-            dismissThen(dialog, () -> { logger.errorToast("Login failed", e); reset(); });
-            return;
-        }
-        String finalResponse = response;
-        Utils.mainThread.post(() -> {
-            dialog.dismiss();
-            try {
-                if (finalResponse == null) { logger.errorToast("Login failed"); reset(); return; }
-                if (finalResponse.trim().isEmpty()) { logger.infoToast("Logged in!"); reset(); return; }
-                JSONObject json = new JSONObject(finalResponse);
-                int code = json.optInt("code", -1);
-                if (code == 60003 && mfaToken == null) {
-                    handleMfaRequired(fm, handshakeToken, json);
-                } else if (code != -1) {
-                    logger.errorToast("Login failed: " + json.optString("message", "code " + code));
-                    reset();
-                } else {
-                    logger.infoToast("Logged in!");
-                    reset();
-                }
-            } catch (Exception e) {
-                logger.errorToast("Login failed", e);
-                reset();
-            }
+    private static void bindLogin(AppFragment host, String token) {
+        MaterialButton button = findButton(host);
+        if (button == null) return;
+        button.setEnabled(true);
+        button.setOnClickListener(v -> {
+            button.setEnabled(false);
+            Utils.threadPool.submit(() -> confirmLogin(host, token));
         });
     }
 
-    private static void handleMfaRequired(FragmentManager fm, String handshakeToken, JSONObject json) {
-        JSONObject mfa = json.optJSONObject("mfa");
-        String ticket = mfa != null ? mfa.optString("ticket") : null;
-        if (ticket == null) {
-            logger.errorToast("MFA required but no ticket received");
-            reset();
-            return;
+    private static void confirmLogin(AppFragment host, String token) {
+        switch (remoteFinish(token, null)) {
+            case FINISH_SUCCESS:
+                loginDone(host);
+                break;
+            case FINISH_MFA:
+                startMfa(host, token, pendingMfa);
+                break;
+            default:
+                logger.errorToast(pendingError);
+                reEnable(host);
+                break;
         }
+    }
+
+    private static void startMfa(AppFragment host, String token, JSONObject mfa) {
+        String ticket = mfa != null ? mfa.optString("ticket") : "";
+        if (ticket.isEmpty()) { logger.errorToast("MFA required but no ticket received"); reEnable(host); return; }
+
         boolean hasTotp = false;
         boolean hasBackup = false;
         StringBuilder available = new StringBuilder();
@@ -142,105 +104,153 @@ final class QrLogin {
                 else if (type.equals("backup")) hasBackup = true;
             }
         }
-        if (hasTotp) promptMfa(fm, handshakeToken, ticket, "totp", true);
-        else if (hasBackup) promptMfa(fm, handshakeToken, ticket, "backup", false);
-        else {
+        if (!hasTotp && !hasBackup) {
             logger.errorToast("Unsupported 2FA method: " + available);
-            reset();
+            reEnable(host);
+            return;
         }
+
+        handshakeToken = token;
+        mfaTicket = ticket;
+        mfaType = hasTotp ? "totp" : "backup";
+        mfaNumeric = hasTotp;
+
+        Utils.mainThread.post(() -> {
+            Utils.openPage(host.requireContext(), TokenLogin.MfaHost.class);
+            host.requireActivity().finish();
+        });
     }
 
-    private static void promptMfa(FragmentManager fm, String handshakeToken, String ticket, String type, boolean numeric) {
-        InputDialog dialog = new InputDialog()
-            .setTitle("Two-Factor Auth")
-            .setDescription(numeric ? "Enter your 6-digit authentication code" : "Enter a backup code")
-            .setPlaceholderText(numeric ? "Authentication code" : "Backup code");
-        if (numeric) dialog.setInputType(InputType.TYPE_CLASS_NUMBER);
-        dialog.setOnOkListener(v -> {
+    static void onMfaHostBound(AppFragment host) {
+        if (mfaTicket == null) {
+            host.requireActivity().finish();
+            return;
+        }
+        host.requireActivity().getWindow().setBackgroundDrawable(
+            new ColorDrawable(ColorCompat.getThemedColor(host.requireContext(), R.b.colorBackgroundPrimary)));
+        if (host.getChildFragmentManager().findFragmentByTag(MFA_TAG) == null)
+            new TokenLogin.MfaDialog().show(host.getChildFragmentManager(), MFA_TAG);
+    }
+
+    static void bindMfaDialog(InputDialog dialog) {
+        dialog.setCancelable(false);
+        dialog.getHeader().setText("Two-Factor Auth");
+        dialog.getBody().setText(mfaNumeric ? "Enter your 6-digit authentication code" : "Enter a backup code");
+        dialog.getInputLayout().setHint(mfaNumeric ? "Authentication code" : "Backup code");
+        EditText input = dialog.getInputLayout().getEditText();
+        if (mfaNumeric && input != null) input.setInputType(InputType.TYPE_CLASS_NUMBER);
+
+        MaterialButton ok = dialog.getOKButton();
+        ok.setOnClickListener(v -> {
             String code = dialog.getInput().trim();
             if (code.isEmpty()) return;
-            dialog.dismiss();
-            ConfirmDialog loading = loadingDialog(fm);
-            Utils.threadPool.submit(() -> submitMfa(fm, loading, handshakeToken, ticket, type, numeric, code));
+            ok.setEnabled(false);
+            Utils.threadPool.submit(() -> submitMfa(dialog, code));
         });
-        dialog.setOnCancelListener(v -> {
-            dialog.dismiss();
-            Utils.threadPool.submit(() -> cancel(handshakeToken));
-            reset();
+        dialog.getCancelButton().setOnClickListener(v -> {
+            cancelFlow();
+            dialog.requireActivity().finish();
         });
-        dialog.show(fm, "mfa_input");
     }
 
-    private static void submitMfa(FragmentManager fm, ConfirmDialog loading, String handshakeToken, String ticket, String type, boolean numeric, String code) {
-        JSONObject json;
+    private static void submitMfa(InputDialog dialog, String code) {
+        if (mfaTicket == null) { mfaError(dialog, "Session expired"); return; }
+        String mfaToken = mfaVerify(code);
+        if (mfaToken == null) { mfaError(dialog, pendingError); return; }
+        if (remoteFinish(handshakeToken, mfaToken) == FINISH_SUCCESS) loginDone(dialog);
+        else mfaError(dialog, pendingError);
+    }
+
+    private static String mfaVerify(String code) {
         try {
             String body = new JSONObject()
-                .put("ticket", ticket)
-                .put("mfa_type", type)
+                .put("ticket", mfaTicket)
+                .put("mfa_type", mfaType)
                 .put("data", code)
                 .toString();
-            json = parse(post("/mfa/finish", body, null));
+            String response = post("/mfa/finish", body, null);
+            if (response == null) { pendingError = "MFA verification failed"; return null; }
+            JSONObject json = new JSONObject(response);
+            if (json.optInt("code", -1) == 60008) { pendingError = "Invalid code, try again"; return null; }
+            if (json.has("token")) return json.optString("token");
+            pendingError = "MFA verification failed";
+            return null;
         } catch (Exception e) {
-            dismissThen(loading, () -> { logger.errorToast("MFA verification failed", e); reset(); });
-            return;
+            logger.error("mfaVerify failed", e);
+            pendingError = "MFA verification failed";
+            return null;
         }
-        if (json != null && json.optInt("code", -1) == -1 && json.has("token")) {
-            finishRemoteAuth(fm, loading, handshakeToken, json.optString("token"));
-            return;
-        }
-        boolean invalid = json != null && json.optInt("code", -1) == 60008;
-        dismissThen(loading, () -> {
-            if (invalid) {
-                logger.errorToast("Invalid code, try again");
-                promptMfa(fm, handshakeToken, ticket, type, numeric);
-            } else {
-                logger.errorToast("MFA verification failed");
-                reset();
-            }
-        });
     }
 
-    private static void cancel(String handshakeToken) {
+    private static int remoteFinish(String token, String mfaToken) {
         try {
-            String body = new JSONObject().put("handshake_token", handshakeToken).toString();
-            post("/users/@me/remote-auth/cancel", body, null);
+            String response = post("/users/@me/remote-auth/finish", obj(token), mfaToken);
+            if (response == null) { pendingError = "Login failed"; return FINISH_FAIL; }
+            if (response.trim().isEmpty()) return FINISH_SUCCESS;
+            JSONObject json = new JSONObject(response);
+            int code = json.optInt("code", -1);
+            if (code == 60003) { pendingMfa = json.optJSONObject("mfa"); return FINISH_MFA; }
+            if (code == -1) return FINISH_SUCCESS;
+            pendingError = "Login failed: " + json.optString("message", "code " + code);
+            return FINISH_FAIL;
         } catch (Exception e) {
-            logger.error("Remote auth cancel failed", e);
+            logger.error("remoteFinish failed", e);
+            pendingError = "Login failed";
+            return FINISH_FAIL;
         }
     }
 
-    private static ConfirmDialog loadingDialog(FragmentManager fm) {
-        ConfirmDialog dialog = new ConfirmDialog()
-            .setTitle("Verifying")
-            .setDescription("Please wait…");
-        dialog.setOnOkListener(v -> {});
-        dialog.setOnCancelListener(v -> {});
-        dialog.show(fm, "qr_loading");
-        Utils.mainThread.post(() -> setLoading(dialog));
-        return dialog;
+    private static void cancelFlow() {
+        String token = handshakeToken;
+        clearState();
+        if (token != null)
+            Utils.threadPool.submit(() -> post("/users/@me/remote-auth/cancel", obj(token), null));
     }
 
-    private static void setLoading(ConfirmDialog dialog) {
-        try {
-            LoadingButton ok = dialog.getOKButton();
-            ok.setText("");
-            ok.setIsLoading(true);
-            ok.setEnabled(false);
-            dialog.getCancelButton().setEnabled(false);
-        } catch (Throwable ignored) {}
+    private static void loginDone(Fragment fragment) {
+        logger.infoToast("Logged in!");
+        clearState();
+        Utils.mainThread.post(() -> fragment.requireActivity().finish());
     }
 
-    private static void dismissThen(ConfirmDialog dialog, Runnable action) {
+    private static void mfaError(InputDialog dialog, String message) {
+        logger.errorToast(message);
         Utils.mainThread.post(() -> {
-            dialog.dismiss();
-            action.run();
+            try { dialog.getOKButton().setEnabled(true); } catch (Throwable ignored) {}
         });
     }
 
-    private static void reset() { busy.set(false); }
+    private static void reEnable(AppFragment host) {
+        Utils.mainThread.post(() -> {
+            MaterialButton button = findButton(host);
+            if (button != null) button.setEnabled(true);
+        });
+    }
+
+    private static MaterialButton findButton(AppFragment host) {
+        View root = host.getView();
+        return root == null ? null : root.findViewById(Utils.getResId(QrLogin.LOGIN_BUTTON, "id"));
+    }
+
+    private static void clearState() {
+        handshakeToken = null;
+        mfaTicket = null;
+        mfaType = null;
+        pendingMfa = null;
+    }
+
+    private static String obj(String value) {
+        try {
+            return new JSONObject().put("handshake_token", value).toString();
+        } catch (Exception e) {
+            return "{}";
+        }
+    }
 
     private static String post(String route, String body, String mfaToken) {
-        try (Http.Request req = Http.Request.newDiscordRequest(route, "POST")) {
+        Http.Request req = null;
+        try {
+            req = Http.Request.newDiscordRequest(route, "POST");
             req.setHeader("Content-Type", "application/json");
             req.setRequestTimeout(TIMEOUT);
             if (mfaToken != null && !mfaToken.isEmpty()) {
@@ -258,15 +268,8 @@ final class QrLogin {
         } catch (Exception e) {
             logger.error("POST " + route + " failed", e);
             return null;
-        }
-    }
-
-    private static JSONObject parse(String response) {
-        if (response == null || response.trim().isEmpty()) return null;
-        try {
-            return new JSONObject(response);
-        } catch (Exception e) {
-            return null;
+        } finally {
+            if (req != null) req.close();
         }
     }
 }

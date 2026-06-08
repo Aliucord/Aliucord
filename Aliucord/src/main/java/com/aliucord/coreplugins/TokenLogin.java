@@ -13,9 +13,9 @@ import android.widget.RelativeLayout;
 
 import com.aliucord.Utils;
 import com.aliucord.entities.CorePlugin;
+import com.aliucord.fragments.InputDialog;
 import com.aliucord.patcher.Hook;
 import com.aliucord.patcher.Patcher;
-import com.aliucord.patcher.PreHook;
 import com.aliucord.utils.DimenUtils;
 import com.aliucord.views.Button;
 import com.discord.app.AppActivity;
@@ -25,7 +25,8 @@ import com.discord.stores.StoreAuthentication;
 import com.discord.stores.StoreStream;
 import com.discord.utilities.view.extensions.ViewExtensions;
 import com.discord.widgets.auth.WidgetAuthLanding;
-import com.discord.widgets.media.WidgetQRScanner;
+import com.discord.widgets.auth.WidgetRemoteAuth;
+import com.discord.widgets.auth.WidgetRemoteAuthViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputLayout;
 import com.lytefast.flexinput.R;
@@ -80,6 +81,29 @@ public final class TokenLogin extends CorePlugin {
         }
     }
 
+    // Backdrop screen that hosts the MFA dialog (so the bg isn't white)
+    public static class MfaHost extends AppFragment {
+        public MfaHost() {
+            super(Utils.getResId("widget_kick_user", "layout"));
+        }
+
+        @Override
+        public void onViewBound(View view) {
+            super.onViewBound(view);
+            view.setVisibility(View.INVISIBLE); // just a dim backdrop; the dialog is the UI
+            QrLogin.onMfaHostBound(this);
+        }
+    }
+
+    // MFA code entry for QR login page
+    public static class MfaDialog extends InputDialog {
+        @Override
+        public void onViewBound(View view) {
+            super.onViewBound(view);
+            QrLogin.bindMfaDialog(this);
+        }
+    }
+
     @Override
     public void start(Context appContext) throws Throwable {
         // Add "Login using token" button to the auth landing screen
@@ -100,14 +124,14 @@ public final class TokenLogin extends CorePlugin {
             v.addView(btn);
         }));
 
-        // Hook the "Scan QR Code" button in user settings
-        Class<?> resultClass = Class.forName("com.google.zxing.Result");
+        // The native QR scanner already launches WidgetRemoteAuth for ra codes. Route its "Login"
+        // button through our finish.
+        // Hook the "Scan QR Code" button in user settings to the existing WidgetRemoteAuth
+        // Also hook to the login button so we can catch the error 60003, which warn
+        // the user when the handshake has expired.
         Patcher.addPatch(
-            WidgetQRScanner.class.getDeclaredMethod("handleResult", resultClass),
-            new PreHook(param -> {
-                AppFragment host = (AppFragment) param.thisObject;
-                if (QrLogin.tryHandleScan(host, param.args[0])) param.setResult(null);
-            })
+            WidgetRemoteAuth.class.getDeclaredMethod("configureUI", WidgetRemoteAuthViewModel.ViewState.class),
+            new Hook(param -> QrLogin.onRemoteAuthState((AppFragment) param.thisObject, param.args[0]))
         );
 
         Patcher.addPatch(AppActivity.class, "g", new Class<?>[]{ List.class }, new Hook(param -> {
