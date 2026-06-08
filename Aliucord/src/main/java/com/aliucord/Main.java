@@ -267,14 +267,16 @@ public final class Main {
         var updates = PluginUpdater.fetchUpdates(new PluginUpdaterSource());
         if (updates.isEmpty()) return;
 
+        var intent = new Intent();
+        intent.putParcelableArrayListExtra("updates", updates);
+
         if (!PluginUpdater.isAutoUpdateEnabled()) {
             var notificationData = new NotificationData()
                 .setTitle("Updater")
                 .setBody(String.format("Found %s available plugin updates! Click to view...", updates.size()))
                 .setAutoDismissPeriodSecs(30)
                 .setOnClick((view)-> {
-                    UpdaterScreen.Companion.setUpdates(updates);
-                    Utils.openPage(Utils.appActivity, UpdaterScreen.class);
+                    Utils.openPage(Utils.appActivity, UpdaterScreen.class, intent);
                     return Unit.a;
                 });
 
@@ -300,8 +302,7 @@ public final class Main {
                 .setAutoDismissPeriodSecs(30)
                 .setBody(String.format("Failed to update %s plugins! Click to view...", failed))
                 .setOnClick((view) -> {
-                    UpdaterScreen.Companion.setUpdates(updates);
-                    Utils.openPage(Utils.appActivity, UpdaterScreen.class);
+                    Utils.openPage(Utils.appActivity, UpdaterScreen.class, intent);
                     return Unit.a;
                 });
         } else {
