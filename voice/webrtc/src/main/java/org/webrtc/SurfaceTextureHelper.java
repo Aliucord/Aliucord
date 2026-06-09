@@ -172,6 +172,8 @@ public class SurfaceTextureHelper {
         hasPendingTexture = false;
       }
       // Start the static-screen frame-repeat watchdog for this listening session.
+      consecutiveRecoveries = 0;
+      recoveryEscalated = false;
       lastFrameDeliveredNs = System.nanoTime();
       handler.removeCallbacks(frameRepeatWatchdog);
       handler.postDelayed(frameRepeatWatchdog, FRAME_REPEAT_INTERVAL_MS);
@@ -294,6 +296,14 @@ public class SurfaceTextureHelper {
   private void returnTextureFrame() {
     handler.post(() -> {
       isTextureInUse = false;
+      // Normal return means the consumer is alive again; clear stuck-recovery escalation state.
+      if (recoveryEscalated) {
+        Logging.w(TAG, "Consumer returned texture after " + consecutiveRecoveries
+            + " recoveries; clearing dead-consumer escalation");
+      }
+      consecutiveRecoveries = 0;
+      recoveryEscalated = false;
+      Logging.d(TAG, "returnTextureFrame: texture returned");
       if (isQuitting) {
         release();
       } else {
@@ -352,6 +362,22 @@ public class SurfaceTextureHelper {
   // the encoder keeps producing output. Camera capture delivers frames continuously, so
   // lastFrameDeliveredNs stays fresh and the watchdog naturally no-ops there.
   private static final long FRAME_REPEAT_INTERVAL_MS = 100; // ~10 fps floor
+  // Stuck-texture recovery threshold. The single OES texture is gated by isTextureInUse, which is
+  // cleared only when the downstream consumer (native VideoBroadcaster sink) releases the frame's
+  // TextureBuffer (refcount 0 -> returnTextureFrame). When the base app swaps the video output sink
+  // during a surface/navigation change ("Outputsink set N"), the native sink can leak an in-flight
+  // frame and never return it, so isTextureInUse stays true forever, capture back-pressures, and
+  // CameraStatistics fps -> 0 ("Camera freezed"). A healthy consumer returns within ~one frame
+  // (a few ms at 24-30 fps), so 500ms of no return means the frame is leaked.
+  private static final long STUCK_TEXTURE_TIMEOUT_MS = 500;
+  // Consecutive forced recoveries with no normal frame return in between. A consumer that merely
+  // leaked one frame returns the next delivered texture, which resets this via returnTextureFrame.
+  // A permanently dead consumer never returns, so this climbs once per watchdog tick. Past the
+  // threshold we escalate with an error: in-STH recovery cannot fix a dead sink - the
+  // capturer/output-sink binding must be restarted at a higher level (e.g. Camera2Session restart).
+  private static final int MAX_CONSECUTIVE_RECOVERIES = 6;  // ~3s of a dead consumer
+  private int consecutiveRecoveries = 0;
+  private boolean recoveryEscalated = false;
   private long lastFrameDeliveredNs = 0;
   private final Runnable frameRepeatWatchdog = new Runnable() {
     @Override
@@ -359,7 +385,30 @@ public class SurfaceTextureHelper {
       if (isQuitting || listener == null) {
         return;
       }
-      if (!isTextureInUse && System.nanoTime() - lastFrameDeliveredNs > FRAME_REPEAT_INTERVAL_MS * 1_000_000L) {
+      long idleMs = (System.nanoTime() - lastFrameDeliveredNs) / 1_000_000L;
+      if (isTextureInUse && idleMs > STUCK_TEXTURE_TIMEOUT_MS) {
+        // Consumer leaked the last delivered texture (never returned it). Force-release so delivery
+        // resumes instead of back-pressuring capture into a permanent freeze. Safe against a late
+        // return: returnTextureFrame just sets isTextureInUse=false again and tryDeliverTextureFrame
+        // no-ops when !hasPendingTexture. Worst case is one stale frame for the leaked consumer.
+        consecutiveRecoveries++;
+        Logging.w(TAG, "Texture stuck in use for " + idleMs + "ms, forcing recovery #"
+            + consecutiveRecoveries + " (consumer leaked frame)");
+        if (consecutiveRecoveries >= MAX_CONSECUTIVE_RECOVERIES && !recoveryEscalated) {
+          // Recovery keeps firing with no normal return in between: the downstream consumer (native
+          // output sink) is dead, not just leaking one frame. STH cannot recreate it from here;
+          // continue best-effort recovery but flag that a higher-level restart is required.
+          recoveryEscalated = true;
+          Logging.e(TAG, "Texture recovery ineffective after " + consecutiveRecoveries
+              + " attempts (~" + (consecutiveRecoveries * STUCK_TEXTURE_TIMEOUT_MS) + "ms): "
+              + "downstream consumer (native output sink) appears dead, not leaking. "
+              + "Capturer/output-sink must be restarted at a higher level to recover.");
+        }
+        isTextureInUse = false;
+        hasPendingTexture = true;
+        lastFrameDeliveredNs = System.nanoTime();
+        tryDeliverTextureFrame();
+      } else if (!isTextureInUse && idleMs > FRAME_REPEAT_INTERVAL_MS) {
         hasPendingTexture = true;
         tryDeliverTextureFrame();
       }
@@ -371,7 +420,14 @@ public class SurfaceTextureHelper {
     if (handler.getLooper().getThread() != Thread.currentThread()) {
       throw new IllegalStateException("Wrong thread.");
     }
-    if (isQuitting || !hasPendingTexture || isTextureInUse || listener == null) {
+    if (isQuitting || !hasPendingTexture || listener == null) {
+      return;
+    }
+    if (isTextureInUse) {
+      // A pending camera/screen frame can't be delivered because the previous frame's texture
+      // hasn't been returned (released) by the downstream consumer (native sink).
+      // This also lags as hell...
+      // Logging.d(TAG, "tryDeliverTextureFrame: deferring, previous texture still in use");
       return;
     }
     if (textureWidth == 0 || textureHeight == 0) {
@@ -406,6 +462,8 @@ public class SurfaceTextureHelper {
     }
     final VideoFrame frame = new VideoFrame(buffer, frameRotation, timestampNs);
     lastFrameDeliveredNs = System.nanoTime();
+    // how to lag your client holy...
+    // Logging.d(TAG, "tryDeliverTextureFrame: delivering frame ts=" + timestampNs + " isTextureInUse=" + isTextureInUse);
     listener.onFrame(frame);
     frame.release();
   }

@@ -7,5 +7,7 @@ data class NewIdentifyPayload(
     @SerializedName("user_id") val userId: String,
     @SerializedName("session_id") val sessionId: String,
     val token: String,
+    val video: Boolean,
+    val streams: List<Any>,
     @SerializedName("max_dave_protocol_version") val maxDaveProtocolVersion: Int,
 )

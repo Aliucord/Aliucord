@@ -211,6 +211,7 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
             encodingVideoWidth = width,
             encodingVideoHeight = height,
             encodingVideoFrameRate = framerate,
+            captureVideoFrameRate = framerate,
         ))
     }
 

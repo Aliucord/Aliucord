@@ -23,6 +23,7 @@ import com.aliucord.updater.ManagerBuild
 import com.aliucord.utils.DimenUtils.dp
 import com.aliucord.utils.GsonUtils
 import com.aliucord.utils.GsonUtils.fromJson
+import com.aliucord.utils.ReflectUtils
 import com.aliucord.utils.ViewUtils.addTo
 import com.discord.rtcconnection.mediaengine.MediaEngineConnection
 import com.discord.rtcconnection.socket.io.Opcodes
@@ -129,12 +130,23 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
         ) { (param, opcode: Int, data: Any) ->
             if (opcode == Opcodes.IDENTIFY) {
                 val d = data as Payloads.Identify
+                // Request & override a higher framerate from the server
+                runCatching {
+                    d.streams.forEach { stream ->
+                        ReflectUtils.setField(stream, "maxFrameRate", SunflowerSettings.videoFramerate)
+                    }
+                }.onFailure { logger.error("Failed to set stream maxFrameRate", it) }
                 param.args[1] = NewIdentifyPayload(
                     serverId = d.serverId,
                     userId = d.userId.toString(),
                     sessionId = d.sessionId,
                     token = d.token,
-                    maxDaveProtocolVersion = 1
+                    // Keep the original stream declaration so the server advertises the
+                    // broadcaster's video source to viewers (or else dropped as "not routed").
+                    video = d.video,
+                    streams = d.streams,
+                    // 0 disables DAVE (transport-only); toggle for viewer-compat A/B testing.
+                    maxDaveProtocolVersion = if (SunflowerSettings.daveEnabled) 1 else 0
                 )
                 logger.debug("Replacing Identify payload")
                 logger.debug("Before: $d")
@@ -194,13 +206,12 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                     val socket = param.args[0] as? RtcControlSocket
                     runCatching {
                         socket?.connections?.forEach { conn ->
-                            // TODO: Make these configurable
                             conn.setEncodingQuality(
                                 150_000,
                                 SunflowerSettings.videoBitrateKbps * 1000,
-                                1280,
-                                720,
-                                30,
+                                SunflowerSettings.videoWidth,
+                                SunflowerSettings.videoHeight,
+                                SunflowerSettings.videoFramerate,
                             )
                         }
                     }.onFailure { logger.error("Failed to activate screenshare encode", it) }
@@ -215,7 +226,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
         }
 
         // Never allow resuming; this is because DAVE state may be inconsistent upon resuming.
-        // Normally, newer clients handle this with buffered resume — which replays DAVE messages —
+        // Normally, newer clients handle this with buffered resume - which replays DAVE messages -
         // but DiscordKt does not use this new feature as it's on an older voice gateway version.
         // TODO maybe: implement buffered resume properly, since this may be disruptive when for example
         // roaming on a mobile connection (fresh connections are slightly slower)
@@ -465,11 +476,13 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
 
     private fun collapsibleTitle(ctx: Context, label: String, body: View, expanded: Boolean = false): TextView {
         body.visibility = if (expanded) View.VISIBLE else View.GONE
-        return cardTitle(ctx, (if (expanded) "▾ " else "▸ ") + label).apply {
+        // Use an en-space after the chevron; a plain space renders too tight against the label.
+        fun titleText(open: Boolean) = (if (open) "▾ " else "▸ ") + label
+        return cardTitle(ctx, titleText(expanded)).apply {
             setOnClickListener {
                 val show = body.visibility != View.VISIBLE
                 body.visibility = if (show) View.VISIBLE else View.GONE
-                text = (if (show) "▾ " else "▸ ") + label
+                text = titleText(show)
             }
         }
     }
@@ -547,6 +560,9 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                 LinearLayout(ctx).addTo(this) {
                     layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
                     orientation = LinearLayout.VERTICAL
+                    // The codes are the last child; without this they sit flush against the card's
+                    // bottom edge. The list-item title supplies the top inset.
+                    setPadding(0, 0, 0, 12.dp)
 
                     val t1 = TextView(ctx, null, 0, R.i.UiKit_ListItem_Icon).addTo(this)
                     val t2 = codeBlock(ctx).addTo(this) {
@@ -596,7 +612,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                             topMargin = 8.dp
                         }
                     }
-                    collapsibleTitle(ctx, "Connection Info", info).addTo(this)
+                    collapsibleTitle(ctx, " Connection Info", info).addTo(this)
                     info.addTo(this)
                     onConnInfoUpdate = { text ->
                         Utils.mainThread.post { info.text = text }
