@@ -34,8 +34,7 @@ final class QrLogin {
     private static final int TIMEOUT = 15000;
     private static final String LOGIN_BUTTON = "remote_auth_login_button";
     private static final String MFA_TAG = "qr_mfa";
-    private static final String EXPIRED_MESSAGE =
-        "Try scanning again and tap Log In before leaving the app — Discord expires the QR session otherwise.";
+    private static final String EXPIRED_MESSAGE = "Handshake expired\nDid you switch apps?\n\nRestart the process, make sure to authorize before switching from Aliucord.";
 
     private static final int FINISH_SUCCESS = 0;
     private static final int FINISH_MFA = 1;
@@ -184,7 +183,7 @@ final class QrLogin {
 
     private static int remoteFinish(String token, String mfaToken) {
         try {
-            String response = post("/users/@me/remote-auth/finish", obj(token), mfaToken);
+            String response = post("/users/@me/remote-auth/finish", parseHandshake(token), mfaToken);
             if (response == null) { pendingError = "Login failed"; return FINISH_FAIL; }
             if (response.trim().isEmpty()) return FINISH_SUCCESS;
             JSONObject json = new JSONObject(response);
@@ -203,8 +202,9 @@ final class QrLogin {
     private static void cancelFlow() {
         String token = handshakeToken;
         clearState();
-        if (token != null)
-            Utils.threadPool.submit(() -> post("/users/@me/remote-auth/cancel", obj(token), null));
+        if (token != null) {
+            Utils.threadPool.submit(() -> post("/users/@me/remote-auth/cancel", parseHandshake(token), null));
+        }
     }
 
     private static void loginDone(Fragment fragment) {
@@ -239,7 +239,7 @@ final class QrLogin {
         pendingMfa = null;
     }
 
-    private static String obj(String value) {
+    private static String parseHandshake(String value) {
         try {
             return new JSONObject().put("handshake_token", value).toString();
         } catch (Exception e) {
