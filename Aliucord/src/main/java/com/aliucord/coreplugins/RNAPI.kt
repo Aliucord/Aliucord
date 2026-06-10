@@ -385,6 +385,9 @@ internal class RNAPI : CorePlugin(Manifest("RNAPI")) {
     }
 
     companion object {
+        const val PENDING_REQUEST_INCOMING = 3
+        const val PENDING_REQUEST_OUTGOING = 4
+
         private val COLLATOR = Collator.getInstance().apply { strength = Collator.PRIMARY }
         private val THREAD_MEMBER_COMPARATOR = Comparator<MemberListRow.Member> { a, b ->
             COLLATOR.compare(a?.name, b?.name)
@@ -396,8 +399,9 @@ internal class RNAPI : CorePlugin(Manifest("RNAPI")) {
             )
         }
         private val PENDING_FRIENDS_COMPARATOR = Comparator<FriendsListViewModel.Item.PendingFriendRequest> { a, b ->
-            if (a.relationshipType == 3 && b.relationshipType == 4) return@Comparator -1
-            if (a.relationshipType == 4 && b.relationshipType == 3) return@Comparator -1
+            // prioritize incoming request just like original impl - Canny
+            if (a.relationshipType == PENDING_REQUEST_INCOMING && b.relationshipType == PENDING_REQUEST_OUTGOING) return@Comparator -1
+            if (a.relationshipType == PENDING_REQUEST_OUTGOING && b.relationshipType == PENDING_REQUEST_INCOMING) return@Comparator 1
             COLLATOR.compare(
                 a?.user?.globalName ?: a?.user?.username,
                 b?.user?.globalName ?: b?.user?.username
