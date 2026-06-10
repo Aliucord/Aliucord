@@ -109,11 +109,16 @@ internal class RNAPI : CorePlugin(Manifest("RNAPI")) {
         patcher.after<CoreUser>(APIUser::class.java) { (_, user: APIUser) ->
             this.globalName = user.globalName
         }
-        patcher.after<CoreUser.Companion>("merge", CoreUser::class.java, APIUser::class.java) { (param, coreUser: CoreUser, apiUser: APIUser) ->
+        patcher.after<CoreUser.Companion>("merge",
+            CoreUser::class.java,
+            APIUser::class.java
+        ) { (param, coreUser: CoreUser, apiUser: APIUser) ->
             val resultUser = param.result as? CoreUser ?: return@after
             resultUser.globalName = apiUser.globalName ?: coreUser.globalName ?: return@after
         }
-        patcher.after<MeUser>(APIUser::class.java) { (_, user: APIUser) ->
+        patcher.after<MeUser>(
+            APIUser::class.java
+        ) { (_, user: APIUser) ->
             this.globalName = user.globalName
         }
         patcher.after<MeUser.Companion>("merge",
@@ -151,7 +156,8 @@ internal class RNAPI : CorePlugin(Manifest("RNAPI")) {
             ModelUser::class.java,
             GuildMember::class.java,
             Channel::class.java,
-            List::class.java) { (param, modelUser: ModelUser) ->
+            List::class.java
+        ) { (param, modelUser: ModelUser) ->
             if (param.result == modelUser.username) param.result = modelUser.globalName ?: return@after
         }
         patcher.before<UserNameFormatterKt?>("getSpannableForUserNameWithDiscrim",
@@ -236,8 +242,7 @@ internal class RNAPI : CorePlugin(Manifest("RNAPI")) {
             Int::class.javaObjectType,
             Boolean::class.java,
             Int::class.javaObjectType
-        ) { (_, id: Long?, avatar: String?, discrim: Int?, animated: Boolean, size: Int?
-            ) ->
+        ) { (_, id: Long?, avatar: String?, discrim: Int?, animated: Boolean, size: Int?) ->
             if (avatar != null && id != null) {
                 // webp fix takes care of animated query
                 val ext = IconUtils.INSTANCE.getImageExtension(avatar, animated)
