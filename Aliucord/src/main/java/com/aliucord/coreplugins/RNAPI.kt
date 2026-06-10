@@ -102,7 +102,10 @@ internal class RNAPI : CorePlugin(Manifest("RNAPI")) {
         val newUserProfile = TypeToken.getParameterized(Observable::class.java, RNUserProfile::class.java).type
 
         // nextCallAdapter https://github.com/square/retrofit/blob/c0fd64b5d3ddcc6665a16a4814c5b1596762305d/retrofit/src/main/java/retrofit2/Retrofit.java#L252
-        patcher.before<i0.y>("a", Type::class.java, Array<Annotation>::class.java) { (param, userType: Type) ->
+        patcher.before<i0.y>("a",
+            Type::class.java,
+            Array<Annotation>::class.java)
+        { (param, userType: Type) ->
             if (oldUserProfile == userType) param.args[0] = newUserProfile
         }
     }
@@ -182,8 +185,8 @@ internal class RNAPI : CorePlugin(Manifest("RNAPI")) {
         ) { (param, modelUser: ModelUser) ->
             if (modelUser.globalName == null) return@before
             param.result =
-                if (modelUser.discriminator == 0) modelUser.username else modelUser.username + UserUtils.INSTANCE.getDiscriminatorWithPadding(
-                    modelUser)
+                if (modelUser.discriminator == 0) modelUser.username
+                else modelUser.username + UserUtils.INSTANCE.getDiscriminatorWithPadding(modelUser)
         }
 
         var showAkas = false
@@ -264,7 +267,9 @@ internal class RNAPI : CorePlugin(Manifest("RNAPI")) {
     }
 
     fun patchDiscriminator() {
-        patcher.instead<`AuthUtils$createDiscriminatorInputValidator$1`>("getErrorMessage", TextInputLayout::class.java) {}
+        patcher.instead<`AuthUtils$createDiscriminatorInputValidator$1`>("getErrorMessage",
+            TextInputLayout::class.java
+        ) {}
         patcher.after<WidgetSettingsAccountUsernameEdit>("configureUI",
             MeUser::class.java
         ) {
