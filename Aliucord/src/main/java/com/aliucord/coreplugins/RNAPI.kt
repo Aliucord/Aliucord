@@ -38,6 +38,7 @@ import com.discord.utilities.user.UserUtils
 import com.discord.views.user.SettingsMemberView
 import com.discord.widgets.channels.memberlist.ThreadMemberListItemGeneratorKt
 import com.discord.widgets.chat.input.autocomplete.UserAutocompletable
+import com.discord.widgets.chat.input.autocomplete.adapter.AutocompleteItemViewHolder
 import com.discord.widgets.friends.FriendsListViewModel
 import com.discord.widgets.friends.WidgetFriendsListAdapter
 import com.discord.widgets.search.suggestions.WidgetSearchSuggestionsAdapter
@@ -64,6 +65,7 @@ internal class RNAPI : CorePlugin(Manifest("RNAPI")) {
     override val isRequired = true
 
     var UserProfileHeaderViewModel.ViewState.Loaded.showAkasState by accessField<Boolean>("showAkas")
+    var AutocompleteItemViewHolder.binding by accessField<WidgetChatInputAutocompleteItemBinding>()
     val WidgetFriendsListAdapter.ItemUser.binding by accessField<WidgetFriendsListAdapterItemFriendBinding>()
     val WidgetFriendsListAdapter.ItemPendingUser.binding by accessField<WidgetFriendsListAdapterItemPendingBinding>()
     val WidgetUserMutualFriends.MutualFriendsAdapter.ViewHolder.binding by accessField<WidgetUserProfileAdapterItemFriendBinding>()
@@ -232,6 +234,11 @@ internal class RNAPI : CorePlugin(Manifest("RNAPI")) {
             val name = modelUser.globalName ?: return@after
             this.j.d.j.c.text = name
             this.j.c.visibility = View.VISIBLE
+        }
+        patcher.after<AutocompleteItemViewHolder>("bindUser",
+            UserAutocompletable::class.java
+        ) { (_, autocomplete: UserAutocompletable) ->
+            if (autocomplete.nickname == null) binding.e.text = autocomplete.user.globalName ?: return@after
         }
     }
 
