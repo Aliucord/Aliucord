@@ -65,7 +65,7 @@ internal class RNAPI : CorePlugin(Manifest("RNAPI")) {
     override val isRequired = true
 
     var UserProfileHeaderViewModel.ViewState.Loaded.showAkasState by accessField<Boolean>("showAkas")
-    var AutocompleteItemViewHolder.binding by accessField<WidgetChatInputAutocompleteItemBinding>()
+    val AutocompleteItemViewHolder.binding by accessField<WidgetChatInputAutocompleteItemBinding>()
     val WidgetFriendsListAdapter.ItemUser.binding by accessField<WidgetFriendsListAdapterItemFriendBinding>()
     val WidgetFriendsListAdapter.ItemPendingUser.binding by accessField<WidgetFriendsListAdapterItemPendingBinding>()
     val WidgetUserMutualFriends.MutualFriendsAdapter.ViewHolder.binding by accessField<WidgetUserProfileAdapterItemFriendBinding>()
