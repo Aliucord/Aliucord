@@ -69,20 +69,20 @@ internal fun init(appCtx: Application) {
             internalCustomCoreFile.delete()
         }
 
-        // Copy core bundle from external storage to internal cache to prevent deletion while running
-        Logger.d("Trying bundled core...")
-        val stream = Logger::class.java.classLoader?.getResourceAsStream("Aliucord.zip")
+        val stream = if (customCore) null else Logger::class.java.classLoader?.getResourceAsStream("Aliucord.zip")
 
-        if (stream != null) {
+        if (customCore) {
+            Logger.d("Using external custom core")
+            externalCustomCoreFile.copyTo(internalCustomCoreFile, overwrite = true)
+        } else if (stream != null) {
+            // Copy bundled core to internal cache; classloader resources can't be loaded directly.
+            Logger.d("Using core bundled in APK...")
             stream.use { input ->
                 internalCustomCoreFile.outputStream().use { output ->
                     input.copyTo(output)
                 }
             }
             Logger.d("Bundled core copied...")
-        } else if (customCore) {
-            Logger.d("No bundled core, using external")
-            externalCustomCoreFile.copyTo(internalCustomCoreFile, overwrite = true)
         }
         // Download new stable core
         else if (!internalCoreFile.exists()) {
