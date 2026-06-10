@@ -560,14 +560,14 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                 LinearLayout(ctx).addTo(this) {
                     layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
                     orientation = LinearLayout.VERTICAL
-                    // The codes are the last child; without this they sit flush against the card's
-                    // bottom edge. The list-item title supplies the top inset.
-                    setPadding(0, 0, 0, 12.dp)
 
                     val t1 = TextView(ctx, null, 0, R.i.UiKit_ListItem_Icon).addTo(this)
                     val t2 = codeBlock(ctx).addTo(this) {
                         layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
                             topMargin = 8.dp
+                            // Inset from the card's bottom edge. Lives on the code block (not the
+                            // container) so it collapses when the block is GONE (not encrypted).
+                            bottomMargin = 12.dp
                         }
                         gravity = Gravity.CENTER
                         textSize = 13f

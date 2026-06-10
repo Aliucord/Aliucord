@@ -5,16 +5,21 @@ import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
 import android.view.View
-import android.widget.EditText
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import com.aliucord.Utils
 import com.aliucord.api.SettingsAPI
 import com.aliucord.settings.delegate
+import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.DimenUtils.dp
 import com.aliucord.utils.ViewUtils.addTo
+import com.aliucord.views.TextInput
 import com.aliucord.widgets.BottomSheet
 import com.discord.views.CheckedSetting
+import com.lytefast.flexinput.R
 
 internal object SunflowerSettings {
     const val MODE_AES256_GCM = "aead_aes256_gcm_rtpsize"
@@ -80,44 +85,63 @@ internal object SunflowerSettings {
                 }
             }
 
-            TextView(ctx).addTo(linearLayout) {
-                text = "Video / screenshare bitrate (kbps)"
-                setPadding(0, 12.dp, 0, 4.dp)
-            }
-            EditText(ctx).addTo(linearLayout) {
-                inputType = InputType.TYPE_CLASS_NUMBER
-                hint = DEFAULT_VIDEO_BITRATE_KBPS.toString()
-                setText(videoBitrateKbps.toString())
-                addTextChangedListener(object : TextWatcher {
-                    override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
-                    override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
-                    override fun afterTextChanged(s: Editable?) {
-                        val kbps = s?.toString()?.trim()?.toIntOrNull() ?: return
-                        if (kbps < 8) return
-                        var setting by videoBitrateKbpsDelegate
-                        setting = kbps
-                    }
-                })
+            val p = DimenUtils.defaultPadding
+
+            TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(linearLayout) {
+                text = "Video / Screenshare"
             }
 
-            val fpsLabel = TextView(ctx).addTo(linearLayout) {
-                text = "Video / screenshare framerate: $videoFramerate fps"
-                setPadding(0, 12.dp, 0, 4.dp)
+            TextInput(ctx, "Bitrate (kbps)", videoBitrateKbps.toString(), object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+                override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+                override fun afterTextChanged(s: Editable?) {
+                    val kbps = s?.toString()?.trim()?.toIntOrNull() ?: return
+                    if (kbps < 8) return
+                    var setting by videoBitrateKbpsDelegate
+                    setting = kbps
+                }
+            }).addTo(linearLayout) {
+                layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+                    marginStart = p
+                    marginEnd = p
+                }
+                editText.inputType = InputType.TYPE_CLASS_NUMBER
+                editText.hint = DEFAULT_VIDEO_BITRATE_KBPS.toString()
+            }
+
+            val fpsLabel = TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(linearLayout) {
+                text = "Framerate: $videoFramerate fps"
             }
             SeekBar(ctx).addTo(linearLayout) {
+                setPadding(p, 0, p, 0)
                 // SeekBar min is 0, so offset by FPS_MIN: value = FPS_MIN + progress.
                 max = FPS_MAX - FPS_MIN
                 progress = videoFramerate.coerceIn(FPS_MIN, FPS_MAX) - FPS_MIN
                 setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                    override fun onProgressChanged(sb: SeekBar?, p: Int, fromUser: Boolean) {
-                        val fps = FPS_MIN + p
-                        fpsLabel.text = "Video / screenshare framerate: $fps fps"
+                    override fun onProgressChanged(sb: SeekBar?, value: Int, fromUser: Boolean) {
+                        val fps = FPS_MIN + value
+                        fpsLabel.text = "Framerate: $fps fps"
                         var setting by videoFramerateDelegate
                         setting = fps
                     }
                     override fun onStartTrackingTouch(sb: SeekBar?) {}
                     override fun onStopTrackingTouch(sb: SeekBar?) {}
                 })
+            }
+            LinearLayout(ctx).addTo(linearLayout) {
+                orientation = LinearLayout.HORIZONTAL
+                setPadding(p, 0, p, 8.dp)
+                TextView(ctx).addTo(this) {
+                    layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
+                    text = "$FPS_MIN fps"
+                    textSize = 12f
+                    alpha = 0.6f
+                }
+                TextView(ctx).addTo(this) {
+                    text = "$FPS_MAX fps"
+                    textSize = 12f
+                    alpha = 0.6f
+                }
             }
         }
     }
