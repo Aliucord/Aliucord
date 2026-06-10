@@ -427,8 +427,10 @@ class AndroidVideoDecoder implements VideoDecoder, VideoSink {
     final long timestampNs;
     synchronized (renderedTextureMetadataLock) {
       if (renderedTextureMetadata == null) {
-        throw new IllegalStateException(
-            "Rendered texture metadata was null in onTextureFrameAvailable.");
+        // Dropping this null texture frame to prevent an IllegalStateException
+        // that would otherwise crash the decoder thread and freeze the whole stream.
+        Logging.w(TAG, "Rendered texture metadata was null in onTextureFrameAvailable; dropping frame");
+        return;
       }
       timestampNs = renderedTextureMetadata.presentationTimestampUs * 1000;
       decodeTimeMs = renderedTextureMetadata.decodeTimeMs;

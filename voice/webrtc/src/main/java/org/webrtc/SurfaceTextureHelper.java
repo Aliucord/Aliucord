@@ -176,7 +176,9 @@ public class SurfaceTextureHelper {
       recoveryEscalated = false;
       lastFrameDeliveredNs = System.nanoTime();
       handler.removeCallbacks(frameRepeatWatchdog);
-      handler.postDelayed(frameRepeatWatchdog, FRAME_REPEAT_INTERVAL_MS);
+      if (!(listener instanceof AndroidVideoDecoder)) {
+        handler.postDelayed(frameRepeatWatchdog, FRAME_REPEAT_INTERVAL_MS);
+      }
     }
   };
 
@@ -303,7 +305,7 @@ public class SurfaceTextureHelper {
       }
       consecutiveRecoveries = 0;
       recoveryEscalated = false;
-      Logging.d(TAG, "returnTextureFrame: texture returned");
+      // Logging.d(TAG, "returnTextureFrame: texture returned");
       if (isQuitting) {
         release();
       } else {
