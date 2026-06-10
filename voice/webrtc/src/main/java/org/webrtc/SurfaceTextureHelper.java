@@ -452,7 +452,8 @@ public class SurfaceTextureHelper {
     // Enforce strictly monotonic timestamps so newer webrtc doesn't drop frames
     // on static screenshares (duplicate/regressing SurfaceTexture timestamps).
     if (timestampNs <= lastDeliveredTimestampNs) {
-      timestampNs = lastDeliveredTimestampNs + 1;
+      long elapsedNs = lastFrameDeliveredNs == 0 ? 0 : System.nanoTime() - lastFrameDeliveredNs;
+      timestampNs = lastDeliveredTimestampNs + Math.max(1, elapsedNs);
     }
     lastDeliveredTimestampNs = timestampNs;
     final VideoFrame.TextureBuffer buffer =
