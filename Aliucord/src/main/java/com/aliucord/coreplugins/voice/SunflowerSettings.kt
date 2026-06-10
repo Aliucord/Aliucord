@@ -44,7 +44,7 @@ internal object SunflowerSettings {
     val videoFramerate by videoFramerateDelegate
     private val videoHeightDelegate = settings.delegate("videoHeight", DEFAULT_VIDEO_HEIGHT)
     val videoHeight by videoHeightDelegate
-    private val videoWidthDelegate = settings.delegate("videoHeight", DEFAULT_VIDEO_WIDTH)
+    private val videoWidthDelegate = settings.delegate("videoWidth", DEFAULT_VIDEO_WIDTH)
     val videoWidth by videoWidthDelegate
     private val daveEnabledDelegate = settings.delegate("daveEnabled", true)
     val daveEnabled by daveEnabledDelegate
