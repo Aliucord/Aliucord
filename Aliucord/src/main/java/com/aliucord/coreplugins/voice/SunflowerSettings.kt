@@ -12,6 +12,7 @@ import android.widget.SeekBar
 import android.widget.TextView
 import com.aliucord.Utils
 import com.aliucord.api.SettingsAPI
+import com.aliucord.settings.SettingsDelegate
 import com.aliucord.settings.delegate
 import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.DimenUtils.dp
@@ -49,7 +50,6 @@ internal object SunflowerSettings {
     private val daveEnabledDelegate = settings.delegate("daveEnabled", true)
     val daveEnabled by daveEnabledDelegate
 
-    // todo: to wire this
     val transportEncryption: String get() = if (useAes256Gcm) MODE_AES256_GCM else MODE_XCHACHA20
 
     class Sheet : BottomSheet() {
@@ -107,6 +107,33 @@ internal object SunflowerSettings {
                 }
                 editText.inputType = InputType.TYPE_CLASS_NUMBER
                 editText.hint = DEFAULT_VIDEO_BITRATE_KBPS.toString()
+            }
+
+            LinearLayout(ctx).addTo(linearLayout) {
+                orientation = LinearLayout.HORIZONTAL
+                layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+                    marginStart = p
+                    marginEnd = p
+                }
+
+                fun resolutionInput(label: String, value: Int, default: Int, delegate: SettingsDelegate<Int>) =
+                    TextInput(ctx, label, value.toString(), object : TextWatcher {
+                        override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+                        override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+                        override fun afterTextChanged(s: Editable?) {
+                            val px = s?.toString()?.trim()?.toIntOrNull() ?: return
+                            if (px !in 64..4096) return
+                            var setting by delegate
+                            setting = px
+                        }
+                    }).addTo(this) {
+                        layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
+                        editText.inputType = InputType.TYPE_CLASS_NUMBER
+                        editText.hint = default.toString()
+                    }
+
+                resolutionInput("Width", videoWidth, DEFAULT_VIDEO_WIDTH, videoWidthDelegate)
+                resolutionInput("Height", videoHeight, DEFAULT_VIDEO_HEIGHT, videoHeightDelegate)
             }
 
             val fpsLabel = TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(linearLayout) {

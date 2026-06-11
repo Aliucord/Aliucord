@@ -71,8 +71,6 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
 
     override fun start(context: Context) {
         // Force usage of updated transport encryption
-        // TODO: Ideally prefer "aead_aes256_gcm_rtpsize" instead somehow (not all voice servers support it)
-        //  Edit: yes they do, E2EE isnt used while youre alone in a vc
         patcher.before<ProtocolInfo>(
             String::class.java,
             Int::class.javaPrimitiveType!!,
@@ -80,7 +78,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
         ) { (param, _: String, _: Int, mode: String) ->
             if (mode == "xsalsa20_poly1305") {
                 param.args[2] = if (sunflowerLibVersion != null) {
-                    "aead_xchacha20_poly1305_rtpsize"
+                    SunflowerSettings.transportEncryption
                 } else {
                     "xsalsa20_poly1305_lite_rtpsize"
                 }
