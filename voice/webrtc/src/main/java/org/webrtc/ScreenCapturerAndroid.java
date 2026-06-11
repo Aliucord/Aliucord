@@ -192,8 +192,8 @@ public class ScreenCapturerAndroid implements VideoCapturer, VideoSink {
     if (virtualDisplay == null || VERSION.SDK_INT < VERSION_CODES.S) {
       createVirtualDisplay();
     } else {
+      // Swapping in a new Surface here severs the MediaProjection mirror on Android 14+
       virtualDisplay.resize(width, height, VIRTUAL_DISPLAY_DPI);
-      virtualDisplay.setSurface(new Surface(surfaceTextureHelper.getSurfaceTexture()));
     }
   }
   private void createVirtualDisplay() {
