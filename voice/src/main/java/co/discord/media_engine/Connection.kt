@@ -267,7 +267,7 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
 
     private fun set(options: TransportOptions) {
         if (disposed) return
-        Log.d("Sunflower", "connection/trwansportOptions: ${gson.m(options)}")
+        Log.d("Sunflower", "connection/transportOptions: ${gson.m(options)}")
         native.setTransportOptions(gson.m(options))
     }
 
