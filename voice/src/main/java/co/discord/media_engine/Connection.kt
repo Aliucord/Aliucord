@@ -241,9 +241,14 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
         native.setVideoBroadcast(enabled)
     }
 
-    override fun startScreenshareBroadcast(videoCapturer: VideoCapturer, nativeInstance: Long) =
+    override fun startScreenshareBroadcast(videoCapturer: VideoCapturer, nativeInstance: Long) {
+        if (disposed) return
         native.startBroadcast(videoCapturer, nativeInstance)
-    override fun stopScreenshareBroadcast() = native.stopBroadcast()
+    }
+    override fun stopScreenshareBroadcast() {
+        if (disposed) return
+        native.stopBroadcast()
+    }
 
     override fun setUserSpeakingStatusChangedCallback(userSpeakingStatusChangedCallback: UserSpeakingStatusChangedCallback) {
         native.setOnSpeakingCallback { userId, speakingFlags, voiceDb ->
@@ -261,6 +266,7 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
     }
 
     private fun set(options: TransportOptions) {
+        if (disposed) return
         Log.d("Sunflower", "connection/trwansportOptions: ${gson.m(options)}")
         native.setTransportOptions(gson.m(options))
     }
