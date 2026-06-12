@@ -196,30 +196,20 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
         ) { param ->
             val message = param.args[2] as Payloads.Incoming
             if (message.opcode == Opcodes.MEDIA_SINK_WANTS) {
-                val data = message.data.d()
                 // pixelCounts is only mentioned in streams/screenshare if
                 // RtcConnection has enableMediaSinkWants == false
-                // We need to call the encoder so screenshares actually display something
-                if (data.a.containsKey("pixelCounts")) {
-                    val socket = param.args[0] as? RtcControlSocket
-                    runCatching {
-                        socket?.connections?.forEach { conn ->
-                            conn.setEncodingQuality(
-                                150_000,
-                                SunflowerSettings.videoBitrateKbps * 1000,
-                                SunflowerSettings.videoWidth,
-                                SunflowerSettings.videoHeight,
-                                SunflowerSettings.videoFramerate,
-                            )
-                        }
-                    }.onFailure { logger.error("Failed to activate screenshare encode", it) }
-                }
-                param.args[2] = Payloads.Incoming(message.opcode, data.apply {
+                param.args[2] = Payloads.Incoming(message.opcode, message.data.d().apply {
                     // Remove pixelCounts since it messes up the default handler's conversion from
                     // JsonObject to Map<String, Number>
                     @SuppressLint("CheckResult")
                     a.remove("pixelCounts")
                 })
+            }
+        }
+
+        patcher.before<RtcControlSocket_OnMessage>("invoke") { param ->
+            if (this.`$message`.opcode == Opcodes.MEDIA_SINK_WANTS) {
+                param.result = Unit.a
             }
         }
 
@@ -252,6 +242,22 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                 val ver = message.data.d().a["secure_frames_version"]?.e()?.c() ?: 0
                 logger.debug("Protover: $ver")
                 handleOnProtocolSelectAck(socket, ver)
+            }
+
+            // We need to call the encoder so screenshares actually display something
+            // Also apply user video settings on every sink-wants update
+            if (message.opcode == Opcodes.MEDIA_SINK_WANTS) {
+                socket.connections.forEach { connection ->
+                    runCatching {
+                        connection.setEncodingQuality(
+                            150_000,
+                            SunflowerSettings.videoBitrateKbps * 1000,
+                            SunflowerSettings.videoWidth,
+                            SunflowerSettings.videoHeight,
+                            SunflowerSettings.videoFramerate,
+                        )
+                    }.onFailure { logger.error("Failed to apply video encode settings", it) }
+                }
             }
 
             val payload = SunflowerPayload.deserialize(gson, message)
