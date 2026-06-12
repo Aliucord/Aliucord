@@ -102,6 +102,14 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
             return
         }
 
+        // Stock discord jar shadows org.webrtc on the compile classpath, so the
+        // updated class with this field can't be referenced directly
+        runCatching {
+            Class.forName("org.webrtc.HardwareVideoEncoder")
+                .getField("MAX_ENCODER_Q_SIZE")
+                .setInt(null, SunflowerSettings.encoderQueueSize)
+        }.onFailure { logger.error("Failed to set encoder queue size", it) }
+
         patchPrivacyCodeView()
 
         // Handle new binary voice gateway events
@@ -182,9 +190,9 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                     }.toTypedArray()
                 )
                 this.i.filter { it.c == "audio" }.map { it.a }.distinct().takeIf { it.isNotEmpty() }
-                    ?.let { setDebug("Audio", it.joinToString(", ")) }
+                    ?.let { setDebug("Audio Codec", it.joinToString(", ")) }
                 this.i.filter { it.c == "video" }.map { it.a }.distinct().takeIf { it.isNotEmpty() }
-                    ?.let { setDebug("Video", it.joinToString(", ")) }
+                    ?.let { setDebug("Video Codec", it.joinToString(", ")) }
                 param.result = null
             }
         }
@@ -231,7 +239,10 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                 return@after
             }
 
-            lastSocket = socket
+            if (socket != lastSocket) {
+                prevSocket = lastSocket
+                lastSocket = socket
+            }
             refreshConnInfo()
 
             val message = this.`$message`
@@ -247,17 +258,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
             // We need to call the encoder so screenshares actually display something
             // Also apply user video settings on every sink-wants update
             if (message.opcode == Opcodes.MEDIA_SINK_WANTS) {
-                socket.connections.forEach { connection ->
-                    runCatching {
-                        connection.setEncodingQuality(
-                            150_000,
-                            SunflowerSettings.videoBitrateKbps * 1000,
-                            SunflowerSettings.videoWidth,
-                            SunflowerSettings.videoHeight,
-                            SunflowerSettings.videoFramerate,
-                        )
-                    }.onFailure { logger.error("Failed to apply video encode settings", it) }
-                }
+                applyVideoSettings(socket)
             }
 
             val payload = SunflowerPayload.deserialize(gson, message)
@@ -318,6 +319,9 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
         ) { (_, _: Any, guid: String?) ->
             val device = guid ?: "default"
             logger.debug("Setting video input device $device")
+            // Push capture settings first so the camera opens at the target framerate directly,
+            // instead of the native default 30fps followed by an immediate session re-open.
+            lastSocket?.let(::applyVideoSettings)
             mediaEngine.i().setVideoInputDevice(device)
         }
 
@@ -428,8 +432,26 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
     var onCodeUpdate: (String) -> Unit = {}
     private val debugInfo = LinkedHashMap<String, String>()
     private var lastSocket: RtcControlSocket? = null
+    private var prevSocket: RtcControlSocket? = null
     private var connInfoText = "Not connected"
     var onConnInfoUpdate: (String) -> Unit = {}
+
+    private fun applyVideoSettings(socket: RtcControlSocket) {
+        socket.connections.forEach { connection ->
+            runCatching {
+                connection.setEncodingQuality(
+                    150_000,
+                    SunflowerSettings.videoBitrateKbps * 1000,
+                    SunflowerSettings.videoWidth,
+                    SunflowerSettings.videoHeight,
+                    SunflowerSettings.videoFramerate,
+                )
+            }.onFailure { logger.error("Failed to apply video encode settings", it) }
+        }
+        setDebug("Bitrate", "${SunflowerSettings.videoBitrateKbps} kbps")
+        setDebug("Resolution", "${SunflowerSettings.videoWidth} x ${SunflowerSettings.videoHeight}")
+        setDebug("FPS", SunflowerSettings.videoFramerate.toString())
+    }
 
     private fun setDebug(key: String, value: String) {
         debugInfo[key] = value
@@ -443,7 +465,10 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
         val sb = StringBuilder()
         val head = renderDebugInfo()
         if (head.isNotEmpty()) sb.append(head).append("\n\n")
+        // Fallback to the previous socket if the current one is inactive to keep the
+        // overlay populated instead of going blank.
         val rtc = lastSocket?.rtcConnections?.firstOrNull()
+            ?: prevSocket?.rtcConnections?.firstOrNull()
         if (rtc != null) {
             runCatching {
                 val b = StringBuilder()
@@ -467,7 +492,6 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
         setLineSpacing(2.dp.toFloat(), 1f)
         background = GradientDrawable().apply {
             cornerRadius = 8.dp.toFloat()
-            setColor(0x1E1F22)
         }
         setPadding(12.dp, 10.dp, 12.dp, 10.dp)
     }
@@ -606,15 +630,14 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                 }
             }
 
+            if (!SunflowerSettings.showConnInfo) return@patch
             newCard(ctx, connInfoViewId).addTo(self, 2) {
                 LinearLayout(ctx).addTo(this) {
                     layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
                     orientation = LinearLayout.VERTICAL
 
                     val info = codeBlock(ctx).apply {
-                        layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
-                            topMargin = 8.dp
-                        }
+                        layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
                     }
                     collapsibleTitle(ctx, " Connection Info", info).addTo(this)
                     info.addTo(this)

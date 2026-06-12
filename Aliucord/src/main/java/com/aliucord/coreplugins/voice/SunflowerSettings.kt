@@ -32,6 +32,7 @@ internal object SunflowerSettings {
     const val DEFAULT_VIDEO_WIDTH = 1280
     const val FPS_MIN = 24
     const val FPS_MAX = 120
+    const val DEFAULT_ENCODER_QUEUE_SIZE = 4
 
     private val settings = SettingsAPI("Sunflower")
 
@@ -49,6 +50,10 @@ internal object SunflowerSettings {
     val videoWidth by videoWidthDelegate
     private val daveEnabledDelegate = settings.delegate("daveEnabled", true)
     val daveEnabled by daveEnabledDelegate
+    private val encoderQueueSizeDelegate = settings.delegate("encoderQueueSize", DEFAULT_ENCODER_QUEUE_SIZE)
+    val encoderQueueSize by encoderQueueSizeDelegate
+    private val showConnInfoDelegate = settings.delegate("showConnInfo", false)
+    val showConnInfo by showConnInfoDelegate
 
     val transportEncryption: String get() = if (useAes256Gcm) MODE_AES256_GCM else MODE_XCHACHA20
 
@@ -83,6 +88,17 @@ internal object SunflowerSettings {
                     setting = !setting
                     Utils.promptRestart()
                 }
+            }
+
+            Utils.createCheckedSetting(
+                ctx,
+                CheckedSetting.ViewType.SWITCH,
+                "Show connection info overlay",
+                "Adds an info card to the voice bottom sheet. Takes effect on the next voice connection."
+            ).addTo(linearLayout) {
+                var setting by showConnInfoDelegate
+                isChecked = setting
+                setOnCheckedListener { setting = !setting }
             }
 
             val p = DimenUtils.defaultPadding
@@ -169,6 +185,24 @@ internal object SunflowerSettings {
                     textSize = 12f
                     alpha = 0.6f
                 }
+            }
+
+            TextInput(ctx, "Encoder queue size", encoderQueueSize.toString(), object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+                override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+                override fun afterTextChanged(s: Editable?) {
+                    val size = s?.toString()?.trim()?.toIntOrNull() ?: return
+                    if (size !in 2..16) return
+                    var setting by encoderQueueSizeDelegate
+                    setting = size
+                }
+            }).addTo(linearLayout) {
+                layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+                    marginStart = p
+                    marginEnd = p
+                }
+                editText.inputType = InputType.TYPE_CLASS_NUMBER
+                editText.hint = DEFAULT_ENCODER_QUEUE_SIZE.toString()
             }
         }
     }

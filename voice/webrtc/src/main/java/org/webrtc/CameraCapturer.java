@@ -29,6 +29,7 @@ abstract class CameraCapturer implements CameraVideoCapturer {
   private final static int MAX_OPEN_CAMERA_ATTEMPTS = 3;
   private final static int OPEN_CAMERA_DELAY_MS = 500;
   private final static int OPEN_CAMERA_TIMEOUT = 10000;
+  private final static int RESTART_CAMERA_DELAY_MS = 1000;
 
   private final CameraEnumerator cameraEnumerator;
   private final CameraEventsHandler eventsHandler;
@@ -122,7 +123,7 @@ abstract class CameraCapturer implements CameraVideoCapturer {
           return;
         }
         eventsHandler.onCameraError(error);
-        stopCapture();
+        restartCapture(error);
       }
     }
 
@@ -135,7 +136,7 @@ abstract class CameraCapturer implements CameraVideoCapturer {
           return;
         }
         eventsHandler.onCameraDisconnected();
-        stopCapture();
+        restartCapture("disconnected");
       }
     }
 
@@ -310,6 +311,19 @@ abstract class CameraCapturer implements CameraVideoCapturer {
     }
 
     Logging.d(TAG, "Stop capture done");
+  }
+
+  private void restartCapture(String reason) {
+    Logging.w(TAG, "Restart capture: Session died with reason: " + reason);
+    stopCapture();
+    synchronized (stateLock) {
+      if (sessionOpening || currentSession != null) {
+        return;
+      }
+      sessionOpening = true;
+      openAttemptsRemaining = MAX_OPEN_CAMERA_ATTEMPTS;
+      createSessionInternal(RESTART_CAMERA_DELAY_MS);
+    }
   }
 
   @Override

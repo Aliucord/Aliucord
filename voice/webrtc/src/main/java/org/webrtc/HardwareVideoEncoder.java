@@ -19,7 +19,6 @@ import android.media.MediaCodecInfo;
 import android.media.MediaCodecInfo.CodecCapabilities;
 import android.media.MediaFormat;
 import android.opengl.GLES20;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.Surface;
 import androidx.annotation.Nullable;
@@ -34,13 +33,13 @@ import org.webrtc.ThreadUtils.ThreadChecker;
 /**
  * Android hardware video encoder.
  */
-class HardwareVideoEncoder implements VideoEncoder {
+public class HardwareVideoEncoder implements VideoEncoder {
   private static final String TAG = "HardwareVideoEncoder";
 
   private static final int MAX_VIDEO_FRAMERATE = 30;
 
-  // See MAX_ENCODER_Q_SIZE in androidmediaencoder.cc.
-  private static final int MAX_ENCODER_Q_SIZE = 2;
+  // See MAX_ENCODER_Q_SIZE in androidmediaencoder.cc. Stock value is 2.
+  public static volatile int MAX_ENCODER_Q_SIZE = 4;
 
   private static final int MEDIA_CODEC_RELEASE_TIMEOUT_MS = 5000;
   private static final int DEQUEUE_OUTPUT_BUFFER_TIMEOUT_US = 100000;
