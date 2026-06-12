@@ -443,7 +443,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
         val sb = StringBuilder()
         val head = renderDebugInfo()
         if (head.isNotEmpty()) sb.append(head).append("\n\n")
-        val rtc = lastSocket?.rtcConnection
+        val rtc = lastSocket?.rtcConnections?.firstOrNull()
         if (rtc != null) {
             runCatching {
                 val b = StringBuilder()

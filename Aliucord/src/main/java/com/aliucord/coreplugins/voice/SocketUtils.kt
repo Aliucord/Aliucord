@@ -12,7 +12,7 @@ import f0.e0.n.d as RealWebsocket
 
 private val logger = Logger("Sunflower")
 
-private val RtcControlSocket.rtcConnections: List<RtcConnection> get() {
+val RtcControlSocket.rtcConnections: List<RtcConnection> get() {
     return this.q // this.eventHandlers
         .mapNotNull { eventHandler ->
             val eventHandler = eventHandler as? RtcConnectionEventHandler
