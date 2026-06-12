@@ -40,6 +40,8 @@ import com.lytefast.flexinput.R
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
+import java.util.Collections
+import java.util.WeakHashMap
 import kotlin.math.pow
 import b.a.q.m0.c.e as MediaEngineConnectionLegacy
 import b.a.q.m0.c.`e$h` as MediaEngineConnectionLegacy_SetCodecs
@@ -362,6 +364,13 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                 socket.send(Opcodes.DAVE_MLS_KEY_PACKAGE, ByteString(bytes))
             }
         }
+        if (version >= 1) {
+            val queued = synchronized(pendingProposals) {
+                epochPreparedSockets.add(socket)
+                pendingProposals.remove(socket)
+            }
+            queued?.forEach { handleBinaryMessage(socket, it) }
+        }
     }
 
     private fun handleBinaryMessage(socket: RtcControlSocket, bytestr: ByteString) {
@@ -382,6 +391,14 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                 }
             }
             Opcodes.DAVE_MLS_PROPOSALS -> {
+                // Binary frames skip queue, proposals beat SELECT_PROTOCOL_ACK.
+                synchronized(pendingProposals) {
+                    if (socket !in epochPreparedSockets) {
+                        logger.debug("Epoch not prepared yet, queueing MLS proposals")
+                        pendingProposals.getOrPut(socket) { mutableListOf() }.add(bytestr)
+                        return
+                    }
+                }
                 val encoded = reader.collectAsByteString().encodeBase64()
                 logger.debug("MLSProposals: $encoded")
                 socket.connections.forEach { connection ->
@@ -432,6 +449,8 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
     var onCodeUpdate: (String) -> Unit = {}
     private val debugInfo = LinkedHashMap<String, String>()
     private var lastSocket: RtcControlSocket? = null
+    private val epochPreparedSockets = Collections.newSetFromMap(WeakHashMap<RtcControlSocket, Boolean>())
+    private val pendingProposals = WeakHashMap<RtcControlSocket, MutableList<ByteString>>()
     private var prevSocket: RtcControlSocket? = null
     private var connInfoText = "Not connected"
     var onConnInfoUpdate: (String) -> Unit = {}
