@@ -14,21 +14,20 @@ import static android.media.MediaCodecInfo.CodecProfileLevel.AVCLevel3;
 import static android.media.MediaCodecInfo.CodecProfileLevel.AVCProfileHigh;
 import static android.media.MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR;
 
-import android.media.MediaCodec;
-import android.media.MediaCodecInfo;
+import android.media.*;
 import android.media.MediaCodecInfo.CodecCapabilities;
-import android.media.MediaFormat;
 import android.opengl.GLES20;
 import android.os.Bundle;
 import android.view.Surface;
+
 import androidx.annotation.Nullable;
+
+import org.webrtc.ThreadUtils.ThreadChecker;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
-import org.webrtc.ThreadUtils.ThreadChecker;
+import java.util.concurrent.*;
 
 /**
  * Android hardware video encoder.

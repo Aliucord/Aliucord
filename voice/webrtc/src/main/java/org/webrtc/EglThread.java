@@ -10,20 +10,14 @@
 
 package org.webrtc;
 
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
-import android.os.Message;
+import android.os.*;
+
 import androidx.annotation.GuardedBy;
 import androidx.annotation.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
 import org.webrtc.EglBase.EglConnection;
+
+import java.util.*;
 
 /** EGL graphics thread that allows multiple clients to share the same underlying EGLContext. */
 public class EglThread implements RenderSynchronizer.Listener {

@@ -10,13 +10,11 @@
 
 package org.webrtc;
 
-import android.media.MediaCodec;
+import android.media.*;
 import android.media.MediaCodec.BufferInfo;
-import android.media.MediaCodecInfo;
-import android.media.MediaCrypto;
-import android.media.MediaFormat;
 import android.os.Bundle;
 import android.view.Surface;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 

@@ -11,7 +11,6 @@
 package org.webrtc;
 
 import androidx.annotation.Nullable;
-import org.webrtc.EncodedImage;
 
 /**
  * Interface for a video encoder that can be used with WebRTC. All calls will be made on the

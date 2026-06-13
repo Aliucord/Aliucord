@@ -10,23 +10,18 @@
 
 package org.webrtc;
 
-import android.graphics.Bitmap;
-import android.graphics.Matrix;
-import android.graphics.SurfaceTexture;
+import android.graphics.*;
 import android.opengl.GLES20;
 import android.view.Surface;
+
 import androidx.annotation.GuardedBy;
 import androidx.annotation.Nullable;
+
 import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import kotlin.Suppress;
 
 /**
  * Implements VideoSink by displaying the video stream on an EGL Surface. This class is intended to

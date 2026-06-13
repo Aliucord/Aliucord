@@ -12,18 +12,10 @@ package org.webrtc;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.webrtc.CandidatePairChangeEvent;
-import org.webrtc.DataChannel;
-import org.webrtc.MediaStreamTrack;
-import org.webrtc.RtpTransceiver;
+import java.util.*;
 
 /**
  * Java-land version of the PeerConnection APIs; wraps the C++ API

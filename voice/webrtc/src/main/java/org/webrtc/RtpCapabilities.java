@@ -10,10 +10,8 @@
 
 package org.webrtc;
 
-import androidx.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
-import org.webrtc.MediaStreamTrack;
 
 public class RtpCapabilities {
   public static class CodecCapability {

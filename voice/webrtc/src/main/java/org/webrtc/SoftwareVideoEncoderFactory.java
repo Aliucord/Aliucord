@@ -11,7 +11,7 @@
 package org.webrtc;
 
 import androidx.annotation.Nullable;
-import java.util.Arrays;
+
 import java.util.List;
 
 public class SoftwareVideoEncoderFactory implements VideoEncoderFactory {

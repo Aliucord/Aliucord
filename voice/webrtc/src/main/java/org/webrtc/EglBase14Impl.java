@@ -11,14 +11,9 @@
 package org.webrtc;
 
 import android.graphics.SurfaceTexture;
-import android.opengl.EGL14;
-import android.opengl.EGLConfig;
-import android.opengl.EGLContext;
-import android.opengl.EGLDisplay;
-import android.opengl.EGLExt;
-import android.opengl.EGLSurface;
-import android.opengl.GLException;
+import android.opengl.*;
 import android.view.Surface;
+
 import androidx.annotation.Nullable;
 
 /**

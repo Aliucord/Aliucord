@@ -11,9 +11,8 @@
 package org.webrtc;
 
 import androidx.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.Map;
+
+import java.util.*;
 
 /**
  * Represent a video codec as encoded in SDP.

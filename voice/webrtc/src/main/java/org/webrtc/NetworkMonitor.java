@@ -12,11 +12,12 @@ package org.webrtc;
 
 import android.content.Context;
 import android.os.Build;
+
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+
 import java.util.ArrayList;
 import java.util.List;
-import org.webrtc.NetworkChangeDetector;
 
 
 /**

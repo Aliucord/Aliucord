@@ -12,37 +12,22 @@ package org.webrtc.audio;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.media.AudioDeviceInfo;
-import android.media.AudioFormat;
-import android.media.AudioManager;
-import android.media.AudioRecord;
-import android.media.AudioRecordingConfiguration;
-import android.media.AudioTimestamp;
+import android.media.*;
 import android.media.MediaRecorder.AudioSource;
 import android.os.Build;
 import android.os.Process;
+
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import java.lang.System;
+
+import org.webrtc.*;
+import org.webrtc.audio.JavaAudioDeviceModule.*;
+
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import org.webrtc.CalledByNative;
-import org.webrtc.Logging;
-import org.webrtc.ThreadUtils;
-import org.webrtc.audio.JavaAudioDeviceModule.AudioRecordErrorCallback;
-import org.webrtc.audio.JavaAudioDeviceModule.AudioRecordStartErrorCode;
-import org.webrtc.audio.JavaAudioDeviceModule.AudioRecordStateCallback;
-import org.webrtc.audio.JavaAudioDeviceModule.SamplesReadyCallback;
 
 class WebRtcAudioRecord {
   private static final String TAG = "WebRtcAudioRecordExternal";

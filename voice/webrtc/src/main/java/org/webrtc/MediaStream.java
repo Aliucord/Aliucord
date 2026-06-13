@@ -10,9 +10,7 @@
 
 package org.webrtc;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /** Java wrapper for a C++ MediaStreamInterface. */
 public class MediaStream {

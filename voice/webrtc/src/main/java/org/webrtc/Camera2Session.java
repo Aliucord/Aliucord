@@ -11,22 +11,18 @@
 package org.webrtc;
 
 import android.content.Context;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCaptureSession;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraDevice;
-import android.hardware.camera2.CameraManager;
-import android.hardware.camera2.CameraMetadata;
-import android.hardware.camera2.CaptureFailure;
-import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.*;
 import android.os.Handler;
 import android.util.Range;
 import android.view.Surface;
+
 import androidx.annotation.Nullable;
+
+import org.webrtc.CameraEnumerationAndroid.CaptureFormat;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.webrtc.CameraEnumerationAndroid.CaptureFormat;
 
 class Camera2Session implements CameraSession {
   private static final String TAG = "Camera2Session";

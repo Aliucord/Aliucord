@@ -10,22 +10,19 @@
 
 package org.webrtc.audio;
 
-import static android.media.AudioManager.MODE_IN_CALL;
-import static android.media.AudioManager.MODE_IN_COMMUNICATION;
-import static android.media.AudioManager.MODE_NORMAL;
-import static android.media.AudioManager.MODE_RINGTONE;
+import static android.media.AudioManager.*;
 
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.media.AudioDeviceInfo;
-import android.media.AudioFormat;
-import android.media.AudioManager;
+import android.media.*;
 import android.media.MediaRecorder.AudioSource;
 import android.os.Build;
 import android.os.Build.VERSION_CODES;
-import java.util.Arrays;
+
 import org.webrtc.Logging;
+
+import java.util.Arrays;
 
 /** Utilities for implementations of {@code AudioDeviceModule}, mostly for logging. */
 public final class WebRtcAudioUtils {
