@@ -192,7 +192,7 @@ public class SurfaceViewRenderer extends SurfaceView
     Point size =
         videoLayoutMeasure.measure(widthSpec, heightSpec, rotatedFrameWidth, rotatedFrameHeight);
     setMeasuredDimension(size.x, size.y);
-    logD("onMeasure(). New size: " + size.x + "x" + size.y);
+    Logging.d(TAG, Logging.str(resourceName, "onMeasure(). New size: " + size.x + "x" + size.y));
   }
 
   @Override
@@ -220,9 +220,9 @@ public class SurfaceViewRenderer extends SurfaceView
       // Aspect ratio of the drawn frame and the view is the same.
       final int width = Math.min(getWidth(), drawnFrameWidth);
       final int height = Math.min(getHeight(), drawnFrameHeight);
-      logD("updateSurfaceSize. Layout size: " + getWidth() + "x" + getHeight() + ", frame size: "
+      Logging.d(TAG, Logging.str(resourceName, "updateSurfaceSize. Layout size: " + getWidth() + "x" + getHeight() + ", frame size: "
           + rotatedFrameWidth + "x" + rotatedFrameHeight + ", requested surface size: " + width
-          + "x" + height + ", old surface size: " + surfaceWidth + "x" + surfaceHeight);
+          + "x" + height + ", old surface size: " + surfaceWidth + "x" + surfaceHeight));
       if (width != surfaceWidth || height != surfaceHeight) {
         surfaceWidth = width;
         surfaceHeight = height;
@@ -292,9 +292,5 @@ public class SurfaceViewRenderer extends SurfaceView
     } else {
       post(r);
     }
-  }
-
-  private void logD(String string) {
-    Logging.d(TAG, resourceName + ": " + string);
   }
 }

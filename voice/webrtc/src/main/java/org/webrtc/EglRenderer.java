@@ -26,6 +26,8 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import kotlin.Suppress;
+
 /**
  * Implements VideoSink by displaying the video stream on an EGL Surface. This class is intended to
  * be used as a helper class for rendering on SurfaceViews and TextureViews.
@@ -202,7 +204,7 @@ public class EglRenderer implements VideoSink {
         throw new IllegalStateException(name + "Already initialized");
       }
 
-      logD("Initializing EglRenderer");
+      Logging.d(TAG, Logging.str(name, "Initializing EglRenderer"));
       this.eglThread = eglThread;
       this.drawer = drawer;
       this.usePresentationTimeStamp = usePresentationTimeStamp;
@@ -282,11 +284,11 @@ public class EglRenderer implements VideoSink {
    * don't call this function, the GL resources might leak.
    */
   public void release() {
-    logD("Releasing.");
+    Logging.d(TAG, Logging.str(name, "Releasing."));
     final CountDownLatch eglCleanupBarrier = new CountDownLatch(1);
     synchronized (threadLock) {
       if (eglThread == null) {
-        logD("Already released");
+        Logging.d(TAG, Logging.str(name, "Already released"));
         return;
       }
       eglThread.getHandler().removeCallbacks(logStatisticsRunnable);
@@ -306,7 +308,7 @@ public class EglRenderer implements VideoSink {
         bitmapTextureFramebuffer.release();
 
         if (eglBase != null) {
-          logD("eglBase detach and release.");
+          Logging.d(TAG, Logging.str(name, "EglBase detach and release."));
           eglBase.detachCurrent();
           eglBase.release();
           eglBase = null;
@@ -329,7 +331,7 @@ public class EglRenderer implements VideoSink {
         pendingFrame = null;
       }
     }
-    logD("Releasing done.");
+    Logging.d(TAG, Logging.str(name, "Releasing done."));
   }
 
   /**
@@ -353,9 +355,9 @@ public class EglRenderer implements VideoSink {
       if (renderThread != null) {
         final StackTraceElement[] renderStackTrace = renderThread.getStackTrace();
         if (renderStackTrace.length > 0) {
-          logW("EglRenderer stack trace:");
+          Logging.w(TAG, Logging.str(name, "EglRenderer stack trace:"));
           for (StackTraceElement traceElem : renderStackTrace) {
-            logW(traceElem.toString());
+            Logging.w(TAG, Logging.str(name, traceElem.toString()));
           }
         }
       }
@@ -549,7 +551,7 @@ public class EglRenderer implements VideoSink {
     final boolean dropOldFrame;
     synchronized (threadLock) {
       if (eglThread == null) {
-        logD("Dropping frame - Not initialized or already released.");
+        Logging.d(TAG, Logging.str(name, "Dropping frame - Not initialized or already released."));
         return;
       }
       synchronized (frameLock) {
@@ -605,7 +607,7 @@ public class EglRenderer implements VideoSink {
 
   private void clearSurfaceOnRenderThread(float r, float g, float b, float a) {
     if (eglBase != null && eglBase.hasSurface()) {
-      logD("clearSurface");
+      Logging.d(TAG, Logging.str(name, "clearSurface"));
       eglBase.makeCurrent();
       GLES20.glClearColor(r, g, b, a);
       GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
@@ -681,8 +683,9 @@ public class EglRenderer implements VideoSink {
       frame = pendingFrame;
       pendingFrame = null;
     }
+    // TODO: Spams when putting in background.
     if (eglBase == null || !eglBase.hasSurface()) {
-      logD("Dropping frame - No surface");
+      Logging.d(TAG, Logging.str(name, "Dropping frame - No surface"));
       frame.release();
       return;
     }
@@ -700,7 +703,7 @@ public class EglRenderer implements VideoSink {
       } else {
         final long currentTimeNs = System.nanoTime();
         if (currentTimeNs < nextFrameTimeNs) {
-          logD("Skipping frame rendering - fps reduction is active.");
+          Logging.d(TAG, Logging.str(name, "Skipping frame rendering - fps reduction is active."));
           shouldRenderFrame = false;
         } else {
           nextFrameTimeNs += minRenderPeriodNs;
@@ -754,7 +757,7 @@ public class EglRenderer implements VideoSink {
 
       notifyCallbacks(frame, shouldRenderFrame);
     } catch (GlUtil.GlOutOfMemoryException e) {
-      logE("Error while drawing frame", e);
+      Logging.e(TAG, Logging.str(name, "Error while drawing frame"), e);
       final ErrorCallback errorCallback = this.errorCallback;
       if (errorCallback != null) {
         errorCallback.onGlOutOfMemory();
@@ -834,27 +837,15 @@ public class EglRenderer implements VideoSink {
         return;
       }
       final float renderFps = framesRendered * TimeUnit.SECONDS.toNanos(1) / (float) elapsedTimeNs;
-      logD("Duration: " + TimeUnit.NANOSECONDS.toMillis(elapsedTimeNs) + " ms."
+      Logging.d(TAG, Logging.str(name, "Duration: " + TimeUnit.NANOSECONDS.toMillis(elapsedTimeNs) + " ms."
           + " Frames received: " + framesReceived + "."
           + " Dropped: " + framesDropped + "."
           + " Rendered: " + framesRendered + "."
           + " Render fps: " + fpsFormat.format(renderFps) + "."
           + " Average render time: " + averageTimeAsString(renderTimeNs, framesRendered) + "."
           + " Average swapBuffer time: "
-          + averageTimeAsString(renderSwapBufferTimeNs, framesRendered) + ".");
+          + averageTimeAsString(renderSwapBufferTimeNs, framesRendered) + "."));
       resetStatistics(currentTimeNs);
     }
-  }
-
-  private void logE(String string, Throwable e) {
-    Logging.e(TAG, name + string, e);
-  }
-
-  private void logD(String string) {
-    Logging.d(TAG, name + string);
-  }
-
-  private void logW(String string) {
-    Logging.w(TAG, name + string);
   }
 }

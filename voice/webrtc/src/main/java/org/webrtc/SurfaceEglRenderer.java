@@ -122,7 +122,7 @@ public class SurfaceEglRenderer extends EglRenderer implements SurfaceHolder.Cal
   @Override
   public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
     ThreadUtils.checkIsOnMainThread();
-    logD("surfaceChanged: format: " + format + " size: " + width + "x" + height);
+    Logging.d(TAG, Logging.str(name, "surfaceChanged: format: " + format + " size: " + width + "x" + height));
   }
 
   // Update frame dimensions and report any changes to `rendererEvents`.
@@ -133,7 +133,7 @@ public class SurfaceEglRenderer extends EglRenderer implements SurfaceHolder.Cal
       }
       if (!isFirstFrameRendered) {
         isFirstFrameRendered = true;
-        logD("Reporting first rendered frame.");
+        Logging.d(TAG, Logging.str(name, "Reporting first rendered frame."));
         if (rendererEvents != null) {
           rendererEvents.onFirstFrameRendered();
         }
@@ -141,8 +141,8 @@ public class SurfaceEglRenderer extends EglRenderer implements SurfaceHolder.Cal
       if (rotatedFrameWidth != frame.getRotatedWidth()
           || rotatedFrameHeight != frame.getRotatedHeight()
           || frameRotation != frame.getRotation()) {
-        logD("Reporting frame resolution changed to " + frame.getBuffer().getWidth() + "x"
-            + frame.getBuffer().getHeight() + " with rotation " + frame.getRotation());
+        Logging.d(TAG, Logging.str(name, "Reporting frame resolution changed to " + frame.getBuffer().getWidth() + "x"
+            + frame.getBuffer().getHeight() + " with rotation " + frame.getRotation()));
         if (rendererEvents != null) {
           rendererEvents.onFrameResolutionChanged(
               frame.getBuffer().getWidth(), frame.getBuffer().getHeight(), frame.getRotation());
@@ -152,9 +152,5 @@ public class SurfaceEglRenderer extends EglRenderer implements SurfaceHolder.Cal
         frameRotation = frame.getRotation();
       }
     }
-  }
-
-  private void logD(String string) {
-    Logging.d(TAG, name + ": " + string);
   }
 }

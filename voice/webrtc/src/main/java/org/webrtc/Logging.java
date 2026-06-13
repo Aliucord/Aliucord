@@ -183,6 +183,10 @@ public class Logging {
     log(Severity.LS_VERBOSE, tag, message);
   }
 
+  public static String str(String name, String message) {
+    return name + ": " + message;
+  }
+
   private static String getStackTraceString(Throwable e) {
     if (e == null) {
       return "";
