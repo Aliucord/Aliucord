@@ -320,10 +320,11 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
 
     override fun setVideoOutputSink(identifier: String, callback: VideoFrameCallback?) {
         Log.i("Sunflower", "Outputsink set $identifier")
-        nativeEngine.setVideoOutputSink(identifier) { frame, mirror ->
-            // Log.i("Sunflower", "frame ${frame.timestampNs}")
-            callback?.onFrame(frame) == true
-        }
+        // Forward null through detach call
+        // If we don't, the video stays black and won't recover after the view reloads
+        nativeEngine.setVideoOutputSink(identifier, callback?.let { cb ->
+            NativeEngine.VideoFrameCallback { frame, _ -> cb.onFrame(frame) }
+        })
     }
 
     private fun setTransportOptions(options: TransportOptions) {
