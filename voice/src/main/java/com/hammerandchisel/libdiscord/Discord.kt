@@ -186,7 +186,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         nativeEngine.setAudioInputInitializationCallback {
             Log.d("Sunflower", "Audio input initialised in ${it.timeToInitializedNanos}ns: ${it.description}")
             nativeEngine.getAudioSubsystem { subsystem, audioLayer ->
-                Log.d("Sunflower", "Subsystem $subsystem, layer $audioLayer")
+                Log.d("Sunflower", "Subsystem $subsystem, audio layer $audioLayer")
             }
         }
     }
@@ -201,7 +201,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         streamParametersArr: Array<StreamParameters>,
         connectToServerCallback: ConnectToServerCallback
     ): Connection {
-        Log.i("Sunflower", "Hello!")
+        Log.i("Sunflower", "Connecting user $userId to $ip:$port (SSRC: $ssrc)")
 
         val nParams = NewStreamParameters.from(streamParametersArr[0])
         val streamParams = listOf(
@@ -271,13 +271,13 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
     override fun getSupportedVideoCodecs(callback: GetSupportedVideoCodecsCallback) {
         nativeEngine.getCodecCapabilities { capabilitiesJson ->
             val capabilities = gson.g<Array<CodecCapability>>(capabilitiesJson, Array<CodecCapability>::class.java)
-            Log.d("Sunflower", "Codec Capabilities: $capabilities")
+            Log.d("Sunflower", "Codec Capabilities: ${capabilities.contentToString()}")
             capabilities
                 // TODO FIXME: changed to any decodable for video codec
                 .filter { it.decode }
                 // .filter { it.decode && it.encode }
                 .map { it.codec }
-                .let { callback.onSupportedVideoCodecs(it.toTypedArray()); Log.d("Sunflower", "Supported codecs: $it") }
+                .let { callback.onSupportedVideoCodecs(it.toTypedArray()); Log.d("Sunflower", "Supported Codecs: $it") }
         }
     }
 

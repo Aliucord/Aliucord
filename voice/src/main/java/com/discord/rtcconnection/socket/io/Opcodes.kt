@@ -12,10 +12,15 @@ object Opcodes {
     @Suppress("unused") const val RESUME = 7
     @Suppress("unused") const val HELLO = 8
     @Suppress("unused") const val RESUMED = 9
+    @Suppress("unused") const val SIGNAL = 10
+    @Suppress("unused") const val RESET = 11  // Shares 11 with CLIENTS_CONNECT
     @Suppress("unused") const val VIDEO = 12
     @Suppress("unused") const val CLIENT_DISCONNECT = 13
     @Suppress("unused") const val SESSION_UPDATE = 14
     @Suppress("unused") const val MEDIA_SINK_WANTS = 15
+    @Suppress("unused") const val VOICE_BACKEND_VERSION = 16
+    @Suppress("unused") const val CHANNEL_OPTIONS_UPDATE = 17
+    @Suppress("unused") const val SPEED_TEST = 19
     // End original opcodes
 
     // New unused opcodes
@@ -47,10 +52,14 @@ object Opcodes {
         7 to "RESUME",
         8 to "HELLO",
         9 to "RESUMED",
+        10 to "SIGNAL",
         12 to "VIDEO",
         13 to "CLIENT_DISCONNECT",
         14 to "SESSION_UPDATE",
         15 to "MEDIA_SINK_WANTS",
+        16 to "VOICE_BACKEND_VERSION",
+        17 to "CHANNEL_OPTIONS_UPDATE",
+        19 to "SPEED_TEST",
 
         11 to "CLIENTS_CONNECT",
         18 to "CLIENT_FLAGS",
