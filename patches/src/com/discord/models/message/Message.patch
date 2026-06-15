@@ -53,7 +53,7 @@
  
  .field private final referencedMessage:Lcom/discord/api/message/Message;
  
-+.field public resolved:Ljava/lang/Object;
++.field public resolved:Lcom/discord/api/message/MessageResolved;
 +
  .field private final roleSubscriptionData:Lcom/discord/api/message/role_subscription/RoleSubscriptionData;
  
@@ -116,9 +116,9 @@
 +
 +    iput-object v2, v0, Lcom/discord/models/message/Message;->purchaseNotification:Lcom/discord/api/message/MessagePurchaseNotification;
 +
-+    iget-object v2, v1, Lcom/discord/models/message/Message;->resolved:Ljava/lang/Object;
++    iget-object v2, v1, Lcom/discord/models/message/Message;->resolved:Lcom/discord/api/message/MessageResolved;
 +
-+    iput-object v2, v0, Lcom/discord/models/message/Message;->resolved:Ljava/lang/Object;
++    iput-object v2, v0, Lcom/discord/models/message/Message;->resolved:Lcom/discord/api/message/MessageResolved;
 +
 +    iget-object v2, v1, Lcom/discord/models/message/Message;->giftInfo:Lcom/discord/api/message/MessageGiftInfo;
 +

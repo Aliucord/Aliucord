@@ -50,7 +50,7 @@
  
  .field private final referencedMessage:Lcom/discord/api/message/Message;
  
-+.field public resolved:Ljava/lang/Object;
++.field public resolved:Lcom/discord/api/message/MessageResolved;
 +
  .field private final roleSubscriptionData:Lcom/discord/api/message/role_subscription/RoleSubscriptionData;
  
