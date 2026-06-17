@@ -1,7 +1,7 @@
 [versions]
 aliucord-gradle = "2.3.0"
 aliuhook = "1.1.4"
-webrtc = "1.0.0"
+webrtc = "0.0.1"
 android-gradle = "8.13.2"
 desugar = "2.1.5"
 discord = "126021"
