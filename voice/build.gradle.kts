@@ -53,7 +53,7 @@ kotlin {
 }
 
 dependencies {
-    implementation(libs.webrtc)
+    compileOnly(libs.webrtc)
     compileOnly(libs.discord)
     compileOnly(libs.kotlin.stdlib)
 }
