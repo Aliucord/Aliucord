@@ -10,8 +10,9 @@ class DiscordVideoDecoderFactory(context: EglBase.Context) : VideoDecoderFactory
     private val platformSoftwareVideoDecoderFactory: VideoDecoderFactory = PlatformSoftwareVideoDecoderFactory(context)
     private val softwareVideoDecoderFactory: VideoDecoderFactory = SoftwareVideoDecoderFactory()
 
-    @Deprecated("Legacy webrtc API", ReplaceWith("createDecoder(VideoCodecInfo)"))
-    override fun createDecoder(codecType: String): WebrtcVideoDecoder? = null
+    // 'createDecoder' overrides nothing.
+    // @Deprecated("Legacy webrtc API", ReplaceWith("createDecoder(VideoCodecInfo)"))
+    // override fun createDecoder(codecType: String): WebrtcVideoDecoder? = null
 
     override fun createDecoder(videoCodecInfo: VideoCodecInfo): WebrtcVideoDecoder? {
         var softwareDecoder = softwareVideoDecoderFactory.createDecoder(videoCodecInfo)
