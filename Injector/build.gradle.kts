@@ -55,5 +55,4 @@ dependencies {
     compileOnly(libs.appcompat)
     compileOnly(libs.discord)
     compileOnly(libs.kotlin.stdlib)
-    implementation(project(":voice"))
 }

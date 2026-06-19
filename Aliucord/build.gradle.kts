@@ -67,7 +67,7 @@ dependencies {
     compileOnly(libs.appcompat)
     compileOnly(libs.constraintlayout)
     compileOnly(project(":Injector")) // Needed to access certain stubs
-    compileOnly(project(":voice")) // Needed to access certain stubs
+    compileOnly(libs.webrtc) // Needed to access certain stubs
     compileOnly(libs.discord)
     compileOnly(libs.kotlin.stdlib)
     compileOnly(libs.material)

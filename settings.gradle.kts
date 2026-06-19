@@ -25,6 +25,5 @@ include(":Aliucord")
 include(":Injector")
 include(":patches")
 include(":kotlin-stdlib")
-include(":voice")
 
 rootProject.name = "Aliucord"
