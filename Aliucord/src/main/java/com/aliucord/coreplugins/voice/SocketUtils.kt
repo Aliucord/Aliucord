@@ -10,7 +10,7 @@ import b.a.q.m0.c.e as MediaEngineConnectionLegacy
 import b.a.q.n0.a as RtcControlSocket
 import f0.e0.n.d as RealWebsocket
 
-private val logger = Logger("Sunflower")
+private val logger = Logger("VoiceChatFix")
 
 val RtcControlSocket.rtcConnections: List<RtcConnection> get() {
     return this.q // this.eventHandlers
@@ -67,7 +67,7 @@ val RtcControlSocket.connections: List<Connection> get() {
 }
 
 @Suppress("NOTHING_TO_INLINE")
-inline fun RtcControlSocket.send(data: SunflowerPayload.Outgoing) = n(data.opcode, data)
+inline fun RtcControlSocket.send(data: VoiceChatFixPayload.Outgoing) = n(data.opcode, data)
 
 // Ref: https://github.com/square/okhttp/blob/c7556e0ac6d690ccb71d304d22d636f2f86baf7b/okhttp/src/commonJvmAndroid/kotlin/okhttp3/internal/ws/RealWebSocket.kt#L434-L456
 // Also: RealWebsocket.a(String)

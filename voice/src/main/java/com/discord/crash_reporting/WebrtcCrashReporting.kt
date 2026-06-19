@@ -7,7 +7,7 @@ import android.util.Log
 object WebrtcCrashReporting {
     @JvmStatic
     fun reportWebrtcException(th: Throwable): String {
-        Log.e("Sunflower", "Caught webrtc exception", th)
+        Log.e("VoiceChatFix", "Caught webrtc exception", th)
         return th.toString()
     }
 }

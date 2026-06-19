@@ -6,9 +6,9 @@ import com.discord.rtcconnection.socket.io.Opcodes
 import com.discord.rtcconnection.socket.io.Payloads
 import com.google.gson.Gson
 
-sealed interface SunflowerPayload {
-    sealed interface Incoming : SunflowerPayload
-    sealed interface Outgoing : SunflowerPayload {
+sealed interface VoiceChatFixPayload {
+    sealed interface Incoming : VoiceChatFixPayload
+    sealed interface Outgoing : VoiceChatFixPayload {
         val opcode: Int get() {
             return when (this) {
                 is DaveTransitionReady -> Opcodes.DAVE_TRANSITION_READY

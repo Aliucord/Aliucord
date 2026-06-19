@@ -96,12 +96,14 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
         val mute: Boolean,
     )
 
+    @Suppress("PrivatePropertyName")
+    private val TAG = "VoiceChatFix"
     private var disposed: Boolean = false
 
     init {
         // TODO
         this.native.setSecureFramesStateUpdateCallback {
-            Log.d("Sunflower", "secureFramesUpdate: $it")
+            Log.d(TAG, "secureFramesUpdate: $it")
         }
         set(TransportOptions(
             encodingVideoDegradationPreference = 2,
@@ -261,13 +263,13 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
     }
 
     fun setRawTransportOptions(optionsJson: String) {
-        Log.d("Sunflower", "connection/rawTransportOptions: $optionsJson")
+        Log.d(TAG, "connection/rawTransportOptions: $optionsJson")
         native.setTransportOptions(optionsJson)
     }
 
     private fun set(options: TransportOptions) {
         if (disposed) return
-        Log.d("Sunflower", "connection/transportOptions: ${gson.m(options)}")
+        Log.d(TAG, "connection/transportOptions: ${gson.m(options)}")
         native.setTransportOptions(gson.m(options))
     }
 

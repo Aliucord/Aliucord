@@ -31,6 +31,8 @@ private data class TransportOptions(
 
 @Suppress("unused")
 class Discord @JvmOverloads constructor(private val context: Context, i: Int = -1) : IDiscord {
+    @Suppress("PrivatePropertyName")
+    private val TAG = "VoiceChatFix"
     private var localVoiceLevelChangedCallback: LocalVoiceLevelChangedCallback? = null
     private val nativeInstance: Long = 0
     private val nativeEngine: NativeEngine
@@ -181,12 +183,12 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         }
         nativeEngine.setOnDeviceChangeCallback { audioInputDevices, audioOutputDevices, videoInputDevices ->
             val devices = audioInputDevices.toList() + audioOutputDevices + videoInputDevices
-            Log.d("Sunflower", "Devices changed: ${devices.joinToString(", ")}")
+            Log.d(TAG, "Devices changed: ${devices.joinToString(", ")}")
         }
         nativeEngine.setAudioInputInitializationCallback {
-            Log.d("Sunflower", "Audio input initialised in ${it.timeToInitializedNanos}ns: ${it.description}")
+            Log.d(TAG, "Audio input initialised in ${it.timeToInitializedNanos}ns: ${it.description}")
             nativeEngine.getAudioSubsystem { subsystem, audioLayer ->
-                Log.d("Sunflower", "Subsystem $subsystem, audio layer $audioLayer")
+                Log.d(TAG, "Subsystem $subsystem, audio layer $audioLayer")
             }
         }
     }
@@ -201,7 +203,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         streamParametersArr: Array<StreamParameters>,
         connectToServerCallback: ConnectToServerCallback
     ): Connection {
-        Log.i("Sunflower", "Connecting user $userId to $ip:$port (SSRC: $ssrc)")
+        Log.i(TAG, "Connecting user $userId to $ip:$port (SSRC: $ssrc)")
 
         val nParams = NewStreamParameters.from(streamParametersArr[0])
         val streamParams = listOf(
@@ -271,19 +273,19 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
     override fun getSupportedVideoCodecs(callback: GetSupportedVideoCodecsCallback) {
         nativeEngine.getCodecCapabilities { capabilitiesJson ->
             val capabilities = gson.g<Array<CodecCapability>>(capabilitiesJson, Array<CodecCapability>::class.java)
-            Log.d("Sunflower", "Codec Capabilities: ${capabilities.contentToString()}")
+            Log.d(TAG, "Codec Capabilities: ${capabilities.contentToString()}")
             capabilities
                 // TODO FIXME: changed to any decodable for video codec
                 .filter { it.decode }
                 // .filter { it.decode && it.encode }
                 .map { it.codec }
-                .let { callback.onSupportedVideoCodecs(it.toTypedArray()); Log.d("Sunflower", "Supported Codecs: $it") }
+                .let { callback.onSupportedVideoCodecs(it.toTypedArray()); Log.d(TAG, "Supported Codecs: $it") }
         }
     }
 
     override fun getVideoInputDevices(callback: GetVideoInputDevicesCallback) {
         nativeEngine.getVideoInputDevices { devices ->
-            Log.i("Sunflower", "inputs: \n  - ${devices.joinToString("\n  - ")}")
+            Log.i(TAG, "inputs: \n  - ${devices.joinToString("\n  - ")}")
             callback.onDevices(devices.map {
                 it?.let {
                     VideoInputDeviceDescription(it.name, it.guid, when (it.facing) {
@@ -319,7 +321,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
     fun setVideoInputDevice(deviceGuid: String) = nativeEngine.setVideoInputDevice(deviceGuid)
 
     override fun setVideoOutputSink(identifier: String, callback: VideoFrameCallback?) {
-        Log.i("Sunflower", "Outputsink set $identifier")
+        Log.i(TAG, "Outputsink set $identifier")
         // Forward null through detach call
         // If we don't, the video stays black and won't recover after the view reloads
         nativeEngine.setVideoOutputSink(identifier, callback?.let { cb ->
@@ -328,7 +330,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
     }
 
     private fun setTransportOptions(options: TransportOptions) {
-        Log.d("Sunflower", "engine/transportOptions: ${gson.m(options)}")
+        Log.d(TAG, "engine/transportOptions: ${gson.m(options)}")
         nativeEngine.setTransportOptions(gson.m(options))
     }
     private fun TransportOptions.set() = setTransportOptions(this)

@@ -53,7 +53,7 @@ data class NewSelectProtocolPayload(
             return with(old) {
                 val secureData =
                     if (data.mode.startsWith("aead_")) data
-                    else Payloads.Protocol.ProtocolInfo(data.address, data.port, SunflowerSettings.MODE_AES256_GCM)
+                    else Payloads.Protocol.ProtocolInfo(data.address, data.port, VoiceChatFixSettings.MODE_AES256_GCM)
                 NewSelectProtocolPayload(
                     codecs = codecs.map { NewCodecInfo.from(it) },
                     data = secureData,

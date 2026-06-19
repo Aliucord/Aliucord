@@ -15,8 +15,8 @@ import co.discord.media_engine.VideoDecoder
 import co.discord.media_engine.VideoInputDeviceDescription
 import com.aliucord.Constants
 import com.aliucord.Utils
-import com.aliucord.coreplugins.voice.SunflowerPayload.DaveInvalidCommitWelcome
-import com.aliucord.coreplugins.voice.SunflowerPayload.DaveTransitionReady
+import com.aliucord.coreplugins.voice.VoiceChatFixPayload.DaveInvalidCommitWelcome
+import com.aliucord.coreplugins.voice.VoiceChatFixPayload.DaveTransitionReady
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.updater.ManagerBuild
@@ -54,11 +54,11 @@ data class SecureFrames(
     val version: Int,
 )
 
-internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
+internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     override val isHidden = false
     override val isRequired = true
 
-    private val sunflowerLibVersion = runCatching {
+    private val libVersion = runCatching {
         Class.forName("com.aliucord.voice.BuildConfig")
             .getField("VERSION")
             .get(null) as String
@@ -66,12 +66,12 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
 
     init {
         manifest.description = "Implementation of DAVE, which supports E2EE voice, camera and screenshare support to Aliucord"
-        manifest.version = sunflowerLibVersion ?: "0.0.0"
+        manifest.version = libVersion ?: "0.0.0"
         manifest.authors = arrayOf(
             Manifest.Author("lavadesu", 368398754077868032L),
             Manifest.Author("secp192k1", 477497542205243392L),
         )
-        settingsTab = SettingsTab(SunflowerSettings.Sheet::class.java, SettingsTab.Type.BOTTOM_SHEET)
+        settingsTab = SettingsTab(VoiceChatFixSettings.Sheet::class.java, SettingsTab.Type.BOTTOM_SHEET)
     }
 
     override fun stop(context: Context) = patcher.unpatchAll()
@@ -84,8 +84,8 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
             String::class.java,
         ) { (param, _: String, _: Int, mode: String) ->
             if (mode == "xsalsa20_poly1305") {
-                param.args[2] = if (sunflowerLibVersion != null) {
-                    SunflowerSettings.transportEncryption
+                param.args[2] = if (libVersion != null) {
+                    VoiceChatFixSettings.transportEncryption
                 } else {
                     "xsalsa20_poly1305_lite_rtpsize"
                 }
@@ -98,9 +98,9 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
         logger.info("Core: ${com.aliucord.BuildConfig.VERSION}")
         logger.info("Injector: $injector")
         logger.info("Patches: $patches")
-        logger.info("Sunflower: $sunflowerLibVersion")
+        logger.info("VoiceChatFix: $libVersion")
         if (
-            sunflowerLibVersion != "90.0.19-codec-api.b2" ||
+            libVersion != "90.0.19-codec-api.b2" ||
             injector.toString() != "2.4.11" ||
             patches.toString() != "1.4.10"
         ) {
@@ -114,7 +114,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
         runCatching {
             Class.forName("org.webrtc.HardwareVideoEncoder")
                 .getField("MAX_ENCODER_Q_SIZE")
-                .setInt(null, SunflowerSettings.encoderQueueSize)
+                .setInt(null, VoiceChatFixSettings.encoderQueueSize)
         }.onFailure { logger.error("Failed to set encoder queue size", it) }
 
         patchPrivacyCodeView()
@@ -146,7 +146,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                 // Request & override a higher framerate from the server
                 runCatching {
                     d.streams.forEach { stream ->
-                        ReflectUtils.setField(stream, "maxFrameRate", SunflowerSettings.videoFramerate)
+                        ReflectUtils.setField(stream, "maxFrameRate", VoiceChatFixSettings.videoFramerate)
                     }
                 }.onFailure { logger.error("Failed to set stream maxFrameRate", it) }
                 param.args[1] = NewIdentifyPayload(
@@ -159,7 +159,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                     video = d.video,
                     streams = d.streams,
                     // 0 disables DAVE (transport-only); toggle for viewer-compat A/B testing.
-                    maxDaveProtocolVersion = if (SunflowerSettings.daveEnabled) 1 else 0
+                    maxDaveProtocolVersion = if (VoiceChatFixSettings.daveEnabled) 1 else 0
                 )
                 logger.debug("Replacing Identify payload")
                 logger.debug("Before: $d")
@@ -268,22 +268,22 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                 applyVideoSettings(socket)
             }
 
-            val payload = SunflowerPayload.deserialize(gson, message)
+            val payload = VoiceChatFixPayload.deserialize(gson, message)
                 ?: return@after
-            logger.debug("Sunflower payload ${Opcodes.friendly(message.opcode)}: $payload")
+            logger.debug("VoiceChatFix payload ${Opcodes.friendly(message.opcode)}: $payload")
 
             socket.connections.forEach { connection ->
                 when (payload) {
-                    is SunflowerPayload.ClientsConnect -> {
+                    is VoiceChatFixPayload.ClientsConnect -> {
                         // TODO: native can handle a list of users
                         logger.debug("Connect: ${payload.userIds}")
                         connection.connectUsers(payload.userIds)
                     }
-                    is SunflowerPayload.ClientDisconnect -> {
+                    is VoiceChatFixPayload.ClientDisconnect -> {
                         logger.debug("Disconnect: ${payload.userId}")
                         connection.destroyUser(payload.userId)
                     }
-                    is SunflowerPayload.DavePrepareTransition -> {
+                    is VoiceChatFixPayload.DavePrepareTransition -> {
                         connection.prepareSecureFramesTransition(
                             transitionId = payload.transitionId,
                             protocolVersion = payload.protocolVersion
@@ -291,10 +291,10 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                             socket.send(DaveTransitionReady(payload.transitionId))
                         }
                     }
-                    is SunflowerPayload.DaveExecuteTransition -> {
+                    is VoiceChatFixPayload.DaveExecuteTransition -> {
                         connection.executeSecureFramesTransition(payload.transitionId)
                     }
-                    is SunflowerPayload.DavePrepareEpoch -> {
+                    is VoiceChatFixPayload.DavePrepareEpoch -> {
                         // MLS group id is the rtcServerId-derived groupId, NOT the channelId.
                         // Using channelId reinitialises the MLS session with the wrong group, so the
                         // server's commit/welcome no longer match ("Unexpected group ID in MLS welcome"),
@@ -465,16 +465,16 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
             runCatching {
                 connection.setEncodingQuality(
                     150_000,
-                    SunflowerSettings.videoBitrateKbps * 1000,
-                    SunflowerSettings.videoWidth,
-                    SunflowerSettings.videoHeight,
-                    SunflowerSettings.videoFramerate,
+                    VoiceChatFixSettings.videoBitrateKbps * 1000,
+                    VoiceChatFixSettings.videoWidth,
+                    VoiceChatFixSettings.videoHeight,
+                    VoiceChatFixSettings.videoFramerate,
                 )
             }.onFailure { logger.error("Failed to apply video encode settings", it) }
         }
-        setDebug("Bitrate", "${SunflowerSettings.videoBitrateKbps} kbps")
-        setDebug("Resolution", "${SunflowerSettings.videoWidth} x ${SunflowerSettings.videoHeight}")
-        setDebug("FPS", SunflowerSettings.videoFramerate.toString())
+        setDebug("Bitrate", "${VoiceChatFixSettings.videoBitrateKbps} kbps")
+        setDebug("Resolution", "${VoiceChatFixSettings.videoWidth} x ${VoiceChatFixSettings.videoHeight}")
+        setDebug("FPS", VoiceChatFixSettings.videoFramerate.toString())
     }
 
     private fun setDebug(key: String, value: String) {
@@ -654,7 +654,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                 }
             }
 
-            if (!SunflowerSettings.showConnInfo) return@patch
+            if (!VoiceChatFixSettings.showConnInfo) return@patch
             newCard(ctx, connInfoViewId).addTo(self, 2) {
                 LinearLayout(ctx).addTo(this) {
                     layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
@@ -669,7 +669,7 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                         Utils.mainThread.post { info.text = text }
                     }
                     info.setOnClickListener {
-                        Utils.setClipboard("Sunflower connection info", connInfoText)
+                        Utils.setClipboard("VoiceChatFix connection info", connInfoText)
                         Utils.showToast("Copied to clipboard")
                     }
                     refreshConnInfo()

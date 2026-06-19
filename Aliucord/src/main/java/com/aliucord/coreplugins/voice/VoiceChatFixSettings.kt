@@ -22,7 +22,7 @@ import com.aliucord.widgets.BottomSheet
 import com.discord.views.CheckedSetting
 import com.lytefast.flexinput.R
 
-internal object SunflowerSettings {
+internal object VoiceChatFixSettings {
     const val MODE_AES256_GCM = "aead_aes256_gcm_rtpsize"
     const val MODE_XCHACHA20 = "aead_xchacha20_poly1305_rtpsize"
 
@@ -34,7 +34,7 @@ internal object SunflowerSettings {
     const val FPS_MAX = 120
     const val DEFAULT_ENCODER_QUEUE_SIZE = 4
 
-    private val settings = SettingsAPI("Sunflower")
+    private val settings = SettingsAPI("VoiceChatFix")
 
     private val useAes256GcmDelegate = settings.delegate("useAes256Gcm", false)
     val useAes256Gcm by useAes256GcmDelegate

@@ -15,7 +15,7 @@ import com.aliucord.coreplugins.badges.DiscordBadges
 import com.aliucord.coreplugins.badges.SupporterBadges
 import com.aliucord.coreplugins.plugindownloader.PluginDownloader
 import com.aliucord.coreplugins.rn.RNAPI
-import com.aliucord.coreplugins.voice.Sunflower
+import com.aliucord.coreplugins.voice.VoiceChatFix
 import com.aliucord.entities.CorePlugin
 import com.aliucord.entities.Plugin
 import com.aliucord.patcher.Patcher
@@ -317,7 +317,7 @@ object PluginManager {
             RemoveBilling(),
             RestartButton(),
             ShowReplyMentionFix(),
-            Sunflower(),
+            VoiceChatFix(),
             SupportWarn(),
             SupporterBadges(),
             TokenLogin(),
