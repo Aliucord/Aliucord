@@ -24,6 +24,7 @@ import com.aliucord.utils.DimenUtils.dp
 import com.aliucord.utils.GsonUtils
 import com.aliucord.utils.GsonUtils.fromJson
 import com.aliucord.utils.ReflectUtils
+import com.aliucord.utils.SemVer
 import com.aliucord.utils.ViewUtils.addTo
 import com.discord.rtcconnection.mediaengine.MediaEngineConnection
 import com.discord.rtcconnection.socket.io.Opcodes
@@ -64,9 +65,32 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             .get(null) as String
     }.getOrNull()
 
+    private companion object {
+        // Native libs and webrtc dex are built together (aliuvoice aar)
+        // the lib version must match exactly but injector & patches only need a min version
+        const val EXPECTED_LIB_VERSION = com.aliucord.voice.BuildConfig.VERSION
+        val MIN_INJECTOR: SemVer = SemVer(2, 4, 11)
+        val MIN_PATCHES: SemVer = SemVer(1, 4, 10)
+    }
+
+
+    // This is true if lib version matches and injector & patches >= min version
+    private val isFullySupported: Boolean
+        get() {
+            val injector = ManagerBuild.metadata?.injectorVersion ?: return false
+            val patches = ManagerBuild.metadata?.patchesVersion ?: return false
+            return libVersion == EXPECTED_LIB_VERSION &&
+                injector >= MIN_INJECTOR &&
+                patches >= MIN_PATCHES
+        }
+
     init {
-        manifest.description = "Implementation of DAVE, which supports E2EE voice, camera and screenshare support to Aliucord"
         manifest.version = libVersion ?: "0.0.0"
+        manifest.description = if (isFullySupported) {
+            "Implementation of DAVE, which supports E2EE voice, camera and screenshare support to Aliucord (v$libVersion)"
+        } else {
+            "Transport encryption only - voice engine unavailable (lib ${libVersion?.let { "v$it" } ?: "missing"}, need $EXPECTED_LIB_VERSION)"
+        }
         manifest.authors = arrayOf(
             Manifest.Author("lavadesu", 368398754077868032L),
             Manifest.Author("secp192k1", 477497542205243392L),
@@ -99,13 +123,11 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         logger.info("Injector: $injector")
         logger.info("Patches: $patches")
         logger.info("VoiceChatFix: $libVersion")
-        if (
-            libVersion != "90.0.19-codec-api.b2" ||
-            injector.toString() != "2.4.11" ||
-            patches.toString() != "1.4.10"
-        ) {
-            // logger.warn("No sunflower lib found, will only patch transport encryption protocol")
-            logger.warn("Mismatched versions, will only patch transport encryption protocol")
+        if (!isFullySupported) {
+            logger.warn(
+                "Mismatched versions, will only patch transport encryption protocol " +
+                    "(lib=$libVersion need=$EXPECTED_LIB_VERSION, injector=$injector need>=$MIN_INJECTOR, patches=$patches need>=$MIN_PATCHES)"
+            )
             return
         }
 
