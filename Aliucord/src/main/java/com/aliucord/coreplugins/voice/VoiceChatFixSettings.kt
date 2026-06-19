@@ -171,7 +171,7 @@ internal object VoiceChatFixSettings {
                     override fun onStopTrackingTouch(sb: SeekBar?) {}
                 })
             }
-            LinearLayout(ctx).addTo(linearLayout) {
+            LinearLayout(ctx, null, 0, R.i.UiKit_Settings_Item_SubText).addTo(linearLayout) {
                 orientation = LinearLayout.HORIZONTAL
                 setPadding(p, 0, p, 8.dp)
                 TextView(ctx).addTo(this) {
