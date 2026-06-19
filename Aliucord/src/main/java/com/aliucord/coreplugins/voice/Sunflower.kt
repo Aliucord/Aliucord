@@ -65,7 +65,12 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
     }.getOrNull()
 
     init {
-        manifest.description = "Adds support for end-to-end encrypted voice chat"
+        manifest.description = "Implementation of DAVE, which supports E2EE voice, camera and screenshare support to Aliucord"
+        manifest.version = sunflowerLibVersion ?: "0.0.0"
+        manifest.authors = arrayOf(
+            Manifest.Author("lavadesu", 368398754077868032L),
+            Manifest.Author("secp192k1", 477497542205243392L),
+        )
         settingsTab = SettingsTab(SunflowerSettings.Sheet::class.java, SettingsTab.Type.BOTTOM_SHEET)
     }
 
