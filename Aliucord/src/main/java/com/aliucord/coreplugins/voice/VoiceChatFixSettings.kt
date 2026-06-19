@@ -19,6 +19,7 @@ import com.aliucord.utils.DimenUtils.dp
 import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.views.TextInput
 import com.aliucord.widgets.BottomSheet
+import com.discord.utilities.color.ColorCompat
 import com.discord.views.CheckedSetting
 import com.lytefast.flexinput.R
 
@@ -178,12 +179,12 @@ internal object VoiceChatFixSettings {
                     layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
                     text = "$FPS_MIN fps"
                     textSize = 12f
-                    alpha = 0.6f
+                    setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorTextMuted))
                 }
                 TextView(ctx).addTo(this) {
                     text = "$FPS_MAX fps"
                     textSize = 12f
-                    alpha = 0.6f
+                    setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorTextMuted))
                 }
             }
 
