@@ -163,13 +163,13 @@ internal object VoiceChatFixSettings {
                 progress = videoFramerate.coerceIn(FPS_MIN, FPS_MAX) - FPS_MIN
                 setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                     override fun onProgressChanged(sb: SeekBar?, value: Int, fromUser: Boolean) {
-                        val fps = FPS_MIN + value
-                        fpsLabel.text = "Framerate: $fps fps"
-                        var setting by videoFramerateDelegate
-                        setting = fps
+                        fpsLabel.text = "Framerate: ${FPS_MIN + value} fps"
                     }
                     override fun onStartTrackingTouch(sb: SeekBar?) {}
-                    override fun onStopTrackingTouch(sb: SeekBar?) {}
+                    override fun onStopTrackingTouch(sb: SeekBar?) {
+                        var setting by videoFramerateDelegate
+                        setting = FPS_MIN + (sb?.progress ?: return)
+                    }
                 })
             }
             LinearLayout(ctx, null, 0, R.i.UiKit_Settings_Item_SubText).addTo(linearLayout) {
