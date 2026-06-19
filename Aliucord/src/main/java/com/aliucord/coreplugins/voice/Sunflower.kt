@@ -617,7 +617,8 @@ internal class Sunflower : CorePlugin(Manifest("Sunflower"))  {
                             bottomMargin = 12.dp
                         }
                         gravity = Gravity.CENTER
-                        textSize = 13f
+                        textSize = 16f
+                        setBackgroundColor(android.graphics.Color.TRANSPARENT)
                     }
 
                     onCodeUpdate = { code ->
