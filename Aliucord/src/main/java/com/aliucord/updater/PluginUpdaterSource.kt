@@ -1,11 +1,13 @@
 package com.aliucord.updater
 
+import android.os.Parcelable
 import com.aliucord.Http
 import com.aliucord.Logger
 import com.aliucord.entities.Plugin
 import com.aliucord.utils.*
 import com.aliucord.utils.GsonUtils.fromJson
 import com.google.gson.reflect.TypeToken
+import kotlinx.parcelize.Parcelize
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
@@ -79,6 +81,7 @@ internal class PluginUpdaterSource {
     /**
      * Latest build info for a specific plugin.
      */
+    @Parcelize
     data class PluginBuildInfo(
         var version: SemVer,
         @SerializedName("build")
@@ -92,7 +95,7 @@ internal class PluginUpdaterSource {
         var minimumKotlinVersionInternal: SemVer? = null,
         // Default used to be 24 before this property was introduced
         var minimumApiLevel: Int = 24,
-    ) {
+    ) : Parcelable {
         // Default used to be 1.5.21 before this property was introduced
         val minimumKotlinVersion: SemVer
             get() = SemVer(1, 5, 21)
