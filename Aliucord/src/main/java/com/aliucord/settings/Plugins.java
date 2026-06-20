@@ -130,6 +130,8 @@ public class Plugins extends SettingsPage {
 
             holder.card.switchHeader.setChecked(enabled);
             holder.card.switchHeader.setButtonVisibility(toggleable);
+            // TODO: Add a toast "Cannot stop required coreplugin ..."
+            holder.card.switchHeader.l.b().setClickable(toggleable);
             holder.card.descriptionView.setText(MDUtils.render(manifest.description));
             setVisible(holder.card.descriptionView, hasDescription);
 
