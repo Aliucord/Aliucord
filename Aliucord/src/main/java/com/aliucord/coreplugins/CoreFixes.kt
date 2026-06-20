@@ -75,6 +75,7 @@ import com.discord.widgets.user.profile.UserProfileHeaderView
 import com.discord.widgets.user.profile.UserProfileHeaderViewModel
 import com.discord.widgets.user.usersheet.WidgetUserSheet
 import com.discord.widgets.user.usersheet.WidgetUserSheetViewModel
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.linecorp.apng.decoder.Apng
 import com.lyft.kronos.KronosClock
 import com.lytefast.flexinput.R
@@ -82,6 +83,7 @@ import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 import rx.Emitter
 import rx.Observable
 import rx.subjects.Subject
+import java.util.WeakHashMap
 import j0.l.a.i.a as BaseEmitter
 
 private const val BYPASS_SLOWMODE_PERMISSION = 1L shl 52
@@ -120,6 +122,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixProfileBannerColorCrash()
         fixUnreadForumChannels()
         fixMemoryLeak()
+        fixBottomSheetCallbacks()
     }
 
     private val WidgetChatList.binding by accessField<FragmentViewBindingDelegate<WidgetChatListBinding>?>($$"binding$delegate")
@@ -662,6 +665,26 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                 })
             }, backpressureMode)
             return@instead observable
+        }
+    }
+
+    private val bottomSheetCallbacks = WeakHashMap<BottomSheetBehavior<*>, BottomSheetBehavior.BottomSheetCallback>()
+
+    private fun fixBottomSheetCallbacks() = tryPatch("Fix deprecated BottomSheet callback clearing internal callbacks") {
+        patcher.instead<BottomSheetBehavior<*>>(
+            "setBottomSheetCallback",
+            BottomSheetBehavior.BottomSheetCallback::class.java,
+        ) { param ->
+            @Suppress("UNCHECKED_CAST")
+            val behavior = param.thisObject as BottomSheetBehavior<View>
+            val callback = param.args[0] as BottomSheetBehavior.BottomSheetCallback?
+
+            bottomSheetCallbacks.remove(behavior)?.let(behavior::removeBottomSheetCallback)
+            if (callback != null) {
+                behavior.addBottomSheetCallback(callback)
+                bottomSheetCallbacks[behavior] = callback
+            }
+            null
         }
     }
 
