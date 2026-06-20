@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -142,6 +143,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         }.onFailure { logger.error("Failed to set encoder queue size", it) }
 
         patchPrivacyCodeView()
+        patchUserSheetVerificationCode()
 
         // Handle new binary voice gateway events
         // WebSocketListener is RtcControlSocket's superclass; the child class doesn't have
@@ -474,6 +476,8 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
 
     val encryptionViewId = View.generateViewId()
     private val connInfoViewId = View.generateViewId()
+    private val verificationRowId = View.generateViewId()
+    private var sheetUserId = 0L
     var newestCode = ""
     var onCodeUpdate: (String) -> Unit = {}
     private val debugInfo = LinkedHashMap<String, String>()
@@ -589,36 +593,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             conn.j.setSecureFramesStateUpdateCallback { epochStr ->
                 val frames = GsonUtils.gson.fromJson(epochStr, SecureFrames::class.java)
                 logger.info("cb $epochStr -> $frames")
-                if (frames.version < 1) {
-                    newestCode = ""
-                } else {
-                    var text = ""
-                    if (frames.epochAuthenticator.isNotEmpty()) {
-                        var result = ""
-                        val groupSize = 5
-                        val desiredLen = 30
-                        val data = frames.epochAuthenticator.decodeBase64ToArray()!!
-                        logger.info("data length: ${data.size}")
-                        val groupModulus = 10.0.pow(groupSize).toULong()
-                        var i = 0
-                        while (i < desiredLen) {
-                            var groupValue = 0UL
-                            var j = groupSize
-                            while (j >= 1) {
-                                val n = data[i + groupSize - j].toUByte().toULong()
-                                groupValue = (groupValue shl 8) or n
-                                j -= 1
-                            }
-
-                            result += " " + (groupValue % groupModulus).toString().padStart(groupSize, '0')
-
-                            i += groupSize
-                        }
-                        text += result
-                        logger.info("RES: $text")
-                    }
-                    newestCode = text.trimStart()
-                }
+                newestCode = if (frames.version < 1) "" else formatFingerprint(frames.epochAuthenticator)
                 onCodeUpdate(newestCode)
             }
         }
@@ -700,6 +675,114 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                     refreshConnInfo()
                 }
             }
+        }
+    }
+
+    private fun formatFingerprint(b64: String): String {
+        if (b64.isEmpty()) return ""
+        val data = b64.decodeBase64ToArray() ?: return ""
+        val groupSize = 5
+        val desiredLen = 30
+        if (data.size < desiredLen) return ""
+        val groupModulus = 10.0.pow(groupSize).toULong()
+        var result = ""
+        var i = 0
+        while (i < desiredLen) {
+            var groupValue = 0UL
+            var j = groupSize
+            while (j >= 1) {
+                val n = data[i + groupSize - j].toUByte().toULong()
+                groupValue = (groupValue shl 8) or n
+                j -= 1
+            }
+            result += " " + (groupValue % groupModulus).toString().padStart(groupSize, '0')
+            i += groupSize
+        }
+        return result.trimStart()
+    }
+
+    private fun getPairwiseCode(userId: String, callback: (String?) -> Unit) {
+        val connection = lastSocket?.connections?.firstOrNull()
+        if (connection == null) {
+            callback(null)
+            return
+        }
+        runCatching {
+            connection.getMLSPairwiseFingerprintB64(1, userId) { fp ->
+                Utils.mainThread.post { callback(formatFingerprint(fp).ifEmpty { null }) }
+            }
+        }.onFailure {
+            logger.error("Failed to get pairwise fingerprint for $userId", it)
+            Utils.mainThread.post { callback(null) }
+        }
+    }
+
+    private fun addVerificationRow(root: LinearLayout, userId: Long) {
+        if (userId == 0L) return
+        val container = (root.getChildAt(0) as? LinearLayout) ?: root
+        val ctx = container.context
+        val codeView: TextView
+        val existing = root.findViewById<View?>(verificationRowId)
+        if (existing == null) {
+            val ripple = TypedValue()
+            //ctx.theme.resolveAttribute(android.R.attr.selectableItemBackground, ripple, true)
+            val title = TextView(ctx).apply {
+                text = "Verification Code"
+                setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorHeaderPrimary))
+                typeface = ResourcesCompat.getFont(ctx, Constants.Fonts.whitney_semibold)
+                textSize = 16f
+            }
+            codeView = TextView(ctx).apply {
+                setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorTextMuted))
+                textSize = 14f
+                typeface = ResourcesCompat.getFont(ctx, Constants.Fonts.sourcecodepro_semibold)
+                setPadding(0, 2.dp, 0, 0)
+            }
+            LinearLayout(ctx).apply {
+                id = verificationRowId
+                orientation = LinearLayout.VERTICAL
+                isClickable = true
+                isFocusable = true
+                setBackgroundResource(ripple.resourceId)
+                setPadding(16.dp, 10.dp, 16.dp, 10.dp)
+                layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+                addView(title)
+                addView(codeView)
+                setOnClickListener {
+                    val c = codeView.text?.toString().orEmpty()
+                    if (c.isNotEmpty() && c != "Unavailable" && c != "…") {
+                        Utils.setClipboard("Verification code", c)
+                        Utils.showToast("Copied to clipboard")
+                    }
+                }
+                container.addView(this)
+            }
+        } else {
+            codeView = (existing as LinearLayout).getChildAt(1) as TextView
+        }
+        codeView.text = "…"
+        getPairwiseCode(userId.toString()) { c -> codeView.text = c ?: "Unavailable" }
+    }
+
+    private fun patchUserSheetVerificationCode() {
+        val sheetClass = runCatching { Class.forName("com.discord.widgets.user.usersheet.WidgetUserSheet") }.getOrNull() ?: return
+        val viewClass = runCatching { Class.forName("com.discord.widgets.user.usersheet.UserProfileVoiceSettingsView") }.getOrNull() ?: return
+
+        sheetClass.declaredMethods.firstOrNull { it.name == "configureVoiceSection" }?.let { m ->
+            patcher.patch(m, PreHook { param ->
+                sheetUserId = runCatching {
+                    val vs = param.args[0] ?: return@runCatching 0L
+                    val user = vs.javaClass.getMethod("getUser").invoke(vs) ?: return@runCatching 0L
+                    user.javaClass.getMethod("getId").invoke(user) as Long
+                }.getOrDefault(0L)
+            })
+        }
+
+        viewClass.declaredMethods.firstOrNull { it.name == "updateView" }?.let { m ->
+            patcher.patch(m, Hook { param ->
+                runCatching { addVerificationRow(param.thisObject as LinearLayout, sheetUserId) }
+                    .onFailure { logger.error("Failed to add verification row", it) }
+            })
         }
     }
 
