@@ -579,7 +579,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         patcher.after<StoreMediaEngine>(
             "handleNewConnection",
             MediaEngineConnection::class.java,
-        ) { (_, conn: b.a.q.m0.c.e) ->
+        ) { (_, conn: MediaEngineConnectionLegacy) ->
             if (conn.type != MediaEngineConnection.Type.DEFAULT) return@after
             logger.debug("setting secure frames callback...")
             newestCode = ""
@@ -647,7 +647,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                         }
                         gravity = Gravity.CENTER
                         textSize = 16f
-                        setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                        setBackgroundColor(Color.TRANSPARENT)
                     }
 
                     onCodeUpdate = { code ->
@@ -713,11 +713,11 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         ) {
             val binding = WidgetSettingsVoice.`access$getBinding$p`(this)
 
-            val krispToggle = binding.k;
+            val krispToggle = binding.k
             krispToggle.l.b().isClickable = false
             krispToggle.alpha = 0.3f
 
-            val krispVadToggle = binding.h;
+            val krispVadToggle = binding.h
             krispVadToggle.l.b().isClickable = false
             krispVadToggle.alpha = 0.3f
         }
