@@ -137,7 +137,7 @@ public class Plugins extends SettingsPage {
                 : String.format("%s v%s by %s", p.getName(), manifest.version, TextUtils.join(", ", manifest.authors));
             SpannableString spannableTitle = new SpannableString(title);
             for (Plugin.Manifest.Author author : manifest.authors) {
-                if (author.id < 1 || !author.hyperlink) continue;
+                if (Objects.requireNonNull(author).id < 1 || !author.hyperlink) continue;
                 int i = title.indexOf(author.name, p.getName().length() + 2 + manifest.version.length() + 3);
                 spannableTitle.setSpan(new ClickableSpan() {
                     @Override
@@ -165,7 +165,7 @@ public class Plugins extends SettingsPage {
                         Plugin.Manifest manifest = p.getManifest();
                         if (manifest.description.toLowerCase().contains(search)) return true;
                         for (Plugin.Manifest.Author author : manifest.authors)
-                            if (author.name.toLowerCase().contains(search)) return true;
+                            if (Objects.requireNonNull(author).name.toLowerCase().contains(search)) return true;
                         return false;
                     });
                 }
@@ -207,8 +207,8 @@ public class Plugins extends SettingsPage {
         }
 
         private String getGithubUrl(Plugin plugin) {
-            return plugin
-                .getManifest().updateUrl.replaceFirst(
+            return Objects.requireNonNull(plugin
+                .getManifest().updateUrl).replaceFirst(
                     "https://(raw\\.githubusercontent\\.com|cdn\\.jsdelivr\\.net/gh)/([^/]+)/([^/@]+).*",
                     "https://github.com/$2/$3"
                 );
