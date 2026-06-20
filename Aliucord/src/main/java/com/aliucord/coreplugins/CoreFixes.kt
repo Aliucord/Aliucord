@@ -71,6 +71,8 @@ import com.discord.widgets.settings.profile.SettingsUserProfileViewModel
 import com.discord.widgets.settings.profile.WidgetEditUserOrGuildMemberProfile
 import com.discord.widgets.status.WidgetForumPostStatus
 import com.discord.widgets.status.WidgetForumPostStatusViewModel
+import com.discord.widgets.user.profile.UserProfileHeaderView
+import com.discord.widgets.user.profile.UserProfileHeaderViewModel
 import com.discord.widgets.user.usersheet.WidgetUserSheet
 import com.discord.widgets.user.usersheet.WidgetUserSheetViewModel
 import com.linecorp.apng.decoder.Apng
@@ -115,6 +117,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixExternalLinks()
         fixClock()
         fixBioHeightLimit()
+        fixProfileBannerColorCrash()
         fixUnreadForumChannels()
         fixMemoryLeak()
     }
@@ -511,6 +514,20 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             val binding = WidgetEditUserOrGuildMemberProfile.`access$getBinding$p`(this)
             binding.c.maxLines = Int.MAX_VALUE // bio editor input
             binding.h.maxLines = Int.MAX_VALUE // bio preview
+        }
+    }
+
+    private fun fixProfileBannerColorCrash() = tryPatch("Fix profile banner color thread crash") {
+        patcher.before<UserProfileHeaderView>(
+            "updateBannerColor",
+            UserProfileHeaderViewModel.ViewState.Loaded::class.java,
+        ) { param ->
+            if (Looper.myLooper() == Looper.getMainLooper()) return@before
+
+            val view = param.thisObject as UserProfileHeaderView
+            val state = param.args[0] as UserProfileHeaderViewModel.ViewState.Loaded
+            Utils.mainThread.post { view.updateBannerColor(state) }
+            param.result = null
         }
     }
 
