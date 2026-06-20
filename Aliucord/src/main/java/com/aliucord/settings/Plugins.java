@@ -124,15 +124,26 @@ public class Plugins extends SettingsPage {
             String name = p.getName();
             boolean core = p instanceof CorePlugin;
 
-            boolean enabled = PluginManager.isPluginEnabled(p.getName());
+            boolean enabled = PluginManager.isPluginEnabled(name);
+            boolean toggleable = !core || !((CorePlugin) p).isRequired();
+            boolean hasDescription = notBlank(manifest.description);
+
             holder.card.switchHeader.setChecked(enabled);
-            holder.card.switchHeader.setButtonVisibility(!(p instanceof CorePlugin) || !((CorePlugin) p).isRequired());
-            holder.card.descriptionView.setText(MDUtils.render(p.getManifest().description));
-            holder.card.settingsButton.setVisibility(p.settingsTab != null ? View.VISIBLE : View.GONE);
+            holder.card.switchHeader.setButtonVisibility(toggleable);
+            holder.card.descriptionView.setText(MDUtils.render(manifest.description));
+            setVisible(holder.card.descriptionView, hasDescription);
+
+            boolean hasSettings = p.settingsTab != null;
+            boolean hasUninstall = notBlank(p.__filename);
+            boolean hasRepo = notBlank(manifest.updateUrl);
+            boolean hasChangelog = notBlank(manifest.changelog);
+
+            setVisible(holder.card.settingsButton, hasSettings);
             holder.card.settingsButton.setEnabled(enabled);
-            holder.card.uninstallButton.setVisibility(p.__filename != null ? View.VISIBLE : View.GONE);
-            holder.card.repoButton.setVisibility(p.getManifest().updateUrl != null ? View.VISIBLE : View.GONE);
-            holder.card.changeLogButton.setVisibility(p.getManifest().changelog != null ? View.VISIBLE : View.GONE);
+            setVisible(holder.card.uninstallButton, hasUninstall);
+            setVisible(holder.card.repoButton, hasRepo);
+            setVisible(holder.card.changeLogButton, hasChangelog);
+            setVisible(holder.card.buttonLayout, hasSettings || hasUninstall || hasRepo || hasChangelog || hasDescription);
 
             String title = name
                 + (core ? " [BUILT-IN]"
@@ -282,6 +293,14 @@ public class Plugins extends SettingsPage {
 
         public static boolean filterCorePlugins(Plugin p) {
             return !(p instanceof CorePlugin);
+        }
+
+        private static void setVisible(View v, boolean visible) {
+            v.setVisibility(visible ? View.VISIBLE : View.GONE);
+        }
+
+        private static boolean notBlank(String s) {
+            return s != null && !s.isBlank();
         }
     }
 
