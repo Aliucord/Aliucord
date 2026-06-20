@@ -26,6 +26,7 @@ import com.aliucord.utils.GsonUtils.fromJson
 import com.aliucord.utils.ReflectUtils
 import com.aliucord.utils.SemVer
 import com.aliucord.utils.ViewUtils.addTo
+import com.discord.play_delivery.PlayAssetDeliveryNativeWrapper
 import com.discord.rtcconnection.mediaengine.MediaEngineConnection
 import com.discord.rtcconnection.socket.io.Opcodes
 import com.discord.rtcconnection.socket.io.Payloads
@@ -41,6 +42,7 @@ import com.lytefast.flexinput.R
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
+import java.io.File
 import java.util.Collections
 import java.util.WeakHashMap
 import kotlin.math.pow
@@ -749,5 +751,25 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 param.args[6] = StoreMediaSettings.NoiseProcessing.Suppression
             }
         }
+    }
+
+    // TODO: Krisp
+    @Suppress("unused")
+    private fun setupKrisp(context: Context) {
+        runCatching {
+            val srcModel = File(Constants.BASE_PATH, "krisp/thz")
+            if (!File(srcModel, "VAD_model.kw").exists()) {
+                logger.warn("Krisp models not found at ${srcModel.absolutePath}, Krisp disabled")
+                return
+            }
+            val dest = File(context.filesDir, "krisp")
+            val destModel = File(dest, "thz").apply { mkdirs() }
+            srcModel.listFiles()?.forEach { src ->
+                val out = File(destModel, src.name)
+                if (!out.exists() || out.length() != src.length()) src.copyTo(out, overwrite = true)
+            }
+            PlayAssetDeliveryNativeWrapper.setKrispAssetPackLocation(dest.absolutePath)
+            logger.info("Krisp models ready at ${dest.absolutePath}")
+        }.onFailure { logger.error("Failed to set up Krisp models", it) }
     }
 }
