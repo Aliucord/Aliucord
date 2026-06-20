@@ -121,6 +121,8 @@ public class Plugins extends SettingsPage {
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             Plugin p = data.get(position);
             Plugin.Manifest manifest = p.getManifest();
+            String name = p.getName();
+            boolean core = p instanceof CorePlugin;
 
             boolean enabled = PluginManager.isPluginEnabled(p.getName());
             holder.card.switchHeader.setChecked(enabled);
@@ -132,9 +134,11 @@ public class Plugins extends SettingsPage {
             holder.card.repoButton.setVisibility(p.getManifest().updateUrl != null ? View.VISIBLE : View.GONE);
             holder.card.changeLogButton.setVisibility(p.getManifest().changelog != null ? View.VISIBLE : View.GONE);
 
-            String title = p instanceof CorePlugin
-                ? String.format("%s [BUILT-IN]", p.getName())
-                : String.format("%s v%s by %s", p.getName(), manifest.version, TextUtils.join(", ", manifest.authors));
+            String title = name
+                + (core ? " [BUILT-IN]"
+                : !"0.0.0".equals(manifest.version) ? " v" + manifest.version : "")
+                + (manifest.authors.length > 0 ? " by " + TextUtils.join(", ", manifest.authors) : "");
+
             SpannableString spannableTitle = new SpannableString(title);
             for (Plugin.Manifest.Author author : manifest.authors) {
                 if (Objects.requireNonNull(author).id < 1 || !author.hyperlink) continue;
