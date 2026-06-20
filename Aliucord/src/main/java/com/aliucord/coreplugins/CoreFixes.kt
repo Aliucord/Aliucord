@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.*
+import android.text.InputFilter
 import android.view.View
 import android.view.WindowInsetsAnimation
 import android.widget.TextView
@@ -79,6 +80,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.linecorp.apng.decoder.Apng
 import com.lyft.kronos.KronosClock
 import com.lytefast.flexinput.R
+import com.lytefast.flexinput.widget.FlexEditText
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 import rx.Emitter
 import rx.Observable
@@ -87,6 +89,7 @@ import java.util.WeakHashMap
 import j0.l.a.i.a as BaseEmitter
 
 private const val BYPASS_SLOWMODE_PERMISSION = 1L shl 52
+private const val MAX_CHAT_INPUT_LENGTH = 8000
 
 /**
  * Contains various fixes for stock Discord that ensure "proper" behavior.
@@ -123,6 +126,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixUnreadForumChannels()
         fixMemoryLeak()
         fixBottomSheetCallbacks()
+        fixChatInputCharacterLimit()
     }
 
     private val WidgetChatList.binding by accessField<FragmentViewBindingDelegate<WidgetChatListBinding>?>($$"binding$delegate")
@@ -665,6 +669,15 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                 })
             }, backpressureMode)
             return@instead observable
+        }
+    }
+
+    private fun fixChatInputCharacterLimit() = tryPatch("Cap chat input length to prevent paste freeze") {
+        patcher.after<WidgetChatInputEditText>(
+            FlexEditText::class.java,
+            MessageDraftsRepo::class.java,
+        ) { (_, editText: FlexEditText) ->
+            editText.filters += InputFilter.LengthFilter(MAX_CHAT_INPUT_LENGTH)
         }
     }
 
