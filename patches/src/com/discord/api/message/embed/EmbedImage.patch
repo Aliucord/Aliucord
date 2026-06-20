@@ -1,0 +1,23 @@
+--- smali_original/com/discord/api/message/embed/EmbedImage.smali
++++ smali/com/discord/api/message/embed/EmbedImage.smali
+@@ -49,8 +49,20 @@
+ 
+ 
+ # instance fields
++.field public contentScanMetadata:Lcom/discord/api/message/embed/ContentScanMetadata;
++
++.field public contentType:Ljava/lang/String;
++
++.field public description:Ljava/lang/String;
++
++.field public flags:Ljava/lang/Integer;
++
+ .field private final height:Ljava/lang/Integer;
+ 
++.field public placeholder:Ljava/lang/String;
++
++.field public placeholderVersion:Ljava/lang/Integer;
++
+ .field private final proxyUrl:Ljava/lang/String;
+ 
+ .field private final url:Ljava/lang/String;

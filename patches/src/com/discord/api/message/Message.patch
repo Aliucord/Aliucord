@@ -1,6 +1,31 @@
 --- smali_original/com/discord/api/message/Message.smali
 +++ smali/com/discord/api/message/Message.smali
-@@ -237,6 +237,18 @@
+@@ -211,10 +211,24 @@
+ 
+ .field private final interaction:Lcom/discord/api/interaction/Interaction;
+ 
++.field public interactionMetadata:Lcom/discord/api/interaction/Interaction;
++
++.field public lobbyId:Ljava/lang/Long;
++
+ .field private final member:Lcom/discord/api/guildmember/GuildMember;
+ 
+ .field private final mentionEveryone:Ljava/lang/Boolean;
+ 
++.field public mentionChannels:Ljava/util/List;
++    .annotation system Ldalvik/annotation/Signature;
++        value = {
++            "Ljava/util/List<",
++            "Lcom/discord/api/channel/Channel;",
++            ">;"
++        }
++    .end annotation
++.end field
++
+ .field private final mentionRoles:Ljava/util/List;
+     .annotation system Ldalvik/annotation/Signature;
+         value = {
+@@ -237,6 +251,20 @@
  
  .field private final messageReference:Lcom/discord/api/message/MessageReference;
  
@@ -16,6 +41,45 @@
 +
 +.field public poll:Lcom/discord/api/message/poll/MessagePoll;
 +
++.field public purchaseNotification:Lcom/discord/api/message/MessagePurchaseNotification;
++
  .field private final nonce:Ljava/lang/String;
  
  .field private final pinned:Ljava/lang/Boolean;
+@@ -253,8 +281,36 @@
+ 
+ .field private final referencedMessage:Lcom/discord/api/message/Message;
+ 
++.field public resolved:Lcom/discord/api/message/MessageResolved;
++
+ .field private final roleSubscriptionData:Lcom/discord/api/message/role_subscription/RoleSubscriptionData;
+ 
++.field public giftInfo:Lcom/discord/api/message/MessageGiftInfo;
++
++.field public changelogId:Ljava/lang/Long;
++
++.field public soundboardSounds:Ljava/util/List;
++    .annotation system Ldalvik/annotation/Signature;
++        value = {
++            "Ljava/util/List<",
++            "Lcom/discord/api/soundboard/SoundboardSound;",
++            ">;"
++        }
++    .end annotation
++.end field
++
++.field public potions:Ljava/util/List;
++    .annotation system Ldalvik/annotation/Signature;
++        value = {
++            "Ljava/util/List<",
++            "Lcom/discord/api/message/Potion;",
++            ">;"
++        }
++    .end annotation
++.end field
++
++.field public sharedClientTheme:Lcom/discord/api/message/SharedClientTheme;
++
+ .field private final stickerItems:Ljava/util/List;
+     .annotation system Ldalvik/annotation/Signature;
+         value = {
