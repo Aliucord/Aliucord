@@ -186,23 +186,18 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
 """
 
             val ssb = SpannableStringBuilder(text).apply {
-                val mixText = "the MiXplorer file manager"
-                var start = text.indexOf(mixText)
-                var end = start + mixText.length
-                setSpan(object : ClickableSpan() {
+                fun mark(substring: String, span: Any) {
+                    val start = text.indexOf(substring)
+                    if (start != -1) setSpan(span, start, start + substring.length, SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
+
+                mark("the MiXplorer file manager", object : ClickableSpan() {
                     override fun onClick(widget: View) {
                         launchUrl("https://forum.xda-developers.com/t/app-2-2-mixplorer-v6-x-released-fully-featured-file-manager.1523691/")
                     }
-                }, start, end, SPAN_EXCLUSIVE_EXCLUSIVE)
-
-                start = text.indexOf(path)
-                end = start + path.length
-                setSpan(StyleSpan(Typeface.BOLD_ITALIC), start, end, SPAN_EXCLUSIVE_EXCLUSIVE)
-
-                val explorerText = "your file explorer"
-                start = text.indexOf(explorerText)
-                end = start + explorerText.length
-                setSpan(object : ClickableSpan() {
+                })
+                mark(path, StyleSpan(Typeface.BOLD_ITALIC))
+                mark("your file explorer", object : ClickableSpan() {
                     override fun onClick(widget: View) {
                         Intent(Intent.ACTION_VIEW)
                             .setDataAndType(uri, DocumentsContract.Document.MIME_TYPE_DIR)
@@ -210,7 +205,7 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
                                 appActivity.startActivity(Intent.createChooser(it, "Open folder"))
                             }
                     }
-                }, start, end, SPAN_EXCLUSIVE_EXCLUSIVE)
+                })
             }
             ConfirmDialog()
                 .setTitle(":(")
