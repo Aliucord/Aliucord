@@ -76,6 +76,7 @@ import com.discord.widgets.user.profile.UserProfileHeaderView
 import com.discord.widgets.user.profile.UserProfileHeaderViewModel
 import com.discord.widgets.user.usersheet.WidgetUserSheet
 import com.discord.widgets.user.usersheet.WidgetUserSheetViewModel
+import com.discord.widgets.voice.fullscreen.WidgetCallFullscreen
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.linecorp.apng.decoder.Apng
 import com.lyft.kronos.KronosClock
@@ -116,6 +117,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixHidingMutedDMs()
         fixPrivateChannelScroll()
         fixVoiceCodec()
+        fixTextInVoiceCrash()
         fixThreads()
         fixThreadsIcon()
         fixSlowmode()
@@ -399,6 +401,12 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             if (mode == "xsalsa20_poly1305") {
                 param.args[2] = "xsalsa20_poly1305_lite_rtpsize"
             }
+        }
+    }
+
+    private fun fixTextInVoiceCrash() = tryPatch("Fix Text-in-Voice crash in calls") {
+        patcher.before<WidgetCallFullscreen>("transitionActivity") { param ->
+            if (appActivity == null) param.result = null
         }
     }
 
