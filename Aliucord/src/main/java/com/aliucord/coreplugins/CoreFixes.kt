@@ -89,7 +89,7 @@ import java.util.WeakHashMap
 import j0.l.a.i.a as BaseEmitter
 
 private const val BYPASS_SLOWMODE_PERMISSION = 1L shl 52
-private const val MAX_CHAT_INPUT_LENGTH = 8000
+private const val MAX_CHAT_INPUT_LENGTH = 64000
 
 /**
  * Contains various fixes for stock Discord that ensure "proper" behavior.
