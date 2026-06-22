@@ -197,6 +197,8 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     private val GuildListViewHolder.GuildViewHolder.bindingGuild
         by accessField<WidgetGuildsListItemGuildBinding>()
 
+    private val guildIconUrls = WeakHashMap<View, String>()
+
     private fun patchIconU(name: String, vararg paramTypes: Class<*>) {
         patcher.patch(IconUtils::class.java.getDeclaredMethod(name, *paramTypes)) {
             it.result = (it.result as? String)
@@ -232,11 +234,22 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             "configureGuildIconImage",
             Guild::class.java, Boolean::class.javaPrimitiveType!!,
         ) { (_, guild: Guild, animated: Boolean) ->
-            if (!guild.hasIcon()) return@after
+            val icon = bindingGuild.d
 
-            val size = IconUtils.getMediaProxySize(bindingGuild.d.layoutParams.height)
+            if (!guild.hasIcon()) {
+                guildIconUrls -= icon
+                return@after
+            }
+
+            val size = icon.layoutParams.height.takeIf { it > 0 }
+                ?.let(IconUtils::getMediaProxySize)
+                ?: return@after
+
             val url = IconUtils.getForGuild(guild, null, animated) + "&size=${size}"
-            MGImages.`setImage$default`(bindingGuild.d, url, size, size, false, null, null, 112, null)
+
+            if (guildIconUrls.put(icon, url) == url) return@after
+
+            MGImages.`setImage$default`(icon, url, size, size, false, null, null, 112, null)
         }
 
         // Support webp emojis by forcing every emoji to be webp
