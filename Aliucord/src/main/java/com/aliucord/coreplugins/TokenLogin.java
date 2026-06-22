@@ -99,24 +99,27 @@ public final class TokenLogin extends CorePlugin {
                         new ModelLoginResult(trimmedToken.startsWith("mfa."), null, trimmedToken, null, new ArrayList<>())
                     );
                 } catch (Http.HttpException e) {
-                    setLoading(false);
                     Utils.showToast("Invalid token: " + e.statusCode + ": " + e.statusMessage);
                 } catch (IOException e) {
-                    setLoading(false);
                     Utils.showToast("Failed to verify token: " + e.getMessage());
+                } finally {
+                    setLoading(false);
                 }
             });
         }
 
         private void setLoading(boolean state) {
             if (loginButton == null) return;
+
             if (state) {
                 loginButton.setIsLoading(true);
                 loginButton.setEnabled(false);
-            } else Utils.mainThread.post(() -> {
-                loginButton.setIsLoading(false);
-                loginButton.setEnabled(true);
-            });
+            } else {
+                Utils.mainThread.post(() -> {
+                    loginButton.setIsLoading(false);
+                    loginButton.setEnabled(true);
+                });
+            }
         }
     }
 
