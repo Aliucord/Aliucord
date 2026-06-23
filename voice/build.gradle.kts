@@ -14,11 +14,17 @@ plugins {
 }
 
 android {
-    namespace = "com.aliucord.aliuvoice"
+    namespace = "com.aliucord.voice"
     compileSdk = 36
 
     defaultConfig {
         minSdk = 24
+        buildConfigField("String", "VERSION", "\"90.0.29-krisp_vad_overuse\"")
+        buildConfigField("String", "LIBDISCORD_BASE", "\"333.5\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     publishing {
