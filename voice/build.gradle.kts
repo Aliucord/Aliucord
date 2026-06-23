@@ -52,7 +52,7 @@ kotlin {
 }
 
 val injectWebrtcDex by tasks.registering {
-    dependsOn("bundleReleaseAar")
+    dependsOn("bundleReleaseAar", "make")
 
     val aar = layout.buildDirectory.file("outputs/aar/${project.name}-release.aar").get().asFile
     val work = layout.buildDirectory.dir("aliuvoice").get().asFile
