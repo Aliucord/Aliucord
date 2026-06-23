@@ -61,6 +61,11 @@ data class SecureFrames(
 internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     override val isHidden = false
     override val isRequired = true
+    private val debugInfo = LinkedHashMap<String, String>()
+    private var currentSocket: RtcControlSocket? = null
+    private val epochPreparedSockets = Collections.newSetFromMap(WeakHashMap<RtcControlSocket, Boolean>())
+    private val pendingProposals = WeakHashMap<RtcControlSocket, MutableList<ByteString>>()
+    private var prevSocket: RtcControlSocket? = null
 
     private val libVersion = runCatching {
         Class.forName("com.aliucord.voice.BuildConfig")
@@ -502,11 +507,6 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     private var sheetUserId = 0L
     var newestCode = ""
     var onCodeUpdate: (String) -> Unit = {}
-    private val debugInfo = LinkedHashMap<String, String>()
-    private var currentSocket: RtcControlSocket? = null
-    private val epochPreparedSockets = Collections.newSetFromMap(WeakHashMap<RtcControlSocket, Boolean>())
-    private val pendingProposals = WeakHashMap<RtcControlSocket, MutableList<ByteString>>()
-    private var prevSocket: RtcControlSocket? = null
     private var connInfoText = "Not connected"
     var onConnInfoUpdate: (String) -> Unit = {}
 
