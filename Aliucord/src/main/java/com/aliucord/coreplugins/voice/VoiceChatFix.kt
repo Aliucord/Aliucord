@@ -92,7 +92,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         manifest.description = if (isFullySupported) {
             "Implementation of DAVE, which supports E2EE voice, camera and screenshare support to Aliucord (v$libVersion)"
         } else {
-            "Transport encryption only - voice engine unavailable (lib ${libVersion?.let { "v$it" } ?: "missing"}, need $EXPECTED_LIB_VERSION)"
+            "(non-functional, requires base app update!) Implementation of DAVE, which supports E2EE voice, camera and screenshare (lib ${libVersion?.let { "v$it" } ?: "missing"}, need $EXPECTED_LIB_VERSION)"
         }
         manifest.authors = arrayOf(
             Manifest.Author("cilly", 368398754077868032L),
