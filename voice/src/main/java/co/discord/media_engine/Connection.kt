@@ -111,10 +111,6 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
     }
 
     init {
-        // TODO
-        this.native.setSecureFramesStateUpdateCallback {
-            Log.d(TAG, "secureFramesUpdate: $it")
-        }
         set(TransportOptions(
             encodingVideoDegradationPreference = 2,
             reconnectInterval = 60000,
