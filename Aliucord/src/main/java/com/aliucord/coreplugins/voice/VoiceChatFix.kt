@@ -294,9 +294,9 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 return@after
             }
 
-            if (socket != lastSocket) {
-                prevSocket = lastSocket
-                lastSocket = socket
+            if (socket != currentSocket) {
+                prevSocket = currentSocket
+                currentSocket = socket
             }
             refreshConnInfo()
 
@@ -376,7 +376,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             logger.debug("Setting video input device $device")
             // Push capture settings first so the camera opens at the target framerate directly,
             // instead of the native default 30fps followed by an immediate session re-open.
-            lastSocket?.let(::applyVideoSettings)
+            currentSocket?.let(::applyVideoSettings)
             mediaEngine.i().setVideoInputDevice(device)
         }
 
@@ -385,7 +385,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
 
     // Upon protocol selection ack, start preparing for dave
     private fun handleOnProtocolSelectAck(socket: RtcControlSocket, version: Int) {
-        lastSocket = socket
+        currentSocket = socket
         socket.rtcConnection?.rtcServerId?.let { setDebug("Server", it) }
         setDebug("E2EE", if (version >= 1) "DAVE v$version" else "Off (transport only)")
 
@@ -503,7 +503,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     var newestCode = ""
     var onCodeUpdate: (String) -> Unit = {}
     private val debugInfo = LinkedHashMap<String, String>()
-    private var lastSocket: RtcControlSocket? = null
+    private var currentSocket: RtcControlSocket? = null
     private val epochPreparedSockets = Collections.newSetFromMap(WeakHashMap<RtcControlSocket, Boolean>())
     private val pendingProposals = WeakHashMap<RtcControlSocket, MutableList<ByteString>>()
     private var prevSocket: RtcControlSocket? = null
@@ -541,7 +541,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         if (head.isNotEmpty()) sb.append(head).append("\n\n")
         // Fallback to the previous socket if the current one is inactive to keep the
         // overlay populated instead of going blank.
-        val rtc = lastSocket?.rtcConnections?.firstOrNull()
+        val rtc = currentSocket?.rtcConnections?.firstOrNull()
             ?: prevSocket?.rtcConnections?.firstOrNull()
         if (rtc != null) {
             runCatching {
@@ -724,7 +724,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     }
 
     private fun getPairwiseCode(userId: String, callback: (String?) -> Unit) {
-        val connection = lastSocket?.connections?.firstOrNull()
+        val connection = currentSocket?.connections?.firstOrNull()
         if (connection == null) {
             callback(null)
             return
