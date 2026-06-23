@@ -6,6 +6,6 @@ package com.aliucord.voice
  * libdiscord.so / webrtc dex pairing.
  */
 object BuildConfig {
-    const val VERSION = "90.0.19-codec-api.b2"
+    const val VERSION = "90.0.29-krisp_vad_overuse"
     const val LIBDISCORD_BASE = "333.5"
 }
