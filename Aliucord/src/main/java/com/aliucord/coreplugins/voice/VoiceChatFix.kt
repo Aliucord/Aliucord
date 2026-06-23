@@ -68,6 +68,9 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             .get(null) as String
     }.getOrNull()
 
+    @Volatile
+    private var supportedModes: List<String>? = null
+
     private companion object {
         // Native libs and webrtc dex are built together (aliuvoice aar)
         // the lib version must match exactly but injector & patches only need a min version
@@ -99,6 +102,15 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             Manifest.Author("secp192k1", 477497542205243392L),
         )
         settingsTab = SettingsTab(VoiceChatFixSettings.Sheet::class.java, SettingsTab.Type.BOTTOM_SHEET)
+    }
+
+    private fun chooseTransportMode(): String {
+        val pref = VoiceChatFixSettings.transportEncryption
+        val modes = supportedModes ?: return pref
+        return when {
+            pref in modes -> pref
+            else -> modes.firstOrNull { it.startsWith("aead_") } ?: pref
+        }
     }
 
     override fun stop(context: Context) = patcher.unpatchAll()
@@ -195,8 +207,12 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             // Patch protocol payload to include encode/decode fields
             if (opcode == Opcodes.SELECT_PROTOCOL) {
                 val d = data as Payloads.Protocol
-                param.args[1] = NewSelectProtocolPayload.from(d)
-                logger.debug("Replacing Protocol payload")
+                val base = NewSelectProtocolPayload.from(d)
+                val mode = chooseTransportMode()
+                param.args[1] = base.copy(
+                    data = Payloads.Protocol.ProtocolInfo(base.data.address, base.data.port, mode)
+                )
+                logger.debug("Replacing Protocol payload (transport=$mode)")
                 logger.debug("Before: $d")
                 logger.debug("After: ${param.args[1]}")
             }
@@ -236,15 +252,21 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             Payloads.Incoming::class.java,
         ) { param ->
             val message = param.args[2] as Payloads.Incoming
-            if (message.opcode == Opcodes.MEDIA_SINK_WANTS) {
-                // pixelCounts is only mentioned in streams/screenshare if
-                // RtcConnection has enableMediaSinkWants == false
-                param.args[2] = Payloads.Incoming(message.opcode, message.data.d().apply {
-                    // Remove pixelCounts since it messes up the default handler's conversion from
-                    // JsonObject to Map<String, Number>
-                    @SuppressLint("CheckResult")
-                    a.remove("pixelCounts")
-                })
+            when (message.opcode) {
+                Opcodes.READY -> runCatching {
+                    val modes = org.json.JSONObject(message.data.toString()).optJSONArray("modes")
+                    supportedModes = modes?.let { arr -> List(arr.length()) { arr.getString(it) } }
+                }.onFailure { logger.error("Failed to read READY transport modes", it) }
+                Opcodes.MEDIA_SINK_WANTS ->
+                    // pixelCounts is only mentioned in streams/screenshare if
+                    // RtcConnection has enableMediaSinkWants == false
+                    param.args[2] = Payloads.Incoming(message.opcode, message.data.d().apply {
+                        // Remove pixelCounts since it messes up the default handler's conversion from
+                        // JsonObject to Map<String, Number>
+                        @SuppressLint("CheckResult")
+                        a.remove("pixelCounts")
+                    })
+                else -> logger.warn("Unhandled Opcode: ${message.opcode}")
             }
         }
 

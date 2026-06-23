@@ -67,7 +67,7 @@ internal object VoiceChatFixSettings {
                 ctx,
                 CheckedSetting.ViewType.SWITCH,
                 "Use AES-256-GCM transport encryption",
-                "When off, falls back to XChaCha20-Poly1305. AES-256-GCM matches what the official Discord client prefers."
+                "Preferred transport encryption when the server supports it."
             ).addTo(linearLayout) {
                 var setting by useAes256GcmDelegate
                 isChecked = setting
