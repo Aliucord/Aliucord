@@ -80,7 +80,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         // Native libs and webrtc dex are built together (aliuvoice aar)
         // the lib version must match exactly but injector & patches only need a min version
         const val EXPECTED_LIB_VERSION = com.aliucord.voice.BuildConfig.VERSION
-        val MIN_INJECTOR: SemVer = SemVer(2, 4, 11)
+        val MIN_INJECTOR: SemVer = SemVer(2, 3, 2)
         val MIN_PATCHES: SemVer = SemVer(1, 4, 10)
     }
 
