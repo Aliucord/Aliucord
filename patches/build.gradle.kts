@@ -4,7 +4,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import java.io.ByteArrayOutputStream
 import java.util.Properties
 
-version = "1.4.10"
+version = "1.5.0"
 
 // --- Android --- //
 
