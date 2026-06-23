@@ -95,7 +95,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             "Transport encryption only - voice engine unavailable (lib ${libVersion?.let { "v$it" } ?: "missing"}, need $EXPECTED_LIB_VERSION)"
         }
         manifest.authors = arrayOf(
-            Manifest.Author("lavadesu", 368398754077868032L),
+            Manifest.Author("cilly", 368398754077868032L),
             Manifest.Author("secp192k1", 477497542205243392L),
         )
         settingsTab = SettingsTab(VoiceChatFixSettings.Sheet::class.java, SettingsTab.Type.BOTTOM_SHEET)
