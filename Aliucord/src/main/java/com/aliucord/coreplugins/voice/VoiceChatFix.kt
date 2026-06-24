@@ -3,8 +3,6 @@ package com.aliucord.coreplugins.voice
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
-import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -18,6 +16,12 @@ import com.aliucord.Constants
 import com.aliucord.Utils
 import com.aliucord.coreplugins.voice.VoiceChatFixPayload.DaveInvalidCommitWelcome
 import com.aliucord.coreplugins.voice.VoiceChatFixPayload.DaveTransitionReady
+import com.aliucord.coreplugins.voice.ui.addDisableVideoRow
+import com.aliucord.coreplugins.voice.ui.addVerificationRow
+import com.aliucord.coreplugins.voice.ui.codeBlock
+import com.aliucord.coreplugins.voice.ui.collapsibleTitle
+import com.aliucord.coreplugins.voice.ui.newCard
+import com.aliucord.coreplugins.voice.ui.setCodeBlock
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.updater.ManagerBuild
@@ -42,7 +46,6 @@ import com.discord.widgets.user.usersheet.WidgetUserSheet
 import com.discord.widgets.user.usersheet.WidgetUserSheetViewModel
 import com.discord.widgets.voice.controls.VoiceControlsSheetView
 import com.discord.widgets.voice.sheet.WidgetVoiceSettingsBottomSheet
-import com.google.android.material.switchmaterial.SwitchMaterial
 import com.lytefast.flexinput.R
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
@@ -51,7 +54,6 @@ import org.json.JSONObject
 import java.io.File
 import java.util.Collections
 import java.util.WeakHashMap
-import kotlin.math.pow
 import b.a.q.m0.c.e as MediaEngineConnectionLegacy
 import b.a.q.m0.c.`e$h` as MediaEngineConnectionLegacy_SetCodecs
 import b.a.q.n0.a as RtcControlSocket
@@ -166,7 +168,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         }.onFailure { logger.error("Failed to set encoder queue size", it) }
 
         patchPrivacyCodeView()
-        patchUserSheetVerificationCode()
+        patchUserSheetView()
 
         // Handle new binary voice gateway events
         // WebSocketListener is RtcControlSocket's superclass; the child class doesn't have
@@ -221,7 +223,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 val base = NewSelectProtocolPayload.from(d)
                 val mode = chooseTransportMode()
                 param.args[1] = base.copy(
-                    data = Payloads.Protocol.ProtocolInfo(base.data.address, base.data.port, mode)
+                    data = ProtocolInfo(base.data.address, base.data.port, mode)
                 )
                 logger.debug("Replacing Protocol payload (transport=$mode)")
                 logger.debug("Before: $d")
@@ -506,9 +508,6 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
 
     val encryptionViewId = View.generateViewId()
     private val connInfoViewId = View.generateViewId()
-    private val disableVideoRowId = View.generateViewId()
-    private val videoDisabled = HashMap<Long, Boolean>()
-    private val verificationRowId = View.generateViewId()
     private var sheetUserId = 0L
     var newestCode = ""
     var onCodeUpdate: (String) -> Unit = {}
@@ -561,49 +560,6 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         onConnInfoUpdate(connInfoText)
     }
 
-    private fun codeBlock(ctx: Context): TextView = TextView(ctx).apply {
-        typeface = ResourcesCompat.getFont(ctx, Constants.Fonts.sourcecodepro_semibold)
-        setTextColor(Color.WHITE)
-        textSize = 11f
-        gravity = Gravity.START
-        isSingleLine = false
-        maxLines = 400
-        setLineSpacing(2.dp.toFloat(), 1f)
-        background = GradientDrawable().apply {
-            cornerRadius = 8.dp.toFloat()
-        }
-        setPadding(12.dp, 10.dp, 12.dp, 10.dp)
-    }
-
-    private fun cardTitle(ctx: Context, text: String): TextView =
-        TextView(ctx, null, 0, R.i.UiKit_ListItem_Icon).apply {
-            this.text = text
-            setTextColor(Color.WHITE)
-        }
-
-    private fun collapsibleTitle(ctx: Context, label: String, body: View, expanded: Boolean = false): TextView {
-        body.visibility = if (expanded) View.VISIBLE else View.GONE
-        // Use an en-space after the chevron; a plain space renders too tight against the label.
-        fun titleText(open: Boolean) = (if (open) "▾ " else "▸ ") + label
-        return cardTitle(ctx, titleText(expanded)).apply {
-            setOnClickListener {
-                val show = body.visibility != View.VISIBLE
-                body.visibility = if (show) View.VISIBLE else View.GONE
-                text = titleText(show)
-            }
-        }
-    }
-
-    private fun newCard(ctx: Context, cardId: Int): CardView = CardView(ctx).apply {
-        setCardBackgroundColor(ColorCompat.getColor(this, R.c.white_alpha_24))
-        radius = 8.dp.toFloat()
-        elevation = 0f
-        id = cardId
-        layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
-            bottomMargin = 16.dp
-        }
-    }
-
     // Adds encryption info and voice privacy code to the voice bottom sheet
     private fun patchPrivacyCodeView() {
         // Patches on new connection to add our callback when the epoch authenticator changes
@@ -649,7 +605,9 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                         }
                         gravity = Gravity.CENTER
                         textSize = 16f
+                        typeface = ResourcesCompat.getFont(ctx, Constants.Fonts.sourcecodepro_semibold)
                         setBackgroundColor(Color.TRANSPARENT)
+                        setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorTextNormal))
                     }
 
                     onCodeUpdate = { code ->
@@ -693,7 +651,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                     collapsibleTitle(ctx, " Connection Info", info).addTo(this)
                     info.addTo(this)
                     onConnInfoUpdate = { text ->
-                        Utils.mainThread.post { info.text = text }
+                        Utils.mainThread.post { info.setCodeBlock(text) }
                     }
                     info.setOnClickListener {
                         Utils.setClipboard("VoiceChatFix connection info", connInfoText)
@@ -705,129 +663,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         }
     }
 
-    private fun formatFingerprint(b64: String): String {
-        if (b64.isEmpty()) return ""
-        val data = b64.decodeBase64ToArray() ?: return ""
-        val groupSize = 5
-        val desiredLen = 30
-        if (data.size < desiredLen) return ""
-        val groupModulus = 10.0.pow(groupSize).toULong()
-        var result = ""
-        var i = 0
-        while (i < desiredLen) {
-            var groupValue = 0UL
-            var j = groupSize
-            while (j >= 1) {
-                val n = data[i + groupSize - j].toUByte().toULong()
-                groupValue = (groupValue shl 8) or n
-                j -= 1
-            }
-            result += " " + (groupValue % groupModulus).toString().padStart(groupSize, '0')
-            i += groupSize
-        }
-        return result.trimStart()
-    }
-
-    private fun getPairwiseCode(userId: String, callback: (String?) -> Unit) {
-        val connection = currentSocket?.connections?.firstOrNull()
-        if (connection == null) {
-            callback(null)
-            return
-        }
-        runCatching {
-            connection.getMLSPairwiseFingerprintB64(1, userId) { fp ->
-                Utils.mainThread.post { callback(formatFingerprint(fp).ifEmpty { null }) }
-            }
-        }.onFailure {
-            logger.error("Failed to get pairwise fingerprint for $userId", it)
-            Utils.mainThread.post { callback(null) }
-        }
-    }
-
-    private fun addVerificationRow(root: LinearLayout, userId: Long) {
-        if (userId == 0L) return
-        val container = (root.getChildAt(0) as? LinearLayout) ?: root
-        val ctx = container.context
-        val codeView: TextView
-        val existing = root.findViewById<View?>(verificationRowId)
-        if (existing == null) {
-            val ripple = TypedValue()
-            //ctx.theme.resolveAttribute(android.R.attr.selectableItemBackground, ripple, true)
-            val title = TextView(ctx).apply {
-                text = "Verification Code"
-                setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorHeaderPrimary))
-                typeface = ResourcesCompat.getFont(ctx, Constants.Fonts.whitney_semibold)
-                textSize = 16f
-            }
-            codeView = TextView(ctx).apply {
-                setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorTextMuted))
-                textSize = 14f
-                typeface = ResourcesCompat.getFont(ctx, Constants.Fonts.sourcecodepro_semibold)
-                setPadding(0, 2.dp, 0, 0)
-            }
-            LinearLayout(ctx).apply {
-                id = verificationRowId
-                orientation = LinearLayout.VERTICAL
-                isClickable = true
-                isFocusable = true
-                setBackgroundResource(ripple.resourceId)
-                setPadding(16.dp, 10.dp, 16.dp, 10.dp)
-                layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
-                addView(title)
-                addView(codeView)
-                setOnClickListener {
-                    val c = codeView.text?.toString().orEmpty()
-                    if (c.isNotEmpty() && c != "Unavailable" && c != "…") {
-                        Utils.setClipboard("Verification code", c)
-                        Utils.showToast("Copied to clipboard")
-                    }
-                }
-                container.addView(this)
-            }
-        } else {
-            codeView = (existing as LinearLayout).getChildAt(1) as TextView
-        }
-        codeView.text = "…"
-        getPairwiseCode(userId.toString()) { c -> codeView.text = c ?: "Unavailable" }
-    }
-
-    private fun addDisableVideoRow(root: LinearLayout, userId: Long) {
-        if (userId == 0L) return
-        val container = (root.getChildAt(0) as? LinearLayout) ?: root
-        val ctx = container.context
-        val switch: SwitchMaterial
-        val existing = root.findViewById<View?>(disableVideoRowId)
-        if (existing == null) {
-            val title = TextView(ctx).apply {
-                text = "Disable Video"
-                setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorHeaderPrimary))
-                typeface = ResourcesCompat.getFont(ctx, Constants.Fonts.whitney_semibold)
-                textSize = 16f
-                layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
-            }
-            switch = SwitchMaterial(ctx)
-            LinearLayout(ctx).apply {
-                id = disableVideoRowId
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER_VERTICAL
-                setPadding(16.dp, 10.dp, 16.dp, 10.dp)
-                layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
-                addView(title)
-                addView(switch)
-                container.addView(this)
-            }
-        } else {
-            switch = (existing as LinearLayout).getChildAt(1) as SwitchMaterial
-        }
-        switch.setOnCheckedChangeListener(null)
-        switch.isChecked = videoDisabled[userId] == true
-        switch.setOnCheckedChangeListener { _, checked ->
-            videoDisabled[userId] = checked
-            currentSocket?.connections?.forEach { it.disableVideo(userId, checked) }
-        }
-    }
-
-    private fun patchUserSheetVerificationCode() {
+    private fun patchUserSheetView() {
         patcher.before<WidgetUserSheet>(
             "configureVoiceSection",
             WidgetUserSheetViewModel.ViewState.Loaded::class.java,
@@ -840,8 +676,8 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             UserProfileVoiceSettingsView.ViewState::class.java,
         ) {
             try {
-                addDisableVideoRow(this, sheetUserId)
-                addVerificationRow(this, sheetUserId)
+                addDisableVideoRow(currentSocket, this, sheetUserId)
+                addVerificationRow(currentSocket, this, sheetUserId)
             } catch (e: Throwable) {
                 logger.error("Failed to add user sheet voice rows", e)
             }

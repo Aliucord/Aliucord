@@ -2,6 +2,8 @@ package com.aliucord.coreplugins.voice
 
 import co.discord.media_engine.Connection
 import com.aliucord.Logger
+import com.aliucord.PluginManager
+import com.aliucord.Utils
 import com.discord.rtcconnection.RtcConnection
 import com.discord.rtcconnection.socket.io.Opcodes
 import okio.ByteString
@@ -97,4 +99,20 @@ fun RtcControlSocket.send(opcode: Int, bytes: ByteString) {
     val data = bytes.prepend(opcode.toByte())
     logger.debug("Sending opcode ${Opcodes.friendly(opcode)}: ${data.encodeBase64()} ")
     send(data)
+}
+
+fun RtcControlSocket?.pairwiseCode(userId: String, callback: (String?) -> Unit) {
+    val connection = this?.connections?.firstOrNull()
+    if (connection == null) {
+        callback(null)
+        return
+    }
+    runCatching {
+        connection.getMLSPairwiseFingerprintB64(1, userId) { fp ->
+            Utils.mainThread.post { callback(formatFingerprint(fp).ifEmpty { null }) }
+        }
+    }.onFailure {
+        PluginManager.logger.error("Failed to get pairwise fingerprint for $userId", it)
+        Utils.mainThread.post { callback(null) }
+    }
 }
