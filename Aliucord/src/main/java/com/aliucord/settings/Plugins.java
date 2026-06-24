@@ -121,34 +121,32 @@ public class Plugins extends SettingsPage {
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             Plugin p = data.get(position);
             Plugin.Manifest manifest = p.getManifest();
-            String name = p.getName();
-            boolean core = p instanceof CorePlugin;
+            boolean isCorePlugin = p instanceof CorePlugin;
+            boolean isEnabled = PluginManager.isPluginEnabled(p.getName());
+            boolean isToggleable = !isCorePlugin || !((CorePlugin) p).isRequired();
 
-            boolean enabled = PluginManager.isPluginEnabled(name);
-            boolean toggleable = !core || !((CorePlugin) p).isRequired();
-            boolean hasDescription = notBlank(manifest.description);
-
-            holder.card.switchHeader.setChecked(enabled);
-            holder.card.switchHeader.setButtonVisibility(toggleable);
+            holder.card.switchHeader.setChecked(isEnabled);
+            holder.card.switchHeader.setButtonVisibility(isToggleable);
             // TODO: Add a toast "Cannot stop required coreplugin ..."
-            holder.card.switchHeader.l.b().setClickable(toggleable);
+            holder.card.switchHeader.l.b().setClickable(isToggleable);
             holder.card.descriptionView.setText(MDUtils.render(manifest.description));
-            setVisible(holder.card.descriptionView, hasDescription);
+            setVisible(holder.card.descriptionView, notBlank(manifest.description));
 
-            boolean hasSettings = p.settingsTab != null;
-            boolean hasUninstall = notBlank(p.__filename);
-            boolean hasRepo = notBlank(manifest.updateUrl);
-            boolean hasChangelog = notBlank(manifest.changelog);
+            setVisible(holder.card.settingsButton, p.settingsTab != null);
+            holder.card.settingsButton.setEnabled(isEnabled);
+            setVisible(holder.card.uninstallButton, notBlank(p.__filename));
+            setVisible(holder.card.repoButton, notBlank(manifest.updateUrl));
+            setVisible(holder.card.changeLogButton, notBlank(manifest.changelog));
+            setVisible(holder.card.buttonLayout,
+                p.settingsTab != null ||
+                    notBlank(p.__filename) ||
+                    notBlank(manifest.updateUrl) ||
+                    notBlank(manifest.changelog) ||
+                    notBlank(manifest.description)
+            );
 
-            setVisible(holder.card.settingsButton, hasSettings);
-            holder.card.settingsButton.setEnabled(enabled);
-            setVisible(holder.card.uninstallButton, hasUninstall);
-            setVisible(holder.card.repoButton, hasRepo);
-            setVisible(holder.card.changeLogButton, hasChangelog);
-            setVisible(holder.card.buttonLayout, hasSettings || hasUninstall || hasRepo || hasChangelog || hasDescription);
-
-            String title = name
-                + (core ? " [BUILT-IN]"
+            String title = p.getName()
+                + (isCorePlugin ? " [BUILT-IN]"
                 : !"0.0.0".equals(manifest.version) ? " v" + manifest.version : "")
                 + (manifest.authors.length > 0 ? " by " + TextUtils.join(", ", manifest.authors) : "");
 
