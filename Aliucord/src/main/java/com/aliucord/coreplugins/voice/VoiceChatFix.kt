@@ -39,6 +39,7 @@ import com.discord.utilities.debug.DebugPrintBuilder
 import com.discord.widgets.settings.WidgetSettingsVoice
 import com.discord.widgets.voice.controls.VoiceControlsSheetView
 import com.discord.widgets.voice.sheet.WidgetVoiceSettingsBottomSheet
+import com.google.android.material.switchmaterial.SwitchMaterial
 import com.lytefast.flexinput.R
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
@@ -507,6 +508,8 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
 
     val encryptionViewId = View.generateViewId()
     private val connInfoViewId = View.generateViewId()
+    private val disableVideoRowId = View.generateViewId()
+    private val videoDisabled = HashMap<Long, Boolean>()
     private val verificationRowId = View.generateViewId()
     private var sheetUserId = 0L
     var newestCode = ""
@@ -790,6 +793,42 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         getPairwiseCode(userId.toString()) { c -> codeView.text = c ?: "Unavailable" }
     }
 
+    private fun addDisableVideoRow(root: LinearLayout, userId: Long) {
+        if (userId == 0L) return
+        val container = (root.getChildAt(0) as? LinearLayout) ?: root
+        val ctx = container.context
+        val switch: SwitchMaterial
+        val existing = root.findViewById<View?>(disableVideoRowId)
+        if (existing == null) {
+            val title = TextView(ctx).apply {
+                text = "Disable Video"
+                setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorHeaderPrimary))
+                typeface = ResourcesCompat.getFont(ctx, Constants.Fonts.whitney_semibold)
+                textSize = 16f
+                layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
+            }
+            switch = SwitchMaterial(ctx)
+            LinearLayout(ctx).apply {
+                id = disableVideoRowId
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(16.dp, 10.dp, 16.dp, 10.dp)
+                layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+                addView(title)
+                addView(switch)
+                container.addView(this)
+            }
+        } else {
+            switch = (existing as LinearLayout).getChildAt(1) as SwitchMaterial
+        }
+        switch.setOnCheckedChangeListener(null)
+        switch.isChecked = videoDisabled[userId] == true
+        switch.setOnCheckedChangeListener { _, checked ->
+            videoDisabled[userId] = checked
+            currentSocket?.connections?.forEach { it.disableVideo(userId, checked) }
+        }
+    }
+
     private fun patchUserSheetVerificationCode() {
         val sheetClass = runCatching { Class.forName("com.discord.widgets.user.usersheet.WidgetUserSheet") }.getOrNull() ?: return
         val viewClass = runCatching { Class.forName("com.discord.widgets.user.usersheet.UserProfileVoiceSettingsView") }.getOrNull() ?: return
@@ -806,8 +845,12 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
 
         viewClass.declaredMethods.firstOrNull { it.name == "updateView" }?.let { m ->
             patcher.patch(m, Hook { param ->
-                runCatching { addVerificationRow(param.thisObject as LinearLayout, sheetUserId) }
-                    .onFailure { logger.error("Failed to add verification row", it) }
+                runCatching {
+                    (param.thisObject as LinearLayout).let { view ->
+                        addDisableVideoRow(view, sheetUserId)
+                        addVerificationRow(view, sheetUserId)
+                    }
+                }.onFailure { logger.error("Failed to add user sheet voice rows", it) }
             })
         }
     }

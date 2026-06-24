@@ -2,9 +2,11 @@ package co.discord.media_engine
 
 import android.util.Log
 import com.discord.native.engine.NativeConnection
+import com.discord.native.engine.NativeEngine
 import com.google.gson.Gson
 import com.hammerandchisel.libdiscord.Discord
 import org.webrtc.VideoCapturer
+import java.util.concurrent.ConcurrentHashMap
 
 private val gson = Gson()
 
@@ -61,7 +63,7 @@ private data class TransportOptions(
 }
 
 @Suppress("unused")
-class Connection(private val native: NativeConnection, streamParameters: Discord.NewStreamParameters) : IConnection {
+class Connection(private val native: NativeConnection, streamParameters: Discord.NewStreamParameters, private val engine: NativeEngine) : IConnection {
     fun interface EncryptionModesCallback {
         fun onEncryptionModes(strArr: Array<String?>?)
     }
@@ -99,6 +101,7 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
     @Suppress("PrivatePropertyName")
     private val TAG = "VoiceChatFix"
     private var disposed: Boolean = false
+    private val userStreams = ConcurrentHashMap<Long, String>()
 
     init {
         set(TransportOptions(
@@ -148,9 +151,14 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
     }
     override fun deafenLocalUser(isDeafened: Boolean) = native.setSelfDeafen(isDeafened)
 
-    // TODO
-    override fun disableVideo(userId: Long, isDisabled: Boolean) {}
-    // fun disableVideo(j: Long, z2: Boolean) = userStreams[j]?.let { engine.setVideoOutputSink(it, null) }
+    // TODO: work in progress
+    override fun disableVideo(userId: Long, isDisabled: Boolean) {
+        val streamId = userStreams[userId]
+        Log.d(TAG, "disableVideo userId=$userId isDisabled=$isDisabled streamId=$streamId map=$userStreams")
+        if (!isDisabled) return
+        if (streamId.isNullOrEmpty()) return
+        engine.setVideoOutputSink(streamId, null)
+    }
 
     override fun dispose() {
         disposed = true
@@ -217,6 +225,8 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
     override fun setExpectedPacketLossRate(lossRate: Float) = set(TransportOptions(packetLossRate = lossRate))
     override fun setOnVideoCallback(onVideoCallback: OnVideoCallback) {
         native.setOnVideoCallback { userId, ssrc, streamId, videoStreamParametersJson ->
+            userStreams[userId.toLong()] = streamId
+            Log.d(TAG, "onVideo userId=$userId ssrc=$ssrc streamId=$streamId")
             onVideoCallback.onVideo(userId.toLong(), ssrc.toInt(), streamId, arrayOf())
         }
     }
@@ -288,7 +298,11 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
         }
         native.mergeUsers(gson.m(users))
     }
-    fun destroyUser(userId: String) = native.destroyUser(userId)
+    fun destroyUser(userId: String) {
+        Log.d(TAG, "connection/destroyUser: $userId")
+        userStreams.remove(userId.toLong())
+        native.destroyUser(userId)
+    }
 
     fun getMLSKeyPackageB64(callback: NativeConnection.MLSKeyPackageCallback) = native.getMLSKeyPackageB64(callback)
 

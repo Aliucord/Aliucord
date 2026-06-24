@@ -238,7 +238,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
                 )
             }, error)
         }
-        return Connection(nativeConnection, nParams)
+        return Connection(nativeConnection, nParams, nativeEngine)
     }
 
     fun crash() {} // only used in developer options
