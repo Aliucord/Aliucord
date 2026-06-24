@@ -195,8 +195,6 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         }
     }
 
-    private fun setLocalVoiceLevelChangedCallbackNative(z2: Boolean) { }
-
     override fun connectToServer(
         ssrc: Int,
         userId: Long,
@@ -220,7 +218,6 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         )
         val nativeConnection = nativeEngine.createVoiceConnection(
             userId.toString(),
-            // TODO
             gson.m(ConnectionOptions(
                 context = "default",
                 address = ip,
@@ -280,9 +277,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
             val capabilities = gson.g<Array<CodecCapability>>(capabilitiesJson, Array<CodecCapability>::class.java)
             Log.d(TAG, "Codec Capabilities: ${capabilities.contentToString()}")
             capabilities
-                // TODO FIXME: changed to any decodable for video codec
                 .filter { it.decode }
-                // .filter { it.decode && it.encode }
                 .map { it.codec }
                 .let { callback.onSupportedVideoCodecs(it.toTypedArray()); Log.d(TAG, "Supported Codecs: $it") }
         }
