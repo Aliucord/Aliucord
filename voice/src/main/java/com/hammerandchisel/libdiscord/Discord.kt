@@ -38,15 +38,6 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
     private val nativeEngine: NativeEngine
 
     private var disposed = false
-    private val transportCoalescer = TransportCoalescer<TransportOptions>(
-        "vcf-engine-transport",
-        { a, b -> a.mergeWith(b) },
-        { gson.m(it) },
-        { !disposed },
-    ) {
-        Log.d(TAG, "engine/transportOptions: $it")
-        nativeEngine.setTransportOptions(it)
-    }
 
     // START - Callback interfaces as defined in original class, do not edit!
 
@@ -256,7 +247,6 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
     fun crash() {} // only used in developer options
     fun dispose() {
         disposed = true
-        transportCoalescer.release()
         nativeEngine.dispose()
     }
 
@@ -346,7 +336,9 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
 
     private fun setTransportOptions(options: TransportOptions) {
         if (disposed) return
-        transportCoalescer.submit(options)
+        val json = gson.m(options)
+        Log.d(TAG, "engine/setTransportOptions: $json")
+        nativeEngine.setTransportOptions(json)
     }
     private fun TransportOptions.set() = setTransportOptions(this)
 
@@ -362,22 +354,3 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         }
     }
 }
-
-private fun TransportOptions.mergeWith(options: TransportOptions) = TransportOptions(
-    automaticGainControl = options.automaticGainControl ?: automaticGainControl,
-    automaticGainControlConfig = options.automaticGainControlConfig ?: automaticGainControlConfig,
-    av1Enabled = options.av1Enabled ?: av1Enabled,
-    builtInEchoCancellation = options.builtInEchoCancellation ?: builtInEchoCancellation,
-    bypassSystemProcessing = options.bypassSystemProcessing ?: bypassSystemProcessing,
-    ducking = options.ducking ?: ducking,
-    echoCancellation = options.echoCancellation ?: echoCancellation,
-    h264Enabled = options.h264Enabled ?: h264Enabled,
-    h265Enabled = options.h265Enabled ?: h265Enabled,
-    idleJitterBufferFlush = options.idleJitterBufferFlush ?: idleJitterBufferFlush,
-    noiseCancellation = options.noiseCancellation ?: noiseCancellation,
-    noiseCancellationAfterProcessing = options.noiseCancellationAfterProcessing ?: noiseCancellationAfterProcessing,
-    noiseCancellationDuringProcessing = options.noiseCancellationDuringProcessing ?: noiseCancellationDuringProcessing,
-    noiseSuppression = options.noiseSuppression ?: noiseSuppression,
-    vadAfterWebrtc = options.vadAfterWebrtc ?: vadAfterWebrtc,
-    voiceFilters = options.voiceFilters ?: voiceFilters,
-)

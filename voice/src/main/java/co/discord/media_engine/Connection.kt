@@ -100,16 +100,6 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
     private val TAG = "VoiceChatFix"
     private var disposed: Boolean = false
 
-    private val transportCoalescer = TransportCoalescer<TransportOptions>(
-        "vcf-conn-transport",
-        { a, b -> a.mergeWith(b) },
-        { gson.m(it) },
-        { !disposed },
-    ) {
-        Log.d(TAG, "connection/transportOptions: $it")
-        native.setTransportOptions(it)
-    }
-
     init {
         set(TransportOptions(
             encodingVideoDegradationPreference = 2,
@@ -164,7 +154,6 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
 
     override fun dispose() {
         disposed = true
-        transportCoalescer.release()
         native.dispose()
     }
 
@@ -276,7 +265,9 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
 
     private fun set(options: TransportOptions) {
         if (disposed) return
-        transportCoalescer.submit(options)
+        val json = gson.m(options)
+        Log.d(TAG, "connection/setTransportOptions: $json")
+        native.setTransportOptions(json)
     }
 
     private fun set(options: TransportOptions.InputModeOptions) =
@@ -335,59 +326,4 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
     fun updateMLSExternalSenderB64(externalSenderB64: String) {
         native.updateMLSExternalSenderB64(externalSenderB64)
     }
-}
-
-private fun TransportOptions.mergeWith(options: TransportOptions) = TransportOptions(
-    attenuateWhileSpeakingOthers = options.attenuateWhileSpeakingOthers ?: attenuateWhileSpeakingOthers,
-    attenuateWhileSpeakingSelf = options.attenuateWhileSpeakingSelf ?: attenuateWhileSpeakingSelf,
-    attenuation = options.attenuation ?: attenuation,
-    attenuationFactor = options.attenuationFactor ?: attenuationFactor,
-    audioDecoders = options.audioDecoders ?: audioDecoders,
-    audioEncoder = options.audioEncoder ?: audioEncoder,
-    callBitRate = options.callBitRate ?: callBitRate,
-    callMaxBitRate = options.callMaxBitRate ?: callMaxBitRate,
-    callMinBitRate = options.callMinBitRate ?: callMinBitRate,
-    captureVideoFrameRate = options.captureVideoFrameRate ?: captureVideoFrameRate,
-    encodingVideoBitRate = options.encodingVideoBitRate ?: encodingVideoBitRate,
-    encodingVideoDegradationPreference = options.encodingVideoDegradationPreference ?: encodingVideoDegradationPreference,
-    encodingVideoFrameRate = options.encodingVideoFrameRate ?: encodingVideoFrameRate,
-    encodingVideoHeight = options.encodingVideoHeight ?: encodingVideoHeight,
-    encodingVideoMaxBitRate = options.encodingVideoMaxBitRate ?: encodingVideoMaxBitRate,
-    encodingVideoMinBitRate = options.encodingVideoMinBitRate ?: encodingVideoMinBitRate,
-    encodingVideoWidth = options.encodingVideoWidth ?: encodingVideoWidth,
-    encodingVoiceBitRate = options.encodingVoiceBitRate ?: encodingVoiceBitRate,
-    encryptionSettings = options.encryptionSettings ?: encryptionSettings,
-    experimentalEncoders = options.experimentalEncoders ?: experimentalEncoders,
-    fec = options.fec ?: fec,
-    hardwareH264 = options.hardwareH264 ?: hardwareH264,
-    inputMode = options.inputMode ?: inputMode,
-    inputModeOptions = inputModeOptions?.mergeWith(options.inputModeOptions) ?: options.inputModeOptions,
-    minimumJitterBufferLevel = options.minimumJitterBufferLevel ?: minimumJitterBufferLevel,
-    packetLossRate = options.packetLossRate ?: packetLossRate,
-    postponeDecodeLevel = options.postponeDecodeLevel ?: postponeDecodeLevel,
-    prioritySpeakerDucking = options.prioritySpeakerDucking ?: prioritySpeakerDucking,
-    qos = options.qos ?: qos,
-    reconnectInterval = options.reconnectInterval ?: reconnectInterval,
-    remoteAudioHistoryMs = options.remoteAudioHistoryMs ?: remoteAudioHistoryMs,
-    remoteSinkWantsMaxFramerate = options.remoteSinkWantsMaxFramerate ?: remoteSinkWantsMaxFramerate,
-    remoteSinkWantsPixelCount = options.remoteSinkWantsPixelCount ?: remoteSinkWantsPixelCount,
-    selfMute = options.selfMute ?: selfMute,
-    softwareH264 = options.softwareH264 ?: softwareH264,
-    streamParameters = options.streamParameters ?: streamParameters,
-    videoDecoders = options.videoDecoders ?: videoDecoders,
-    videoEncoder = options.videoEncoder ?: videoEncoder,
-    videoEncoderExperiments = options.videoEncoderExperiments ?: videoEncoderExperiments,
-)
-
-private fun TransportOptions.InputModeOptions.mergeWith(options: TransportOptions.InputModeOptions?): TransportOptions.InputModeOptions {
-    options ?: return this
-    return TransportOptions.InputModeOptions(
-        vadAutoThreshold = options.vadAutoThreshold ?: vadAutoThreshold,
-        vadDuringPreProcess = options.vadDuringPreProcess ?: vadDuringPreProcess,
-        vadUseKrisp = options.vadUseKrisp ?: vadUseKrisp,
-        vadThreshold = options.vadThreshold ?: vadThreshold,
-        vadLeading = options.vadLeading ?: vadLeading,
-        vadTrailing = options.vadTrailing ?: vadTrailing,
-        vadKrispActivationThreshold = options.vadKrispActivationThreshold ?: vadKrispActivationThreshold,
-    )
 }
