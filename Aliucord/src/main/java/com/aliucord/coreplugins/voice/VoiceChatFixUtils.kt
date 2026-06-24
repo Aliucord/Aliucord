@@ -11,11 +11,20 @@ internal fun formatFingerprint(b64: String): String {
 
     if (data.size < DESIRED_LEN) return ""
 
-    return (0 until DESIRED_LEN step GROUP_SIZE).joinToString(" ") { start ->
-        (start until start + GROUP_SIZE)
-            .fold(0UL) { acc, index -> (acc shl 8) or data[index].toUByte().toULong() }
-            .rem(GROUP_MODULUS)
-            .toString()
-            .padStart(GROUP_SIZE, '0')
+    val sb = StringBuilder(DESIRED_LEN + DESIRED_LEN / GROUP_SIZE)
+
+    for (group in 0 until DESIRED_LEN / GROUP_SIZE) {
+        val start = group * GROUP_SIZE
+        var value = 0UL
+
+        for (index in 0 until GROUP_SIZE) {
+            value = (value shl 8) or data[start + index].toUByte().toULong()
+        }
+
+        if (group > 0) sb.append(' ')
+
+        sb.append((value % GROUP_MODULUS).toString().padStart(GROUP_SIZE, '0'))
     }
+
+    return sb.toString()
 }
