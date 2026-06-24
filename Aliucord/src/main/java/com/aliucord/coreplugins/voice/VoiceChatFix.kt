@@ -451,7 +451,9 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 }
             }
             Opcodes.DAVE_MLS_PROPOSALS -> {
-                // Binary frames skip queue, proposals beat SELECT_PROTOCOL_ACK.
+                // DAVE binary frames dispatch on a different path than JSON opcodes, so an inbound
+                // PROPOSALS frame can be processed before SELECT_PROTOCOL_ACK prepares the epoch.
+                // Queue it until the epoch is ready (handleOnProtocolSelectAck), then drain.
                 synchronized(pendingProposals) {
                     if (socket !in epochPreparedSockets) {
                         logger.debug("Epoch not prepared yet, queueing MLS proposals")
