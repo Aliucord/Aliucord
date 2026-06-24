@@ -145,25 +145,25 @@ public class Plugins extends SettingsPage {
                     notBlank(manifest.description)
             );
 
-            String title = p.getName()
-                + (isCorePlugin ? " [BUILT-IN]"
-                : !"0.0.0".equals(manifest.version) ? " v" + manifest.version : "")
-                + (manifest.authors.length > 0 ? " by " + TextUtils.join(", ", manifest.authors) : "");
+            SpannableStringBuilder title = new SpannableStringBuilder(p.getName());
+            if (isCorePlugin) title.append(" [BUILT-IN]");
+            if (!"0.0.0".equals(manifest.version)) title.append(" v").append(manifest.version);
 
-            SpannableString spannableTitle = new SpannableString(title);
-            for (Plugin.Manifest.Author author : manifest.authors) {
-                if (Objects.requireNonNull(author).id < 1 || !author.hyperlink) continue;
-                int i = title.indexOf(author.name);
-                if (i < 0) continue;
-                spannableTitle.setSpan(new ClickableSpan() {
+            for (int i = 0; i < manifest.authors.length; i++) {
+                Plugin.Manifest.Author author = Objects.requireNonNull(manifest.authors[i]);
+                title.append(i == 0 ? " by " : ", ");
+                int start = title.length();
+                title.append(author.name);
+                if (author.id < 1 || !author.hyperlink) continue;
+                title.setSpan(new ClickableSpan() {
                     @Override
                     public void onClick(@NonNull View widget) {
                         WidgetUserSheet.Companion.show(author.id, fragment.getParentFragmentManager());
                     }
-                }, i, i + author.name.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }, start, title.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
 
-            holder.card.titleView.setText(spannableTitle);
+            holder.card.titleView.setText(title);
         }
 
         private final Filter filter = new Filter() {
