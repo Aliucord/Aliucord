@@ -37,6 +37,9 @@ import com.discord.stores.StoreMediaSettings
 import com.discord.utilities.color.ColorCompat
 import com.discord.utilities.debug.DebugPrintBuilder
 import com.discord.widgets.settings.WidgetSettingsVoice
+import com.discord.widgets.user.usersheet.UserProfileVoiceSettingsView
+import com.discord.widgets.user.usersheet.WidgetUserSheet
+import com.discord.widgets.user.usersheet.WidgetUserSheetViewModel
 import com.discord.widgets.voice.controls.VoiceControlsSheetView
 import com.discord.widgets.voice.sheet.WidgetVoiceSettingsBottomSheet
 import com.google.android.material.switchmaterial.SwitchMaterial
@@ -830,28 +833,27 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     }
 
     private fun patchUserSheetVerificationCode() {
-        val sheetClass = runCatching { Class.forName("com.discord.widgets.user.usersheet.WidgetUserSheet") }.getOrNull() ?: return
-        val viewClass = runCatching { Class.forName("com.discord.widgets.user.usersheet.UserProfileVoiceSettingsView") }.getOrNull() ?: return
-
-        sheetClass.declaredMethods.firstOrNull { it.name == "configureVoiceSection" }?.let { m ->
-            patcher.patch(m, PreHook { param ->
-                sheetUserId = runCatching {
-                    val vs = param.args[0] ?: return@runCatching 0L
-                    val user = vs.javaClass.getMethod("getUser").invoke(vs) ?: return@runCatching 0L
-                    user.javaClass.getMethod("getId").invoke(user) as Long
-                }.getOrDefault(0L)
-            })
+        patcher.before<WidgetUserSheet>(
+            "configureVoiceSection",
+            WidgetUserSheetViewModel.ViewState.Loaded::class.java,
+        ) { param ->
+            sheetUserId = runCatching {
+                val vs = param.args[0] ?: return@runCatching 0L
+                val user = vs.javaClass.getMethod("getUser").invoke(vs) ?: return@runCatching 0L
+                user.javaClass.getMethod("getId").invoke(user) as Long
+            }.getOrDefault(0L)
         }
 
-        viewClass.declaredMethods.firstOrNull { it.name == "updateView" }?.let { m ->
-            patcher.patch(m, Hook { param ->
-                runCatching {
-                    (param.thisObject as LinearLayout).let { view ->
-                        addDisableVideoRow(view, sheetUserId)
-                        addVerificationRow(view, sheetUserId)
-                    }
-                }.onFailure { logger.error("Failed to add user sheet voice rows", it) }
-            })
+        patcher.after<UserProfileVoiceSettingsView>(
+            "updateView",
+            UserProfileVoiceSettingsView.ViewState::class.java,
+        ) { param ->
+            runCatching {
+                (param.thisObject as LinearLayout).let { view ->
+                    addDisableVideoRow(view, sheetUserId)
+                    addVerificationRow(view, sheetUserId)
+                }
+            }.onFailure { logger.error("Failed to add user sheet voice rows", it) }
         }
     }
 
