@@ -838,13 +838,13 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         patcher.after<UserProfileVoiceSettingsView>(
             "updateView",
             UserProfileVoiceSettingsView.ViewState::class.java,
-        ) { param ->
-            runCatching {
-                (param.thisObject as LinearLayout).let { view ->
-                    addDisableVideoRow(view, sheetUserId)
-                    addVerificationRow(view, sheetUserId)
-                }
-            }.onFailure { logger.error("Failed to add user sheet voice rows", it) }
+        ) {
+            try {
+                addDisableVideoRow(this, sheetUserId)
+                addVerificationRow(this, sheetUserId)
+            } catch (e: Throwable) {
+                logger.error("Failed to add user sheet voice rows", e)
+            }
         }
     }
 
