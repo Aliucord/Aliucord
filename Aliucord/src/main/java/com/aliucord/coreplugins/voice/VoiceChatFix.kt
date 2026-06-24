@@ -547,8 +547,8 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         if (head.isNotEmpty()) sb.append(head).append("\n\n")
         // Fallback to the previous socket if the current one is inactive to keep the
         // overlay populated instead of going blank.
-        val rtc = currentSocket?.rtcConnections?.firstOrNull()
-            ?: prevSocket?.rtcConnections?.firstOrNull()
+        val rtc = currentSocket.firstConnectionOrNull(prevSocket)
+
         if (rtc != null) {
             runCatching {
                 val b = StringBuilder()
@@ -558,6 +558,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         } else if (head.isEmpty()) {
             sb.append("Not connected")
         }
+
         connInfoText = sb.toString().ifEmpty { "Not connected" }
         onConnInfoUpdate(connInfoText)
     }

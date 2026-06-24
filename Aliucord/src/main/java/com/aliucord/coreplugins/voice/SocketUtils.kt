@@ -101,6 +101,9 @@ fun RtcControlSocket.send(opcode: Int, bytes: ByteString) {
     send(data)
 }
 
+fun RtcControlSocket?.firstConnectionOrNull(fallback: RtcControlSocket?): RtcConnection? =
+    this?.rtcConnections?.firstOrNull() ?: fallback?.rtcConnections?.firstOrNull()
+
 fun RtcControlSocket?.pairwiseCode(userId: String, callback: (String?) -> Unit) {
     val connection = this?.connections?.firstOrNull()
     if (connection == null) {
