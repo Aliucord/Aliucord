@@ -24,7 +24,7 @@ import com.aliucord.updater.ManagerBuild
 import com.aliucord.utils.DimenUtils.dp
 import com.aliucord.utils.GsonUtils
 import com.aliucord.utils.GsonUtils.fromJson
-import com.aliucord.utils.ReflectUtils
+import com.aliucord.utils.accessField
 import com.aliucord.utils.SemVer
 import com.aliucord.utils.ViewUtils.addTo
 import com.discord.play_delivery.PlayAssetDeliveryNativeWrapper
@@ -75,6 +75,8 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
 
     @Volatile
     private var supportedModes: List<String>? = null
+
+    private var Payloads.Stream.maxFrameRateField by accessField<Int?>("maxFrameRate")
 
     private companion object {
         // Native libs and webrtc dex are built together (aliuvoice aar)
@@ -189,7 +191,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 // Request & override a higher framerate from the server
                 runCatching {
                     d.streams.forEach { stream ->
-                        ReflectUtils.setField(stream, "maxFrameRate", VoiceChatFixSettings.videoFramerate)
+                        stream.maxFrameRateField = VoiceChatFixSettings.videoFramerate
                     }
                 }.onFailure { logger.error("Failed to set stream maxFrameRate", it) }
                 param.args[1] = NewIdentifyPayload(
