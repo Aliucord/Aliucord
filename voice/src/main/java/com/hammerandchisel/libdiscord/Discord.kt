@@ -269,9 +269,10 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
     // replace b.a.q.m0.a (Codec) with new one with decode/encode fields,
     // then patch b.a.q.m0.c.p.onSupportedVideoCodecs to return full decode/encode info for
     // all codecs to send in select protocol; this potentially lets the server know we can
-    // decode more things
-    // However, RN just only uses codecs that are both decodable and encodable, so we will
-    // copy that behaviour for now
+    // decode more things.
+    // RsN advertises only codec that are both decodable and encodable, we intentionally
+    // diverge and advertise anything decodable, so the server can route inbound video in
+    // codecs we can't encode (our own outbound stream still selects an encodable codec).
     override fun getSupportedVideoCodecs(callback: GetSupportedVideoCodecsCallback) {
         nativeEngine.getCodecCapabilities { capabilitiesJson ->
             val capabilities = gson.g<Array<CodecCapability>>(capabilitiesJson, Array<CodecCapability>::class.java)
