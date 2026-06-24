@@ -8,8 +8,11 @@ package com.aliucord.utils
 
 import com.discord.models.domain.Model
 import com.google.gson.Gson
+import com.google.gson.JsonElement
 import java.io.Reader
 import java.lang.reflect.Type
+import kotlin.reflect.javaType
+import kotlin.reflect.typeOf
 import b.a.b.a as TypeAdapterRegistrar
 import b.i.d.c as FieldNamingPolicy
 import b.i.d.e as GsonBuilder
@@ -50,6 +53,15 @@ object GsonUtils {
     }
 
     /**
+     * Deserializes a JSON element into the specified class
+     * @param element The JSON element to deserialize
+     * @param clazz The class to deserialize the JSON into
+     * @return Deserialized JSON
+     */
+    @JvmStatic
+    fun <T> Gson.fromJson(element: JsonElement?, clazz: Class<T>): T = c(element, clazz)
+
+    /**
      * Deserializes a JSON string into the specified class
      * @param json The JSON string to deserialize
      * @param clazz The class to deserialize the JSON into
@@ -83,6 +95,9 @@ object GsonUtils {
      */
     @JvmStatic
     fun <T> Gson.fromJson(json: String?, type: Type?): T = g(json, type)
+
+    @OptIn(ExperimentalStdlibApi::class)
+    inline fun <reified T> Gson.fromJson(json: String?): T = g(json, typeOf<T>().javaType)
 
     @JvmStatic
     @Deprecated("Use kt extension for Gson", ReplaceWith("gson.fromJson(json, type)"))
