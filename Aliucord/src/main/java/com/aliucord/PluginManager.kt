@@ -317,11 +317,11 @@ object PluginManager {
             RemoveBilling(),
             RestartButton(),
             ShowReplyMentionFix(),
-            VoiceChatFix(),
             SupportWarn(),
             SupporterBadges(),
             TokenLogin(),
             UploadSize(),
+            VoiceChatFix(),
         )
 
         val safeMode = isSafeModeEnabled();
