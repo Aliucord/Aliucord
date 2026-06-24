@@ -540,6 +540,8 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         debugInfo.entries.joinToString("\n") { "${it.key}:  ${it.value}" }
 
     private fun refreshConnInfo() {
+        if (!VoiceChatFixSettings.showConnInfo) return
+
         val sb = StringBuilder()
         val head = renderDebugInfo()
         if (head.isNotEmpty()) sb.append(head).append("\n\n")
