@@ -273,7 +273,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                         @SuppressLint("CheckResult")
                         a.remove("pixelCounts")
                     })
-                else -> logger.warn("Unhandled Opcode: ${message.opcode}")
+                else -> logger.warn("Unhandled Opcode: ${Opcodes.friendly(message.opcode)}")
             }
         }
 
