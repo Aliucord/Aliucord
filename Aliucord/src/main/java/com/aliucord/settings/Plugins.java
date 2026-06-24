@@ -130,19 +130,19 @@ public class Plugins extends SettingsPage {
             // TODO: Add a toast "Cannot stop required coreplugin ..."
             holder.card.switchHeader.l.b().setClickable(isToggleable);
             holder.card.descriptionView.setText(MDUtils.render(manifest.description));
-            setVisible(holder.card.descriptionView, notBlank(manifest.description));
+            setVisible(holder.card.descriptionView, isNotBlank(manifest.description));
 
             setVisible(holder.card.settingsButton, p.settingsTab != null);
             holder.card.settingsButton.setEnabled(isEnabled);
-            setVisible(holder.card.uninstallButton, notBlank(p.__filename));
-            setVisible(holder.card.repoButton, notBlank(manifest.updateUrl));
-            setVisible(holder.card.changeLogButton, notBlank(manifest.changelog));
+            setVisible(holder.card.uninstallButton, isNotBlank(p.__filename));
+            setVisible(holder.card.repoButton, isNotBlank(manifest.updateUrl));
+            setVisible(holder.card.changeLogButton, isNotBlank(manifest.changelog));
             setVisible(holder.card.buttonLayout,
                 p.settingsTab != null ||
-                    notBlank(p.__filename) ||
-                    notBlank(manifest.updateUrl) ||
-                    notBlank(manifest.changelog) ||
-                    notBlank(manifest.description)
+                    isNotBlank(p.__filename) ||
+                    isNotBlank(manifest.updateUrl) ||
+                    isNotBlank(manifest.changelog) ||
+                    isNotBlank(manifest.description)
             );
 
             SpannableStringBuilder title = new SpannableStringBuilder(p.getName());
@@ -299,7 +299,7 @@ public class Plugins extends SettingsPage {
             v.setVisibility(visible ? View.VISIBLE : View.GONE);
         }
 
-        private static boolean notBlank(String s) {
+        private static boolean isNotBlank(String s) {
             return s != null && !s.isBlank();
         }
     }
