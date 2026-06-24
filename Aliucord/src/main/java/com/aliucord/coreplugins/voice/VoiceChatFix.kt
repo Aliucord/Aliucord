@@ -831,12 +831,8 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         patcher.before<WidgetUserSheet>(
             "configureVoiceSection",
             WidgetUserSheetViewModel.ViewState.Loaded::class.java,
-        ) { param ->
-            sheetUserId = runCatching {
-                val vs = param.args[0] ?: return@runCatching 0L
-                val user = vs.javaClass.getMethod("getUser").invoke(vs) ?: return@runCatching 0L
-                user.javaClass.getMethod("getId").invoke(user) as Long
-            }.getOrDefault(0L)
+        ) { (_, state: WidgetUserSheetViewModel.ViewState.Loaded) ->
+            sheetUserId = state.user.id
         }
 
         patcher.after<UserProfileVoiceSettingsView>(
