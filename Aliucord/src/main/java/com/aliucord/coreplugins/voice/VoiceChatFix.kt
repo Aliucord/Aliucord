@@ -354,11 +354,6 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                         connection.executeSecureFramesTransition(payload.transitionId)
                     }
                     is VoiceChatFixPayload.DavePrepareEpoch -> {
-                        // MLS group id is the rtcServerId-derived groupId, NOT the channelId.
-                        // Using channelId reinitialises the MLS session with the wrong group, so the
-                        // server's commit/welcome no longer match ("Unexpected group ID in MLS welcome"),
-                        // the join fails (joined:false -> DAVE_MLS_INVALID_COMMIT_WELCOME) and the
-                        // encryptor falls back to a dead key ratchet, leaving viewers unable to decrypt.
                         val groupId = socket.rtcConnection?.groupId
                         logger.debug("Preparing secure frames epoch (request) for $groupId")
                         connection.prepareSecureFramesEpoch(
