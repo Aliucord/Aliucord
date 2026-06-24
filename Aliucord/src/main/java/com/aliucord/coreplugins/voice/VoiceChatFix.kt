@@ -47,6 +47,7 @@ import com.lytefast.flexinput.R
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
+import org.json.JSONObject
 import java.io.File
 import java.util.Collections
 import java.util.WeakHashMap
@@ -70,15 +71,14 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     private val epochPreparedSockets = Collections.newSetFromMap(WeakHashMap<RtcControlSocket, Boolean>())
     private val pendingProposals = WeakHashMap<RtcControlSocket, MutableList<ByteString>>()
     private var prevSocket: RtcControlSocket? = null
+    @Volatile
+    private var supportedModes: List<String>? = null
 
     private val libVersion = runCatching {
         Class.forName("com.aliucord.voice.BuildConfig")
             .getField("VERSION")
             .get(null) as String
     }.getOrNull()
-
-    @Volatile
-    private var supportedModes: List<String>? = null
 
     private var Payloads.Stream.maxFrameRateField by accessField<Int?>("maxFrameRate")
 
@@ -265,7 +265,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             val message = param.args[2] as Payloads.Incoming
             when (message.opcode) {
                 Opcodes.READY -> runCatching {
-                    val modes = org.json.JSONObject(message.data.toString()).optJSONArray("modes")
+                    val modes = JSONObject(message.data.toString()).optJSONArray("modes")
                     supportedModes = modes?.let { arr -> List(arr.length()) { arr.getString(it) } }
                 }.onFailure { logger.error("Failed to read READY transport modes", it) }
                 Opcodes.MEDIA_SINK_WANTS ->
