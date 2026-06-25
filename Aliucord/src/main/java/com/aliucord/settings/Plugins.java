@@ -121,33 +121,49 @@ public class Plugins extends SettingsPage {
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             Plugin p = data.get(position);
             Plugin.Manifest manifest = p.getManifest();
+            boolean isCorePlugin = p instanceof CorePlugin;
+            boolean isEnabled = PluginManager.isPluginEnabled(p.getName());
+            boolean isToggleable = !isCorePlugin || !((CorePlugin) p).isRequired();
 
-            boolean enabled = PluginManager.isPluginEnabled(p.getName());
-            holder.card.switchHeader.setChecked(enabled);
-            holder.card.switchHeader.setButtonVisibility(!(p instanceof CorePlugin) || !((CorePlugin) p).isRequired());
-            holder.card.descriptionView.setText(MDUtils.render(p.getManifest().description));
-            holder.card.settingsButton.setVisibility(p.settingsTab != null ? View.VISIBLE : View.GONE);
-            holder.card.settingsButton.setEnabled(enabled);
-            holder.card.uninstallButton.setVisibility(p.__filename != null ? View.VISIBLE : View.GONE);
-            holder.card.repoButton.setVisibility(p.getManifest().updateUrl != null ? View.VISIBLE : View.GONE);
-            holder.card.changeLogButton.setVisibility(p.getManifest().changelog != null ? View.VISIBLE : View.GONE);
+            holder.card.switchHeader.setChecked(isEnabled);
+            holder.card.switchHeader.setButtonVisibility(isToggleable);
+            // TODO: Add a toast "Cannot stop required coreplugin ..."
+            holder.card.switchHeader.l.b().setClickable(isToggleable);
+            holder.card.descriptionView.setText(MDUtils.render(manifest.description));
+            setVisible(holder.card.descriptionView, isNotBlank(manifest.description));
 
-            String title = p instanceof CorePlugin
-                ? String.format("%s [BUILT-IN]", p.getName())
-                : String.format("%s v%s by %s", p.getName(), manifest.version, TextUtils.join(", ", manifest.authors));
-            SpannableString spannableTitle = new SpannableString(title);
-            for (Plugin.Manifest.Author author : manifest.authors) {
+            setVisible(holder.card.settingsButton, p.settingsTab != null);
+            holder.card.settingsButton.setEnabled(isEnabled);
+            setVisible(holder.card.uninstallButton, isNotBlank(p.__filename));
+            setVisible(holder.card.repoButton, isNotBlank(manifest.updateUrl));
+            setVisible(holder.card.changeLogButton, isNotBlank(manifest.changelog));
+            setVisible(holder.card.buttonLayout,
+                p.settingsTab != null ||
+                    isNotBlank(p.__filename) ||
+                    isNotBlank(manifest.updateUrl) ||
+                    isNotBlank(manifest.changelog) ||
+                    isNotBlank(manifest.description)
+            );
+
+            SpannableStringBuilder title = new SpannableStringBuilder(p.getName());
+            if (isCorePlugin) title.append(" [BUILT-IN]");
+            if (!"0.0.0".equals(manifest.version)) title.append(" v").append(manifest.version);
+
+            for (int i = 0; i < manifest.authors.length; i++) {
+                Plugin.Manifest.Author author = Objects.requireNonNull(manifest.authors[i]);
+                title.append(i == 0 ? " by " : ", ");
+                int start = title.length();
+                title.append(author.name);
                 if (author.id < 1 || !author.hyperlink) continue;
-                int i = title.indexOf(author.name, p.getName().length() + 2 + manifest.version.length() + 3);
-                spannableTitle.setSpan(new ClickableSpan() {
+                title.setSpan(new ClickableSpan() {
                     @Override
                     public void onClick(@NonNull View widget) {
                         WidgetUserSheet.Companion.show(author.id, fragment.getParentFragmentManager());
                     }
-                }, i, i + author.name.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }, start, title.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
 
-            holder.card.titleView.setText(spannableTitle);
+            holder.card.titleView.setText(title);
         }
 
         private final Filter filter = new Filter() {
@@ -165,7 +181,7 @@ public class Plugins extends SettingsPage {
                         Plugin.Manifest manifest = p.getManifest();
                         if (manifest.description.toLowerCase().contains(search)) return true;
                         for (Plugin.Manifest.Author author : manifest.authors)
-                            if (author.name.toLowerCase().contains(search)) return true;
+                            if (Objects.requireNonNull(author).name.toLowerCase().contains(search)) return true;
                         return false;
                     });
                 }
@@ -207,8 +223,8 @@ public class Plugins extends SettingsPage {
         }
 
         private String getGithubUrl(Plugin plugin) {
-            return plugin
-                .getManifest().updateUrl.replaceFirst(
+            return Objects.requireNonNull(plugin
+                .getManifest().updateUrl).replaceFirst(
                     "https://(raw\\.githubusercontent\\.com|cdn\\.jsdelivr\\.net/gh)/([^/]+)/([^/@]+).*",
                     "https://github.com/$2/$3"
                 );
@@ -277,6 +293,14 @@ public class Plugins extends SettingsPage {
 
         public static boolean filterCorePlugins(Plugin p) {
             return !(p instanceof CorePlugin);
+        }
+
+        private static void setVisible(View v, boolean visible) {
+            v.setVisibility(visible ? View.VISIBLE : View.GONE);
+        }
+
+        private static boolean isNotBlank(String s) {
+            return s != null && !s.isBlank();
         }
     }
 
