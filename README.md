@@ -85,6 +85,6 @@ punished by Discord for using Aliucord with the official plugins, use it at your
 
 - [LSPlant](https://github.com/LSPosed/LSPlant) - A hook framework for Android Runtime (ART)
 - [Pine](https://github.com/canyie/pine) - Dynamic java method hook framework on ART
-- [apktool](https://ibotpeaches.github.io/Apktool/) - A tool for reverse engineering Android apk files
+- [apktool](https://apktool.org/) - A tool for reverse engineering Android apk files
 - [jadx](https://github.com/skylot/jadx) - Dex to Java decompiler
 - [dex2jar](https://github.com/pxb1988/dex2jar) - Tools to work with android .dex and java .class files
