@@ -201,8 +201,9 @@ fun patchDefaultAvatars() {
                 val size = it.args[4] as Int?
                 val ext = IconUtils.INSTANCE.getImageExtension(avatar, animated)
 
+                // Using &, as webp corefix already adds a query parameter in IconUtils.getImageExtension
                 "https://cdn.discordapp.com/avatars/$id/$avatar.$ext" +
-                    (size?.let { "?size=${IconUtils.getMediaProxySize(size)}" } ?: "")
+                    (size?.let { "&size=${IconUtils.getMediaProxySize(size)}" } ?: "")
             } else {
                 val discrim = it.args[2] as Int?
 
