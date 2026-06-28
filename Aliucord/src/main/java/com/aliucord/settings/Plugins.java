@@ -26,8 +26,8 @@ import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.ConfirmDialog;
 import com.aliucord.fragments.SettingsPage;
 import com.aliucord.utils.*;
-import com.aliucord.views.Button;
 import com.aliucord.views.*;
+import com.aliucord.views.Button;
 import com.aliucord.widgets.PluginCard;
 import com.discord.app.AppBottomSheet;
 import com.discord.app.AppFragment;
@@ -41,7 +41,7 @@ import kotlin.comparisons.ComparisonsKt;
 
 public class Plugins extends SettingsPage {
     public static class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> implements Filterable {
-        @SuppressWarnings({"deprecation", "RedundantSuppression"})
+        @SuppressWarnings({ "deprecation", "RedundantSuppression" })
         public static final class ViewHolder extends RecyclerView.ViewHolder {
             private final Adapter adapter;
             public final PluginCard card;
@@ -97,7 +97,7 @@ public class Plugins extends SettingsPage {
             ctx = fragment.requireContext();
 
             this.originalData = new ArrayList<>(plugins);
-            originalData.removeIf(p -> p instanceof CorePlugin && ((CorePlugin)p).isHidden());
+            originalData.removeIf(p -> p instanceof CorePlugin && ((CorePlugin) p).isHidden());
             originalData.sort(ComparisonsKt.compareBy(
                 p -> p instanceof CorePlugin, // coreplugins last
                 Plugin::getName // Natural order by title
@@ -183,14 +183,17 @@ public class Plugins extends SettingsPage {
                     public int getOldListSize() {
                         return getItemCount();
                     }
+
                     @Override
                     public int getNewListSize() {
                         return res.size();
                     }
+
                     @Override
                     public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
                         return data.get(oldItemPosition).getName().equals(res.get(newItemPosition).getName());
                     }
+
                     @Override
                     public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
                         return true;
@@ -339,19 +342,20 @@ public class Plugins extends SettingsPage {
         DividerItemDecoration decoration = new DividerItemDecoration(context, DividerItemDecoration.VERTICAL);
         decoration.setDrawable(shape);
         recyclerView.addItemDecoration(decoration);
-        recyclerView.setPadding(0, padding, 0, 0);
-
+        recyclerView.setPadding(0, padding, 0, padding * 3);
+        recyclerView.setClipToPadding(false);
         addView(input);
         addView(recyclerView);
-
         EditText editText = input.getEditText();
         editText.setMaxLines(1);
         editText.addTextChangedListener(new TextWatcher() {
             public void afterTextChanged(Editable s) {
                 adapter.getFilter().filter(s);
             }
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
         });
 
         getHeaderBar().getMenu()
@@ -366,6 +370,7 @@ public class Plugins extends SettingsPage {
                 return true;
             });
     }
+
     public void onOpenManagerClick(View view) {
         Intent intent = new Intent("com.aliucord.manager.OPEN_PLUGINS");
         intent.setClassName("com.aliucord.manager", "com.aliucord.manager.MainActivity");
