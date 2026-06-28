@@ -187,7 +187,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             tryPatch("Fix force-dark theming") {
                 patcher.after<Activity>("onCreate", Bundle::class.java) { (_, _: Bundle?) ->
-                    window?.setForceDarkAllowed(false)
+                    window?.decorView?.setForceDarkAllowed(false)
                 }
             }
         }
