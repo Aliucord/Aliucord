@@ -1,0 +1,82 @@
+name: Fetch and Cache Contributors
+on:
+  schedule:
+    - cron: '0 0 1 * *'
+  workflow_dispatch:
+jobs:
+  fetch-contributors:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout builds branch
+      uses: actions/checkout@v4
+      with:
+        ref: builds
+    - name: Fetch and Format Contributors
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        OUTPUT_FILE="all_contributors.json"
+        echo "[]" > $OUTPUT_FILE
+        
+        ORG_NAME="Aliucord"
+        echo "Discovering repositories for organization: $ORG_NAME..."
+        REPOS_JSON=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Accept: application/vnd.github+json" \
+          "https://api.github.com/orgs/$ORG_NAME/repos?per_page=100&type=public")
+        if echo "$REPOS_JSON" | jq empty; then
+          REPOS=($(echo "$REPOS_JSON" | jq -r '.[] | select(.fork == false) | .full_name'))
+          echo "Found ${#REPOS[@]} repositories to scan."
+        else
+          echo "::error:: Failed to fetch repository listing for organization $ORG_NAME"
+          exit 1
+        fi
+        for REPO in "${REPOS[@]}"; do
+          echo "Fetching contributors for $REPO..."
+          
+          RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$REPO/contributors?per_page=100")
+            
+          if echo "$RESPONSE" | jq empty; then
+            FORMATTED_DATA=$(echo "$RESPONSE" | jq --arg repo "$REPO" '
+              [ .[] | 
+                select(.type == "User" and .login != "actions-user" and .login != "crowdin-bot") | 
+                {
+                  username: .login, 
+                  avatarUrl: .avatar_url, 
+                  commits: .contributions, 
+                  repositories: [{name: $repo, commits: .contributions}]
+                }
+              ]')
+            
+            jq -s '
+              (.[0] + .[1]) |
+              group_by(.username) |
+              map({
+                username: .[0].username,
+                avatarUrl: .[0].avatarUrl,
+                commits: map(.commits) | add,
+                repositories: map(.repositories) | add
+              })
+            ' $OUTPUT_FILE <(echo "$FORMATTED_DATA") > temp.json
+            mv temp.json $OUTPUT_FILE
+          else
+            echo "::error:: Failed to fetch or parse JSON for $REPO"
+          fi
+        done
+        
+        echo "Data successfully structured inside $OUTPUT_FILE"
+    - name: Commit and Push to builds branch
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add all_contributors.json
+        
+        if ! git diff-index --quiet HEAD; then
+          git commit -m "chore: automated update of cached contributors"
+          git push origin builds
+        else
+          echo "No changes detected in contributor counts. Skipping commit."
+        fi
