@@ -99,6 +99,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixStockEmojis()
         fixAutoModEmbed()
         fixKeyboardCrash()
+        fixForceDark()
         fixAnimatedWebp()
         fixAnimatedPreviews()
         fixMemberListGroups()
@@ -177,6 +178,16 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                     WindowInsetsAnimation.Bounds::class.java
                 ) { (param, animation: WindowInsetsAnimation) ->
                     if (animation.durationMillis < 0) param.result = param.args[1]
+                }
+            }
+        }
+    }
+
+    private fun fixForceDark() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            tryPatch("Fix force-dark theming") {
+                patcher.after<Activity>("onCreate", Bundle::class.java) { (_, _: Bundle?) ->
+                    window?.setForceDarkAllowed(false)
                 }
             }
         }
