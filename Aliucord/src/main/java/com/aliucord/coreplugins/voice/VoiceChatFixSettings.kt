@@ -1,9 +1,6 @@
 package com.aliucord.coreplugins.voice
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.InputType
-import android.text.TextWatcher
 import android.transition.TransitionManager
 import android.view.Gravity
 import android.view.View
@@ -14,7 +11,6 @@ import android.widget.SeekBar
 import android.widget.TextView
 import com.aliucord.Utils
 import com.aliucord.api.SettingsAPI
-import com.aliucord.settings.SettingsDelegate
 import com.aliucord.settings.delegate
 import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.DimenUtils.dp
@@ -70,6 +66,7 @@ internal object VoiceChatFixSettings {
 
             val ctx = requireContext()
             val p = DimenUtils.defaultPadding
+            val inputs = mutableListOf<TextInput>()
             var allowSettings by iKnowWhatImDoingDelegate
 
             LinearLayout(ctx).addTo(linearLayout) warningLayout@{
@@ -101,9 +98,7 @@ internal object VoiceChatFixSettings {
             }
 
             settingsLayout = LinearLayout(ctx).addTo(linearLayout) {
-                lateinit var bitrateInput: TextInput
                 lateinit var fpsLabel: TextView
-                lateinit var encoderInput: TextInput
 
                 orientation = LinearLayout.VERTICAL
                 visibility = if (iKnowWhatImDoing) View.VISIBLE else View.GONE
@@ -151,26 +146,16 @@ internal object VoiceChatFixSettings {
                     text = "Video / Screenshare"
                 }
 
-                bitrateInput = TextInput(ctx, "Bitrate (kbps)", videoBitrateKbps.toString(), object : TextWatcher {
-                    override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
-                    override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
-                    override fun afterTextChanged(s: Editable?) {
-                        val kbps = s?.toString()?.trim()?.toIntOrNull()
-
-                        if (kbps == null || kbps < 8) { bitrateInput.editText.error = "Value must be 8 or higher"; return }
-                        bitrateInput.editText.error = null
-
-                        var setting by videoBitrateKbpsDelegate
-                        setting = kbps
-                    }
-                }).addTo(this) {
-                    layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
-                        marginStart = p
-                        marginEnd = p
-                    }
-                    editText.inputType = InputType.TYPE_CLASS_NUMBER
-                    editText.hint = DEFAULT_VIDEO_BITRATE_KBPS.toString()
-                }
+                validate(
+                    this@Sheet,
+                    inputs,
+                    "Bitrate (kbps)",
+                    videoBitrateKbps,
+                    DEFAULT_VIDEO_BITRATE_KBPS,
+                    8..Int.MAX_VALUE,
+                    "Value must be 8 or higher",
+                    videoBitrateKbpsDelegate,
+                )
 
                 LinearLayout(ctx).addTo(this) {
                     orientation = LinearLayout.HORIZONTAL
@@ -179,30 +164,28 @@ internal object VoiceChatFixSettings {
                         marginEnd = p
                     }
 
-                    fun resolutionInput(label: String, value: Int, default: Int, delegate: SettingsDelegate<Int>) {
-                        lateinit var input: TextInput
-
-                        input = TextInput(ctx, label, value.toString(), object : TextWatcher {
-                            override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
-                            override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
-                            override fun afterTextChanged(s: Editable?) {
-                                val px = s?.toString()?.trim()?.toIntOrNull()
-
-                                if (px == null || px !in 64..4096) { input.editText.error = "Value must be between 64 and 4096"; return }
-                                input.editText.error = null
-
-                                var setting by delegate
-                                setting = px
-                            }
-                        }).addTo(this) {
-                            layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
-                            editText.inputType = InputType.TYPE_CLASS_NUMBER
-                            editText.hint = default.toString()
-                        }
-                    }
-
-                    resolutionInput("Width", videoWidth, DEFAULT_VIDEO_WIDTH, videoWidthDelegate)
-                    resolutionInput("Height", videoHeight, DEFAULT_VIDEO_HEIGHT, videoHeightDelegate)
+                    validate(
+                        this@Sheet,
+                        inputs,
+                        "Width",
+                        videoWidth,
+                        DEFAULT_VIDEO_WIDTH,
+                        64..4096,
+                        "Value must be between 64 and 4096",
+                        videoWidthDelegate,
+                        true,
+                    )
+                    validate(
+                        this@Sheet,
+                        inputs,
+                        "Height",
+                        videoHeight,
+                        DEFAULT_VIDEO_HEIGHT,
+                        64..4096,
+                        "Value must be between 64 and 4096",
+                        videoHeightDelegate,
+                        true,
+                    )
                 }
 
                 TextView(ctx, null, 0, R.i.UiKit_Settings_Item_SubText).addTo(this) {
@@ -258,26 +241,16 @@ internal object VoiceChatFixSettings {
                     }
                 }
 
-                encoderInput = TextInput(ctx, "Encoder queue size", encoderQueueSize.toString(), object : TextWatcher {
-                    override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
-                    override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
-                    override fun afterTextChanged(s: Editable?) {
-                        val size = s?.toString()?.trim()?.toIntOrNull()
-
-                        if (size == null || size !in 2..16) { encoderInput.editText.error = "Value must be between 2 and 16"; return }
-                        encoderInput.editText.error = null
-
-                        var setting by encoderQueueSizeDelegate
-                        setting = size
-                    }
-                }).addTo(this) {
-                    layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
-                        marginStart = p
-                        marginEnd = p
-                    }
-                    editText.inputType = InputType.TYPE_CLASS_NUMBER
-                    editText.hint = DEFAULT_ENCODER_QUEUE_SIZE.toString()
-                }
+                validate(
+                    this@Sheet,
+                    inputs,
+                    "Encoder queue size",
+                    encoderQueueSize,
+                    DEFAULT_ENCODER_QUEUE_SIZE,
+                    2..16,
+                    "Value must be between 2 and 16",
+                    encoderQueueSizeDelegate,
+                )
             }
         }
     }

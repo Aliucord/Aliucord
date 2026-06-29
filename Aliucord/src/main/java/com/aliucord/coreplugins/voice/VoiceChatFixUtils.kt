@@ -1,5 +1,17 @@
 package com.aliucord.coreplugins.voice
 
+import android.text.Editable
+import android.text.InputType
+import android.text.TextWatcher
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.LinearLayout
+import androidx.fragment.app.DialogFragment
+import com.aliucord.settings.SettingsDelegate
+import com.aliucord.utils.DimenUtils
+import com.aliucord.utils.ViewUtils.addTo
+import com.aliucord.views.TextInput
+
 private const val GROUP_SIZE = 5
 private const val DESIRED_LEN = 30
 private const val GROUP_MODULUS = 100000UL // 10.0.pow(groupSize).toULong()
@@ -27,4 +39,52 @@ internal fun formatFingerprint(b64: String): String {
     }
 
     return sb.toString()
+}
+
+internal fun LinearLayout.validate(
+    fragment: DialogFragment,
+    inputs: MutableList<TextInput>,
+    label: String,
+    initial: Int,
+    hint: Int,
+    range: IntRange,
+    error: String,
+    delegate: SettingsDelegate<Int>,
+    weighted: Boolean = false,
+) {
+    lateinit var input: TextInput
+    val p = DimenUtils.defaultPadding
+
+    input = TextInput(context, label, initial.toString(), object : TextWatcher {
+        override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+        override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+        override fun afterTextChanged(s: Editable?) {
+            val value = s?.toString()?.trim()?.toIntOrNull()
+
+            // 'value !in range' causes some weird compilation error
+            // java.lang.AssertionError: Assertion failed
+            if (value == null || value < range.first || value > range.last) {
+                input.editText.error = error
+            } else {
+                input.editText.error = null
+                var setting by delegate
+                setting = value
+            }
+
+            fragment.apply {
+                isCancelable = inputs.all { it.editText.error == null }
+            }
+        }
+    }).addTo(this) {
+        layoutParams = if (weighted) {
+            LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
+        } else LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+            marginStart = p
+            marginEnd = p
+        }
+        editText.inputType = InputType.TYPE_CLASS_NUMBER
+        editText.hint = hint.toString()
+    }
+
+    inputs.add(input)
 }
