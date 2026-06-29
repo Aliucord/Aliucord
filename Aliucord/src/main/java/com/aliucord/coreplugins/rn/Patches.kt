@@ -7,6 +7,7 @@
 package com.aliucord.coreplugins.rn
 
 import android.content.Context
+import android.net.Uri
 import android.view.View
 import com.aliucord.api.rn.user.RNUserProfile
 import com.aliucord.patcher.*
@@ -201,8 +202,10 @@ fun patchDefaultAvatars() {
                 val size = it.args[4] as Int?
                 val ext = IconUtils.INSTANCE.getImageExtension(avatar, animated)
 
-                "https://cdn.discordapp.com/avatars/$id/$avatar.$ext" +
-                    (size?.let { "?size=${IconUtils.getMediaProxySize(size)}" } ?: "")
+                Uri.parse("https://cdn.discordapp.com/avatars/$id/$avatar.$ext")
+                    .buildUpon()
+                    .apply { size?.let { appendQueryParameter("size", IconUtils.getMediaProxySize(it).toString()) } }
+                    .toString()
             } else {
                 val discrim = it.args[2] as Int?
 
