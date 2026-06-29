@@ -205,6 +205,12 @@ internal object VoiceChatFixSettings {
                     resolutionInput("Height", videoHeight, DEFAULT_VIDEO_HEIGHT, videoHeightDelegate)
                 }
 
+                TextView(ctx, null, 0, R.i.UiKit_Settings_Item_SubText).addTo(this) {
+                    setPadding(p, p / 4, p, 4)
+                    text = "Takes effect on the next voice connection."
+                    setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorTextMuted))
+                }
+
                 LinearLayout(ctx).addTo(this) {
                     layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
                     gravity = Gravity.CENTER_VERTICAL
