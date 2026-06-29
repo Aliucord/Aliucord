@@ -69,14 +69,14 @@ internal fun LinearLayout.validate(
 
             // 'value !in range' causes some weird compilation error
             // java.lang.AssertionError: Assertion failed
-            if (value == null || value < range.first || value > range.last) {
-                input.editText.error = error
-            } else if (isEven && value % 2 != 0) {
-                input.editText.error = "Value must be even."
-            } else {
-                input.editText.error = null
-                var setting by delegate
-                setting = value
+            input.editText.error = when {
+                value == null || value < range.first || value > range.last -> error
+                isEven && value % 2 != 0 -> "Value must be even."
+                else -> {
+                    var setting by delegate
+                    setting = value
+                    null
+                }
             }
 
             fragment.isCancelable = inputs.all { it.editText.error == null }
