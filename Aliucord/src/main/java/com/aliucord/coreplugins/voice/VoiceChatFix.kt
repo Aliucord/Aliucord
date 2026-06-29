@@ -106,7 +106,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     init {
         manifest.version = libVersion ?: "0.0.0"
         manifest.description = if (isFullySupported) {
-            "Implementation of DAVE, which supports E2EE voice, camera and screenshare support to Aliucord (v$libVersion)"
+            "Implementation of DAVE, which supports E2EE voice, camera and screenshare support to Aliucord"
         } else {
             "(non-functional, requires base app update!) Implementation of DAVE, which supports E2EE voice, camera and screenshare (lib ${libVersion?.let { "v$it" } ?: "missing"}, need $EXPECTED_LIB_VERSION)"
         }
