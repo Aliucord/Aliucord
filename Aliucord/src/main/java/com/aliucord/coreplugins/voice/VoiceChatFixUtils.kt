@@ -48,12 +48,17 @@ internal fun LinearLayout.validate(
     initial: Int,
     hint: Int,
     range: IntRange,
-    error: String,
     delegate: SettingsDelegate<Int>,
     weighted: Boolean = false,
 ) {
     lateinit var input: TextInput
+
     val p = DimenUtils.defaultPadding
+    val error = if (range.last == Int.MAX_VALUE) {
+        "Value must be ${range.first} or higher"
+    } else {
+        "Value must be between ${range.first} and ${range.last}"
+    }
 
     input = TextInput(context, label, initial.toString(), object : TextWatcher {
         override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}

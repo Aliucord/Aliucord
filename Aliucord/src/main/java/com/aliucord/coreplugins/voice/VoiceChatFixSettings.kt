@@ -153,7 +153,6 @@ internal object VoiceChatFixSettings {
                     videoBitrateKbps,
                     DEFAULT_VIDEO_BITRATE_KBPS,
                     8..Int.MAX_VALUE,
-                    "Value must be 8 or higher",
                     videoBitrateKbpsDelegate,
                 )
 
@@ -171,7 +170,6 @@ internal object VoiceChatFixSettings {
                         videoWidth,
                         DEFAULT_VIDEO_WIDTH,
                         64..4096,
-                        "Value must be between 64 and 4096",
                         videoWidthDelegate,
                         true,
                     )
@@ -182,7 +180,6 @@ internal object VoiceChatFixSettings {
                         videoHeight,
                         DEFAULT_VIDEO_HEIGHT,
                         64..4096,
-                        "Value must be between 64 and 4096",
                         videoHeightDelegate,
                         true,
                     )
@@ -248,7 +245,6 @@ internal object VoiceChatFixSettings {
                     encoderQueueSize,
                     DEFAULT_ENCODER_QUEUE_SIZE,
                     2..16,
-                    "Value must be between 2 and 16",
                     encoderQueueSizeDelegate,
                 )
             }
