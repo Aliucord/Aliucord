@@ -5,6 +5,7 @@ import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
 import android.transition.TransitionManager
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
@@ -201,8 +202,20 @@ internal object VoiceChatFixSettings {
                     resolutionInput("Height", videoHeight, DEFAULT_VIDEO_HEIGHT, videoHeightDelegate)
                 }
 
-                val fpsLabel = TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(this) {
-                    text = "Framerate: $videoFramerate fps"
+                lateinit var fpsLabel: TextView
+
+                LinearLayout(ctx).addTo(this) {
+                    layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+                    gravity = Gravity.CENTER_VERTICAL
+                    orientation = LinearLayout.HORIZONTAL
+
+                    TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(this) {
+                        layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
+                        text = "Framerate"
+                    }
+                    fpsLabel = TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(this) {
+                        text = "$videoFramerate fps"
+                    }
                 }
 
                 SeekBar(ctx).addTo(this) {
@@ -212,7 +225,7 @@ internal object VoiceChatFixSettings {
                     progress = videoFramerate.coerceIn(FPS_MIN, FPS_MAX) - FPS_MIN
                     setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                         override fun onProgressChanged(sb: SeekBar?, value: Int, fromUser: Boolean) {
-                            fpsLabel.text = "Framerate: ${FPS_MIN + value} fps"
+                            fpsLabel.text = "${FPS_MIN + value} fps"
                         }
                         override fun onStartTrackingTouch(sb: SeekBar?) {}
                         override fun onStopTrackingTouch(sb: SeekBar?) {
