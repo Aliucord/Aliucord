@@ -49,15 +49,16 @@ internal fun LinearLayout.validate(
     hint: Int,
     range: IntRange,
     delegate: SettingsDelegate<Int>,
-    weighted: Boolean = false,
+    isWeighted: Boolean,
+    isEven: Boolean,
 ) {
     lateinit var input: TextInput
 
     val p = DimenUtils.defaultPadding
     val error = if (range.last == Int.MAX_VALUE) {
-        "Value must be ${range.first} or higher"
+        "Value must be ${range.first} or higher."
     } else {
-        "Value must be between ${range.first} and ${range.last}"
+        "Value must be between ${range.first} and ${range.last}."
     }
 
     input = TextInput(context, label, initial.toString(), object : TextWatcher {
@@ -70,6 +71,8 @@ internal fun LinearLayout.validate(
             // java.lang.AssertionError: Assertion failed
             if (value == null || value < range.first || value > range.last) {
                 input.editText.error = error
+            } else if (isEven && value % 2 != 0) {
+                input.editText.error = "Value must be even."
             } else {
                 input.editText.error = null
                 var setting by delegate
@@ -79,7 +82,7 @@ internal fun LinearLayout.validate(
             fragment.isCancelable = inputs.all { it.editText.error == null }
         }
     }).addTo(this) {
-        layoutParams = if (weighted) {
+        layoutParams = if (isWeighted) {
             LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
         } else LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
             marginStart = p

@@ -167,7 +167,8 @@ internal object VoiceChatFixSettings {
                             DEFAULT_VIDEO_WIDTH,
                             64..4096,
                             videoWidthDelegate,
-                            true,
+                            isWeighted = true,
+                            isEven = true,
                         )
                         field(
                             "Height",
@@ -175,7 +176,8 @@ internal object VoiceChatFixSettings {
                             DEFAULT_VIDEO_HEIGHT,
                             64..4096,
                             videoHeightDelegate,
-                            true,
+                            isWeighted = true,
+                            isEven = true,
                         )
                     }
 

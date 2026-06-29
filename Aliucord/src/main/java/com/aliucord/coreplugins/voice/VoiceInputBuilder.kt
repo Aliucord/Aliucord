@@ -16,6 +16,7 @@ internal class VoiceInputBuilder(
         hint: Int,
         range: IntRange,
         delegate: SettingsDelegate<Int>,
-        weighted: Boolean = false,
-    ) = validate(fragment, inputs, label, value, hint, range, delegate, weighted)
+        isWeighted: Boolean = false,
+        isEven: Boolean = false,
+    ) = validate(fragment, inputs, label, value, hint, range, delegate, isWeighted, isEven)
 }
