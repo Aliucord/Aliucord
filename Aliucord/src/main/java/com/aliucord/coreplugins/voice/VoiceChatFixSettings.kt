@@ -146,12 +146,16 @@ internal object VoiceChatFixSettings {
                     text = "Video / Screenshare"
                 }
 
-                TextInput(ctx, "Bitrate (kbps)", videoBitrateKbps.toString(), object : TextWatcher {
+                lateinit var bitrateInput: TextInput
+                bitrateInput = TextInput(ctx, "Bitrate (kbps)", videoBitrateKbps.toString(), object : TextWatcher {
                     override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
                     override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
                     override fun afterTextChanged(s: Editable?) {
                         val kbps = s?.toString()?.trim()?.toIntOrNull() ?: return
-                        if (kbps < 8) return
+
+                        if (kbps < 8) { bitrateInput.editText.error = "Value must be 8 or higher"; return }
+                        bitrateInput.editText.error = null
+
                         var setting by videoBitrateKbpsDelegate
                         setting = kbps
                     }
@@ -171,13 +175,18 @@ internal object VoiceChatFixSettings {
                         marginEnd = p
                     }
 
-                    fun resolutionInput(label: String, value: Int, default: Int, delegate: SettingsDelegate<Int>) =
-                        TextInput(ctx, label, value.toString(), object : TextWatcher {
+                    fun resolutionInput(label: String, value: Int, default: Int, delegate: SettingsDelegate<Int>) {
+                        lateinit var input: TextInput
+
+                        input = TextInput(ctx, label, value.toString(), object : TextWatcher {
                             override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
                             override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
                             override fun afterTextChanged(s: Editable?) {
                                 val px = s?.toString()?.trim()?.toIntOrNull() ?: return
-                                if (px !in 64..4096) return
+
+                                if (px !in 64..4096) { input.editText.error = "Value must be between 64 and 4096"; return }
+                                input.editText.error = null
+
                                 var setting by delegate
                                 setting = px
                             }
@@ -186,6 +195,7 @@ internal object VoiceChatFixSettings {
                             editText.inputType = InputType.TYPE_CLASS_NUMBER
                             editText.hint = default.toString()
                         }
+                    }
 
                     resolutionInput("Width", videoWidth, DEFAULT_VIDEO_WIDTH, videoWidthDelegate)
                     resolutionInput("Height", videoHeight, DEFAULT_VIDEO_HEIGHT, videoHeightDelegate)
@@ -228,12 +238,16 @@ internal object VoiceChatFixSettings {
                     }
                 }
 
-                TextInput(ctx, "Encoder queue size", encoderQueueSize.toString(), object : TextWatcher {
+                lateinit var encoderInput: TextInput
+                encoderInput = TextInput(ctx, "Encoder queue size", encoderQueueSize.toString(), object : TextWatcher {
                     override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
                     override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
                     override fun afterTextChanged(s: Editable?) {
                         val size = s?.toString()?.trim()?.toIntOrNull() ?: return
-                        if (size !in 2..16) return
+
+                        if (size !in 2..16) { encoderInput.editText.error = "Value must be between 2 and 16"; return }
+                        encoderInput.editText.error = null
+
                         var setting by encoderQueueSizeDelegate
                         setting = size
                     }
