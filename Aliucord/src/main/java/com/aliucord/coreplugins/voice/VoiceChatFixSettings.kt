@@ -16,7 +16,6 @@ import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.DimenUtils.dp
 import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.views.DangerButton
-import com.aliucord.views.TextInput
 import com.aliucord.widgets.BottomSheet
 import com.discord.utilities.color.ColorCompat
 import com.discord.views.CheckedSetting
@@ -66,8 +65,8 @@ internal object VoiceChatFixSettings {
 
             val ctx = requireContext()
             val p = DimenUtils.defaultPadding
-            val inputs = mutableListOf<TextInput>()
             var allowSettings by iKnowWhatImDoingDelegate
+            val builder = VoiceInputBuilder(this@Sheet)
 
             LinearLayout(ctx).addTo(linearLayout) warningLayout@{
                 orientation = LinearLayout.VERTICAL
@@ -97,156 +96,150 @@ internal object VoiceChatFixSettings {
                 }
             }
 
-            settingsLayout = LinearLayout(ctx).addTo(linearLayout) {
-                lateinit var fpsLabel: TextView
+            settingsLayout = with(builder) {
+                LinearLayout(ctx).addTo(linearLayout) {
+                    lateinit var fpsLabel: TextView
 
-                orientation = LinearLayout.VERTICAL
-                visibility = if (iKnowWhatImDoing) View.VISIBLE else View.GONE
+                    orientation = LinearLayout.VERTICAL
+                    visibility = if (iKnowWhatImDoing) View.VISIBLE else View.GONE
 
-                Utils.createCheckedSetting(
-                    ctx,
-                    CheckedSetting.ViewType.SWITCH,
-                    "Use AES-256-GCM transport encryption",
-                    "Preferred transport encryption when the server supports it."
-                ).addTo(this) {
-                    var setting by useAes256GcmDelegate
-                    isChecked = setting
-                    setOnCheckedListener {
-                        setting = !setting
-                        Utils.promptRestart()
-                    }
-                }
-
-                Utils.createCheckedSetting(
-                    ctx,
-                    CheckedSetting.ViewType.SWITCH,
-                    "Enable DAVE (end-to-end encryption)",
-                    "When off, streams use transport-only encryption (no MLS). Use to test whether viewers that can't do DAVE can see your screenshare/camera."
-                ).addTo(this) {
-                    var setting by daveEnabledDelegate
-                    isChecked = setting
-                    setOnCheckedListener {
-                        setting = !setting
-                        Utils.promptRestart()
-                    }
-                }
-
-                Utils.createCheckedSetting(
-                    ctx,
-                    CheckedSetting.ViewType.SWITCH,
-                    "Show connection info overlay",
-                    "Adds an info card to the voice bottom sheet. Takes effect on the next voice connection."
-                ).addTo(this) {
-                    var setting by showConnInfoDelegate
-                    isChecked = setting
-                    setOnCheckedListener { setting = !setting }
-                }
-
-                TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(this) {
-                    text = "Video / Screenshare"
-                }
-
-                validate(
-                    this@Sheet,
-                    inputs,
-                    "Bitrate (kbps)",
-                    videoBitrateKbps,
-                    DEFAULT_VIDEO_BITRATE_KBPS,
-                    8..Int.MAX_VALUE,
-                    videoBitrateKbpsDelegate,
-                )
-
-                LinearLayout(ctx).addTo(this) {
-                    orientation = LinearLayout.HORIZONTAL
-                    layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
-                        marginStart = p
-                        marginEnd = p
+                    Utils.createCheckedSetting(
+                        ctx,
+                        CheckedSetting.ViewType.SWITCH,
+                        "Use AES-256-GCM transport encryption",
+                        "Preferred transport encryption when the server supports it."
+                    ).addTo(this) {
+                        var setting by useAes256GcmDelegate
+                        isChecked = setting
+                        setOnCheckedListener {
+                            setting = !setting
+                            Utils.promptRestart()
+                        }
                     }
 
-                    validate(
-                        this@Sheet,
-                        inputs,
-                        "Width",
-                        videoWidth,
-                        DEFAULT_VIDEO_WIDTH,
-                        64..4096,
-                        videoWidthDelegate,
-                        true,
-                    )
-                    validate(
-                        this@Sheet,
-                        inputs,
-                        "Height",
-                        videoHeight,
-                        DEFAULT_VIDEO_HEIGHT,
-                        64..4096,
-                        videoHeightDelegate,
-                        true,
-                    )
-                }
+                    Utils.createCheckedSetting(
+                        ctx,
+                        CheckedSetting.ViewType.SWITCH,
+                        "Enable DAVE (end-to-end encryption)",
+                        "When off, streams use transport-only encryption (no MLS). Use to test whether viewers that can't do DAVE can see your screenshare/camera."
+                    ).addTo(this) {
+                        var setting by daveEnabledDelegate
+                        isChecked = setting
+                        setOnCheckedListener {
+                            setting = !setting
+                            Utils.promptRestart()
+                        }
+                    }
 
-                TextView(ctx, null, 0, R.i.UiKit_Settings_Item_SubText).addTo(this) {
-                    setPadding(p, p / 4, p, 4)
-                    text = "Takes effect on the next voice connection."
-                    setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorTextMuted))
-                }
-
-                LinearLayout(ctx).addTo(this) {
-                    layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
-                    gravity = Gravity.CENTER_VERTICAL
-                    orientation = LinearLayout.HORIZONTAL
+                    Utils.createCheckedSetting(
+                        ctx,
+                        CheckedSetting.ViewType.SWITCH,
+                        "Show connection info overlay",
+                        "Adds an info card to the voice bottom sheet. Takes effect on the next voice connection."
+                    ).addTo(this) {
+                        var setting by showConnInfoDelegate
+                        isChecked = setting
+                        setOnCheckedListener { setting = !setting }
+                    }
 
                     TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(this) {
-                        layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
-                        text = "Framerate"
+                        text = "Video / Screenshare"
                     }
-                    fpsLabel = TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(this) {
-                        text = "$videoFramerate fps"
+
+                    field(
+                        "Bitrate (kbps)",
+                        videoBitrateKbps,
+                        DEFAULT_VIDEO_BITRATE_KBPS,
+                        8..Int.MAX_VALUE,
+                        videoBitrateKbpsDelegate,
+                    )
+
+                    LinearLayout(ctx).addTo(this) {
+                        orientation = LinearLayout.HORIZONTAL
+                        layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+                            marginStart = p
+                            marginEnd = p
+                        }
+
+                        field(
+                            "Width",
+                            videoWidth,
+                            DEFAULT_VIDEO_WIDTH,
+                            64..4096,
+                            videoWidthDelegate,
+                            true,
+                        )
+                        field(
+                            "Height",
+                            videoHeight,
+                            DEFAULT_VIDEO_HEIGHT,
+                            64..4096,
+                            videoHeightDelegate,
+                            true,
+                        )
                     }
-                }
 
-                SeekBar(ctx).addTo(this) {
-                    setPadding(p, 0, p, 0)
-                    // SeekBar min is 0, so offset by FPS_MIN: value = FPS_MIN + progress.
-                    max = FPS_MAX - FPS_MIN
-                    progress = videoFramerate.coerceIn(FPS_MIN, FPS_MAX) - FPS_MIN
-                    setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                        override fun onProgressChanged(sb: SeekBar?, value: Int, fromUser: Boolean) {
-                            fpsLabel.text = "${FPS_MIN + value} fps"
-                        }
-                        override fun onStartTrackingTouch(sb: SeekBar?) {}
-                        override fun onStopTrackingTouch(sb: SeekBar?) {
-                            var setting by videoFramerateDelegate
-                            setting = FPS_MIN + (sb?.progress ?: return)
-                        }
-                    })
-                }
-
-                LinearLayout(ctx, null, 0, R.i.UiKit_Settings_Item_SubText).addTo(this) {
-                    orientation = LinearLayout.HORIZONTAL
-                    setPadding(p, 0, p, 8.dp)
-                    TextView(ctx).addTo(this) {
-                        layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
-                        text = "$FPS_MIN fps"
-                        textSize = 12f
+                    TextView(ctx, null, 0, R.i.UiKit_Settings_Item_SubText).addTo(this) {
+                        setPadding(p, p / 4, p, 4)
+                        text = "Takes effect on the next voice connection."
                         setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorTextMuted))
                     }
-                    TextView(ctx).addTo(this) {
-                        text = "$FPS_MAX fps"
-                        textSize = 12f
-                        setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorTextMuted))
-                    }
-                }
 
-                validate(
-                    this@Sheet,
-                    inputs,
-                    "Encoder queue size",
-                    encoderQueueSize,
-                    DEFAULT_ENCODER_QUEUE_SIZE,
-                    2..16,
-                    encoderQueueSizeDelegate,
-                )
+                    LinearLayout(ctx).addTo(this) {
+                        layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+                        gravity = Gravity.CENTER_VERTICAL
+                        orientation = LinearLayout.HORIZONTAL
+
+                        TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(this) {
+                            layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
+                            text = "Framerate"
+                        }
+                        fpsLabel = TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(this) {
+                            text = "$videoFramerate fps"
+                        }
+                    }
+
+                    SeekBar(ctx).addTo(this) {
+                        setPadding(p, 0, p, 0)
+                        // SeekBar min is 0, so offset by FPS_MIN: value = FPS_MIN + progress.
+                        max = FPS_MAX - FPS_MIN
+                        progress = videoFramerate.coerceIn(FPS_MIN, FPS_MAX) - FPS_MIN
+                        setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                            override fun onProgressChanged(sb: SeekBar?, value: Int, fromUser: Boolean) {
+                                fpsLabel.text = "${FPS_MIN + value} fps"
+                            }
+                            override fun onStartTrackingTouch(sb: SeekBar?) {}
+                            override fun onStopTrackingTouch(sb: SeekBar?) {
+                                var setting by videoFramerateDelegate
+                                setting = FPS_MIN + (sb?.progress ?: return)
+                            }
+                        })
+                    }
+
+                    LinearLayout(ctx, null, 0, R.i.UiKit_Settings_Item_SubText).addTo(this) {
+                        orientation = LinearLayout.HORIZONTAL
+                        setPadding(p, 0, p, 8.dp)
+                        TextView(ctx).addTo(this) {
+                            layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
+                            text = "$FPS_MIN fps"
+                            textSize = 12f
+                            setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorTextMuted))
+                        }
+                        TextView(ctx).addTo(this) {
+                            text = "$FPS_MAX fps"
+                            textSize = 12f
+                            setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorTextMuted))
+                        }
+                    }
+
+                    field(
+                        "Encoder queue size",
+                        encoderQueueSize,
+                        DEFAULT_ENCODER_QUEUE_SIZE,
+                        2..16,
+                        encoderQueueSizeDelegate,
+                    )
+                }
             }
         }
     }
