@@ -155,9 +155,9 @@ internal object VoiceChatFixSettings {
                     override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
                     override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
                     override fun afterTextChanged(s: Editable?) {
-                        val kbps = s?.toString()?.trim()?.toIntOrNull() ?: return
+                        val kbps = s?.toString()?.trim()?.toIntOrNull()
 
-                        if (kbps < 8) { bitrateInput.editText.error = "Value must be 8 or higher"; return }
+                        if (kbps == null || kbps < 8) { bitrateInput.editText.error = "Value must be 8 or higher"; return }
                         bitrateInput.editText.error = null
 
                         var setting by videoBitrateKbpsDelegate
@@ -186,9 +186,9 @@ internal object VoiceChatFixSettings {
                             override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
                             override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
                             override fun afterTextChanged(s: Editable?) {
-                                val px = s?.toString()?.trim()?.toIntOrNull() ?: return
+                                val px = s?.toString()?.trim()?.toIntOrNull()
 
-                                if (px !in 64..4096) { input.editText.error = "Value must be between 64 and 4096"; return }
+                                if (px == null || px !in 64..4096) { input.editText.error = "Value must be between 64 and 4096"; return }
                                 input.editText.error = null
 
                                 var setting by delegate
@@ -262,9 +262,9 @@ internal object VoiceChatFixSettings {
                     override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
                     override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
                     override fun afterTextChanged(s: Editable?) {
-                        val size = s?.toString()?.trim()?.toIntOrNull() ?: return
+                        val size = s?.toString()?.trim()?.toIntOrNull()
 
-                        if (size !in 2..16) { encoderInput.editText.error = "Value must be between 2 and 16"; return }
+                        if (size == null || size !in 2..16) { encoderInput.editText.error = "Value must be between 2 and 16"; return }
                         encoderInput.editText.error = null
 
                         var setting by encoderQueueSizeDelegate
