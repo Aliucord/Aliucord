@@ -101,6 +101,10 @@ internal object VoiceChatFixSettings {
             }
 
             settingsLayout = LinearLayout(ctx).addTo(linearLayout) {
+                lateinit var bitrateInput: TextInput
+                lateinit var fpsLabel: TextView
+                lateinit var encoderInput: TextInput
+
                 orientation = LinearLayout.VERTICAL
                 visibility = if (iKnowWhatImDoing) View.VISIBLE else View.GONE
 
@@ -147,7 +151,6 @@ internal object VoiceChatFixSettings {
                     text = "Video / Screenshare"
                 }
 
-                lateinit var bitrateInput: TextInput
                 bitrateInput = TextInput(ctx, "Bitrate (kbps)", videoBitrateKbps.toString(), object : TextWatcher {
                     override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
                     override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
@@ -202,8 +205,6 @@ internal object VoiceChatFixSettings {
                     resolutionInput("Height", videoHeight, DEFAULT_VIDEO_HEIGHT, videoHeightDelegate)
                 }
 
-                lateinit var fpsLabel: TextView
-
                 LinearLayout(ctx).addTo(this) {
                     layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
                     gravity = Gravity.CENTER_VERTICAL
@@ -251,7 +252,6 @@ internal object VoiceChatFixSettings {
                     }
                 }
 
-                lateinit var encoderInput: TextInput
                 encoderInput = TextInput(ctx, "Encoder queue size", encoderQueueSize.toString(), object : TextWatcher {
                     override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
                     override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
