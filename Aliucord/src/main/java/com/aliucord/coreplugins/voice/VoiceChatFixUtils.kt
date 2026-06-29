@@ -76,9 +76,7 @@ internal fun LinearLayout.validate(
                 setting = value
             }
 
-            fragment.apply {
-                isCancelable = inputs.all { it.editText.error == null }
-            }
+            fragment.isCancelable = inputs.all { it.editText.error == null }
         }
     }).addTo(this) {
         layoutParams = if (weighted) {
