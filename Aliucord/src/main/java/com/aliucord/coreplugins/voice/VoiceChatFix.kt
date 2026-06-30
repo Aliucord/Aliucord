@@ -17,6 +17,7 @@ import com.aliucord.Utils
 import com.aliucord.coreplugins.voice.VoiceChatFixPayload.DaveInvalidCommitWelcome
 import com.aliucord.coreplugins.voice.VoiceChatFixPayload.DaveTransitionReady
 import com.aliucord.coreplugins.voice.ui.addDisableVideoRow
+import com.aliucord.coreplugins.voice.ui.addMuteSoundboardRow
 import com.aliucord.coreplugins.voice.ui.addVerificationRow
 import com.aliucord.coreplugins.voice.ui.isVideoDisabled
 import com.aliucord.coreplugins.voice.ui.codeBlock
@@ -687,6 +688,8 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             UserProfileVoiceSettingsView.ViewState::class.java,
         ) {
             try {
+                // TODO:
+                //  addMuteSoundboardRow(currentSocket, this, sheetUserId)
                 addDisableVideoRow(currentSocket, this, sheetUserId)
                 addVerificationRow(currentSocket, this, sheetUserId)
             } catch (e: Throwable) {
