@@ -6,7 +6,6 @@ import com.discord.native.engine.NativeEngine
 import com.google.gson.Gson
 import com.hammerandchisel.libdiscord.Discord
 import org.webrtc.VideoCapturer
-import java.util.concurrent.ConcurrentHashMap
 
 private val gson = Gson()
 
@@ -101,7 +100,6 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
     @Suppress("PrivatePropertyName")
     private val TAG = "VoiceChatFix"
     private var disposed: Boolean = false
-    private val userStreams = ConcurrentHashMap<Long, String>()
 
     init {
         set(TransportOptions(
@@ -151,13 +149,8 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
     }
     override fun deafenLocalUser(isDeafened: Boolean) = native.setSelfDeafen(isDeafened)
 
-    // TODO: work in progress
     override fun disableVideo(userId: Long, isDisabled: Boolean) {
-        val streamId = userStreams[userId]
-        Log.d(TAG, "disableVideo userId=$userId isDisabled=$isDisabled streamId=$streamId map=$userStreams")
-        if (!isDisabled) return
-        if (streamId.isNullOrEmpty()) return
-        engine.setVideoOutputSink(streamId, null)
+        Log.d(TAG, "disableVideo userId=$userId isDisabled=$isDisabled")
     }
 
     override fun dispose() {
@@ -225,7 +218,6 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
     override fun setExpectedPacketLossRate(lossRate: Float) = set(TransportOptions(packetLossRate = lossRate))
     override fun setOnVideoCallback(onVideoCallback: OnVideoCallback) {
         native.setOnVideoCallback { userId, ssrc, streamId, videoStreamParametersJson ->
-            userStreams[userId.toLong()] = streamId
             Log.d(TAG, "onVideo userId=$userId ssrc=$ssrc streamId=$streamId")
             onVideoCallback.onVideo(userId.toLong(), ssrc.toInt(), streamId, arrayOf())
         }
@@ -300,7 +292,6 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
     }
     fun destroyUser(userId: String) {
         Log.d(TAG, "connection/destroyUser: $userId")
-        userStreams.remove(userId.toLong())
         native.destroyUser(userId)
     }
 

@@ -15,6 +15,8 @@ import b.a.q.n0.a as RtcControlSocket
 private val disableVideoRowId = View.generateViewId()
 private val videoDisabled = HashMap<Long, Boolean>()
 
+internal fun isVideoDisabled(userId: Long): Boolean = videoDisabled[userId] == true
+
 internal fun addDisableVideoRow(currentSocket: RtcControlSocket?, root: LinearLayout, userId: Long) {
     if (userId == 0L) return
     disableVideoRow(root, videoDisabled[userId] == true) { checked ->

@@ -18,6 +18,7 @@ import com.aliucord.coreplugins.voice.VoiceChatFixPayload.DaveInvalidCommitWelco
 import com.aliucord.coreplugins.voice.VoiceChatFixPayload.DaveTransitionReady
 import com.aliucord.coreplugins.voice.ui.addDisableVideoRow
 import com.aliucord.coreplugins.voice.ui.addVerificationRow
+import com.aliucord.coreplugins.voice.ui.isVideoDisabled
 import com.aliucord.coreplugins.voice.ui.codeBlock
 import com.aliucord.coreplugins.voice.ui.collapsibleTitle
 import com.aliucord.coreplugins.voice.ui.newCard
@@ -32,12 +33,15 @@ import com.aliucord.utils.accessField
 import com.aliucord.utils.SemVer
 import com.aliucord.utils.ViewUtils.addTo
 import com.discord.play_delivery.PlayAssetDeliveryNativeWrapper
+import com.discord.rtcconnection.RtcConnection
 import com.discord.rtcconnection.mediaengine.MediaEngineConnection
 import com.discord.rtcconnection.socket.io.Opcodes
 import com.discord.rtcconnection.socket.io.Payloads
 import com.discord.rtcconnection.socket.io.Payloads.Protocol.ProtocolInfo
+import com.discord.stores.StoreApplicationStreaming
 import com.discord.stores.StoreMediaEngine
 import com.discord.stores.StoreMediaSettings
+import com.discord.stores.StoreVoiceParticipants
 import com.discord.utilities.color.ColorCompat
 import com.discord.utilities.debug.DebugPrintBuilder
 import com.discord.widgets.settings.WidgetSettingsVoice
@@ -45,6 +49,8 @@ import com.discord.widgets.user.usersheet.UserProfileVoiceSettingsView
 import com.discord.widgets.user.usersheet.WidgetUserSheet
 import com.discord.widgets.user.usersheet.WidgetUserSheetViewModel
 import com.discord.widgets.voice.controls.VoiceControlsSheetView
+import com.discord.widgets.voice.fullscreen.CallParticipant
+import com.discord.widgets.voice.fullscreen.WidgetCallFullscreenViewModel
 import com.discord.widgets.voice.sheet.WidgetVoiceSettingsBottomSheet
 import com.lytefast.flexinput.R
 import okhttp3.WebSocket
@@ -685,6 +691,22 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 addVerificationRow(currentSocket, this, sheetUserId)
             } catch (e: Throwable) {
                 logger.error("Failed to add user sheet voice rows", e)
+            }
+        }
+
+        patcher.after<WidgetCallFullscreenViewModel>(
+            "createVideoGridEntriesForParticipant",
+            StoreVoiceParticipants.VoiceUser::class.java,
+            Long::class.javaPrimitiveType!!,
+            StoreApplicationStreaming.ActiveApplicationStream::class.java,
+            RtcConnection.Quality::class.java,
+            VideoInputDeviceDescription::class.java,
+            Boolean::class.javaPrimitiveType!!,
+        ) { (param, participant: StoreVoiceParticipants.VoiceUser) ->
+            try {
+                if (isVideoDisabled(participant.user.id)) param.result = emptyList<CallParticipant>()
+            } catch (e: Throwable) {
+                logger.error("Failed to hide video stream from participant", e)
             }
         }
     }
