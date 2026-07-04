@@ -178,6 +178,8 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
 
         patchPrivacyCodeView()
         patchUserSheetView()
+        Soundboard.register(patcher, context)
+        patchSoundboardVolume()
 
         // Handle new binary voice gateway events
         // WebSocketListener is RtcControlSocket's superclass; the child class doesn't have
@@ -688,8 +690,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             UserProfileVoiceSettingsView.ViewState::class.java,
         ) {
             try {
-                // TODO:
-                //  addMuteSoundboardRow(currentSocket, this, sheetUserId)
+                addMuteSoundboardRow(this, sheetUserId)
                 addDisableVideoRow(currentSocket, this, sheetUserId)
                 addVerificationRow(currentSocket, this, sheetUserId)
             } catch (e: Throwable) {
@@ -710,6 +711,50 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 if (isVideoDisabled(participant.user.id)) param.result = emptyList<CallParticipant>()
             } catch (e: Throwable) {
                 logger.error("Failed to hide video stream from participant", e)
+            }
+        }
+    }
+
+    private fun patchSoundboardVolume() {
+        val labelId = View.generateViewId()
+        val sliderId = View.generateViewId()
+        patcher.after<WidgetSettingsVoice>(
+            "configureUI",
+            WidgetSettingsVoice.Model::class.java,
+        ) {
+            val binding = WidgetSettingsVoice.`access$getBinding$p`(this)
+            val volumeBar = binding.s
+            val parent = volumeBar.parent as? LinearLayout ?: return@after
+            if (parent.findViewById<View?>(sliderId) != null) return@after
+
+            val ctx = parent.context
+            val index = parent.indexOfChild(volumeBar)
+
+            TextView(ctx, null, 0, R.i.UiKit_Settings_Base_Item).apply {
+                id = labelId
+                text = "Soundboard Volume"
+                layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+                    topMargin = 12.dp
+                }
+                parent.addView(this, index + 1)
+            }
+
+            SeekBar(ctx, null, 0, R.i.UiKit_SeekBar).apply {
+                id = sliderId
+                max = 100
+                progress = VoiceChatFixSettings.soundboardVolume.coerceIn(0, 100)
+                layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+                setPadding(volumeBar.paddingLeft, volumeBar.paddingTop, volumeBar.paddingRight, volumeBar.paddingBottom)
+
+                setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                    override fun onProgressChanged(sb: SeekBar?, value: Int, fromUser: Boolean) {}
+                    override fun onStartTrackingTouch(sb: SeekBar?) {}
+                    override fun onStopTrackingTouch(sb: SeekBar?) {
+                        var setting by VoiceChatFixSettings.soundboardVolumeDelegate
+                        setting = sb?.progress ?: return
+                    }
+                })
+                parent.addView(this, index + 2)
             }
         }
     }

@@ -32,6 +32,7 @@ internal object VoiceChatFixSettings {
     const val FPS_MIN = 24
     const val FPS_MAX = 120
     const val DEFAULT_ENCODER_QUEUE_SIZE = 4
+    const val DEFAULT_SOUNDBOARD_VOLUME = 100
 
     private val settings = SettingsAPI("VoiceChatFix")
 
@@ -55,6 +56,8 @@ internal object VoiceChatFixSettings {
     val showConnInfo by showConnInfoDelegate
     private val iKnowWhatImDoingDelegate = settings.delegate("iKnowWhatImDoing", false)
     val iKnowWhatImDoing by iKnowWhatImDoingDelegate
+    val soundboardVolumeDelegate = settings.delegate("soundboardVolume", DEFAULT_SOUNDBOARD_VOLUME)
+    val soundboardVolume by soundboardVolumeDelegate
 
     val transportEncryption: String get() = if (useAes256Gcm) MODE_AES256_GCM else MODE_XCHACHA20
 
