@@ -204,7 +204,7 @@ internal object VoiceChatFixSettings {
                         }
                     }
 
-                    SeekBar(ctx).addTo(this) {
+                    SeekBar(ctx, null, 0, R.i.UiKit_SeekBar).addTo(this) {
                         setPadding(p, 0, p, 0)
                         // SeekBar min is 0, so offset by FPS_MIN: value = FPS_MIN + progress.
                         max = FPS_MAX - FPS_MIN
