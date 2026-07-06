@@ -149,11 +149,6 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
     }
     override fun deafenLocalUser(isDeafened: Boolean) = native.setSelfDeafen(isDeafened)
 
-    // TODO
-    fun muteSoundboard(userId: Long, isMuted: Boolean) {
-        Log.d(TAG, "muteSoundboard userId=$userId isMuted=$isMuted")
-    }
-
     override fun disableVideo(userId: Long, isDisabled: Boolean) {
         Log.d(TAG, "disableVideo userId=$userId isDisabled=$isDisabled")
     }
