@@ -39,7 +39,9 @@ import com.discord.rtcconnection.mediaengine.MediaEngineConnection
 import com.discord.rtcconnection.socket.io.Opcodes
 import com.discord.rtcconnection.socket.io.Payloads
 import com.discord.rtcconnection.socket.io.Payloads.Protocol.ProtocolInfo
+import com.discord.api.voice.server.VoiceServer
 import com.discord.stores.StoreApplicationStreaming
+import com.discord.stores.StoreRtcConnection
 import com.discord.stores.StoreMediaEngine
 import com.discord.stores.StoreMediaSettings
 import com.discord.stores.StoreVoiceParticipants
@@ -180,6 +182,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         patchUserSheetView()
         Soundboard.register(patcher, context)
         patchSoundboardVolume()
+        patchVoiceMoveReconnect()
 
         // Handle new binary voice gateway events
         // WebSocketListener is RtcControlSocket's superclass; the child class doesn't have
@@ -712,6 +715,31 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             } catch (e: Throwable) {
                 logger.error("Failed to hide video stream from participant", e)
             }
+        }
+    }
+
+    private fun patchVoiceMoveReconnect() {
+        var lastServerUpdate = 0L
+
+        val checkForVoiceServerUpdate = StoreRtcConnection::class.java
+            .getDeclaredMethod("checkForVoiceServerUpdate")
+            .apply { isAccessible = true }
+
+        patcher.before<StoreRtcConnection>(
+            "handleVoiceServerUpdate",
+            VoiceServer::class.java,
+        ) {
+            lastServerUpdate = System.currentTimeMillis()
+        }
+
+        patcher.after<StoreRtcConnection>(
+            "handleVoiceChannelSelected",
+            Long::class.javaObjectType,
+        ) { (_, channelId: Long?) ->
+            if (channelId == null || (System.currentTimeMillis() - lastServerUpdate) > 3000) return@after
+
+            logger.info("Voice server update preceded channel switch (user moved); re-checking endpoint")
+            checkForVoiceServerUpdate.invoke(this)
         }
     }
 
