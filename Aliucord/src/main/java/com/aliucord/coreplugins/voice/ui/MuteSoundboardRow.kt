@@ -4,21 +4,20 @@ import android.view.View
 import android.widget.LinearLayout
 import androidx.core.content.res.ResourcesCompat
 import com.aliucord.Constants
+import com.aliucord.coreplugins.voice.VoiceChatFixSettings
 import com.discord.utilities.color.ColorCompat
 import com.lytefast.flexinput.R
-import kotlin.collections.set
 import com.aliucord.Utils
 import com.discord.views.CheckedSetting
 
 private val muteSoundboardRowId = View.generateViewId()
-private val soundboardMuted = HashMap<Long, Boolean>()
 
-internal fun isSoundboardMuted(userId: Long): Boolean = soundboardMuted[userId] == true
+internal fun isSoundboardMuted(userId: Long): Boolean = userId in VoiceChatFixSettings.mutedSoundboardUsers
 
 internal fun addMuteSoundboardRow(root: LinearLayout, userId: Long) {
     if (userId == 0L) return
-    muteSoundboardRow(root, soundboardMuted[userId] == true) { checked ->
-        soundboardMuted[userId] = checked
+    muteSoundboardRow(root, isSoundboardMuted(userId)) { checked ->
+        VoiceChatFixSettings.mutedSoundboardUsers.set(userId, checked)
     }
 }
 

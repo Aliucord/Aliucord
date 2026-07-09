@@ -19,7 +19,9 @@ import com.aliucord.views.DangerButton
 import com.aliucord.widgets.BottomSheet
 import com.discord.utilities.color.ColorCompat
 import com.discord.views.CheckedSetting
+import com.google.gson.reflect.TypeToken
 import com.lytefast.flexinput.R
+import java.util.Collections
 
 internal object VoiceChatFixSettings {
     const val MODE_AES256_GCM = "aead_aes256_gcm_rtpsize"
@@ -58,6 +60,9 @@ internal object VoiceChatFixSettings {
     val iKnowWhatImDoing by iKnowWhatImDoingDelegate
     val soundboardVolumeDelegate = settings.delegate("soundboardVolume", DEFAULT_SOUNDBOARD_VOLUME)
     val soundboardVolume by soundboardVolumeDelegate
+
+    val mutedSoundboardUsers = PersistedIdSet(settings, "mutedSoundboardUsers")
+    val disabledVideoUsers = PersistedIdSet(settings, "disabledVideoUsers")
 
     val transportEncryption: String get() = if (useAes256Gcm) MODE_AES256_GCM else MODE_XCHACHA20
 
@@ -247,5 +252,25 @@ internal object VoiceChatFixSettings {
                 }
             }
         }
+    }
+}
+
+internal class PersistedIdSet(
+    private val settings: SettingsAPI,
+    private val key: String
+) {
+    private val ids: MutableSet<Long> = Collections.synchronizedSet(
+        settings.getObject(
+            key,
+            hashSetOf(),
+            TypeToken.getParameterized(HashSet::class.java, Long::class.javaObjectType).type
+        )
+    )
+
+    operator fun contains(userId: Long): Boolean = userId in ids
+
+    fun set(userId: Long, present: Boolean) {
+        val changed = if (present) ids.add(userId) else ids.remove(userId)
+        if (changed) settings.setObject(key, ids)
     }
 }

@@ -4,23 +4,22 @@ import android.view.View
 import android.widget.LinearLayout
 import androidx.core.content.res.ResourcesCompat
 import com.aliucord.Constants
+import com.aliucord.coreplugins.voice.VoiceChatFixSettings
 import com.aliucord.coreplugins.voice.connections
 import com.discord.utilities.color.ColorCompat
 import com.lytefast.flexinput.R
-import kotlin.collections.set
 import com.aliucord.Utils
 import com.discord.views.CheckedSetting
 import b.a.q.n0.a as RtcControlSocket
 
 private val disableVideoRowId = View.generateViewId()
-private val videoDisabled = HashMap<Long, Boolean>()
 
-internal fun isVideoDisabled(userId: Long): Boolean = videoDisabled[userId] == true
+internal fun isVideoDisabled(userId: Long): Boolean = userId in VoiceChatFixSettings.disabledVideoUsers
 
 internal fun addDisableVideoRow(currentSocket: RtcControlSocket?, root: LinearLayout, userId: Long) {
     if (userId == 0L) return
-    disableVideoRow(root, videoDisabled[userId] == true) { checked ->
-        videoDisabled[userId] = checked
+    disableVideoRow(root, isVideoDisabled(userId)) { checked ->
+        VoiceChatFixSettings.disabledVideoUsers.set(userId, checked)
         currentSocket?.connections?.forEach { it.disableVideo(userId, checked) }
     }
 }
