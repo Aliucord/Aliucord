@@ -44,9 +44,13 @@ import com.discord.stores.StoreApplicationStreaming
 import com.discord.stores.StoreRtcConnection
 import com.discord.stores.StoreMediaEngine
 import com.discord.stores.StoreMediaSettings
+import com.discord.stores.StoreVoiceChannelSelected
+import com.discord.stores.StoreVoiceChannelSelected.JoinVoiceChannelResult
 import com.discord.stores.StoreVoiceParticipants
 import com.discord.utilities.color.ColorCompat
 import com.discord.utilities.debug.DebugPrintBuilder
+import com.discord.utilities.voice.VoiceChannelJoinability
+import com.discord.utilities.voice.VoiceChannelJoinabilityUtils
 import com.discord.widgets.settings.WidgetSettingsVoice
 import com.discord.widgets.user.usersheet.UserProfileVoiceSettingsView
 import com.discord.widgets.user.usersheet.WidgetUserSheet
@@ -54,6 +58,8 @@ import com.discord.widgets.user.usersheet.WidgetUserSheetViewModel
 import com.discord.widgets.voice.controls.VoiceControlsSheetView
 import com.discord.widgets.voice.fullscreen.CallParticipant
 import com.discord.widgets.voice.fullscreen.WidgetCallFullscreenViewModel
+import com.discord.widgets.voice.fullscreen.WidgetCallPreviewFullscreenViewModel
+import com.discord.widgets.voice.sheet.WidgetVoiceBottomSheetViewModel
 import com.discord.widgets.voice.sheet.WidgetVoiceSettingsBottomSheet
 import com.lytefast.flexinput.R
 import okhttp3.WebSocket
@@ -92,6 +98,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     }.getOrNull()
 
     private var Payloads.Stream.maxFrameRateField by accessField<Int?>("maxFrameRate")
+    private var WidgetCallFullscreenViewModel.channelIdField by accessField<Long>("channelId")
 
     private companion object {
         // Native libs and webrtc dex are built together (aliuvoice aar)
@@ -183,6 +190,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         Soundboard.register(patcher, context)
         patchSoundboardVolume()
         patchVoiceMoveReconnect()
+        patchVoiceAccess()
 
         // Handle new binary voice gateway events
         // WebSocketListener is RtcControlSocket's superclass; the child class doesn't have
@@ -740,6 +748,67 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
 
             logger.info("Voice server update preceded channel switch (user moved); re-checking endpoint")
             checkForVoiceServerUpdate.invoke(this)
+        }
+    }
+
+    private fun patchVoiceAccess() {
+        fun Long.joinBlockReason(result: JoinVoiceChannelResult? = null): String? {
+            if (this == 0L) return null
+
+            val joinability = when (result) {
+                null -> VoiceChannelJoinabilityUtils.INSTANCE.getJoinability(this)
+                JoinVoiceChannelResult.FAILED_PERMISSIONS_MISSING -> VoiceChannelJoinability.PERMISSIONS_MISSING
+                JoinVoiceChannelResult.FAILED_CHANNEL_FULL -> VoiceChannelJoinability.CHANNEL_FULL
+                JoinVoiceChannelResult.FAILED_GUILD_VIDEO_AT_CAPACITY -> VoiceChannelJoinability.GUILD_VIDEO_AT_CAPACITY
+                JoinVoiceChannelResult.FAILED_CHANNEL_DOES_NOT_EXIST -> VoiceChannelJoinability.CHANNEL_DOES_NOT_EXIST
+                else -> VoiceChannelJoinability.CAN_JOIN
+            }
+
+            val reason = when (joinability) {
+                VoiceChannelJoinability.CAN_JOIN -> null
+                VoiceChannelJoinability.PERMISSIONS_MISSING -> "You don't have permission to join this voice channel"
+                VoiceChannelJoinability.CHANNEL_FULL -> "This voice channel is full"
+                VoiceChannelJoinability.GUILD_VIDEO_AT_CAPACITY -> "This channel has reached its video participant limit"
+                VoiceChannelJoinability.CHANNEL_DOES_NOT_EXIST -> "This voice channel no longer exists"
+            } ?: return null
+
+            logger.info("Blocked while trying to join voice chat: $reason")
+            Utils.showToast(reason)
+            return reason
+        }
+
+        // Voice channel bottom sheet ("Join Voice" button)
+        patcher.before<WidgetVoiceBottomSheetViewModel>(
+            "joinVoiceChannel",
+            Long::class.javaPrimitiveType!!,
+        ) { (param, channelId: Long) ->
+            channelId.joinBlockReason() ?: return@before
+            param.result = null
+        }
+
+        // Call preview screen, skipping the original also skips the LaunchVideoCall
+        patcher.before<WidgetCallPreviewFullscreenViewModel>(
+            "joinVoiceChannel",
+            Long::class.javaPrimitiveType!!,
+        ) { (param, channelId: Long) ->
+            channelId.joinBlockReason() ?: return@before
+            param.result = null
+        }
+
+        // Join button on the fullscreen call screen
+        patcher.before<WidgetCallFullscreenViewModel>("tryConnectToVoice") { param ->
+            channelIdField.joinBlockReason() ?: return@before
+            updateViewState(WidgetCallFullscreenViewModel.ViewState.Invalid.INSTANCE)
+            param.result = null
+        }
+
+        // Other missing checks to make sure
+        patcher.after<StoreVoiceChannelSelected>(
+            "selectVoiceChannelInternal",
+            Long::class.javaPrimitiveType!!,
+            Boolean::class.javaPrimitiveType!!,
+        ) { (param, channelId: Long) ->
+            channelId.joinBlockReason(param.result as JoinVoiceChannelResult)
         }
     }
 
