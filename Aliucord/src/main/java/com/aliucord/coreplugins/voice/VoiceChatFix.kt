@@ -191,6 +191,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         patchSoundboardVolume()
         patchVoiceMoveReconnect()
         patchVoiceAccess()
+        ModernAudioDevices.register(patcher)
 
         // Handle new binary voice gateway events
         // WebSocketListener is RtcControlSocket's superclass; the child class doesn't have
