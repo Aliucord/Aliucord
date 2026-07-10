@@ -407,7 +407,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             logger.debug("Setting video input device $device")
             // Push capture settings first so the camera opens at the target framerate directly,
             // instead of the native default 30fps followed by an immediate session re-open.
-            currentSocket?.let(::applyVideoSettings)
+            currentSocket?.takeIf { it.rtcConnections.isNotEmpty() }?.let(::applyVideoSettings)
             mediaEngine.i().setVideoInputDevice(device)
         }
 
