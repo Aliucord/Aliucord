@@ -37,13 +37,10 @@ internal object VoiceChatFixSettings {
     const val DEFAULT_SOUNDBOARD_VOLUME = 100
 
     private val settings = SettingsAPI("VoiceChatFix")
-
     private val useAes256GcmDelegate = settings.delegate("useAes256Gcm", false)
     val useAes256Gcm by useAes256GcmDelegate
-
     private val videoBitrateKbpsDelegate = settings.delegate("videoBitrateKbps", DEFAULT_VIDEO_BITRATE_KBPS)
     val videoBitrateKbps by videoBitrateKbpsDelegate
-
     private val videoFramerateDelegate = settings.delegate("videoFramerate", DEFAULT_VIDEO_FRAMERATE)
     val videoFramerate by videoFramerateDelegate
     private val videoHeightDelegate = settings.delegate("videoHeight", DEFAULT_VIDEO_HEIGHT)
@@ -60,10 +57,8 @@ internal object VoiceChatFixSettings {
     val iKnowWhatImDoing by iKnowWhatImDoingDelegate
     val soundboardVolumeDelegate = settings.delegate("soundboardVolume", DEFAULT_SOUNDBOARD_VOLUME)
     val soundboardVolume by soundboardVolumeDelegate
-
     val mutedSoundboardUsers = PersistedIdSet(settings, "mutedSoundboardUsers")
     val disabledVideoUsers = PersistedIdSet(settings, "disabledVideoUsers")
-
     val transportEncryption: String get() = if (useAes256Gcm) MODE_AES256_GCM else MODE_XCHACHA20
 
     class Sheet : BottomSheet() {
