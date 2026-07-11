@@ -223,7 +223,7 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
     }
 
     override fun setEncryptionSettings(settings: EncryptionSettings) = set(TransportOptions(encryptionSettings = settings))
-    override fun setExpectedPacketLossRate(lossRate: Float) = set(TransportOptions(packetLossRate = lossRate))
+    override fun setExpectedPacketLossRate(lossRate: Float) = set(TransportOptions(packetLossRate = lossRate.coerceIn(0f, 1f)))
     override fun setOnVideoCallback(onVideoCallback: OnVideoCallback) {
         native.setOnVideoCallback { userId, ssrc, streamId, videoStreamParametersJson ->
             Log.d(TAG, "onVideo userId=$userId ssrc=$ssrc streamId=$streamId")
