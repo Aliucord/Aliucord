@@ -61,6 +61,7 @@ import com.discord.widgets.voice.fullscreen.WidgetCallFullscreenViewModel
 import com.discord.widgets.voice.fullscreen.WidgetCallPreviewFullscreenViewModel
 import com.discord.widgets.voice.sheet.WidgetVoiceBottomSheetViewModel
 import com.discord.widgets.voice.sheet.WidgetVoiceSettingsBottomSheet
+import com.hammerandchisel.libdiscord.Discord
 import com.lytefast.flexinput.R
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
@@ -69,6 +70,7 @@ import org.json.JSONObject
 import java.io.File
 import java.util.Collections
 import java.util.WeakHashMap
+import kotlin.text.ifEmpty
 import b.a.q.m0.c.e as MediaEngineConnectionLegacy
 import b.a.q.m0.c.`e$h` as MediaEngineConnectionLegacy_SetCodecs
 import b.a.q.n0.a as RtcControlSocket
@@ -581,6 +583,14 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         } else if (head.isEmpty()) {
             sb.append("Not connected")
         }
+
+        sb.append("\n\n- Codec Capabilities:\n")
+        sb.append(
+            Discord.codecCapabilities.values
+                .sortedBy { it.codec }
+                .joinToString("\n") { "  + ${it.codec}: decode=${it.decode}, encode=${it.encode}" }
+                .ifEmpty { "  - No codecs available" }
+        )
 
         connInfoText = sb.toString().ifEmpty { "Not connected" }
         onConnInfoUpdate(connInfoText)
