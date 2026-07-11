@@ -17,6 +17,7 @@ import com.aliucord.Utils
 import com.aliucord.coreplugins.voice.VoiceChatFixPayload.DaveInvalidCommitWelcome
 import com.aliucord.coreplugins.voice.VoiceChatFixPayload.DaveTransitionReady
 import com.aliucord.coreplugins.voice.model.NewIdentifyPayload
+import com.aliucord.coreplugins.voice.model.NewSelectProtocolPayload
 import com.aliucord.coreplugins.voice.model.SecureFrames
 import com.aliucord.coreplugins.voice.ui.addDisableVideoRow
 import com.aliucord.coreplugins.voice.ui.addMuteSoundboardRow

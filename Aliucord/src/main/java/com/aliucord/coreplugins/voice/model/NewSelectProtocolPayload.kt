@@ -1,6 +1,6 @@
-package com.aliucord.coreplugins.voice
+package com.aliucord.coreplugins.voice.model
 
-import com.aliucord.coreplugins.voice.model.NewCodecInfo
+import com.aliucord.coreplugins.voice.VoiceChatFixSettings
 import com.discord.rtcconnection.socket.io.Payloads
 
 internal data class NewSelectProtocolPayload(
