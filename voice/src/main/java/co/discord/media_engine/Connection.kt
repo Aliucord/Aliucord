@@ -230,8 +230,15 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
             onVideoCallback.onVideo(userId.toLong(), ssrc.toInt(), streamId, arrayOf())
         }
     }
-    override fun setPTTActive(isActive: Boolean) = native.setPTTActive(isActive, priority = false, muteOverride = false) // TODO: priority? muteOverride?
-    override fun setUserPlayoutVolume(userId: Long, volume: Float) = native.setLocalVolume(userId.toString(), volume)
+    override fun setPTTActive(isActive: Boolean) {
+        Log.d(TAG, "connection/setPTTActive isActive=$isActive")
+        // TODO: priority? muteOverride?
+        native.setPTTActive(isActive, priority = false, muteOverride = false)
+    }
+    override fun setUserPlayoutVolume(userId: Long, volume: Float) {
+        Log.d(TAG, "connection/setUserPlayoutVolume userId=$userId volume=$volume")
+        native.setLocalVolume(userId.toString(), volume)
+    }
 
     override fun setVADAutoThreshold(threshold: Int)
         = set(TransportOptions.InputModeOptions(vadAutoThreshold = threshold))
@@ -245,21 +252,25 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
         = set(TransportOptions.InputModeOptions(vadUseKrisp = enabled))
 
     override fun setVideoBroadcast(enabled: Boolean) {
+        Log.d(TAG, "connection/setVideoBroadcast enabled=$enabled disposed=$disposed")
         if (disposed) return
         native.setVideoBroadcast(enabled)
     }
 
     override fun startScreenshareBroadcast(videoCapturer: VideoCapturer, nativeInstance: Long) {
+        Log.d(TAG, "connection/startScreenshareBroadcast videoCapturer=$videoCapturer nativeInstance=$nativeInstance disposed=$disposed")
         if (disposed) return
         native.startBroadcast(videoCapturer, nativeInstance)
     }
     override fun stopScreenshareBroadcast() {
+        Log.d(TAG, "connection/stopScreenshareBroadcast disposed=$disposed")
         if (disposed) return
         native.stopBroadcast()
     }
 
     override fun setUserSpeakingStatusChangedCallback(userSpeakingStatusChangedCallback: UserSpeakingStatusChangedCallback) {
         native.setOnSpeakingCallback { userId, speakingFlags, voiceDb ->
+            Log.d(TAG, "connection/setUserSpeakingStatusChangedCallback: userId=${userId.toLong()} speakingFlags=$speakingFlags voiceDb=$voiceDb")
             userSpeakingStatusChangedCallback.onUserSpeakingStatusChanged(
                 userId.toLong(),
                 speakingFlags > 0,
@@ -285,6 +296,7 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
 
     // New DAVE-related functions
     fun connectUsers(userIds: List<String>) {
+        Log.d(TAG, "connection/connectUsers: $userIds")
         val users = userIds.map { id ->
             UserConnectionInfo(
                 id = id,
