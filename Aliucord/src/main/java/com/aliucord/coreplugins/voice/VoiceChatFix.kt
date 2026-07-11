@@ -16,6 +16,8 @@ import com.aliucord.Constants
 import com.aliucord.Utils
 import com.aliucord.coreplugins.voice.VoiceChatFixPayload.DaveInvalidCommitWelcome
 import com.aliucord.coreplugins.voice.VoiceChatFixPayload.DaveTransitionReady
+import com.aliucord.coreplugins.voice.model.NewIdentifyPayload
+import com.aliucord.coreplugins.voice.model.SecureFrames
 import com.aliucord.coreplugins.voice.ui.addDisableVideoRow
 import com.aliucord.coreplugins.voice.ui.addMuteSoundboardRow
 import com.aliucord.coreplugins.voice.ui.addVerificationRow
@@ -76,11 +78,6 @@ import b.a.q.m0.c.`e$h` as MediaEngineConnectionLegacy_SetCodecs
 import b.a.q.n0.a as RtcControlSocket
 import b.a.q.n0.`a$j` as RtcControlSocket_OnMessage
 import b.a.q.n0.`a$k` as RtcControlSocket_Connect
-
-data class SecureFrames(
-    val epochAuthenticator: String,
-    val version: Int,
-)
 
 internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     override val isHidden = false
@@ -867,6 +864,8 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             if (event in listOf(
                 "VOICE_CHANNEL_START_TIME_UPDATE",
                 "VOICE_CHANNEL_STATUS_UPDATE",
+                // TODO: emoji reactions & soundboard effect notifications, unknown to 126.21
+                "VOICE_CHANNEL_EFFECT_SEND",
             )) param.args[0] = Unit.a
         }
     }

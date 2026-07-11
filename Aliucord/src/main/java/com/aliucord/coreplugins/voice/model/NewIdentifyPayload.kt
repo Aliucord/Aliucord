@@ -1,9 +1,9 @@
-package com.aliucord.coreplugins.voice
+package com.aliucord.coreplugins.voice.model
 
 import com.aliucord.utils.SerializedName
 import com.discord.rtcconnection.socket.io.Payloads
 
-data class NewIdentifyPayload(
+internal data class NewIdentifyPayload(
     @SerializedName("server_id") val serverId: String,
     @SerializedName("user_id") val userId: String,
     @SerializedName("session_id") val sessionId: String,

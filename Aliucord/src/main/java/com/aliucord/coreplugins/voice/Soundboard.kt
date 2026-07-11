@@ -7,12 +7,12 @@ import com.aliucord.Logger
 import com.aliucord.Utils
 import com.aliucord.api.GatewayAPI
 import com.aliucord.api.PatcherAPI
+import com.aliucord.coreplugins.voice.model.VoiceChannelEffect
 import com.aliucord.coreplugins.voice.ui.isSoundboardMuted
 import com.aliucord.patcher.before
 import com.aliucord.patcher.component1
 import com.aliucord.patcher.component2
 import com.aliucord.patcher.component3
-import com.aliucord.utils.SerializedName
 import com.discord.gateway.GatewaySocket
 import com.discord.stores.StoreStream
 import java.io.File
@@ -24,13 +24,6 @@ internal object Soundboard {
     private const val EVENT_NAME = "VOICE_CHANNEL_EFFECT_SEND"
     private lateinit var cacheDir: File
     private val activePlayers = Collections.synchronizedSet(mutableSetOf<MediaPlayer>())
-
-    private data class VoiceChannelEffect(
-        @SerializedName("channel_id") val channelId: Long,
-        @SerializedName("user_id") val userId: Long,
-        @SerializedName("sound_id") val soundId: String?,
-        @SerializedName("sound_volume") val soundVolume: Float?,
-    )
 
     fun register(patcher: PatcherAPI, context: Context) {
         cacheDir = File(context.cacheDir, "soundboard").apply { mkdirs() }

@@ -11,6 +11,7 @@ import com.aliucord.settings.SettingsDelegate
 import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.views.TextInput
+import com.hammerandchisel.libdiscord.Discord
 
 private const val GROUP_SIZE = 5
 private const val DESIRED_LEN = 30
@@ -95,3 +96,8 @@ internal fun LinearLayout.validate(
 
     inputs.add(input)
 }
+
+internal fun codecCaps(codec: String): Discord.CodecCapability =
+    Discord.codecCapabilities[codec] ?: (codec == "H264").let {
+        Discord.CodecCapability(codec, decode = it, encode = it)
+    }
