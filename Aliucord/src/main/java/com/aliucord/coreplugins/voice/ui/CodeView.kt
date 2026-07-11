@@ -11,5 +11,6 @@ internal fun codeBlock(ctx: Context): TextView = TextView(ctx).apply {
 }
 
 internal fun TextView.setCodeBlock(text: CharSequence) {
-    this.text = MDUtils.renderCodeBlock(context, SpannableStringBuilder(), null, text.toString())
+    val render = MDUtils.renderCodeBlock(context, SpannableStringBuilder(), null, text.toString())
+    this.text = render.delete(render.length - 1, render.length)
 }
