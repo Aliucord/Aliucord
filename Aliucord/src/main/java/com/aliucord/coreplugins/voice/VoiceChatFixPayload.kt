@@ -22,6 +22,8 @@ sealed interface VoiceChatFixPayload {
             val clazz = when (payload.opcode) {
                 Opcodes.CLIENTS_CONNECT -> ClientsConnect::class
                 Opcodes.CLIENT_DISCONNECT -> ClientDisconnect::class
+                Opcodes.CLIENT_FLAGS -> ClientFlags::class
+                Opcodes.CLIENT_PLATFORM -> ClientPlatform::class
                 Opcodes.DAVE_PREPARE_TRANSITION -> DavePrepareTransition::class
                 Opcodes.DAVE_EXECUTE_TRANSITION -> DaveExecuteTransition::class
                 Opcodes.DAVE_PREPARE_EPOCH -> DavePrepareEpoch::class
@@ -37,6 +39,16 @@ sealed interface VoiceChatFixPayload {
 
     data class ClientDisconnect(
         @SerializedName("user_id") val userId: String,
+    ) : Incoming
+
+    data class ClientFlags(
+        @SerializedName("user_id") val userId: String,
+        val flags: Int,
+    ) : Incoming
+
+    data class ClientPlatform(
+        @SerializedName("user_id") val userId: String,
+        val platform: Int,
     ) : Incoming
 
     data class DavePrepareTransition(

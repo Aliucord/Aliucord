@@ -393,6 +393,12 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                         logger.debug("Disconnect: ${payload.userId}")
                         connection.destroyUser(payload.userId)
                     }
+                    is VoiceChatFixPayload.ClientFlags -> {
+                        logger.debug("ClientFlags: userId=${payload.userId} flags=${payload.flags}")
+                    }
+                    is VoiceChatFixPayload.ClientPlatform -> {
+                        logger.debug("ClientPlatform: userId=${payload.userId} platform=${payload.platform}")
+                    }
                     is VoiceChatFixPayload.DavePrepareTransition -> {
                         connection.prepareSecureFramesTransition(
                             transitionId = payload.transitionId,
