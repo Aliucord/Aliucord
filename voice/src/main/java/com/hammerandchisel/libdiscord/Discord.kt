@@ -351,8 +351,11 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         @JvmStatic
         private var krispVersion: String = ""
 
-        init {
-            System.loadLibrary("discord")
-        }
+        // NativeEngine loads libdiscord in its own <clinit> and every Discord instance
+        // constructs a NativeEngine before any native call can happen,
+        // The code below raised "recursive attempt to load library" at startup
+        // init {
+        //     System.loadLibrary("discord")
+        // }
     }
 }
