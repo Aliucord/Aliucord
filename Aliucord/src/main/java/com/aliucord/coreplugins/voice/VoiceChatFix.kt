@@ -70,7 +70,6 @@ import org.json.JSONObject
 import java.io.File
 import java.util.Collections
 import java.util.WeakHashMap
-import kotlin.text.ifEmpty
 import b.a.q.m0.c.e as MediaEngineConnectionLegacy
 import b.a.q.m0.c.`e$h` as MediaEngineConnectionLegacy_SetCodecs
 import b.a.q.n0.a as RtcControlSocket
@@ -193,6 +192,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         patchSoundboardVolume()
         patchVoiceMoveReconnect()
         patchVoiceAccess()
+        patchDaveEnforcement()
         ModernAudioDevices.register(patcher)
 
         // Handle new binary voice gateway events
@@ -820,6 +820,36 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         ) { (param, channelId: Long) ->
             channelId.joinBlockReason(param.result as JoinVoiceChannelResult)
         }
+    }
+
+    // Checking voice call with maxDaveProtocolVersion=0 if the websocket gets
+    // closed with error 4017 ("E2EE/DAVE protocol required")
+    // If triggered, we re-enable DAVE before the retry
+    private fun patchDaveEnforcement() {
+        patcher.patch(
+            RtcControlSocket::class.java.getDeclaredMethod(
+                "a",
+                RtcControlSocket::class.java,
+                Boolean::class.javaPrimitiveType!!,
+                Integer::class.java,
+                String::class.java,
+            ),
+            PreHook { param ->
+                val code = param.args[2] as? Int
+                if (code != 4017) return@PreHook
+
+                if (VoiceChatFixSettings.daveEnabled) {
+                    logger.warn("RtcControlSocket returned 4017: 'E2EE/DAVE protocol required' despite DAVE enabled, unsupported protocol version?")
+                    return@PreHook
+                }
+
+                var setting by VoiceChatFixSettings.daveEnabledDelegate
+                setting = true
+
+                logger.info("RtcControlSocket returned 4017: 'E2EE/DAVE protocol required', re-enabling DAVE before retry")
+                Utils.mainThread.post { Utils.showToast("VoiceChatFix: This call requires E2EE/DAVE to be enabled! The protocol has been automatically re-enabled", true) }
+            }
+        )
     }
 
     private fun patchSoundboardVolume() {

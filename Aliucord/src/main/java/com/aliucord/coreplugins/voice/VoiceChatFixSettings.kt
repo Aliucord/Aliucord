@@ -47,7 +47,7 @@ internal object VoiceChatFixSettings {
     val videoHeight by videoHeightDelegate
     private val videoWidthDelegate = settings.delegate("videoWidth", DEFAULT_VIDEO_WIDTH)
     val videoWidth by videoWidthDelegate
-    private val daveEnabledDelegate = settings.delegate("daveEnabled", true)
+    val daveEnabledDelegate = settings.delegate("daveEnabled", true)
     val daveEnabled by daveEnabledDelegate
     private val encoderQueueSizeDelegate = settings.delegate("encoderQueueSize", DEFAULT_ENCODER_QUEUE_SIZE)
     val encoderQueueSize by encoderQueueSizeDelegate
