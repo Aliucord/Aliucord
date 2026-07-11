@@ -552,8 +552,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             }.onFailure { logger.error("Failed to apply video encode settings", it) }
         }
         setDebug("Bitrate", "${VoiceChatFixSettings.videoBitrateKbps} kbps")
-        setDebug("Resolution", "${VoiceChatFixSettings.videoWidth} x ${VoiceChatFixSettings.videoHeight}")
-        setDebug("FPS", VoiceChatFixSettings.videoFramerate.toString())
+        setDebug("Resolution", "${VoiceChatFixSettings.videoWidth} x ${VoiceChatFixSettings.videoHeight} @ ${VoiceChatFixSettings.videoFramerate} fps")
     }
 
     private fun setDebug(key: String, value: String) {
