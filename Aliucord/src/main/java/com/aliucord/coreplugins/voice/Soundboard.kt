@@ -22,6 +22,8 @@ import java.util.Collections
 internal object Soundboard {
     private val logger = Logger("VoiceChatFix")
     private const val EVENT_NAME = "VOICE_CHANNEL_EFFECT_SEND"
+    private const val MAX_CACHE_BYTES = 16L * 1024 * 1024  // 16 MB
+    private const val MAX_PLAYERS = 8
     private lateinit var cacheDir: File
     private val activePlayers = Collections.synchronizedSet(mutableSetOf<MediaPlayer>())
 
@@ -67,14 +69,8 @@ internal object Soundboard {
         // So we download and cache it which is genius since SOME spam soundboard
         Utils.threadPool.execute {
             runCatching {
-                val file = File(cacheDir, soundId)
-                if (!file.exists() || file.length() == 0L) {
-                    val tmp = File(cacheDir, "$soundId.tmp")
-                    URL("https://cdn.discordapp.com/soundboard-sounds/$soundId").openStream().use { input ->
-                        tmp.outputStream().use { input.copyTo(it) }
-                    }
-                    tmp.renameTo(file)
-                }
+                val file = fetchSound(soundId)
+                clearOldestPlayers()
 
                 MediaPlayer().apply {
                     activePlayers.add(this)
@@ -100,6 +96,67 @@ internal object Soundboard {
                     prepareAsync()
                 }
             }.onFailure { logger.error("Failed to play soundboard sound $soundId", it) }
+        }
+    }
+
+    private fun fetchSound(soundId: String): File {
+        logger.debug("Fetching soundboard sound $soundId")
+        val file = File(cacheDir, soundId)
+
+        if (file.exists() && file.length() > 0L) {
+            logger.debug("Soundboard sound $soundId already exists in cache, using it")
+            file.setLastModified(System.currentTimeMillis())
+            return file
+        }
+
+        val tmp = File(cacheDir, "$soundId.tmp")
+        try {
+            URL("https://cdn.discordapp.com/soundboard-sounds/$soundId").openStream().use { input ->
+                tmp.outputStream().use { input.copyTo(it) }
+            }
+            tmp.renameTo(file)
+        } finally {
+            tmp.delete()
+        }
+
+        clearCache()
+        return file
+    }
+
+    private fun clearCache() {
+        val files = cacheDir.listFiles() ?: return
+        var total = files.sumOf { it.length() }
+        if (total <= MAX_CACHE_BYTES) return
+
+        logger.debug("Starting clearing cache of soundboard sounds... fileNum=${files.size} sizeTotal=$total")
+
+        for (f in files.sortedBy { it.lastModified() }) {
+            if (total <= MAX_CACHE_BYTES) break
+            val len = f.length()
+            if (f.delete()) {
+                total -= len
+                logger.debug("Deleted cached soundboard sound '${f.name}'")
+            }
+        }
+    }
+
+    private fun clearOldestPlayers() {
+        val players = mutableListOf<MediaPlayer>()
+
+        synchronized(activePlayers) {
+            val iterator = activePlayers.iterator()
+            while (activePlayers.size >= MAX_PLAYERS && iterator.hasNext()) {
+                players.add(iterator.next())
+                iterator.remove()
+            }
+        }
+
+        players.forEach { oldest ->
+            runCatching { oldest.stop() }
+                .onFailure { logger.debug("Player $oldest not started yet, releasing directly") }
+            runCatching { oldest.release() }
+                .onFailure { logger.error("Failed to release player: $oldest", it) }
+                .onSuccess { logger.debug("Released player: $oldest") }
         }
     }
 }
