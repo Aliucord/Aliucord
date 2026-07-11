@@ -859,6 +859,20 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                     return@PreHook
                 }
 
+                // If the preferred transport mode AES-256-GCM is rejected,
+                // use XChaCha20 before trying again
+                if (close == VoiceCloseCodes.UNKNOWN_ENCRYPTION_MODE && VoiceChatFixSettings.useAes256Gcm) {
+                    var setting by VoiceChatFixSettings.useAes256GcmDelegate
+                    setting = false
+
+                    logger.warn("RtcControlSocket closed with ${close.friendly()}, disabling AES-256-GCM and falling back to XChaCha20")
+                    Utils.mainThread.post {
+                        Utils.showToast("VoiceChatFix: Server rejected AES-256-GCM, falling back to XChaCha20", true)
+                    }
+
+                    return@PreHook
+                }
+
                 if (close.toast) {
                     logger.warn("RtcControlSocket closed with ${close.friendly()}: '$reason'")
                     Utils.mainThread.post {

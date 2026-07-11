@@ -45,7 +45,9 @@ internal object VoiceChatFixSettings {
     const val DEFAULT_SOUNDBOARD_VOLUME = 100
 
     private val settings = SettingsAPI("VoiceChatFix")
-    private val useAes256GcmDelegate = settings.delegate("useAes256Gcm", false)
+
+    // Server only offers it when the hardware supports it, if not, XChaCha20 will be used
+    internal val useAes256GcmDelegate = settings.delegate("useAes256Gcm", true)
     val useAes256Gcm by useAes256GcmDelegate
     private val videoBitrateKbpsDelegate = settings.delegate("videoBitrateKbps", DEFAULT_VIDEO_BITRATE_KBPS)
     val videoBitrateKbps by videoBitrateKbpsDelegate
