@@ -277,6 +277,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         nativeEngine.getCodecCapabilities { capabilitiesJson ->
             val capabilities = gson.g<Array<CodecCapability>>(capabilitiesJson, Array<CodecCapability>::class.java)
             Log.d(TAG, "Codec Capabilities: ${capabilities.contentToString()}")
+            codecCapabilities = capabilities.associateBy { it.codec }
             capabilities
                 .filter { it.decode }
                 .map { it.codec }
@@ -341,6 +342,11 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
     companion object {
         const val LOGLEVEL_DEBUG: Int = 2
         const val LOGLEVEL_DEFAULT: Int = -1
+
+        @JvmStatic
+        @Volatile
+        var codecCapabilities: Map<String, CodecCapability> = emptyMap()
+            private set
 
         @JvmStatic
         private var krispVersion: String = ""
