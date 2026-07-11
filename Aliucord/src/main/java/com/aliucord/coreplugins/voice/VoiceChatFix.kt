@@ -14,12 +14,22 @@ import co.discord.media_engine.VideoDecoder
 import co.discord.media_engine.VideoInputDeviceDescription
 import com.aliucord.Constants
 import com.aliucord.Utils
+import com.aliucord.api.GatewayAPI
 import com.aliucord.coreplugins.voice.VoiceChatFixPayload.DaveInvalidCommitWelcome
 import com.aliucord.coreplugins.voice.VoiceChatFixPayload.DaveTransitionReady
+import com.aliucord.coreplugins.voice.VoiceChatTimers.backstopTimeSelected
+import com.aliucord.coreplugins.voice.VoiceChatTimers.callStartTimes
+import com.aliucord.coreplugins.voice.VoiceChatTimers.callTimersLines
+import com.aliucord.coreplugins.voice.VoiceChatTimers.gatewaySocket
+import com.aliucord.coreplugins.voice.VoiceChatTimers.trackCallStart
+import com.aliucord.coreplugins.voice.VoiceChatTimers.requestChannelInfo
+import com.aliucord.coreplugins.voice.model.ChannelInfo
 import com.aliucord.coreplugins.voice.model.NewIdentifyPayload
 import com.aliucord.coreplugins.voice.model.NewSelectProtocolPayload
 import com.aliucord.coreplugins.voice.model.SecureFrames
 import com.aliucord.coreplugins.voice.model.TransportModes
+import com.aliucord.coreplugins.voice.model.VoiceChannelStartTime
+import com.aliucord.coreplugins.voice.model.VoiceChannelStatus
 import com.aliucord.coreplugins.voice.model.VoiceCloseCodes
 import com.aliucord.coreplugins.voice.ui.addDisableVideoRow
 import com.aliucord.coreplugins.voice.ui.addMuteSoundboardRow
@@ -38,6 +48,8 @@ import com.aliucord.utils.GsonUtils.fromJson
 import com.aliucord.utils.accessField
 import com.aliucord.utils.SemVer
 import com.aliucord.utils.ViewUtils.addTo
+import com.aliucord.wrappers.ChannelWrapper.Companion.guildId
+import com.aliucord.wrappers.ChannelWrapper.Companion.id
 import com.discord.play_delivery.PlayAssetDeliveryNativeWrapper
 import com.discord.rtcconnection.RtcConnection
 import com.discord.rtcconnection.mediaengine.MediaEngineConnection
@@ -51,6 +63,7 @@ import com.discord.stores.StoreApplicationStreaming
 import com.discord.stores.StoreRtcConnection
 import com.discord.stores.StoreMediaEngine
 import com.discord.stores.StoreMediaSettings
+import com.discord.stores.StoreStream
 import com.discord.stores.StoreVoiceChannelSelected
 import com.discord.stores.StoreVoiceChannelSelected.JoinVoiceChannelResult
 import com.discord.stores.StoreVoiceParticipants
@@ -62,8 +75,11 @@ import com.discord.widgets.settings.WidgetSettingsVoice
 import com.discord.widgets.user.usersheet.UserProfileVoiceSettingsView
 import com.discord.widgets.user.usersheet.WidgetUserSheet
 import com.discord.widgets.user.usersheet.WidgetUserSheetViewModel
+import com.discord.widgets.chat.list.entries.MessageEntry
 import com.discord.widgets.voice.controls.VoiceControlsSheetView
 import com.discord.widgets.voice.fullscreen.CallParticipant
+import com.discord.widgets.voice.fullscreen.WidgetCallFullscreen
+import com.discord.widgets.voice.model.CallModel
 import com.discord.widgets.voice.fullscreen.WidgetCallFullscreenViewModel
 import com.discord.widgets.voice.fullscreen.WidgetCallPreviewFullscreenViewModel
 import com.discord.widgets.voice.sheet.WidgetVoiceBottomSheetViewModel
@@ -197,6 +213,9 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         patchVoiceAccess()
         patchDaveEnforcement()
         patchSidechainCompression()
+        patchCallStartTime()
+        patchCallCardTicker()
+        patchCallDurationText()
         patchSilenceUnhandledEvents()
         ModernAudioDevices.register(patcher)
 
@@ -901,6 +920,143 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         }
     }
 
+    // Base aliucord doesn't handle VOICE_CHANNEL_START_TIME_UPDATE (completely missing)
+    // On Discord RN it's the "call started ... ago"
+    // Both events only fire on changes, so the initial values are fetched
+    // via Opcode 43 REQUEST_CHANNEL_INFO on guild voice channel join
+    private fun patchCallStartTime() {
+        GatewayAPI.onEvent<VoiceChannelStartTime>("VOICE_CHANNEL_START_TIME_UPDATE") { update ->
+            logger.debug("GatewayEvent[VOICE_CHANNEL_START_TIME_UPDATE]: $update")
+            if (update.id == null) return@onEvent
+
+            trackCallStart(update.id, update.voiceStartTime)
+        }
+
+        GatewayAPI.onEvent<VoiceChannelStatus>("VOICE_CHANNEL_STATUS_UPDATE") { update ->
+            logger.debug("GatewayEvent[VOICE_CHANNEL_STATUS_UPDATE]: $update")
+        }
+
+        GatewayAPI.onEvent<ChannelInfo>("CHANNEL_INFO") { info ->
+            logger.debug("GatewayEvent[CHANNEL_INFO]: $info")
+
+            info.channels?.forEach { entry ->
+                val id = entry.id ?: return@forEach
+
+                trackCallStart(id, entry.voiceStartTime)
+            }
+        }
+
+        // Seed the initial values on guild voice channel join
+        patcher.after<StoreVoiceChannelSelected>(
+            "selectVoiceChannelInternal",
+            Long::class.javaPrimitiveType!!,
+            Boolean::class.javaPrimitiveType!!,
+        ) { (param, channelId: Long) ->
+            if (channelId <= 0L || param.result != JoinVoiceChannelResult.SUCCESS) return@after
+            val guildId = StoreStream.getChannels().getChannel(channelId)?.guildId ?: return@after
+
+            requestChannelInfo(guildId)
+        }
+
+        // Base leaves StoreVoiceChannelSelected.timeSelectedMs at 0 in some join flows (ie "Ongoing Call" in DMs)
+        // Then because CallModel.timeConnectedMs is 0, it shows the call duration as "1/1/1970"
+        patcher.after<StoreVoiceChannelSelected>("getTimeSelectedMs") { param ->
+            param.result = backstopTimeSelected(currentSocket, param.result as? Long)
+        }
+
+        // Joining via the chat card's "Ongoing Call" never passes the timestamp field
+        // Joining via the top right call button does
+        // Without it, the call duration still shows as "1/1/1970"
+        runCatching {
+            Class.forName($$"com.discord.stores.StoreVoiceChannelSelected$observeTimeSelectedMs$1")
+                .declaredMethods.filter { it.name == "invoke" }
+                .forEach { method ->
+                    patcher.patch(method, Hook { param ->
+                        param.result = backstopTimeSelected(currentSocket, param.result as? Long)
+                    })
+                }
+        }.onFailure {
+            logger.error("Failed to patch observeTimeSelectedMs", it)
+        }
+    }
+
+    // The "Ongoing Call" card in the chat DMs chat card ticks from the parsed timestamp
+    // This doesn't take into account timezones or non-UTC devices
+    // Change it into a ticker when the gateway told us the real timestamp
+    // of when the call started
+    private fun patchCallCardTicker() = runCatching {
+        val itemClass = Class.forName("com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemCallMessage")
+        val tickerClass = Class.forName($$"com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemCallMessage$configureSubtitle$1")
+        val pendingCardChannel = ThreadLocal<Long?>()
+
+        patcher.patch(
+            itemClass.declaredMethods.first { it.name == "configureSubtitle" },
+            PreHook { param ->
+                val entry = param.args[0] as? MessageEntry ?: return@PreHook
+
+                pendingCardChannel.set(entry.message.channelId)
+            }
+        )
+
+        patcher.patch(
+            tickerClass.getDeclaredConstructor(itemClass, Long::class.javaPrimitiveType),
+            PreHook { param ->
+                val channelId = pendingCardChannel.get() ?: return@PreHook
+                pendingCardChannel.set(null)
+                val start = callStartTimes[channelId] ?: return@PreHook
+                logger.debug("Call card ticker: overriding start ${param.args[1]} to $start for channel $channelId")
+
+                param.args[1] = start
+            }
+        )
+    }.onFailure {
+        logger.error("Failed to patch call card ticker", it)
+    }
+
+    // Expands the DM call duration line
+    private fun patchCallDurationText() = runCatching {
+        val lambdaClass = Class.forName($$"com.discord.widgets.voice.fullscreen.WidgetCallFullscreen$configureConnectionStatusText$1")
+
+        patcher.patch(
+            lambdaClass.declaredMethods.first { it.name == "invoke" && it.parameterTypes.singleOrNull() == Long::class.javaObjectType },
+            Hook { param ->
+                runCatching {
+                    val callWidget = lambdaClass.getDeclaredField($$"this$0")
+                        .apply { isAccessible = true }
+                        .get(param.thisObject) as WidgetCallFullscreen
+
+                    val callWidgetView = callWidget.view ?: return@Hook
+
+                    val callModel = lambdaClass.getDeclaredField($$"$callModel")
+                        .apply { isAccessible = true }
+                        .get(param.thisObject) as CallModel
+
+                    // The "Ongoing Call" card in the chat DMs never touches the stored timestamp,
+                    // only emits once at subscribe time (before we even have a channelId) and freezes at 0 forever
+                    // We ignore it completely and just replace it with our own custom timer(s)
+                    val start = callModel.timeConnectedMs.takeIf { it > 0L }
+                        ?: callModel.channel?.id?.let { callStartTimes.getOrPut(it) { System.currentTimeMillis() } }
+                        ?: return@Hook
+
+                    val timers = callTimersLines(start)
+
+                    callWidgetView.findViewById<TextView>(
+                        Utils.getResId("private_call_status_duration", "id")
+                    )?.apply {
+                        isSingleLine = false
+                        maxLines = timers.size
+                        textAlignment = TextView.TEXT_ALIGNMENT_CENTER
+                        this.text = timers.joinToString("\n")
+                    }
+                }.onFailure {
+                    logger.error("Failed to expand call duration text", it)
+                }
+            }
+        )
+    }.onFailure {
+        logger.error("Failed to patch call duration text", it)
+    }
+
     // Silence "event unhandled" warnings in debug log
     private fun patchSilenceUnhandledEvents() {
         patcher.before<GatewaySocket>(
@@ -911,9 +1067,13 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             Int::class.javaPrimitiveType!!,
             Long::class.javaPrimitiveType!!,
         ) { (param, _: Any, event: String) ->
+            // For capturing the live socket for sending
+            gatewaySocket = this
+
             if (event in listOf(
                 "VOICE_CHANNEL_START_TIME_UPDATE",
                 "VOICE_CHANNEL_STATUS_UPDATE",
+                "CHANNEL_INFO",
             )) param.args[0] = Unit.a
         }
     }
