@@ -19,6 +19,7 @@ import com.aliucord.coreplugins.voice.VoiceChatFixPayload.DaveTransitionReady
 import com.aliucord.coreplugins.voice.model.NewIdentifyPayload
 import com.aliucord.coreplugins.voice.model.NewSelectProtocolPayload
 import com.aliucord.coreplugins.voice.model.SecureFrames
+import com.aliucord.coreplugins.voice.model.VoiceCloseCodes
 import com.aliucord.coreplugins.voice.ui.addDisableVideoRow
 import com.aliucord.coreplugins.voice.ui.addMuteSoundboardRow
 import com.aliucord.coreplugins.voice.ui.addVerificationRow
@@ -825,6 +826,8 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     // Checking voice call with maxDaveProtocolVersion=0 if the websocket gets
     // closed with error 4017 ("E2EE/DAVE protocol required")
     // If triggered, we re-enable DAVE before the retry
+    // Other close codes get surfaced as toasts (or logs for the routine ones)
+    // instead of looking like silent drops
     private fun patchDaveEnforcement() {
         patcher.patch(
             RtcControlSocket::class.java.getDeclaredMethod(
@@ -835,19 +838,35 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 String::class.java,
             ),
             PreHook { param ->
-                val code = param.args[2] as? Int
-                if (code != 4017) return@PreHook
+                val code = param.args[2] as? Int ?: return@PreHook
+                val close = VoiceCloseCodes.from(code) ?: return@PreHook
+                val reason = (param.args[3] as? String)?.takeIf { it.isNotBlank() } ?: close.message
 
-                if (VoiceChatFixSettings.daveEnabled) {
-                    logger.warn("RtcControlSocket returned 4017: 'E2EE/DAVE protocol required' despite DAVE enabled, unsupported protocol version?")
+                if (close == VoiceCloseCodes.DAVE_REQUIRED) {
+                    if (VoiceChatFixSettings.daveEnabled) {
+                        logger.warn("RtcControlSocket closed with ${close.friendly()} despite DAVE enabled, unsupported protocol version?")
+                        return@PreHook
+                    }
+
+                    var setting by VoiceChatFixSettings.daveEnabledDelegate
+                    setting = true
+
+                    logger.info("RtcControlSocket closed with ${close.friendly()}, re-enabling DAVE before retry")
+                    Utils.mainThread.post {
+                        Utils.showToast("VoiceChatFix: This call requires E2EE/DAVE to be enabled! The protocol has been automatically re-enabled", true)
+                    }
+
                     return@PreHook
                 }
 
-                var setting by VoiceChatFixSettings.daveEnabledDelegate
-                setting = true
-
-                logger.info("RtcControlSocket returned 4017: 'E2EE/DAVE protocol required', re-enabling DAVE before retry")
-                Utils.mainThread.post { Utils.showToast("VoiceChatFix: This call requires E2EE/DAVE to be enabled! The protocol has been automatically re-enabled", true) }
+                if (close.toast) {
+                    logger.warn("RtcControlSocket closed with ${close.friendly()}: '$reason'")
+                    Utils.mainThread.post {
+                        Utils.showToast("VoiceChatFix: ${close.message} ($code)", true)
+                    }
+                } else {
+                    logger.info("RtcControlSocket closed with ${close.friendly()}: '$reason'")
+                }
             }
         )
     }
