@@ -40,6 +40,7 @@ import com.discord.rtcconnection.socket.io.Opcodes
 import com.discord.rtcconnection.socket.io.Payloads
 import com.discord.rtcconnection.socket.io.Payloads.Protocol.ProtocolInfo
 import com.discord.api.voice.server.VoiceServer
+import com.discord.gateway.GatewaySocket
 import com.discord.stores.StoreApplicationStreaming
 import com.discord.stores.StoreRtcConnection
 import com.discord.stores.StoreMediaEngine
@@ -193,6 +194,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         patchVoiceMoveReconnect()
         patchVoiceAccess()
         patchDaveEnforcement()
+        patchSilenceUnhandledEvents()
         ModernAudioDevices.register(patcher)
 
         // Handle new binary voice gateway events
@@ -850,6 +852,23 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 Utils.mainThread.post { Utils.showToast("VoiceChatFix: This call requires E2EE/DAVE to be enabled! The protocol has been automatically re-enabled", true) }
             }
         )
+    }
+
+    // Silence "event unhandled" warnings in debug log
+    private fun patchSilenceUnhandledEvents() {
+        patcher.before<GatewaySocket>(
+            "handleDispatch",
+            Object::class.java,
+            String::class.javaObjectType,
+            Int::class.javaPrimitiveType!!,
+            Int::class.javaPrimitiveType!!,
+            Long::class.javaPrimitiveType!!,
+        ) { (param, _: Any, event: String) ->
+            if (event in listOf(
+                "VOICE_CHANNEL_START_TIME_UPDATE",
+                "VOICE_CHANNEL_STATUS_UPDATE",
+            )) param.args[0] = Unit.a
+        }
     }
 
     private fun patchSoundboardVolume() {
