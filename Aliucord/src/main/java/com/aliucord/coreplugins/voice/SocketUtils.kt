@@ -53,9 +53,12 @@ val RtcConnection.groupId: Long get() {
 }
 
 val RtcControlSocket.connections: List<Connection> get() {
-    val connections = rtcConnections.map {
+    val connections = rtcConnections.mapNotNull {
         // rtcConnection.mediaEngineConnection
-        val engine = it.x as MediaEngineConnectionLegacy // Should never fail as there's only one impl
+        // "Should never fail as there's only one impl", well crap it does on stages lol -koi
+        // [VoiceChatFix] Exception while pre-hooking com.discord.stores.StoreMediaEngine.handleVideoInputDevices
+        // java.lang.NullPointerException: null cannot be cast to non-null type b.a.q.m0.c.e
+        val engine = it.x as? MediaEngineConnectionLegacy ?: return@mapNotNull null
         // engine.connection
         engine.j
     }.distinct()

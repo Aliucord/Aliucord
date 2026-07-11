@@ -137,15 +137,23 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
     }
 
     override fun connectUser(userId: Long, audioSsrc: Int, txVideoSsrc: Int, rxVideoSsrc: Int, isMuted: Boolean, volume: Float) {
-        native.mergeUsers(gson.m(listOf(UserConnectionInfo(
+        // volume here is RtcConnection.h(userId), stream-volume-boost amplitude NOT gain.
+        // RtcConnection.v -> MediaEngineConnection.e)
+        // mergeUsers raises exception:
+        // Fatal signal 6 (SIGABRT), code -1 (SI_QUEUE) in tid ... (MediaEngineExec), pid ... (com.aliucord)
+        val createVolume = volume.coerceIn(0f, 1f)
+        val json = gson.m(listOf(UserConnectionInfo(
             id = userId.toString(),
-            videoSsrcs = listOf(txVideoSsrc),
-            volume = volume,
+            videoSsrcs = if (txVideoSsrc != 0) listOf(txVideoSsrc) else listOf(),
+            volume = createVolume,
             ssrc = audioSsrc,
             videoSsrc = txVideoSsrc,
             rtxSsrc = rxVideoSsrc,
             mute = isMuted,
-        ))))
+        )))
+
+        Log.d(TAG, "connectUser userId=$userId audioSsrc=$audioSsrc txVideoSsrc=$txVideoSsrc rxVideoSsrc=$rxVideoSsrc isMuted=$isMuted volume=$volume createVolume=$createVolume json=$json")
+        native.mergeUsers(json)
     }
     override fun deafenLocalUser(isDeafened: Boolean) = native.setSelfDeafen(isDeafened)
 
