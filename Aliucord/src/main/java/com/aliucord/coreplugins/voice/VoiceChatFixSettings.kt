@@ -67,6 +67,8 @@ internal object VoiceChatFixSettings {
     val hqBluetooth by hqBluetoothDelegate
     private val hqBluetoothCompatDelegate = settings.delegate("hqBluetoothCompat", false)
     val hqBluetoothCompat by hqBluetoothCompatDelegate
+    private val sidechainCompressionDelegate = settings.delegate("sidechainCompression", false)
+    val sidechainCompression by sidechainCompressionDelegate
     private val iKnowWhatImDoingDelegate = settings.delegate("iKnowWhatImDoing", false)
     val iKnowWhatImDoing by iKnowWhatImDoingDelegate
     internal val soundboardVolumeDelegate = settings.delegate("soundboardVolume", DEFAULT_SOUNDBOARD_VOLUME)
@@ -318,6 +320,25 @@ internal object VoiceChatFixSettings {
                         var setting by hqBluetoothCompatDelegate
                         isChecked = setting
                         setOnCheckedListener { setting = !setting }
+                    }
+
+                    TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(this) {
+                        setPadding(p, p, p, 0)
+                        text = "Experimental"
+                    }
+
+                    Utils.createCheckedSetting(
+                        ctx,
+                        CheckedSetting.ViewType.SWITCH,
+                        "Sidechain compression",
+                        "This is off for everyone by default. An automatic ducking effect in the native voice engine."
+                    ).addTo(this) {
+                        var setting by sidechainCompressionDelegate
+                        isChecked = setting
+                        setOnCheckedListener {
+                            setting = !setting
+                            Utils.promptRestart()
+                        }
                     }
                 }
             }

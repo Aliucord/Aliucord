@@ -46,6 +46,7 @@ import com.discord.rtcconnection.socket.io.Payloads
 import com.discord.rtcconnection.socket.io.Payloads.Protocol.ProtocolInfo
 import com.discord.api.voice.server.VoiceServer
 import com.discord.gateway.GatewaySocket
+import com.discord.native.engine.NativeEngine
 import com.discord.stores.StoreApplicationStreaming
 import com.discord.stores.StoreRtcConnection
 import com.discord.stores.StoreMediaEngine
@@ -101,6 +102,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
 
     private var Payloads.Stream.maxFrameRateField by accessField<Int?>("maxFrameRate")
     private var WidgetCallFullscreenViewModel.channelIdField by accessField<Long>("channelId")
+    private var Discord.nativeEngineField by accessField<NativeEngine?>("nativeEngine")
 
     private companion object {
         // Native libs and webrtc dex are built together (aliuvoice aar)
@@ -194,6 +196,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         patchVoiceMoveReconnect()
         patchVoiceAccess()
         patchDaveEnforcement()
+        patchSidechainCompression()
         patchSilenceUnhandledEvents()
         ModernAudioDevices.register(patcher)
 
@@ -884,6 +887,18 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 }
             }
         )
+    }
+
+    // On voice/Discord.kt this is forced to false, this is so we can enable the compression back
+    // Only applied once when the native engine is constructed,
+    // so switching this setting requires a restart to take effect
+    private fun patchSidechainCompression() {
+        patcher.after<Discord>(Context::class.java, Int::class.javaPrimitiveType!!) {
+            val compress = VoiceChatFixSettings.sidechainCompression
+            val engine = nativeEngineField ?: return@after
+            engine.setSidechainCompression(compress)
+            logger.debug("setSidechainCompression: $compress (user override)")
+        }
     }
 
     // Silence "event unhandled" warnings in debug log
