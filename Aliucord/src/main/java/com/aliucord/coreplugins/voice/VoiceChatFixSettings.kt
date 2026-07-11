@@ -1,6 +1,12 @@
 package com.aliucord.coreplugins.voice
 
+import android.graphics.Typeface
 import android.os.Bundle
+import android.text.SpannableStringBuilder
+import android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
+import android.text.style.StyleSpan
 import android.transition.TransitionManager
 import android.view.Gravity
 import android.view.View
@@ -11,6 +17,7 @@ import android.widget.SeekBar
 import android.widget.TextView
 import com.aliucord.Utils
 import com.aliucord.api.SettingsAPI
+import com.aliucord.entities.Plugin
 import com.aliucord.settings.delegate
 import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.DimenUtils.dp
@@ -19,6 +26,7 @@ import com.aliucord.views.DangerButton
 import com.aliucord.widgets.BottomSheet
 import com.discord.utilities.color.ColorCompat
 import com.discord.views.CheckedSetting
+import com.discord.widgets.user.usersheet.WidgetUserSheet
 import com.google.gson.reflect.TypeToken
 import com.lytefast.flexinput.R
 import java.util.Collections
@@ -47,7 +55,7 @@ internal object VoiceChatFixSettings {
     val videoHeight by videoHeightDelegate
     private val videoWidthDelegate = settings.delegate("videoWidth", DEFAULT_VIDEO_WIDTH)
     val videoWidth by videoWidthDelegate
-    val daveEnabledDelegate = settings.delegate("daveEnabled", true)
+    internal val daveEnabledDelegate = settings.delegate("daveEnabled", true)
     val daveEnabled by daveEnabledDelegate
     private val encoderQueueSizeDelegate = settings.delegate("encoderQueueSize", DEFAULT_ENCODER_QUEUE_SIZE)
     val encoderQueueSize by encoderQueueSizeDelegate
@@ -55,15 +63,21 @@ internal object VoiceChatFixSettings {
     val showConnInfo by showConnInfoDelegate
     private val effectNotificationsDelegate = settings.delegate("effectNotifications", true)
     val effectNotifications by effectNotificationsDelegate
+    private val hqBluetoothDelegate = settings.delegate("hqBluetooth", false)
+    val hqBluetooth by hqBluetoothDelegate
+    private val hqBluetoothCompatDelegate = settings.delegate("hqBluetoothCompat", false)
+    val hqBluetoothCompat by hqBluetoothCompatDelegate
     private val iKnowWhatImDoingDelegate = settings.delegate("iKnowWhatImDoing", false)
     val iKnowWhatImDoing by iKnowWhatImDoingDelegate
-    val soundboardVolumeDelegate = settings.delegate("soundboardVolume", DEFAULT_SOUNDBOARD_VOLUME)
+    internal val soundboardVolumeDelegate = settings.delegate("soundboardVolume", DEFAULT_SOUNDBOARD_VOLUME)
     val soundboardVolume by soundboardVolumeDelegate
     val mutedSoundboardUsers = PersistedIdSet(settings, "mutedSoundboardUsers")
     val disabledVideoUsers = PersistedIdSet(settings, "disabledVideoUsers")
     val transportEncryption: String get() = if (useAes256Gcm) MODE_AES256_GCM else MODE_XCHACHA20
 
     class Sheet : BottomSheet() {
+        private val fixBtAuthor = Plugin.Manifest.Author("oSumAtrIX", 737323631117598811L, false)
+
         override fun onViewCreated(view: View, bundle: Bundle?) {
             super.onViewCreated(view, bundle)
             lateinit var settingsLayout: LinearLayout
@@ -257,6 +271,54 @@ internal object VoiceChatFixSettings {
                         2..16,
                         encoderQueueSizeDelegate,
                     )
+
+                    TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(this) {
+                        setPadding(p, p * 2, p, 0)
+                        text = "Fix Bluetooth Audio Quality"
+                    }
+
+                    TextView(ctx, null, 0, R.i.UiKit_Settings_Item_SubText).addTo(this) {
+                        setPadding(p, 0, p, 0)
+                        text = SpannableStringBuilder().apply {
+                            append("brought to you by ")
+                            val start = length
+                            append(fixBtAuthor.name, StyleSpan(Typeface.BOLD), SPAN_EXCLUSIVE_EXCLUSIVE)
+
+                            // and yes, the 'hyperlink' param is implemented just because
+                            // which is very useless because the default value for hyperlink==true
+                            if (fixBtAuthor.hyperlink) {
+                                setSpan(object : ClickableSpan() {
+                                    override fun onClick(widget: View) {
+                                        this@Sheet.dismiss()
+                                        WidgetUserSheet.show(fixBtAuthor.id, parentFragmentManager)
+                                    }
+                                }, start, length, SPAN_EXCLUSIVE_EXCLUSIVE)
+                            }
+                        }
+                        movementMethod = LinkMovementMethod.getInstance()
+                    }
+
+                    Utils.createCheckedSetting(
+                        ctx,
+                        CheckedSetting.ViewType.SWITCH,
+                        "High quality (A2DP)",
+                        "Keeps Bluetooth audio on A2DP instead of the low-quality call protocol (SCO). Adds slight delay and uses the phone's mic instead of the headset's."
+                    ).addTo(this) {
+                        var setting by hqBluetoothDelegate
+                        isChecked = setting
+                        setOnCheckedListener { setting = !setting }
+                    }
+
+                    Utils.createCheckedSetting(
+                        ctx,
+                        CheckedSetting.ViewType.SWITCH,
+                        "Enable compatibility mode",
+                        "Use if HQ Bluetooth has no effect on your device. Breaks the phone speaker during calls."
+                    ).addTo(this) {
+                        var setting by hqBluetoothCompatDelegate
+                        isChecked = setting
+                        setOnCheckedListener { setting = !setting }
+                    }
                 }
             }
         }
