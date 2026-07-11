@@ -17,6 +17,7 @@ import android.widget.SeekBar
 import android.widget.TextView
 import com.aliucord.Utils
 import com.aliucord.api.SettingsAPI
+import com.aliucord.coreplugins.voice.model.TransportModes
 import com.aliucord.entities.Plugin
 import com.aliucord.settings.delegate
 import com.aliucord.utils.DimenUtils
@@ -32,9 +33,6 @@ import com.lytefast.flexinput.R
 import java.util.Collections
 
 internal object VoiceChatFixSettings {
-    const val MODE_AES256_GCM = "aead_aes256_gcm_rtpsize"
-    const val MODE_XCHACHA20 = "aead_xchacha20_poly1305_rtpsize"
-
     const val DEFAULT_VIDEO_BITRATE_KBPS = 2500
     const val DEFAULT_VIDEO_FRAMERATE = 30
     const val DEFAULT_VIDEO_HEIGHT = 720
@@ -75,7 +73,7 @@ internal object VoiceChatFixSettings {
     val soundboardVolume by soundboardVolumeDelegate
     val mutedSoundboardUsers = PersistedIdSet(settings, "mutedSoundboardUsers")
     val disabledVideoUsers = PersistedIdSet(settings, "disabledVideoUsers")
-    val transportEncryption: String get() = if (useAes256Gcm) MODE_AES256_GCM else MODE_XCHACHA20
+    val transportEncryption: String get() = if (useAes256Gcm) TransportModes.AES256_GCM else TransportModes.XCHACHA20
 
     class Sheet : BottomSheet() {
         private val fixBtAuthor = Plugin.Manifest.Author("oSumAtrIX", 737323631117598811L, false)

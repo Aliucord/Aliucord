@@ -19,6 +19,7 @@ import com.aliucord.coreplugins.voice.VoiceChatFixPayload.DaveTransitionReady
 import com.aliucord.coreplugins.voice.model.NewIdentifyPayload
 import com.aliucord.coreplugins.voice.model.NewSelectProtocolPayload
 import com.aliucord.coreplugins.voice.model.SecureFrames
+import com.aliucord.coreplugins.voice.model.TransportModes
 import com.aliucord.coreplugins.voice.model.VoiceCloseCodes
 import com.aliucord.coreplugins.voice.ui.addDisableVideoRow
 import com.aliucord.coreplugins.voice.ui.addMuteSoundboardRow
@@ -154,11 +155,11 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             Int::class.javaPrimitiveType!!,
             String::class.java,
         ) { (param, _: String, _: Int, mode: String) ->
-            if (mode == "xsalsa20_poly1305") {
+            if (mode == TransportModes.XSALSA20) {
                 param.args[2] = if (libVersion != null) {
                     VoiceChatFixSettings.transportEncryption
                 } else {
-                    "xsalsa20_poly1305_lite_rtpsize"
+                    TransportModes.XSALSA20_LITE
                 }
             }
             setDebug("Transport", param.args[2] as String)
