@@ -863,7 +863,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             PreHook { param ->
                 val code = param.args[2] as? Int ?: return@PreHook
                 val close = VoiceCloseCodes.from(code) ?: return@PreHook
-                val reason = (param.args[3] as? String)?.takeIf { it.isNotBlank() } ?: close.message
+                val reason = (param.args[3] as? String)?.takeIf { it.isNotEmpty() } ?: close.message
 
                 if (close == VoiceCloseCodes.DAVE_REQUIRED) {
                     if (VoiceChatFixSettings.daveEnabled) {
