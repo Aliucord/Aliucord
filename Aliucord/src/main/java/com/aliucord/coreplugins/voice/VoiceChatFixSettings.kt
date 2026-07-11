@@ -53,6 +53,8 @@ internal object VoiceChatFixSettings {
     val encoderQueueSize by encoderQueueSizeDelegate
     private val showConnInfoDelegate = settings.delegate("showConnInfo", false)
     val showConnInfo by showConnInfoDelegate
+    private val effectNotificationsDelegate = settings.delegate("effectNotifications", true)
+    val effectNotifications by effectNotificationsDelegate
     private val iKnowWhatImDoingDelegate = settings.delegate("iKnowWhatImDoing", false)
     val iKnowWhatImDoing by iKnowWhatImDoingDelegate
     val soundboardVolumeDelegate = settings.delegate("soundboardVolume", DEFAULT_SOUNDBOARD_VOLUME)
@@ -141,6 +143,17 @@ internal object VoiceChatFixSettings {
                         "Adds an info card to the voice bottom sheet. Takes effect on the next voice connection."
                     ).addTo(this) {
                         var setting by showConnInfoDelegate
+                        isChecked = setting
+                        setOnCheckedListener { setting = !setting }
+                    }
+
+                    Utils.createCheckedSetting(
+                        ctx,
+                        CheckedSetting.ViewType.SWITCH,
+                        "Voice effect notifications",
+                        "Shows a toast when someone plays a soundboard sound or sends an emoji reaction in your voice channel."
+                    ).addTo(this) {
+                        var setting by effectNotificationsDelegate
                         isChecked = setting
                         setOnCheckedListener { setting = !setting }
                     }

@@ -13,6 +13,7 @@ import com.aliucord.patcher.before
 import com.aliucord.patcher.component1
 import com.aliucord.patcher.component2
 import com.aliucord.patcher.component3
+import com.aliucord.wrappers.users.globalName
 import com.discord.gateway.GatewaySocket
 import com.discord.stores.StoreStream
 import java.io.File
@@ -29,7 +30,7 @@ internal object Soundboard {
 
     fun register(patcher: PatcherAPI, context: Context) {
         cacheDir = File(context.cacheDir, "soundboard").apply { mkdirs() }
-        GatewayAPI.onEvent<VoiceChannelEffect>(EVENT_NAME) { play(it) }
+        GatewayAPI.onEvent<VoiceChannelEffect>(EVENT_NAME) { handle(it) }
 
         patcher.before<GatewaySocket>(
             "handleDispatch",
@@ -43,17 +44,45 @@ internal object Soundboard {
         }
     }
 
-    private fun play(effect: VoiceChannelEffect) {
-        val soundId = effect.soundId ?: return
+    private fun handle(effect: VoiceChannelEffect) {
+        val soundId = effect.soundId
         if (StoreStream.getVoiceChannelSelected().selectedVoiceChannelId != effect.channelId) return
         val config = StoreStream.getMediaSettings().voiceConfigurationBlocking
         if (config.isSelfDeafened) return
 
-        // Muting a user also mutes their soundboard
+        // Muting a user also mutes their soundboard and effect notifications
         if (config.mutedUsers[effect.userId] == true || isSoundboardMuted(effect.userId)) {
-            logger.debug("Skipping soundboard sound $soundId from muted user ${effect.userId}")
+            logger.debug("Skipping voice effect from muted user ${effect.userId} soundId=$soundId")
             return
         }
+
+        notify(effect)
+        effect.soundId?.let { play(effect, it) }
+    }
+
+    // Nothing is shown when someone sends a voice channel effect
+    private fun notify(effect: VoiceChannelEffect) {
+        if (!VoiceChatFixSettings.effectNotifications) return
+        if (effect.userId == StoreStream.getUsers().me.id) return
+
+        val user = StoreStream.getUsers().users[effect.userId]
+        val username = user?.username ?: user?.globalName ?: "unknown user"
+
+        // Unicode emoji come with id=null and the character in name; custom emoji only
+        // have a name we can show as :name:.
+        val emoji = effect.emoji?.let { if (it.id == null) it.name else it.name?.let { n -> ":$n:" } }
+
+        val text = when {
+            effect.soundId != null -> "$username played a sound${emoji?.let { " $it" } ?: ""}"
+            emoji != null -> "$username sent $emoji"
+            else -> return
+        }
+
+        logger.debug("Showing effect sound toast from user ${effect.userId} effect=$effect")
+        Utils.mainThread.post { Utils.showToast(text) }
+    }
+
+    private fun play(effect: VoiceChannelEffect, soundId: String) {
         logger.debug("Playing soundboard sound $soundId from user ${effect.userId}")
 
         // Scale sound volume depending on the sender's local volume

@@ -865,8 +865,6 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             if (event in listOf(
                 "VOICE_CHANNEL_START_TIME_UPDATE",
                 "VOICE_CHANNEL_STATUS_UPDATE",
-                // TODO: emoji reactions & soundboard effect notifications, unknown to 126.21
-                "VOICE_CHANNEL_EFFECT_SEND",
             )) param.args[0] = Unit.a
         }
     }
