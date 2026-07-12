@@ -45,11 +45,13 @@ import com.aliucord.updater.ManagerBuild
 import com.aliucord.utils.DimenUtils.dp
 import com.aliucord.utils.GsonUtils
 import com.aliucord.utils.GsonUtils.fromJson
+import com.aliucord.utils.RxUtils.subscribe
 import com.aliucord.utils.accessField
 import com.aliucord.utils.SemVer
 import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.wrappers.ChannelWrapper.Companion.guildId
 import com.aliucord.wrappers.ChannelWrapper.Companion.id
+import com.discord.api.voice.state.StageRequestToSpeakState
 import com.discord.play_delivery.PlayAssetDeliveryNativeWrapper
 import com.discord.rtcconnection.RtcConnection
 import com.discord.rtcconnection.mediaengine.MediaEngineConnection
@@ -67,6 +69,7 @@ import com.discord.stores.StoreStream
 import com.discord.stores.StoreVoiceChannelSelected
 import com.discord.stores.StoreVoiceChannelSelected.JoinVoiceChannelResult
 import com.discord.stores.StoreVoiceParticipants
+import com.discord.widgets.stage.StageChannelAPI
 import com.discord.utilities.color.ColorCompat
 import com.discord.utilities.debug.DebugPrintBuilder
 import com.discord.utilities.voice.VoiceChannelJoinability
@@ -90,6 +93,7 @@ import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
 import org.json.JSONObject
+import rx.Subscription
 import java.io.File
 import java.util.Collections
 import java.util.WeakHashMap
@@ -109,6 +113,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     private var prevSocket: RtcControlSocket? = null
     @Volatile
     private var supportedModes: List<String>? = null
+    private var speakInviteSubscription: Subscription? = null
 
     private val libVersion = runCatching {
         Class.forName("com.aliucord.voice.BuildConfig")
@@ -217,6 +222,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         patchCallCardTicker()
         patchCallDurationText()
         patchSilenceUnhandledEvents()
+        patchAutoAcceptSpeakInvite()
         ModernAudioDevices.register(patcher)
 
         // Handle new binary voice gateway events
@@ -923,6 +929,24 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             val engine = nativeEngineField ?: return@after
             engine.setSidechainCompression(compress)
             logger.debug("setSidechainCompression: $compress (user override)")
+        }
+    }
+
+    // Tracks the request-to-speak state of whatever stage channel is currently
+    // selected and auto-accepts the moment a moderator invites us. Re-subscribes
+    // per channel since observeMyRequestToSpeakState is scoped to a channel id
+    private fun patchAutoAcceptSpeakInvite() {
+        StoreStream.getVoiceChannelSelected().observeSelectedVoiceChannelId().subscribe {
+            val channelId = this
+            speakInviteSubscription?.unsubscribe()
+            speakInviteSubscription = if (channelId <= 0L) null else
+                StoreStream.getStageChannels().observeMyRequestToSpeakState(channelId).subscribe {
+                    if (!VoiceChatFixSettings.autoAcceptSpeakInvite) return@subscribe
+                    if (this != StageRequestToSpeakState.REQUESTED_TO_SPEAK_AND_AWAITING_USER_ACK) return@subscribe
+
+                    logger.debug("Auto-accepting invite to speak in channel $channelId")
+                    StageChannelAPI.INSTANCE.ackInvitationToSpeak(channelId, true)?.subscribe { /* stage filled with cats */ }
+                }
         }
     }
 

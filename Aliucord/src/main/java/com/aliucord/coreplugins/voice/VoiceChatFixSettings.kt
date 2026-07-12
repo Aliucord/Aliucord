@@ -69,6 +69,8 @@ internal object VoiceChatFixSettings {
     val hqBluetoothCompat by hqBluetoothCompatDelegate
     private val sidechainCompressionDelegate = settings.delegate("sidechainCompression", false)
     val sidechainCompression by sidechainCompressionDelegate
+    private val autoAcceptSpeakInviteDelegate = settings.delegate("autoAcceptSpeakInvite", false)
+    val autoAcceptSpeakInvite by autoAcceptSpeakInviteDelegate
     private val iKnowWhatImDoingDelegate = settings.delegate("iKnowWhatImDoing", false)
     val iKnowWhatImDoing by iKnowWhatImDoingDelegate
     internal val soundboardVolumeDelegate = settings.delegate("soundboardVolume", DEFAULT_SOUNDBOARD_VOLUME)
@@ -170,6 +172,17 @@ internal object VoiceChatFixSettings {
                         "Shows a toast when someone plays a soundboard sound or sends an emoji reaction in your voice channel."
                     ).addTo(this) {
                         var setting by effectNotificationsDelegate
+                        isChecked = setting
+                        setOnCheckedListener { setting = !setting }
+                    }
+
+                    Utils.createCheckedSetting(
+                        ctx,
+                        CheckedSetting.ViewType.SWITCH,
+                        "Auto-accept invite to speak",
+                        "Automatically accepts a moderator's invite to speak in stage channels."
+                    ).addTo(this) {
+                        var setting by autoAcceptSpeakInviteDelegate
                         isChecked = setting
                         setOnCheckedListener { setting = !setting }
                     }
