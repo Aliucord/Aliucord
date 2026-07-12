@@ -2,6 +2,7 @@ package com.aliucord.updater
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.os.Build
 import com.aliucord.*
 import com.aliucord.api.NotificationsAPI
 import com.aliucord.entities.NotificationData
@@ -47,7 +48,7 @@ internal object CoreUpdater {
                         .setTitle("Updater")
                         .setBody("This installation is outdated!\n" +
                             "Click to reinstall Aliucord using Aliucord Manager...")
-                        .setAutoDismissPeriodSecs(30)
+                        .setAutoDismissPeriodSecs(10)
                         .setOnClick { reinstallAliucord() }
 
                     NotificationsAPI.display(notificationData)
@@ -56,7 +57,7 @@ internal object CoreUpdater {
                         .setTitle("Updater")
                         .setBody("Aliucord has an update available!\n" +
                             "Click to automatically update...")
-                        .setAutoDismissPeriodSecs(30)
+                        .setAutoDismissPeriodSecs(10)
                         // TODO: open Updater screen instead once it support showing core updates
                         .setOnClick { updateAliucord() }
 
@@ -153,11 +154,16 @@ internal object CoreUpdater {
             "dexElements",
         )!! as Array<Any>
 
-        dexElements.findLast { element ->
-            val path = ReflectUtils.getField(element, "path")!! as File
+        val fieldName = when {
+            Build.VERSION.SDK_INT < 23 -> "file"
+            Build.VERSION.SDK_INT < 26 -> "zip"
+            else -> "path"
+        }
 
-            path.name == "Aliucord.custom.zip"
-        } != null
+        dexElements.any { element ->
+            val file = ReflectUtils.getField(element, fieldName)!! as File
+            file.name == "Aliucord.custom.zip"
+        }
     }
 
     /**

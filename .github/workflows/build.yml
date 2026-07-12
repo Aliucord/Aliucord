@@ -27,12 +27,12 @@ jobs:
       kotlinVersion: ${{ steps.compare.outputs.kotlinVersion }}
     steps:
       - name: Checkout src
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: src
 
       - name: Checkout builds
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: builds
           path: builds
@@ -77,24 +77,24 @@ jobs:
       contents: read
     steps:
       - name: Checkout src
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
       - name: Setup JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
         with:
-          cache-read-only: ${{ github.event_name == 'pull_request' }} # Don't write cache for pull requests
+          cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
           cache-write-only: ${{ needs.inspect.outputs.coreDeploy == 'true' }} # Disable using cache when deploying
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: Build project
         env:
@@ -106,7 +106,7 @@ jobs:
             :patches:package :patches:disassembleWithPatches :patches:testPatches
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build
           if-no-files-found: error
@@ -174,18 +174,18 @@ jobs:
       contents: write
     steps:
       - name: Checkout src
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: src
 
       - name: Checkout builds
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: builds
           path: builds
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: build
           path: artifacts
@@ -252,19 +252,21 @@ jobs:
       contents: read
     steps:
       - name: Checkout src
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
       - name: Setup JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
         with:
+          dependency-graph: generate-and-submit
+          cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
           cache-write-only: true
 
       - name: Build & Publish to Maven releases

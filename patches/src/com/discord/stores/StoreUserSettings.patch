@@ -1,0 +1,16 @@
+--- smali_original/com/discord/stores/StoreUserSettings.smali
++++ smali/com/discord/stores/StoreUserSettings.smali
+@@ -515,9 +515,11 @@ .method public constructor <init>(Lcom/d
+     .line 13
+     new-instance p1, Lcom/discord/utilities/persister/Persister;
+ 
+-    const-string p2, "CACHE_KEY_STICKER_SUGGESTIONS"
++    sget-object p2, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
+ 
+-    invoke-direct {p1, p2, v0}, Lcom/discord/utilities/persister/Persister;-><init>(Ljava/lang/String;Ljava/lang/Object;)V
++    const-string v1, "CACHE_KEY_STICKER_SUGGESTIONS"
++
++    invoke-direct {p1, v1, p2}, Lcom/discord/utilities/persister/Persister;-><init>(Ljava/lang/String;Ljava/lang/Object;)V
+ 
+     iput-object p1, p0, Lcom/discord/stores/StoreUserSettings;->stickerSuggestionsPublisher:Lcom/discord/utilities/persister/Persister;
+ 

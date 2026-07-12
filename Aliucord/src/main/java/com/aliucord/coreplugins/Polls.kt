@@ -23,6 +23,7 @@ import com.aliucord.patcher.*
 import com.aliucord.updater.ManagerBuild
 import com.aliucord.utils.ReflectUtils
 import com.aliucord.utils.ViewUtils.addTo
+import com.aliucord.utils.accessGetter
 import com.aliucord.wrappers.ChannelWrapper.Companion.id
 import com.aliucord.wrappers.ChannelWrapper.Companion.isDM
 import com.aliucord.wrappers.ChannelWrapper.Companion.name
@@ -34,6 +35,7 @@ import com.aliucord.wrappers.messages.poll
 import com.aliucord.wrappers.users.globalName
 import com.discord.api.channel.Channel
 import com.discord.api.channel.ChannelUtils
+import com.discord.databinding.WidgetChatListActionsBinding
 import com.discord.gateway.GatewaySocket
 import com.discord.models.domain.ModelMessageDelete
 import com.discord.models.member.GuildMember
@@ -61,6 +63,8 @@ import com.discord.models.message.Message as ModelMessage
 internal class Polls : CorePlugin(Manifest("Polls")) {
     override val isHidden: Boolean = true
     override val isRequired: Boolean = true
+
+    private val WidgetChatListActions.binding by accessGetter<WidgetChatListActionsBinding>("getBinding")
 
     companion object {
         const val POLL_RESULT_MESSAGE_TYPE = 46
@@ -334,6 +338,14 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
             if (msg.type == POLL_RESULT_MESSAGE_TYPE) {
                 StoreStream.getMessagesLoader().jumpToMessage(msg.messageReference!!.a(), msg.messageReference!!.c())
                 param.result = null
+            }
+        }
+        // Patch message actions to enable reply button for poll result messages
+        patcher.after<WidgetChatListActions>("configureUI",
+            WidgetChatListActions.Model::class.java
+        ) { (_, data: WidgetChatListActions.Model) ->
+            if (data.message.type == POLL_RESULT_MESSAGE_TYPE) {
+                binding.m.visibility = View.VISIBLE
             }
         }
     }

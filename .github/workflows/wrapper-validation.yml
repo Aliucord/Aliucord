@@ -18,5 +18,5 @@ jobs:
     name: "Validate Authenticity of Gradle Wrapper"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: gradle/actions/wrapper-validation@v4
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6

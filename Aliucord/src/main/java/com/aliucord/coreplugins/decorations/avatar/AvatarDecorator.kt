@@ -69,7 +69,7 @@ internal class AvatarDecorator() : Decorator() {
             if (data != null) {
                 visibility = View.VISIBLE
                 if (this is StickerView) {
-                    d(AvatarSticker(data), null)
+                    d(AvatarSticker(data), 0)
                 } else if (this is SimpleDraweeView) {
                     IconUtils.setIcon(
                         this,
