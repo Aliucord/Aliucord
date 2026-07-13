@@ -6,6 +6,7 @@
 
 package com.aliucord.coreplugins;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.graphics.drawable.ColorDrawable;
 import android.os.SystemClock;
@@ -169,6 +170,7 @@ final class QrLogin {
             new TokenLogin.MfaDialog().show(host.getChildFragmentManager(), MFA_TAG);
     }
 
+    @SuppressLint("SetTextI18n")
     static void bindMfaDialog(InputDialog dialog) {
         boolean password = "password".equals(mfaType);
         dialog.setCancelable(false);
@@ -295,6 +297,7 @@ final class QrLogin {
 
     private static String post(String route, String body, String mfaToken) {
         Http.Request req = null;
+        //noinspection TryFinallyCanBeTryWithResources
         try {
             req = Http.Request.newDiscordRequest(route, "POST");
             req.setHeader("Content-Type", "application/json");
