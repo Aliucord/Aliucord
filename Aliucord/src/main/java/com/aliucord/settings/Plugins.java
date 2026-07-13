@@ -16,6 +16,7 @@ import android.view.*;
 import android.widget.*;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.*;
@@ -26,8 +27,8 @@ import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.ConfirmDialog;
 import com.aliucord.fragments.SettingsPage;
 import com.aliucord.utils.*;
-import com.aliucord.views.Button;
 import com.aliucord.views.*;
+import com.aliucord.views.Button;
 import com.aliucord.widgets.PluginCard;
 import com.discord.app.AppBottomSheet;
 import com.discord.app.AppFragment;
@@ -41,7 +42,7 @@ import kotlin.comparisons.ComparisonsKt;
 
 public class Plugins extends SettingsPage {
     public static class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> implements Filterable {
-        @SuppressWarnings({"deprecation", "RedundantSuppression"})
+        @SuppressWarnings({ "deprecation", "RedundantSuppression" })
         public static final class ViewHolder extends RecyclerView.ViewHolder {
             private final Adapter adapter;
             public final PluginCard card;
@@ -97,7 +98,7 @@ public class Plugins extends SettingsPage {
             ctx = fragment.requireContext();
 
             this.originalData = new ArrayList<>(plugins);
-            originalData.removeIf(p -> p instanceof CorePlugin && ((CorePlugin)p).isHidden());
+            originalData.removeIf(p -> p instanceof CorePlugin && ((CorePlugin) p).isHidden());
             originalData.sort(ComparisonsKt.compareBy(
                 p -> p instanceof CorePlugin, // coreplugins last
                 Plugin::getName // Natural order by title
@@ -121,33 +122,49 @@ public class Plugins extends SettingsPage {
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             Plugin p = data.get(position);
             Plugin.Manifest manifest = p.getManifest();
+            boolean isCorePlugin = p instanceof CorePlugin;
+            boolean isEnabled = PluginManager.isPluginEnabled(p.getName());
+            boolean isToggleable = !isCorePlugin || !((CorePlugin) p).isRequired();
 
-            boolean enabled = PluginManager.isPluginEnabled(p.getName());
-            holder.card.switchHeader.setChecked(enabled);
-            holder.card.switchHeader.setButtonVisibility(!(p instanceof CorePlugin) || !((CorePlugin) p).isRequired());
-            holder.card.descriptionView.setText(MDUtils.render(p.getManifest().description));
-            holder.card.settingsButton.setVisibility(p.settingsTab != null ? View.VISIBLE : View.GONE);
-            holder.card.settingsButton.setEnabled(enabled);
-            holder.card.uninstallButton.setVisibility(p.__filename != null ? View.VISIBLE : View.GONE);
-            holder.card.repoButton.setVisibility(p.getManifest().updateUrl != null ? View.VISIBLE : View.GONE);
-            holder.card.changeLogButton.setVisibility(p.getManifest().changelog != null ? View.VISIBLE : View.GONE);
+            holder.card.switchHeader.setChecked(isEnabled);
+            holder.card.switchHeader.setButtonVisibility(isToggleable);
+            // TODO: Add a toast "Cannot stop required coreplugin ..."
+            holder.card.switchHeader.l.b().setClickable(isToggleable);
+            holder.card.descriptionView.setText(MDUtils.render(manifest.description));
+            setVisible(holder.card.descriptionView, isNotBlank(manifest.description));
 
-            String title = p instanceof CorePlugin
-                ? String.format("%s [BUILT-IN]", p.getName())
-                : String.format("%s v%s by %s", p.getName(), manifest.version, TextUtils.join(", ", manifest.authors));
-            SpannableString spannableTitle = new SpannableString(title);
-            for (Plugin.Manifest.Author author : manifest.authors) {
+            setVisible(holder.card.settingsButton, p.settingsTab != null);
+            holder.card.settingsButton.setEnabled(isEnabled);
+            setVisible(holder.card.uninstallButton, isNotBlank(p.__filename));
+            setVisible(holder.card.repoButton, isNotBlank(manifest.updateUrl));
+            setVisible(holder.card.changeLogButton, isNotBlank(manifest.changelog));
+            setVisible(holder.card.buttonLayout,
+                p.settingsTab != null ||
+                    isNotBlank(p.__filename) ||
+                    isNotBlank(manifest.updateUrl) ||
+                    isNotBlank(manifest.changelog) ||
+                    isNotBlank(manifest.description)
+            );
+
+            SpannableStringBuilder title = new SpannableStringBuilder(p.getName());
+            if (isCorePlugin) title.append(" [BUILT-IN]");
+            if (!"0.0.0".equals(manifest.version)) title.append(" v").append(manifest.version);
+
+            for (int i = 0; i < manifest.authors.length; i++) {
+                Plugin.Manifest.Author author = Objects.requireNonNull(manifest.authors[i]);
+                title.append(i == 0 ? " by " : ", ");
+                int start = title.length();
+                title.append(author.name);
                 if (author.id < 1 || !author.hyperlink) continue;
-                int i = title.indexOf(author.name, p.getName().length() + 2 + manifest.version.length() + 3);
-                spannableTitle.setSpan(new ClickableSpan() {
+                title.setSpan(new ClickableSpan() {
                     @Override
                     public void onClick(@NonNull View widget) {
                         WidgetUserSheet.Companion.show(author.id, fragment.getParentFragmentManager());
                     }
-                }, i, i + author.name.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }, start, title.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
 
-            holder.card.titleView.setText(spannableTitle);
+            holder.card.titleView.setText(title);
         }
 
         private final Filter filter = new Filter() {
@@ -165,7 +182,7 @@ public class Plugins extends SettingsPage {
                         Plugin.Manifest manifest = p.getManifest();
                         if (manifest.description.toLowerCase().contains(search)) return true;
                         for (Plugin.Manifest.Author author : manifest.authors)
-                            if (author.name.toLowerCase().contains(search)) return true;
+                            if (Objects.requireNonNull(author).name.toLowerCase().contains(search)) return true;
                         return false;
                     });
                 }
@@ -183,14 +200,17 @@ public class Plugins extends SettingsPage {
                     public int getOldListSize() {
                         return getItemCount();
                     }
+
                     @Override
                     public int getNewListSize() {
                         return res.size();
                     }
+
                     @Override
                     public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
                         return data.get(oldItemPosition).getName().equals(res.get(newItemPosition).getName());
                     }
+
                     @Override
                     public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
                         return true;
@@ -206,25 +226,35 @@ public class Plugins extends SettingsPage {
             return filter;
         }
 
+        @Nullable
         private String getGithubUrl(Plugin plugin) {
-            return plugin
-                .getManifest().updateUrl.replaceFirst(
-                    "https://(raw\\.githubusercontent\\.com|cdn\\.jsdelivr\\.net/gh)/([^/]+)/([^/@]+).*",
-                    "https://github.com/$2/$3"
-                );
+            String url = plugin.getManifest().updateUrl;
+            if (!isNotBlank(url)) return null;
+
+            return url.replaceFirst(
+                "https://(raw\\.githubusercontent\\.com|cdn\\.jsdelivr\\.net/gh)/([^/]+)/([^/@]+).*",
+                "https://github.com/$2/$3"
+            );
         }
 
         public void onGithubClick(int position) {
-            Utils.launchUrl(getGithubUrl(data.get(position)));
+            String url = getGithubUrl(data.get(position));
+            if (!isNotBlank(url)) return;
+
+            Utils.launchUrl(url);
         }
 
         public void onChangeLogClick(int position) {
             Plugin p = data.get(position);
             Plugin.Manifest manifest = p.getManifest();
-            if (manifest.changelog != null) {
-                String url = getGithubUrl(p);
-                ChangelogUtils.show(ctx, p.getName() + " v" + manifest.version, manifest.changelogMedia, manifest.changelog, new ChangelogUtils.FooterAction(R.e.ic_account_github_white_24dp, url));
-            }
+            if (!isNotBlank(manifest.changelog)) return;
+
+            String url = getGithubUrl(p);
+            ChangelogUtils.FooterAction[] footer = isNotBlank(url)
+                ? new ChangelogUtils.FooterAction[] { new ChangelogUtils.FooterAction(R.e.ic_account_github_white_24dp, url) }
+                : new ChangelogUtils.FooterAction[0];
+
+            ChangelogUtils.show(ctx, p.getName() + " v" + manifest.version, manifest.changelogMedia, manifest.changelog, footer);
         }
 
         public void onSettingsClick(int position) throws Throwable {
@@ -277,6 +307,14 @@ public class Plugins extends SettingsPage {
 
         public static boolean filterCorePlugins(Plugin p) {
             return !(p instanceof CorePlugin);
+        }
+
+        private static void setVisible(View v, boolean visible) {
+            v.setVisibility(visible ? View.VISIBLE : View.GONE);
+        }
+
+        private static boolean isNotBlank(String s) {
+            return s != null && !s.isBlank();
         }
     }
 
@@ -339,19 +377,20 @@ public class Plugins extends SettingsPage {
         DividerItemDecoration decoration = new DividerItemDecoration(context, DividerItemDecoration.VERTICAL);
         decoration.setDrawable(shape);
         recyclerView.addItemDecoration(decoration);
-        recyclerView.setPadding(0, padding, 0, 0);
-
+        recyclerView.setPadding(0, padding, 0, padding * 3);
+        recyclerView.setClipToPadding(false);
         addView(input);
         addView(recyclerView);
-
         EditText editText = input.getEditText();
         editText.setMaxLines(1);
         editText.addTextChangedListener(new TextWatcher() {
             public void afterTextChanged(Editable s) {
                 adapter.getFilter().filter(s);
             }
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
         });
 
         getHeaderBar().getMenu()
@@ -366,6 +405,7 @@ public class Plugins extends SettingsPage {
                 return true;
             });
     }
+
     public void onOpenManagerClick(View view) {
         Intent intent = new Intent("com.aliucord.manager.OPEN_PLUGINS");
         intent.setClassName("com.aliucord.manager", "com.aliucord.manager.MainActivity");

@@ -18,6 +18,8 @@ import androidx.annotation.DrawableRes;
 import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.core.widget.NestedScrollView;
 
 import com.aliucord.Utils;
@@ -77,8 +79,24 @@ public class SettingsPage extends AppFragment {
         view.addView(layout, 1);
 
         var p = DimenUtils.getDefaultPadding();
-        layout.setPadding(p, p * 4, p, p);
+
+        /*
+          Setting system insets automatically makes the NavBar opaque
+         */
+
+        view.setFitsSystemWindows(false);
+        layout.setFitsSystemWindows(false);
+
+        AppBarLayout appBar = (AppBarLayout) getHeaderBar().getParent();
+        ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
+            int statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+            appBar.setPadding(0, statusBarHeight, 0, 0);
+            layout.setPadding(p, p * 4 + statusBarHeight, p, 0);
+            return insets;
+        });
+        ViewCompat.requestApplyInsets(view);
     }
+
 
     /** Returns the Toolbar associated with this Page */
     public final Toolbar getHeaderBar() {
@@ -198,8 +216,9 @@ public class SettingsPage extends AppFragment {
 
     /**
      * Add a header
+     *
      * @param context Context
-     * @param text Header text
+     * @param text    Header text
      */
     public final void addHeader(Context context, String text) {
         var header = new TextView(context, null, 0, R.i.UiKit_Settings_Item_Header);
