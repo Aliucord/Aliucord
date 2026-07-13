@@ -29,7 +29,6 @@ import com.aliucord.coreplugins.voice.model.NewSelectProtocolPayload
 import com.aliucord.coreplugins.voice.model.SecureFrames
 import com.aliucord.coreplugins.voice.model.TransportModes
 import com.aliucord.coreplugins.voice.model.VoiceChannelStartTime
-import com.aliucord.coreplugins.voice.model.VoiceChannelStatus
 import com.aliucord.coreplugins.voice.model.VoiceCloseCodes
 import com.aliucord.coreplugins.voice.ui.addDisableVideoRow
 import com.aliucord.coreplugins.voice.ui.addMuteSoundboardRow
@@ -211,6 +210,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         }.onFailure { logger.error("Failed to set encoder queue size", it) }
 
         patchPrivacyCodeView()
+        VoiceStatus.register(patcher)
         patchUserSheetView()
         Soundboard.register(patcher, context)
         patchSoundboardVolume()
@@ -962,10 +962,6 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             trackCallStart(update.id, update.voiceStartTime)
         }
 
-        GatewayAPI.onEvent<VoiceChannelStatus>("VOICE_CHANNEL_STATUS_UPDATE") { update ->
-            logger.debug("GatewayEvent[VOICE_CHANNEL_STATUS_UPDATE]: $update")
-        }
-
         GatewayAPI.onEvent<ChannelInfo>("CHANNEL_INFO") { info ->
             logger.debug("GatewayEvent[CHANNEL_INFO]: $info")
 
@@ -973,6 +969,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 val id = entry.id ?: return@forEach
 
                 trackCallStart(id, entry.voiceStartTime)
+                VoiceStatus.track(id, entry.status)
             }
         }
 
