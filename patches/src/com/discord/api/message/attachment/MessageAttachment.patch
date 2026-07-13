@@ -1,0 +1,77 @@
+--- smali_original/com/discord/api/message/attachment/MessageAttachment.smali
++++ smali/com/discord/api/message/attachment/MessageAttachment.smali
+@@ -76,18 +76,74 @@
+ 
+ 
+ # instance fields
++.field public application:Lcom/discord/api/application/Application;
++
++.field public applicationId:Ljava/lang/Long;
++
++.field public clipCreatedAt:Lcom/discord/api/utcdatetime/UtcDateTime;
++
++.field public clipParticipantIds:Ljava/util/List;
++    .annotation system Ldalvik/annotation/Signature;
++        value = {
++            "Ljava/util/List<",
++            "Ljava/lang/Long;",
++            ">;"
++        }
++    .end annotation
++.end field
++
++.field public clipParticipants:Ljava/util/List;
++    .annotation system Ldalvik/annotation/Signature;
++        value = {
++            "Ljava/util/List<",
++            "Lcom/discord/api/user/User;",
++            ">;"
++        }
++    .end annotation
++.end field
++
++.field public contentScanVersion:Ljava/lang/Integer;
++
++.field public contentType:Ljava/lang/String;
++
++.field public description:Ljava/lang/String;
++
++.field public durationSecs:Ljava/lang/Float;
++
++.field public ephemeral:Ljava/lang/Boolean;
++
+ .field private final filename:Ljava/lang/String;
+ 
++.field public flags:Ljava/lang/Integer;
++
+ .field private final height:Ljava/lang/Integer;
+ 
+ .field private final id:J
+ 
++.field public isClip:Ljava/lang/Boolean;
++
++.field public isRemix:Ljava/lang/Boolean;
++
++.field public isSpoiler:Ljava/lang/Boolean;
++
++.field public isThumbnail:Ljava/lang/Boolean;
++
++.field public placeholder:Ljava/lang/String;
++
++.field public placeholderVersion:Ljava/lang/Integer;
++
+ .field private final proxyUrl:Ljava/lang/String;
+ 
+ .field private final size:J
+ 
++.field public title:Ljava/lang/String;
++
++.field public uploadedFilename:Ljava/lang/String;
++
+ .field private final url:Ljava/lang/String;
+ 
++.field public waveform:Ljava/lang/String;
++
+ .field private final width:Ljava/lang/Integer;
+ 
+ 
