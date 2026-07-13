@@ -1,0 +1,55 @@
+--- smali_original/com/discord/api/guild/GuildFeature.smali
++++ smali/com/discord/api/guild/GuildFeature.smali
+@@ -130,12 +130,16 @@
+
+ .field public static final enum VIP_REGIONS:Lcom/discord/api/guild/GuildFeature;
+
++.field public static final enum GUILD_ONBOARDING:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum GUILD_ONBOARDING_HAS_PROMPTS:Lcom/discord/api/guild/GuildFeature;
++
+
+ # direct methods
+ .method public static constructor <clinit>()V
+     .locals 4
+
+-    const/16 v0, 0x1e
++    const/16 v0, 0x20
+
+     new-array v0, v0, [Lcom/discord/api/guild/GuildFeature;
+
+@@ -515,6 +519,34 @@ .method public static constructor <clini
+
+     aput-object v1, v0, v2
+
++    new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++    const-string v2, "GUILD_ONBOARDING"
++
++    const/16 v3, 0x1e
++
++    invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++    sput-object v1, Lcom/discord/api/guild/GuildFeature;->GUILD_ONBOARDING:Lcom/discord/api/guild/GuildFeature;
++
++    const/16 v2, 0x1e
++
++    aput-object v1, v0, v2
++
++    new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++    const-string v2, "GUILD_ONBOARDING_HAS_PROMPTS"
++
++    const/16 v3, 0x1f
++
++    invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++    sput-object v1, Lcom/discord/api/guild/GuildFeature;->GUILD_ONBOARDING_HAS_PROMPTS:Lcom/discord/api/guild/GuildFeature;
++
++    const/16 v2, 0x1f
++
++    aput-object v1, v0, v2
++
+     sput-object v0, Lcom/discord/api/guild/GuildFeature;->$VALUES:[Lcom/discord/api/guild/GuildFeature;
+
+     return-void
