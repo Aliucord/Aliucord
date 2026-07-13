@@ -124,6 +124,7 @@ final class QrLogin {
 
         boolean hasTotp = false;
         boolean hasBackup = false;
+        boolean hasPassword = false;
         StringBuilder available = new StringBuilder();
         JSONArray methods = mfa.optJSONArray("methods");
         if (methods != null) {
@@ -133,11 +134,14 @@ final class QrLogin {
                 if (type.isEmpty()) continue;
                 if (available.length() > 0) available.append(", ");
                 available.append(type);
-                if (type.equals("totp")) hasTotp = true;
-                else if (type.equals("backup")) hasBackup = true;
+                switch (type) {
+                    case "totp" -> hasTotp = true;
+                    case "backup" -> hasBackup = true;
+                    case "password" -> hasPassword = true;
+                }
             }
         }
-        if (!hasTotp && !hasBackup) {
+        if (!hasTotp && !hasBackup && !hasPassword) {
             logger.errorToast("Unsupported 2FA method: " + available);
             reEnable(host);
             return;
@@ -145,7 +149,7 @@ final class QrLogin {
 
         handshakeToken = token;
         mfaTicket = ticket;
-        mfaType = hasTotp ? "totp" : "backup";
+        mfaType = hasTotp ? "totp" : hasBackup ? "backup" : "password";
         mfaNumeric = hasTotp;
 
         Utils.mainThread.post(() -> {
@@ -166,16 +170,21 @@ final class QrLogin {
     }
 
     static void bindMfaDialog(InputDialog dialog) {
+        boolean password = "password".equals(mfaType);
         dialog.setCancelable(false);
-        dialog.getHeader().setText("Two-Factor Auth");
-        dialog.getBody().setText(mfaNumeric ? "Enter your 6-digit authentication code" : "Enter a backup code");
-        dialog.getInputLayout().setHint(mfaNumeric ? "Authentication code" : "Backup code");
+        dialog.getHeader().setText(password ? "Password Required" : "Two-Factor Auth");
+        dialog.getBody().setText(password ? "Enter your password" : mfaNumeric ? "Enter your 6-digit authentication code" : "Enter a backup code");
+        dialog.getInputLayout().setHint(password ? "Password" : mfaNumeric ? "Authentication code" : "Backup code");
         EditText input = dialog.getInputLayout().getEditText();
-        if (mfaNumeric && input != null) input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        if (input != null) {
+            if (mfaNumeric) input.setInputType(InputType.TYPE_CLASS_NUMBER);
+            else if (password) input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        }
 
         MaterialButton ok = dialog.getOKButton();
         ok.setOnClickListener(v -> {
-            String code = dialog.getInput().trim();
+            // do NOT trim passwords
+            String code = password ? dialog.getInput() : dialog.getInput().trim();
             if (code.isEmpty()) return;
             ok.setEnabled(false);
             Utils.threadPool.submit(() -> submitMfa(dialog, code));
