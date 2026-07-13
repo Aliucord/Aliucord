@@ -6,7 +6,9 @@
 
 package com.aliucord.coreplugins;
 
+import android.app.AlertDialog;
 import android.graphics.drawable.ColorDrawable;
+import android.os.SystemClock;
 import android.text.InputType;
 import android.view.View;
 import android.widget.EditText;
@@ -41,6 +43,7 @@ final class QrLogin {
     private static final int FINISH_FAIL = 2;
 
     private static final Logger logger = new Logger("QrLogin");
+    private static final long HANDSHAKE_TTL = 120_000;
 
     private static volatile String handshakeToken;
     private static volatile String mfaTicket;
@@ -48,6 +51,9 @@ final class QrLogin {
     private static volatile boolean mfaNumeric;
     private static volatile JSONObject pendingMfa;
     private static volatile String pendingError;
+    private static volatile String pendingHandshake;
+    private static volatile long handshakeTime;
+    private static volatile boolean recovering;
 
     private QrLogin() {}
 
@@ -55,11 +61,23 @@ final class QrLogin {
         if (viewState instanceof WidgetRemoteAuthViewModel.ViewState.Loaded loaded) {
             if (loaded.getLoginAllowed()) bindLogin(host, loaded.getHandshakeToken());
         } else if (viewState instanceof WidgetRemoteAuthViewModel.ViewState.Failed) {
-            logger.errorToast(EXPIRED_MESSAGE);
+            // Native reinit on resume 404 and ignore mid-MFA, otherwise the
+            // first handshake may still be valid, so offer to finish with it before throwing
+            /// the cant find pc error
+            if (mfaTicket != null || recovering) return;
+            String token = pendingHandshake;
+            if (token != null && SystemClock.elapsedRealtime() - handshakeTime <= HANDSHAKE_TTL) {
+                recovering = true;
+                promptRecover(host, token);
+            } else {
+                logger.errorToast(EXPIRED_MESSAGE);
+            }
         }
     }
 
     private static void bindLogin(AppFragment host, String token) {
+        pendingHandshake = token;
+        handshakeTime = SystemClock.elapsedRealtime();
         MaterialButton button = findButton(host);
         if (button == null) return;
         button.setEnabled(true);
@@ -82,6 +100,22 @@ final class QrLogin {
                 reEnable(host);
                 break;
         }
+    }
+
+    private static void promptRecover(AppFragment host, String token) {
+        Utils.mainThread.post(() -> {
+            if (!host.isAdded()) return;
+            new AlertDialog.Builder(host.requireActivity())
+            .setTitle("Resume login?")
+            .setMessage("The login screen reloaded. Approve the pending login?")
+            .setCancelable(false)
+            .setPositiveButton("Approve", (d, w) -> {
+                recovering = false;
+                Utils.threadPool.submit(() -> confirmLogin(host, token));
+            })
+            .setNegativeButton("Cancel", (d, w) -> { recovering = false; cancelFlow(); })
+            .show();
+        });
     }
 
     private static void startMfa(AppFragment host, String token, JSONObject mfa) {
@@ -238,6 +272,8 @@ final class QrLogin {
         mfaTicket = null;
         mfaType = null;
         pendingMfa = null;
+        pendingHandshake = null;
+        recovering = false;
     }
 
     private static String parseHandshake(String value) {
