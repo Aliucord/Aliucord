@@ -170,9 +170,10 @@ final class QrLogin {
             String response = post("/mfa/finish", body, null);
             if (response == null) { pendingError = "MFA verification failed"; return null; }
             JSONObject json = new JSONObject(response);
-            if (json.optInt("code", -1) == 60008) { pendingError = "Invalid code, try again"; return null; }
             if (json.has("token")) return json.optString("token");
-            pendingError = "MFA verification failed";
+            if (json.optInt("code", -1) == 60008) { pendingError = "Invalid code, try again"; return null; }
+            if (json.has("retry_after")) { pendingError = "Rate limited, wait " + (int) Math.ceil(json.optDouble("retry_after")) + "s"; return null; }
+            pendingError = json.optString("message", "MFA verification failed");
             return null;
         } catch (Exception e) {
             logger.error("mfaVerify failed", e);
