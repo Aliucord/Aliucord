@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.EditText;
 
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.aliucord.Http;
 import com.aliucord.Logger;
@@ -166,8 +167,9 @@ final class QrLogin {
         }
         host.requireActivity().getWindow().setBackgroundDrawable(
             new ColorDrawable(ColorCompat.getThemedColor(host.requireContext(), R.b.colorBackgroundPrimary)));
-        if (host.getChildFragmentManager().findFragmentByTag(MFA_TAG) == null)
-            new TokenLogin.MfaDialog().show(host.getChildFragmentManager(), MFA_TAG);
+        FragmentManager fm = host.requireActivity().getSupportFragmentManager();
+        if (fm.findFragmentByTag(MFA_TAG) == null)
+            new TokenLogin.MfaDialog().show(fm, MFA_TAG);
     }
 
     @SuppressLint("SetTextI18n")
