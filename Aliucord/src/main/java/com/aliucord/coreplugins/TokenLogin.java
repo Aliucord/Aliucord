@@ -36,9 +36,14 @@ import com.lytefast.flexinput.R;
 import java.io.IOException;
 import java.util.*;
 
+import de.robv.android.xposed.XC_MethodHook.Unhook;
 import kotlin.Unit;
 
 public final class TokenLogin extends CorePlugin {
+    private Unhook authLanding;
+    private Unhook remoteAuth;
+    private Unhook appActivity;
+
     public TokenLogin() {
         super(new Manifest("TokenLogin"));
         getManifest().description = "Provide functionality to log in with a token directly from the login screen";
@@ -153,7 +158,7 @@ public final class TokenLogin extends CorePlugin {
     @Override
     public void start(Context appContext) throws Throwable {
         // Add "Login using token" button to the auth landing screen
-        Patcher.addPatch(WidgetAuthLanding.class.getDeclaredMethod("onViewBound", View.class), new Hook(param -> {
+        authLanding = Patcher.addPatch(WidgetAuthLanding.class.getDeclaredMethod("onViewBound", View.class), new Hook(param -> {
             Context context = ((WidgetAuthLanding) param.thisObject).requireContext();
             RelativeLayout view = (RelativeLayout) param.args[0];
             LinearLayout v = (LinearLayout) view.getChildAt(1);
@@ -175,16 +180,20 @@ public final class TokenLogin extends CorePlugin {
         // Hook the "Scan QR Code" button in user settings to the existing WidgetRemoteAuth
         // Also hook to the login button so we can catch the error 60003, which warn
         // the user when the handshake has expired.
-        Patcher.addPatch(
+        remoteAuth = Patcher.addPatch(
             WidgetRemoteAuth.class.getDeclaredMethod("configureUI", WidgetRemoteAuthViewModel.ViewState.class),
             new Hook(param -> QrLogin.onRemoteAuthState((AppFragment) param.thisObject, param.args[0]))
         );
 
-        Patcher.addPatch(AppActivity.class, "g", new Class<?>[]{ List.class }, new Hook(param -> {
+        appActivity = Patcher.addPatch(AppActivity.class, "g", new Class<?>[]{ List.class }, new Hook(param -> {
             if (!((boolean) param.getResult()) && ((AppActivity) param.thisObject).d().equals(Page.class)) param.setResult(true);
         }));
     }
 
     @Override
-    public void stop(Context context) {}
+    public void stop(Context context) {
+        if (authLanding != null) authLanding.unhook();
+        if (remoteAuth != null) remoteAuth.unhook();
+        if (appActivity != null) appActivity.unhook();
+    }
 }
