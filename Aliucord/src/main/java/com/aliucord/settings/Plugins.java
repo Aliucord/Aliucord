@@ -16,6 +16,7 @@ import android.view.*;
 import android.widget.*;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.*;
@@ -222,25 +223,35 @@ public class Plugins extends SettingsPage {
             return filter;
         }
 
+        @Nullable
         private String getGithubUrl(Plugin plugin) {
-            return Objects.requireNonNull(plugin
-                .getManifest().updateUrl).replaceFirst(
-                    "https://(raw\\.githubusercontent\\.com|cdn\\.jsdelivr\\.net/gh)/([^/]+)/([^/@]+).*",
-                    "https://github.com/$2/$3"
-                );
+            String url = plugin.getManifest().updateUrl;
+            if (!isNotBlank(url)) return null;
+
+            return url.replaceFirst(
+                "https://(raw\\.githubusercontent\\.com|cdn\\.jsdelivr\\.net/gh)/([^/]+)/([^/@]+).*",
+                "https://github.com/$2/$3"
+            );
         }
 
         public void onGithubClick(int position) {
-            Utils.launchUrl(getGithubUrl(data.get(position)));
+            String url = getGithubUrl(data.get(position));
+            if (!isNotBlank(url)) return;
+
+            Utils.launchUrl(url);
         }
 
         public void onChangeLogClick(int position) {
             Plugin p = data.get(position);
             Plugin.Manifest manifest = p.getManifest();
-            if (manifest.changelog != null) {
-                String url = getGithubUrl(p);
-                ChangelogUtils.show(ctx, p.getName() + " v" + manifest.version, manifest.changelogMedia, manifest.changelog, new ChangelogUtils.FooterAction(R.e.ic_account_github_white_24dp, url));
-            }
+            if (!isNotBlank(manifest.changelog)) return;
+
+            String url = getGithubUrl(p);
+            ChangelogUtils.FooterAction[] footer = isNotBlank(url)
+                ? new ChangelogUtils.FooterAction[] { new ChangelogUtils.FooterAction(R.e.ic_account_github_white_24dp, url) }
+                : new ChangelogUtils.FooterAction[0];
+
+            ChangelogUtils.show(ctx, p.getName() + " v" + manifest.version, manifest.changelogMedia, manifest.changelog, footer);
         }
 
         public void onSettingsClick(int position) throws Throwable {
