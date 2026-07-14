@@ -22,6 +22,8 @@ import com.aliucord.patcher.*
 import com.aliucord.rx.CancellableSubscription
 import com.aliucord.utils.DimenUtils.dp
 import com.aliucord.utils.ReflectUtils
+import com.aliucord.utils.RxUtils
+import com.aliucord.utils.RxUtils.subscribe
 import com.aliucord.utils.ViewUtils.findViewById
 import com.aliucord.utils.accessField
 import com.aliucord.wrappers.ChannelWrapper.Companion.id
@@ -39,6 +41,7 @@ import com.discord.models.guild.Guild
 import com.discord.rtcconnection.socket.io.Payloads.Protocol.ProtocolInfo
 import com.discord.stores.*
 import com.discord.stores.updates.ObservationDeck
+import com.discord.utilities.channel.ChannelSelector
 import com.discord.utilities.drawable.DrawableCompat
 import com.discord.utilities.embed.EmbedResourceUtils
 import com.discord.utilities.guildautomod.AutoModUtils
@@ -47,6 +50,8 @@ import com.discord.utilities.images.MGImages
 import com.discord.utilities.lazy.memberlist.ChannelMemberList
 import com.discord.utilities.lazy.memberlist.MemberListRow
 import com.discord.utilities.permissions.PermissionUtils
+import com.discord.utilities.rest.RestAPI
+import com.discord.utilities.rx.ObservableExtensionsKt
 import com.discord.utilities.time.ClockFactory
 import com.discord.utilities.time.NtpClock
 import com.discord.utilities.viewbinding.FragmentViewBindingDelegate
@@ -404,7 +409,38 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             Experiment::class.java,
             Guild::class.java
         ) { true }
+        // Fix archived thread jumping
+        patcher.before<`StoreMessagesLoader$jumpToMessage$6`<*,*>>("call", Boolean::class.javaObjectType) { param ->
+            val storeCompanion = StoreStream.Companion!!
+            // archived threads are not fetched by default so try to manually fetch them - Canny
+            val isArchived = storeCompanion.channels.findChannelById(`$channelId`) == null
+            if (!isArchived) return@before
+
+            val channelSelector = ChannelSelector.Companion!!.instance
+            val restApi = RestAPI.Companion!!.api
+            val apiObservable = restApi.getChannel(`$channelId`).computationBuffered().ui()
+            // add fetched thread to stores for caching - Canny
+            val apiSubscriber = RxUtils.createActionSubscriber<Channel>(
+                onNext = { channel ->
+                    channelSelector.dispatcher.schedule {
+                        channelSelector.stream.handleThreadCreateOrUpdate(channel)
+                    }
+                },
+                onError = logger::error
+            )
+            param.result = apiObservable.apply { subscribe(apiSubscriber) }
+        }
     }
+
+    /**
+     * Helper version of Observable.onBackpressureBuffer().observeOn(Schedulers.computation()).subscribeOn(Schedulers.computation())
+     */
+    fun <T> Observable<T>.computationBuffered() = ObservableExtensionsKt.computationBuffered(this)!!
+
+    /**
+     * Helper version of Observable.observeOn(AndroidSchedulers.mainThread())
+     */
+    fun <T> Observable<T>.ui() = ObservableExtensionsKt.ui(this)!!
 
     private fun fixThreadsIcon() = tryPatch("Fix threads icon alignment in channel context menu") {
         fun adjustThreadIcon(rootView: View, textViewIdName: String, themed: Boolean) {
