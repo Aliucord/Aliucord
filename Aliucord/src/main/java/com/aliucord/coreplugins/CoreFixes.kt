@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.*
+import android.text.InputFilter
 import android.view.View
 import android.view.WindowInsetsAnimation
 import android.widget.TextView
@@ -71,18 +72,25 @@ import com.discord.widgets.settings.profile.SettingsUserProfileViewModel
 import com.discord.widgets.settings.profile.WidgetEditUserOrGuildMemberProfile
 import com.discord.widgets.status.WidgetForumPostStatus
 import com.discord.widgets.status.WidgetForumPostStatusViewModel
+import com.discord.widgets.user.profile.UserProfileHeaderView
+import com.discord.widgets.user.profile.UserProfileHeaderViewModel
 import com.discord.widgets.user.usersheet.WidgetUserSheet
 import com.discord.widgets.user.usersheet.WidgetUserSheetViewModel
+import com.discord.widgets.voice.fullscreen.WidgetCallFullscreen
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.linecorp.apng.decoder.Apng
 import com.lyft.kronos.KronosClock
 import com.lytefast.flexinput.R
+import com.lytefast.flexinput.widget.FlexEditText
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 import rx.Emitter
 import rx.Observable
 import rx.subjects.Subject
+import java.util.WeakHashMap
 import j0.l.a.i.a as BaseEmitter
 
 private const val BYPASS_SLOWMODE_PERMISSION = 1L shl 52
+private const val MAX_CHAT_INPUT_LENGTH = 64000
 
 /**
  * Contains various fixes for stock Discord that ensure "proper" behavior.
@@ -109,14 +117,18 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixHidingMutedDMs()
         fixPrivateChannelScroll()
         fixVoiceCodec()
+        fixTextInVoiceCrash()
         fixThreads()
         fixThreadsIcon()
         fixSlowmode()
         fixExternalLinks()
         fixClock()
         fixBioHeightLimit()
+        fixProfileBannerColorCrash()
         fixUnreadForumChannels()
         fixMemoryLeak()
+        fixBottomSheetCallbacks()
+        fixChatInputCharacterLimit()
     }
 
     private val WidgetChatList.binding by accessField<FragmentViewBindingDelegate<WidgetChatListBinding>?>($$"binding$delegate")
@@ -139,8 +151,8 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     private fun fixStockEmojis() = tryPatch("Fix built-in emojis") {
         // Patch to repair built-in emotes is needed because installer doesn't recompile resources,
         // so they stay in package com.discord instead of apk package name
-        patcher.instead<ModelEmojiUnicode?>("getImageUri", String::class.java, Context::class.java) { param ->
-            "res:///${Utils.getResId("emoji_${param.args[0]}", "raw")}"
+        patcher.instead<ModelEmojiUnicode?>("getImageUri", String::class.java, Context::class.java) { (_, name: String) ->
+            "res:///${Utils.getResId("emoji_$name", "raw")}"
         }
     }
 
@@ -224,7 +236,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
 
             val size = IconUtils.getMediaProxySize(bindingGuild.d.layoutParams.height)
             val url = IconUtils.getForGuild(guild, null, animated) + "&size=${size}"
-            MGImages.`setImage$default`(bindingGuild.d, url, size, size, false, null, null, 112, null);
+            MGImages.`setImage$default`(bindingGuild.d, url, size, size, false, null, null, 112, null)
         }
 
         // Support webp emojis by forcing every emoji to be webp
@@ -312,8 +324,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             IntArray::class.java,
             Int::class.javaPrimitiveType!!,
             Long::class.javaPrimitiveType!!,
-        ) { param ->
-            val durations = param.args[4] as IntArray
+        ) { (_, _: Int, _: Int, _: Int, _: Int, durations: IntArray) ->
             durations.forEachIndexed { index, duration ->
                 if (duration <= 10) durations[index] = 100
             }
@@ -372,6 +383,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
 
             if (!model.isGuildSelected && model.items.size > 1) {
                 val manager = WidgetChannelsList.`access$getBinding$p`(this).c.layoutManager as LinearLayoutManager
+
                 if (manager.findFirstVisibleItemPosition() != 0) {
                     executed = true
                     manager.scrollToPosition(0)
@@ -389,6 +401,12 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             if (mode == "xsalsa20_poly1305") {
                 param.args[2] = "xsalsa20_poly1305_lite_rtpsize"
             }
+        }
+    }
+
+    private fun fixTextInVoiceCrash() = tryPatch("Fix Text-in-Voice crash in calls") {
+        patcher.before<WidgetCallFullscreen>("transitionActivity") { param ->
+            if (appActivity == null) param.result = null
         }
     }
 
@@ -463,6 +481,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
 
             val channel = StoreStream.getChannelsSelected().selectedChannel
             val permissions = StoreStream.getPermissions().permissionsByChannel[channel.id]
+
             if (PermissionUtils.INSTANCE.hasBypassSlowmodePermissions(permissions, StoreSlowMode.Type.MessageSend.INSTANCE)) {
                 param.result = Utils.appContext.resources.getString(R.h.channel_slowmode_desc_immune)
             }
@@ -476,6 +495,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             val intent = param.args[0] as? Intent ?: return
             val pm = Utils.appContext.packageManager
             val handlers = pm.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+
             if (handlers.isEmpty()) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
 
@@ -514,6 +534,18 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         }
     }
 
+    private fun fixProfileBannerColorCrash() = tryPatch("Fix profile banner color thread crash") {
+        patcher.before<UserProfileHeaderView>(
+            "updateBannerColor",
+            UserProfileHeaderViewModel.ViewState.Loaded::class.java,
+        ) { (param, state: UserProfileHeaderViewModel.ViewState.Loaded) ->
+            if (Looper.myLooper() == Looper.getMainLooper()) return@before
+
+            Utils.mainThread.post { updateBannerColor(state) }
+            param.result = null
+        }
+    }
+
     private fun fixUnreadForumChannels() = tryPatch("Fix unread forum channels") {
         patcher.before<StoreReadStates>("computeUnreadIds",
             Map::class.java,
@@ -532,6 +564,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             val joinedForumThreadsMap = forumThreadsMap.filter {
                 StoreStream.Companion!!.threadsJoined.getJoinedThread(it.value.id) != null
             }
+
             param.args[7] = joinedForumThreadsMap
         }
     }
@@ -587,6 +620,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         }
         patcher.before<WidgetExpressionTray>("setUpEmojiPicker") { param ->
             val fragment = childFragmentManager.findFragmentById(expressionTrayPickerId) as? WidgetEmojiPicker
+
             if (isRecreated && fragment != null) {
                 // Manually re-set picker fragment listeners
                 // since original code will always create a new picker instance - Canny
@@ -644,7 +678,35 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                     observer?.let { this@instead.disconnect(it) }
                 })
             }, backpressureMode)
+
             return@instead observable
+        }
+    }
+
+    private fun fixChatInputCharacterLimit() = tryPatch("Cap chat input length to prevent paste freeze") {
+        patcher.after<WidgetChatInputEditText>(
+            FlexEditText::class.java,
+            MessageDraftsRepo::class.java,
+        ) { (_, editText: FlexEditText) ->
+            editText.filters += InputFilter.LengthFilter(MAX_CHAT_INPUT_LENGTH)
+        }
+    }
+
+    private val bottomSheetCallbacks = WeakHashMap<BottomSheetBehavior<*>, BottomSheetBehavior.BottomSheetCallback>()
+
+    private fun fixBottomSheetCallbacks() = tryPatch("Fix deprecated BottomSheet callback clearing internal callbacks") {
+        patcher.instead<BottomSheetBehavior<View>>(
+            "setBottomSheetCallback",
+            BottomSheetBehavior.BottomSheetCallback::class.java,
+        ) { (_, callback: BottomSheetBehavior.BottomSheetCallback?) ->
+            bottomSheetCallbacks.remove(this)?.let(::removeBottomSheetCallback)
+
+            if (callback != null) {
+                addBottomSheetCallback(callback)
+                bottomSheetCallbacks[this] = callback
+            }
+
+            null
         }
     }
 
