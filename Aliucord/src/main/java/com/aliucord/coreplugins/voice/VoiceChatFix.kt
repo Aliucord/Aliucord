@@ -348,7 +348,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                         a.remove("pixelCounts")
                     })
                 // silence, useless opcode *huge explosion*
-                Opcodes.HEARTBEAT_ACK -> { /* chainsaw man reference??? */ }
+                Opcodes.HEARTBEAT_ACK, Opcodes.SELECT_PROTOCOL_ACK, Opcodes.SPEAKING, Opcodes.HELLO  -> { /* chainsaw man reference??? */ }
                 else -> logger.warn("Unhandled Opcode: ${Opcodes.friendly(message.opcode)}")
             }
         }
