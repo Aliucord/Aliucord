@@ -50,7 +50,6 @@ import com.aliucord.utils.SemVer
 import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.wrappers.ChannelWrapper.Companion.guildId
 import com.aliucord.wrappers.ChannelWrapper.Companion.id
-import com.discord.api.voice.state.StageRequestToSpeakState
 import com.discord.api.stageinstance.StageInstance
 import com.discord.api.stageinstance.StageInstancePrivacyLevel
 import com.discord.play_delivery.PlayAssetDeliveryNativeWrapper
@@ -81,6 +80,7 @@ import com.discord.widgets.user.usersheet.UserProfileVoiceSettingsView
 import com.discord.widgets.user.usersheet.WidgetUserSheet
 import com.discord.widgets.user.usersheet.WidgetUserSheetViewModel
 import com.discord.widgets.chat.list.entries.MessageEntry
+import com.discord.widgets.stage.StageChannelNotifications
 import com.discord.widgets.stage.sheet.WidgetStageModeratorJoinBottomSheet
 import com.discord.widgets.stage.sheet.WidgetStageStartEventBottomSheetViewModel
 import com.discord.widgets.stage.start.ModeratorStartStageViewModel
@@ -99,7 +99,6 @@ import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
 import org.json.JSONObject
-import rx.Subscription
 import java.io.File
 import java.util.Collections
 import java.util.Locale
@@ -120,7 +119,6 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     private var prevSocket: RtcControlSocket? = null
     @Volatile
     private var supportedModes: List<String>? = null
-    private var speakInviteSubscription: Subscription? = null
 
     // Show the join as speaker/audience bottom sheet after a start too since base
     // only shows it when joining a live stage
@@ -985,21 +983,17 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         }
     }
 
-    // Tracks the request-to-speak state of whatever stage channel is currently
-    // selected and auto-accepts the moment a moderator invites us. Re-subscribes
-    // per channel since observeMyRequestToSpeakState is scoped to a channel id
+    // Track when the user receives and invite to speak
+    // When triggered, automatically accept the invite
     private fun patchAutoAcceptSpeakInvite() {
-        StoreStream.getVoiceChannelSelected().observeSelectedVoiceChannelId().subscribe {
-            val channelId = this
-            speakInviteSubscription?.unsubscribe()
-            speakInviteSubscription = if (channelId <= 0L) null else
-                StoreStream.getStageChannels().observeMyRequestToSpeakState(channelId).subscribe {
-                    if (!VoiceChatFixSettings.autoAcceptSpeakInvite) return@subscribe
-                    if (this != StageRequestToSpeakState.REQUESTED_TO_SPEAK_AND_AWAITING_USER_ACK) return@subscribe
-
-                    logger.debug("Auto-accepting invite to speak in channel $channelId")
-                    StageChannelAPI.INSTANCE.ackInvitationToSpeak(channelId, true)?.subscribe { /* stage filled with cats */ }
-                }
+        patcher.before<StageChannelNotifications>(
+            "onInvitedToSpeak",
+            Long::class.javaPrimitiveType!!)
+        { (_, channelId: Long) ->
+            if (!VoiceChatFixSettings.autoAcceptSpeakInvite) return@before
+            
+            logger.debug("Auto-accepting invite to speak in channel $channelId")
+            StageChannelAPI.INSTANCE.ackInvitationToSpeak(channelId, true)?.subscribe { /* stage filled with cats */ }
         }
     }
 
