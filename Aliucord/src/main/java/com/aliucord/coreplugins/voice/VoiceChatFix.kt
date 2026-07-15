@@ -82,6 +82,7 @@ import com.discord.widgets.user.usersheet.WidgetUserSheet
 import com.discord.widgets.user.usersheet.WidgetUserSheetViewModel
 import com.discord.widgets.chat.list.entries.MessageEntry
 import com.discord.widgets.stage.sheet.WidgetStageModeratorJoinBottomSheet
+import com.discord.widgets.stage.sheet.WidgetStageStartEventBottomSheetViewModel
 import com.discord.widgets.stage.start.ModeratorStartStageViewModel
 import com.discord.widgets.stage.start.WidgetModeratorStartStage
 import com.discord.widgets.voice.controls.VoiceControlsSheetView
@@ -986,6 +987,13 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     }
 
     private fun patchStageJoinPromptOnStart() = runCatching {
+        // Base has this horrid flow:
+        // onCreate success => if mic permission granted => setSelfSpeaker() - unmuted btw
+        patcher.before<WidgetStageStartEventBottomSheetViewModel>("setSelfSpeaker") {
+            logger.debug("setSelfSpeaker: Blocked auto joining as speaker on stage start")
+            it.result = null
+        }
+
         // startStageInstance is only ever called by the local user starting a stage
         patcher.before<StageChannelAPI>(
             "startStageInstance",
