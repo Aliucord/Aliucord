@@ -119,6 +119,8 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     private var prevSocket: RtcControlSocket? = null
     @Volatile
     private var supportedModes: List<String>? = null
+    // @Volatile
+    // private var nativeEncryptionModes: List<String>? = null
 
     // Show the join as speaker/audience bottom sheet after a start too since base
     // only shows it when joining a live stage
@@ -173,6 +175,18 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     private fun chooseTransportMode(): String {
         val pref = VoiceChatFixSettings.transportEncryption
         val modes = supportedModes ?: return pref
+
+        // TODO[transport]: perhaps a native implementation
+        //  more into at the other TO-DO for transport
+        // nativeEncryptionModes?.let { native ->
+        //     return when {
+        //         pref in modes && pref in native -> pref
+        //         else -> modes.firstOrNull { it.startsWith("aead_") && it in native }
+        //             ?: modes.firstOrNull { it.startsWith("aead_") }
+        //             ?: pref
+        //     }
+        // }
+
         return when {
             pref in modes -> pref
             else -> modes.firstOrNull { it.startsWith("aead_") } ?: pref
@@ -701,6 +715,19 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 newestCode = if (frames.version < 1) "" else formatFingerprint(frames.epochAuthenticator)
                 onCodeUpdate(newestCode)
             }
+
+            // TODO[transport]: Native/hardware encryption modes that are supported
+            //  this would later by used for chooseTransportMode
+            // runCatching {
+            //     conn.j.nativeConnectionField.getEncryptionModes { modes ->
+            //         // Native callback thread: keep it minimal, a throw here pends a JNI
+            //         // exception and aborts the process
+            //         runCatching {
+            //             nativeEncryptionModes = modes.filterNotNull()
+            //             logger.info("Native encryption modes: $nativeEncryptionModes")
+            //         }
+            //     }
+            // }.onFailure { logger.error("Failed to query native encryption modes", it) }
         }
 
         // Patches view to add our encryption info if not already added
@@ -991,7 +1018,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             Long::class.javaPrimitiveType!!)
         { (_, channelId: Long) ->
             if (!VoiceChatFixSettings.autoAcceptSpeakInvite) return@before
-            
+
             logger.debug("Auto-accepting invite to speak in channel $channelId")
             StageChannelAPI.INSTANCE.ackInvitationToSpeak(channelId, true)?.subscribe { /* stage filled with cats */ }
         }
