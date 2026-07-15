@@ -4,6 +4,12 @@ import co.discord.media_engine.Connection
 import com.aliucord.Logger
 import com.aliucord.PluginManager
 import com.aliucord.Utils
+import com.aliucord.api.PatcherAPI
+import com.aliucord.patcher.before
+import com.aliucord.patcher.component1
+import com.aliucord.patcher.component2
+import com.aliucord.patcher.component3
+import com.discord.gateway.GatewaySocket
 import com.discord.rtcconnection.RtcConnection
 import com.discord.rtcconnection.socket.io.Opcodes
 import okio.ByteString
@@ -120,5 +126,29 @@ fun RtcControlSocket?.pairwiseCode(userId: String, callback: (String?) -> Unit) 
     }.onFailure {
         PluginManager.logger.error("Failed to get pairwise fingerprint for $userId", it)
         Utils.mainThread.post { callback(null) }
+    }
+}
+
+// Silence "event unhandled" warnings in debug log
+internal fun patchSilenceUnhandledEvents(patcher: PatcherAPI) {
+    val events = listOf(
+        "VOICE_CHANNEL_EFFECT_SEND",
+        "VOICE_CHANNEL_START_TIME_UPDATE",
+        "VOICE_CHANNEL_STATUS_UPDATE",
+        "CHANNEL_INFO",
+    )
+
+    patcher.before<GatewaySocket>(
+        "handleDispatch",
+        Object::class.java,
+        String::class.javaObjectType,
+        Int::class.javaPrimitiveType!!,
+        Int::class.javaPrimitiveType!!,
+        Long::class.javaPrimitiveType!!,
+    ) { (param, _: Any, event: String) ->
+        // For capturing the live socket for sending
+        VoiceChatTimers.gatewaySocket = this
+
+        if (event in events) param.args[0] = Unit.a
     }
 }

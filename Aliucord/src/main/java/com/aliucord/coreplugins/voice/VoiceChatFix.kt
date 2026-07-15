@@ -20,7 +20,6 @@ import com.aliucord.coreplugins.voice.VoiceChatFixPayload.DaveTransitionReady
 import com.aliucord.coreplugins.voice.VoiceChatTimers.backstopTimeSelected
 import com.aliucord.coreplugins.voice.VoiceChatTimers.callStartTimes
 import com.aliucord.coreplugins.voice.VoiceChatTimers.callTimersLines
-import com.aliucord.coreplugins.voice.VoiceChatTimers.gatewaySocket
 import com.aliucord.coreplugins.voice.VoiceChatTimers.trackCallStart
 import com.aliucord.coreplugins.voice.VoiceChatTimers.requestChannelInfo
 import com.aliucord.coreplugins.voice.model.ChannelInfo
@@ -60,7 +59,6 @@ import com.discord.rtcconnection.socket.io.Opcodes
 import com.discord.rtcconnection.socket.io.Payloads
 import com.discord.rtcconnection.socket.io.Payloads.Protocol.ProtocolInfo
 import com.discord.api.voice.server.VoiceServer
-import com.discord.gateway.GatewaySocket
 import com.discord.native.engine.NativeEngine
 import com.discord.stores.StoreApplicationStreaming
 import com.discord.stores.StoreRtcConnection
@@ -223,7 +221,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         patchPrivacyCodeView()
         VoiceStatus.register(patcher)
         patchUserSheetView()
-        Soundboard.register(patcher, context)
+        Soundboard.register(context)
         patchSoundboardVolume()
         patchVoiceMoveReconnect()
         patchVoiceAccess()
@@ -232,7 +230,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         patchCallStartTime()
         patchCallCardTicker()
         patchCallDurationText()
-        patchSilenceUnhandledEvents()
+        patchSilenceUnhandledEvents(patcher)
         patchAutoAcceptSpeakInvite()
         patchStageStartFlow()
         patchStageJoinPromptOnStart()
@@ -1164,27 +1162,6 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         )
     }.onFailure {
         logger.error("Failed to patch call duration text", it)
-    }
-
-    // Silence "event unhandled" warnings in debug log
-    private fun patchSilenceUnhandledEvents() {
-        patcher.before<GatewaySocket>(
-            "handleDispatch",
-            Object::class.java,
-            String::class.javaObjectType,
-            Int::class.javaPrimitiveType!!,
-            Int::class.javaPrimitiveType!!,
-            Long::class.javaPrimitiveType!!,
-        ) { (param, _: Any, event: String) ->
-            // For capturing the live socket for sending
-            gatewaySocket = this
-
-            if (event in listOf(
-                "VOICE_CHANNEL_START_TIME_UPDATE",
-                "VOICE_CHANNEL_STATUS_UPDATE",
-                "CHANNEL_INFO",
-            )) param.args[0] = Unit.a
-        }
     }
 
     private fun patchSoundboardVolume() {

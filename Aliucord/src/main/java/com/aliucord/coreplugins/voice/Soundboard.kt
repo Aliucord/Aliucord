@@ -6,15 +6,9 @@ import android.media.MediaPlayer
 import com.aliucord.Logger
 import com.aliucord.Utils
 import com.aliucord.api.GatewayAPI
-import com.aliucord.api.PatcherAPI
 import com.aliucord.coreplugins.voice.model.VoiceChannelEffect
 import com.aliucord.coreplugins.voice.ui.isSoundboardMuted
-import com.aliucord.patcher.before
-import com.aliucord.patcher.component1
-import com.aliucord.patcher.component2
-import com.aliucord.patcher.component3
 import com.aliucord.wrappers.users.globalName
-import com.discord.gateway.GatewaySocket
 import com.discord.stores.StoreStream
 import java.io.File
 import java.net.URL
@@ -22,26 +16,14 @@ import java.util.Collections
 
 internal object Soundboard {
     private val logger = Logger("VoiceChatFix")
-    private const val EVENT_NAME = "VOICE_CHANNEL_EFFECT_SEND"
     private const val MAX_CACHE_BYTES = 16L * 1024 * 1024  // 16 MB
     private const val MAX_PLAYERS = 8
     private lateinit var cacheDir: File
     private val activePlayers = Collections.synchronizedSet(mutableSetOf<MediaPlayer>())
 
-    fun register(patcher: PatcherAPI, context: Context) {
+    fun register(context: Context) {
         cacheDir = File(context.cacheDir, "soundboard").apply { mkdirs() }
-        GatewayAPI.onEvent<VoiceChannelEffect>(EVENT_NAME) { handle(it) }
-
-        patcher.before<GatewaySocket>(
-            "handleDispatch",
-            Object::class.java,
-            String::class.javaObjectType,
-            Int::class.javaPrimitiveType!!,
-            Int::class.javaPrimitiveType!!,
-            Long::class.javaPrimitiveType!!,
-        ) { (param, _: Any, event: String) ->
-            if (event == EVENT_NAME) param.args[0] = Unit.a
-        }
+        GatewayAPI.onEvent<VoiceChannelEffect>("VOICE_CHANNEL_EFFECT_SEND") { handle(it) }
     }
 
     private fun handle(effect: VoiceChannelEffect) {
