@@ -1,0 +1,13 @@
+--- smali_original/b/a/q/m0/b.smali
++++ smali/b/a/q/m0/b.smali
+@@ -257,7 +257,9 @@ .method public final b()Landroid/media/A
+     .end annotation
+ 
+     .line 1
+-    iget-object v0, p0, Lorg/webrtc/ScreenCapturerAndroid;->mediaProjection:Landroid/media/projection/MediaProjection;
++    invoke-virtual {p0}, Lorg/webrtc/ScreenCapturerAndroid;->getMediaProjection()Landroid/media/projection/MediaProjection;
++
++    move-result-object v0
+ 
+     const/4 v1, 0x0
+ 

@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.aliucord.Main
 import com.aliucord.Utils
+import com.aliucord.coreplugins.voice.model.TransportModes
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.rx.CancellableSubscription
@@ -386,8 +387,8 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             Int::class.javaPrimitiveType!!,
             String::class.java,
         ) { (param, _: String, _: Int, mode: String) ->
-            if (mode == "xsalsa20_poly1305") {
-                param.args[2] = "xsalsa20_poly1305_lite_rtpsize"
+            if (mode == TransportModes.XSALSA20) {
+                param.args[2] = TransportModes.XSALSA20_LITE
             }
         }
     }

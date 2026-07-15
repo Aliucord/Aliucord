@@ -1,0 +1,380 @@
+package com.aliucord.coreplugins.voice
+
+import android.graphics.Typeface
+import android.os.Bundle
+import android.text.SpannableStringBuilder
+import android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
+import android.text.style.StyleSpan
+import android.transition.TransitionManager
+import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.LinearLayout
+import android.widget.SeekBar
+import android.widget.TextView
+import com.aliucord.Utils
+import com.aliucord.api.SettingsAPI
+import com.aliucord.coreplugins.voice.model.TransportModes
+import com.aliucord.entities.Plugin
+import com.aliucord.settings.delegate
+import com.aliucord.utils.DimenUtils
+import com.aliucord.utils.DimenUtils.dp
+import com.aliucord.utils.ViewUtils.addTo
+import com.aliucord.views.DangerButton
+import com.aliucord.widgets.BottomSheet
+import com.discord.utilities.color.ColorCompat
+import com.discord.views.CheckedSetting
+import com.discord.widgets.user.usersheet.WidgetUserSheet
+import com.google.gson.reflect.TypeToken
+import com.lytefast.flexinput.R
+import java.util.Collections
+
+internal object VoiceChatFixSettings {
+    const val DEFAULT_VIDEO_BITRATE_KBPS = 2500
+    const val DEFAULT_VIDEO_FRAMERATE = 30
+    const val DEFAULT_VIDEO_HEIGHT = 720
+    const val DEFAULT_VIDEO_WIDTH = 1280
+    const val FPS_MIN = 24
+    const val FPS_MAX = 120
+    const val DEFAULT_ENCODER_QUEUE_SIZE = 4
+    const val DEFAULT_SOUNDBOARD_VOLUME = 100
+
+    private val settings = SettingsAPI("VoiceChatFix")
+
+    // Server only offers it when the hardware supports it, if not, XChaCha20 will be used
+    internal val useAes256GcmDelegate = settings.delegate("useAes256Gcm", true)
+    val useAes256Gcm by useAes256GcmDelegate
+    private val videoBitrateKbpsDelegate = settings.delegate("videoBitrateKbps", DEFAULT_VIDEO_BITRATE_KBPS)
+    val videoBitrateKbps by videoBitrateKbpsDelegate
+    private val videoFramerateDelegate = settings.delegate("videoFramerate", DEFAULT_VIDEO_FRAMERATE)
+    val videoFramerate by videoFramerateDelegate
+    private val videoHeightDelegate = settings.delegate("videoHeight", DEFAULT_VIDEO_HEIGHT)
+    val videoHeight by videoHeightDelegate
+    private val videoWidthDelegate = settings.delegate("videoWidth", DEFAULT_VIDEO_WIDTH)
+    val videoWidth by videoWidthDelegate
+    internal val daveEnabledDelegate = settings.delegate("daveEnabled", true)
+    val daveEnabled by daveEnabledDelegate
+    private val encoderQueueSizeDelegate = settings.delegate("encoderQueueSize", DEFAULT_ENCODER_QUEUE_SIZE)
+    val encoderQueueSize by encoderQueueSizeDelegate
+    private val showConnInfoDelegate = settings.delegate("showConnInfo", false)
+    val showConnInfo by showConnInfoDelegate
+    private val effectNotificationsDelegate = settings.delegate("effectNotifications", true)
+    val effectNotifications by effectNotificationsDelegate
+    private val hqBluetoothDelegate = settings.delegate("hqBluetooth", false)
+    val hqBluetooth by hqBluetoothDelegate
+    private val hqBluetoothCompatDelegate = settings.delegate("hqBluetoothCompat", false)
+    val hqBluetoothCompat by hqBluetoothCompatDelegate
+    private val sidechainCompressionDelegate = settings.delegate("sidechainCompression", false)
+    val sidechainCompression by sidechainCompressionDelegate
+    private val autoAcceptSpeakInviteDelegate = settings.delegate("autoAcceptSpeakInvite", false)
+    val autoAcceptSpeakInvite by autoAcceptSpeakInviteDelegate
+    private val iKnowWhatImDoingDelegate = settings.delegate("iKnowWhatImDoing", false)
+    val iKnowWhatImDoing by iKnowWhatImDoingDelegate
+    internal val soundboardVolumeDelegate = settings.delegate("soundboardVolume", DEFAULT_SOUNDBOARD_VOLUME)
+    val soundboardVolume by soundboardVolumeDelegate
+    val mutedSoundboardUsers = PersistedIdSet(settings, "mutedSoundboardUsers")
+    val disabledVideoUsers = PersistedIdSet(settings, "disabledVideoUsers")
+    val transportEncryption: String get() = if (useAes256Gcm) TransportModes.AES256_GCM else TransportModes.XCHACHA20
+
+    class Sheet : BottomSheet() {
+        private val fixBtAuthor = Plugin.Manifest.Author("oSumAtrIX", 737323631117598811L, false)
+
+        override fun onViewCreated(view: View, bundle: Bundle?) {
+            super.onViewCreated(view, bundle)
+            lateinit var settingsLayout: LinearLayout
+
+            val ctx = requireContext()
+            val p = DimenUtils.defaultPadding
+            var allowSettings by iKnowWhatImDoingDelegate
+            val builder = VoiceInputBuilder(this@Sheet)
+
+            LinearLayout(ctx).addTo(linearLayout) warningLayout@{
+                orientation = LinearLayout.VERTICAL
+                visibility = if (!iKnowWhatImDoing) View.VISIBLE else View.GONE
+
+                TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Label).addTo(this) {
+                    text = "Are you sure?"
+                }
+
+                TextView(ctx, null, 0, R.i.UiKit_Settings_Item_SubText).addTo(this) {
+                    text = "Don't enable this unless you know what you're doing. Modifying these settings could break voice chats!"
+                }
+
+                DangerButton(ctx).addTo(this) {
+                    text = "I know what I'm doing"
+                    layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+                        marginStart = p
+                        marginEnd = p
+                    }
+
+                    setOnClickListener {
+                        allowSettings = true
+                        this@warningLayout.visibility = View.GONE
+                        TransitionManager.beginDelayedTransition(linearLayout)
+                        settingsLayout.visibility = View.VISIBLE
+                    }
+                }
+            }
+
+            settingsLayout = with(builder) {
+                LinearLayout(ctx).addTo(linearLayout) {
+                    lateinit var fpsLabel: TextView
+
+                    orientation = LinearLayout.VERTICAL
+                    visibility = if (iKnowWhatImDoing) View.VISIBLE else View.GONE
+
+                    Utils.createCheckedSetting(
+                        ctx,
+                        CheckedSetting.ViewType.SWITCH,
+                        "Use AES-256-GCM transport encryption",
+                        "Preferred transport encryption when the server supports it."
+                    ).addTo(this) {
+                        var setting by useAes256GcmDelegate
+                        isChecked = setting
+                        setOnCheckedListener {
+                            setting = !setting
+                            Utils.promptRestart()
+                        }
+                    }
+
+                    Utils.createCheckedSetting(
+                        ctx,
+                        CheckedSetting.ViewType.SWITCH,
+                        "Enable DAVE (end-to-end encryption)",
+                        "When off, streams use transport-only encryption (no MLS). Use to test whether viewers that can't do DAVE can see your screenshare/camera."
+                    ).addTo(this) {
+                        var setting by daveEnabledDelegate
+                        isChecked = setting
+                        setOnCheckedListener {
+                            setting = !setting
+                            Utils.promptRestart()
+                        }
+                    }
+
+                    Utils.createCheckedSetting(
+                        ctx,
+                        CheckedSetting.ViewType.SWITCH,
+                        "Show connection info overlay",
+                        "Adds an info card to the voice bottom sheet. Takes effect on the next voice connection."
+                    ).addTo(this) {
+                        var setting by showConnInfoDelegate
+                        isChecked = setting
+                        setOnCheckedListener { setting = !setting }
+                    }
+
+                    Utils.createCheckedSetting(
+                        ctx,
+                        CheckedSetting.ViewType.SWITCH,
+                        "Voice effect notifications",
+                        "Shows a toast when someone plays a soundboard sound or sends an emoji reaction in your voice channel."
+                    ).addTo(this) {
+                        var setting by effectNotificationsDelegate
+                        isChecked = setting
+                        setOnCheckedListener { setting = !setting }
+                    }
+
+                    Utils.createCheckedSetting(
+                        ctx,
+                        CheckedSetting.ViewType.SWITCH,
+                        "Auto-accept invite to speak",
+                        "Automatically accepts a moderator's invite to speak in stage channels."
+                    ).addTo(this) {
+                        var setting by autoAcceptSpeakInviteDelegate
+                        isChecked = setting
+                        setOnCheckedListener { setting = !setting }
+                    }
+
+                    TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(this) {
+                        text = "Video / Screenshare"
+                    }
+
+                    field(
+                        "Bitrate (kbps)",
+                        videoBitrateKbps,
+                        DEFAULT_VIDEO_BITRATE_KBPS,
+                        8..Int.MAX_VALUE,
+                        videoBitrateKbpsDelegate,
+                    )
+
+                    LinearLayout(ctx).addTo(this) {
+                        orientation = LinearLayout.HORIZONTAL
+                        layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+                            marginStart = p
+                            marginEnd = p
+                        }
+
+                        field(
+                            "Width",
+                            videoWidth,
+                            DEFAULT_VIDEO_WIDTH,
+                            64..4096,
+                            videoWidthDelegate,
+                            isWeighted = true,
+                            isEven = true,
+                        )
+                        field(
+                            "Height",
+                            videoHeight,
+                            DEFAULT_VIDEO_HEIGHT,
+                            64..4096,
+                            videoHeightDelegate,
+                            isWeighted = true,
+                            isEven = true,
+                        )
+                    }
+
+                    TextView(ctx, null, 0, R.i.UiKit_Settings_Item_SubText).addTo(this) {
+                        setPadding(p, p / 4, p, 4)
+                        text = "Takes effect on the next voice connection."
+                        setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorTextMuted))
+                    }
+
+                    LinearLayout(ctx).addTo(this) {
+                        layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+                        gravity = Gravity.CENTER_VERTICAL
+                        orientation = LinearLayout.HORIZONTAL
+
+                        TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(this) {
+                            layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
+                            text = "Framerate"
+                        }
+                        fpsLabel = TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(this) {
+                            text = "$videoFramerate fps"
+                        }
+                    }
+
+                    SeekBar(ctx, null, 0, R.i.UiKit_SeekBar).addTo(this) {
+                        setPadding(p, 0, p, 0)
+                        // SeekBar min is 0, so offset by FPS_MIN: value = FPS_MIN + progress.
+                        max = FPS_MAX - FPS_MIN
+                        progress = videoFramerate.coerceIn(FPS_MIN, FPS_MAX) - FPS_MIN
+                        setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                            override fun onProgressChanged(sb: SeekBar?, value: Int, fromUser: Boolean) {
+                                fpsLabel.text = "${FPS_MIN + value} fps"
+                            }
+                            override fun onStartTrackingTouch(sb: SeekBar?) {}
+                            override fun onStopTrackingTouch(sb: SeekBar?) {
+                                var setting by videoFramerateDelegate
+                                setting = FPS_MIN + (sb?.progress ?: return)
+                            }
+                        })
+                    }
+
+                    LinearLayout(ctx, null, 0, R.i.UiKit_Settings_Item_SubText).addTo(this) {
+                        orientation = LinearLayout.HORIZONTAL
+                        setPadding(p, 0, p, 8.dp)
+                        TextView(ctx).addTo(this) {
+                            layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
+                            text = "$FPS_MIN fps"
+                            textSize = 12f
+                            setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorTextMuted))
+                        }
+                        TextView(ctx).addTo(this) {
+                            text = "$FPS_MAX fps"
+                            textSize = 12f
+                            setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorTextMuted))
+                        }
+                    }
+
+                    field(
+                        "Encoder queue size",
+                        encoderQueueSize,
+                        DEFAULT_ENCODER_QUEUE_SIZE,
+                        2..16,
+                        encoderQueueSizeDelegate,
+                    )
+
+                    TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(this) {
+                        setPadding(p, p * 2, p, 0)
+                        text = "Fix Bluetooth Audio Quality"
+                    }
+
+                    TextView(ctx, null, 0, R.i.UiKit_Settings_Item_SubText).addTo(this) {
+                        setPadding(p, 0, p, 0)
+                        text = SpannableStringBuilder().apply {
+                            append("brought to you by ")
+                            val start = length
+                            append(fixBtAuthor.name, StyleSpan(Typeface.BOLD), SPAN_EXCLUSIVE_EXCLUSIVE)
+
+                            // and yes, the 'hyperlink' param is implemented just because
+                            // which is very useless because the default value for hyperlink==true
+                            if (fixBtAuthor.hyperlink) {
+                                setSpan(object : ClickableSpan() {
+                                    override fun onClick(widget: View) {
+                                        this@Sheet.dismiss()
+                                        WidgetUserSheet.show(fixBtAuthor.id, parentFragmentManager)
+                                    }
+                                }, start, length, SPAN_EXCLUSIVE_EXCLUSIVE)
+                            }
+                        }
+                        movementMethod = LinkMovementMethod.getInstance()
+                    }
+
+                    Utils.createCheckedSetting(
+                        ctx,
+                        CheckedSetting.ViewType.SWITCH,
+                        "High quality (A2DP)",
+                        "Keeps Bluetooth audio on A2DP instead of the low-quality call protocol (SCO). Adds slight delay and uses the phone's mic instead of the headset's."
+                    ).addTo(this) {
+                        var setting by hqBluetoothDelegate
+                        isChecked = setting
+                        setOnCheckedListener { setting = !setting }
+                    }
+
+                    Utils.createCheckedSetting(
+                        ctx,
+                        CheckedSetting.ViewType.SWITCH,
+                        "Enable compatibility mode",
+                        "Use if HQ Bluetooth has no effect on your device. Breaks the phone speaker during calls."
+                    ).addTo(this) {
+                        var setting by hqBluetoothCompatDelegate
+                        isChecked = setting
+                        setOnCheckedListener { setting = !setting }
+                    }
+
+                    TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(this) {
+                        setPadding(p, p, p, 0)
+                        text = "Experimental"
+                    }
+
+                    Utils.createCheckedSetting(
+                        ctx,
+                        CheckedSetting.ViewType.SWITCH,
+                        "Sidechain compression",
+                        "This is off for everyone by default. An automatic ducking effect in the native voice engine."
+                    ).addTo(this) {
+                        var setting by sidechainCompressionDelegate
+                        isChecked = setting
+                        setOnCheckedListener {
+                            setting = !setting
+                            Utils.promptRestart()
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+internal class PersistedIdSet(
+    private val settings: SettingsAPI,
+    private val key: String
+) {
+    private val ids: MutableSet<Long> = Collections.synchronizedSet(
+        settings.getObject(
+            key,
+            hashSetOf(),
+            TypeToken.getParameterized(HashSet::class.java, Long::class.javaObjectType).type
+        )
+    )
+
+    operator fun contains(userId: Long): Boolean = userId in ids
+
+    fun set(userId: Long, present: Boolean) {
+        val changed = if (present) ids.add(userId) else ids.remove(userId)
+        if (changed) settings.setObject(key, ids)
+    }
+}

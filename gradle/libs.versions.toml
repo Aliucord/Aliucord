@@ -1,6 +1,7 @@
 [versions]
 aliucord-gradle = "2.3.0"
 aliuhook = "1.1.4"
+webrtc = "1.0.0"
 android-gradle = "8.13.2"
 desugar = "2.1.5"
 discord = "126021"
@@ -20,6 +21,7 @@ material = "1.5.0"
 
 [libraries]
 aliuhook = { module = "com.aliucord:Aliuhook", version.ref = "aliuhook" }
+webrtc = { module = "com.aliucord:webrtc", version.ref = "webrtc" }
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 desugar = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar" }
