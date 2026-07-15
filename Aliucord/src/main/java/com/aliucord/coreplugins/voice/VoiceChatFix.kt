@@ -51,6 +51,8 @@ import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.wrappers.ChannelWrapper.Companion.guildId
 import com.aliucord.wrappers.ChannelWrapper.Companion.id
 import com.discord.api.voice.state.StageRequestToSpeakState
+import com.discord.api.stageinstance.StageInstance
+import com.discord.api.stageinstance.StageInstancePrivacyLevel
 import com.discord.play_delivery.PlayAssetDeliveryNativeWrapper
 import com.discord.rtcconnection.RtcConnection
 import com.discord.rtcconnection.mediaengine.MediaEngineConnection
@@ -64,6 +66,7 @@ import com.discord.stores.StoreApplicationStreaming
 import com.discord.stores.StoreRtcConnection
 import com.discord.stores.StoreMediaEngine
 import com.discord.stores.StoreMediaSettings
+import com.discord.stores.StoreStageInstances
 import com.discord.stores.StoreStream
 import com.discord.stores.StoreVoiceChannelSelected
 import com.discord.stores.StoreVoiceChannelSelected.JoinVoiceChannelResult
@@ -78,6 +81,9 @@ import com.discord.widgets.user.usersheet.UserProfileVoiceSettingsView
 import com.discord.widgets.user.usersheet.WidgetUserSheet
 import com.discord.widgets.user.usersheet.WidgetUserSheetViewModel
 import com.discord.widgets.chat.list.entries.MessageEntry
+import com.discord.widgets.stage.sheet.WidgetStageModeratorJoinBottomSheet
+import com.discord.widgets.stage.start.ModeratorStartStageViewModel
+import com.discord.widgets.stage.start.WidgetModeratorStartStage
 import com.discord.widgets.voice.controls.VoiceControlsSheetView
 import com.discord.widgets.voice.fullscreen.CallParticipant
 import com.discord.widgets.voice.fullscreen.WidgetCallFullscreen
@@ -113,6 +119,10 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     @Volatile
     private var supportedModes: List<String>? = null
     private var speakInviteSubscription: Subscription? = null
+
+    // Show the join as speaker/audience bottom sheet after a start too since base
+    // only shows it when joining a live stage
+    private val pendingJoinAsPrompt = Collections.synchronizedSet(HashSet<Long>())
 
     private val libVersion = runCatching {
         Class.forName("com.aliucord.voice.BuildConfig")
@@ -223,6 +233,8 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         patchCallDurationText()
         patchSilenceUnhandledEvents()
         patchAutoAcceptSpeakInvite()
+        patchStageStartFlow()
+        patchStageJoinPromptOnStart()
         ModernAudioDevices.register(patcher)
 
         // Handle new binary voice gateway events
@@ -948,6 +960,68 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                     StageChannelAPI.INSTANCE.ackInvitationToSpeak(channelId, true)?.subscribe { /* stage filled with cats */ }
                 }
         }
+    }
+
+    // When opening a unstarted (not live) stage and the user has staff permissions,
+    // it shows 2 bottom sheets at the same time, overlapping one to change the topic
+    // and staff the join as speaker/audience prompt
+    private fun patchStageStartFlow() = runCatching {
+        val stageClass = WidgetModeratorStartStage::class.java
+
+        // configureUi re-runs on every ViewState update :sob:
+        val launchStageCall = stageClass.getDeclaredMethod("launchStageCall", Long::class.javaPrimitiveType!!)
+            .apply { isAccessible = true }
+        val getChannelId = stageClass.getDeclaredMethod("getChannelId")
+            .apply { isAccessible = true }
+
+        patcher.patch(
+            stageClass.getDeclaredMethod("configureUi", ModeratorStartStageViewModel.ViewState::class.java),
+            PreHook { param ->
+                launchStageCall.invoke(param.thisObject, getChannelId.invoke(param.thisObject))
+
+                param.result = null
+            })
+    }.onFailure {
+        logger.error("Failed to patch stage moderator start flow", it)
+    }
+
+    private fun patchStageJoinPromptOnStart() = runCatching {
+        // startStageInstance is only ever called by the local user starting a stage
+        patcher.before<StageChannelAPI>(
+            "startStageInstance",
+            Long::class.javaPrimitiveType!!,
+            String::class.java,
+            StageInstancePrivacyLevel::class.java,
+            Boolean::class.javaPrimitiveType!!,
+            String::class.java,
+        ) { (_, channelId: Long) ->
+            pendingJoinAsPrompt.add(channelId)
+        }
+
+        // Once the instance loads and gets called, show the staff bottom sheet
+        // asking the user to pick join as speaker or join as audience
+        patcher.after<StoreStageInstances>(
+            "handleStageInstanceCreate",
+            StageInstance::class.java,
+        ) { (_, instance: StageInstance) ->
+            val channelId = instance.a()
+            if (!pendingJoinAsPrompt.remove(channelId)) return@after
+
+            Utils.mainThread.post {
+                runCatching {
+                    WidgetStageModeratorJoinBottomSheet.Companion!!.show(
+                        Utils.appActivity.supportFragmentManager,
+                        channelId
+                    )
+                }.onSuccess {
+                    logger.debug("Showing moderator join sheet")
+                }.onFailure {
+                    logger.error("Failed to show moderator join sheet on start", it)
+                }
+            }
+        }
+    }.onFailure {
+        logger.error("Failed to patch stage join prompt on start", it)
     }
 
     // Base aliucord doesn't handle VOICE_CHANNEL_START_TIME_UPDATE (completely missing)
