@@ -10,6 +10,7 @@ import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.*
 import androidx.cardview.widget.CardView
 import androidx.core.content.res.ResourcesCompat
+import co.discord.media_engine.Connection
 import co.discord.media_engine.VideoDecoder
 import co.discord.media_engine.VideoInputDeviceDescription
 import com.aliucord.Constants
@@ -59,6 +60,7 @@ import com.discord.rtcconnection.socket.io.Opcodes
 import com.discord.rtcconnection.socket.io.Payloads
 import com.discord.rtcconnection.socket.io.Payloads.Protocol.ProtocolInfo
 import com.discord.api.voice.server.VoiceServer
+import com.discord.native.engine.NativeConnection
 import com.discord.native.engine.NativeEngine
 import com.discord.stores.StoreApplicationStreaming
 import com.discord.stores.StoreRtcConnection
@@ -100,6 +102,7 @@ import org.json.JSONObject
 import rx.Subscription
 import java.io.File
 import java.util.Collections
+import java.util.Locale
 import java.util.WeakHashMap
 import b.a.q.m0.c.e as MediaEngineConnectionLegacy
 import b.a.q.m0.c.`e$h` as MediaEngineConnectionLegacy_SetCodecs
@@ -132,6 +135,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     private var Payloads.Stream.maxFrameRateField by accessField<Int?>("maxFrameRate")
     private var WidgetCallFullscreenViewModel.channelIdField by accessField<Long>("channelId")
     private var Discord.nativeEngineField by accessField<NativeEngine?>("nativeEngine")
+    private var Connection.nativeConnectionField by accessField<NativeConnection>("native")
 
     private companion object {
         // Native libs and webrtc dex are built together (aliuvoice aar)
@@ -397,6 +401,17 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 applyVideoSettings(socket)
             }
 
+            // We use the heartbeat event (triggered every ~13.75s) as a refresh for
+            // the connection info, also the event replies with the sent at timestamp
+            // providing a zero-overhead websocket ping
+            if (message.opcode == Opcodes.HEARTBEAT_ACK && VoiceChatFixSettings.showConnInfo) {
+                message.data.toString().trim('"').toLongOrNull()?.let { sent ->
+                    setDebug("Ping", "${System.currentTimeMillis() - sent}ms")
+                }
+
+                refreshEngineStats(socket)
+            }
+
             val payload = VoiceChatFixPayload.deserialize(gson, message)
                 ?: return@after
             logger.debug("VoiceChatFix payload ${Opcodes.friendly(message.opcode)}: $payload")
@@ -642,6 +657,31 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
 
         connInfoText = sb.toString().ifEmpty { "Not connected" }
         onConnInfoUpdate(connInfoText)
+    }
+
+    private fun refreshEngineStats(socket: RtcControlSocket) {
+        socket.connections.forEach { connection ->
+            runCatching {
+                connection.nativeConnectionField.getStats { json ->
+                    runCatching {
+                        val stats = JSONObject(json)
+                        val rtt = stats.optJSONObject("transport")?.optInt("rtt", -1) ?: -1
+
+                        setDebug("RTT", if (rtt >= 0) "${rtt}ms" else "Unavailable")
+
+                        val fractionLost = stats.optJSONObject("outbound")
+                            ?.optJSONObject("audio")
+                            ?.optDouble("fractionLost", 0.0) ?: 0.0
+
+                        setDebug("Packed Loss", String.format(Locale.ROOT, "%.1f%%", fractionLost * 100))
+                    }.onFailure {
+                        logger.warn("Failed to parse engine stats: $it")
+                    }
+                }
+            }.onFailure {
+                logger.warn("getStats failed: $it")
+            }
+        }
     }
 
     // Adds encryption info and voice privacy code to the voice bottom sheet
