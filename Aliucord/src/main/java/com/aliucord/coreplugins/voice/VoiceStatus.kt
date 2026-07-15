@@ -150,7 +150,7 @@ internal object VoiceStatus {
                     topicViews.filterValues { it == channelId }.keys.toList()
                 }
 
-                logger.debug("Channel list status: live update for channel $channelId on ${views.size} bound row(s)")
+                //logger.debug("Channel list status: live update for channel $channelId on ${views.size} bound row(s)")
                 views.forEach { topic ->
                     topic.text = status
                     topic.visibility = if (status.isNotEmpty()) View.VISIBLE else View.GONE
