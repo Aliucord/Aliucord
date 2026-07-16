@@ -686,7 +686,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                             ?.optJSONObject("audio")
                             ?.optDouble("fractionLost", 0.0) ?: 0.0
 
-                        setDebug("Packed Loss", String.format(Locale.ROOT, "%.1f%%", fractionLost * 100))
+                        setDebug("Packet Loss", String.format(Locale.ROOT, "%.1f%%", fractionLost * 100))
                     }.onFailure {
                         logger.warn("Failed to parse engine stats: $it")
                     }
