@@ -169,7 +169,7 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
     // TODO?
     override fun enableForwardErrorCorrection(enabled: Boolean) {}
 
-    override fun getStats(getStatsCallback: GetStatsCallback) = getStats(getStatsCallback, -1)
+    override fun getStats(getStatsCallback: GetStatsCallback) = getStats(getStatsCallback, StatsFilter.ALL)
 
     // TODO
     override fun getStats(getStatsCallback: GetStatsCallback, filter: Int) {
