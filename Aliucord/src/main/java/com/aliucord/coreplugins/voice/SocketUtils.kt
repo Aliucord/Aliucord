@@ -137,6 +137,9 @@ internal fun patchSilenceUnhandledEvents(patcher: PatcherAPI) {
         "VOICE_CHANNEL_STATUS_UPDATE",
         "CHANNEL_INFO",
         "GUILD_AUDIT_LOG_ENTRY_CREATE",
+        "GUILD_SOUNDBOARD_SOUND_CREATE",
+        "GUILD_SOUNDBOARD_SOUND_UPDATE",
+        "GUILD_SOUNDBOARD_SOUND_DELETE",
     )
 
     patcher.before<GatewaySocket>(
