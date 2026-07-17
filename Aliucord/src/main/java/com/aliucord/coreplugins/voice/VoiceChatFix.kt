@@ -24,7 +24,9 @@ import com.aliucord.coreplugins.voice.VoiceChatTimers.callTimersLines
 import com.aliucord.coreplugins.voice.VoiceChatTimers.trackCallStart
 import com.aliucord.coreplugins.voice.VoiceChatTimers.requestChannelInfo
 import com.aliucord.coreplugins.voice.model.ChannelInfo
+import com.aliucord.coreplugins.voice.model.HeartbeatPayload
 import com.aliucord.coreplugins.voice.model.NewIdentifyPayload
+import com.aliucord.coreplugins.voice.model.ResumePayload
 import com.aliucord.coreplugins.voice.model.NewSelectProtocolPayload
 import com.aliucord.coreplugins.voice.model.SecureFrames
 import com.aliucord.coreplugins.voice.model.TransportModes
@@ -71,8 +73,10 @@ import com.discord.stores.StoreVoiceChannelSelected
 import com.discord.stores.StoreVoiceChannelSelected.JoinVoiceChannelResult
 import com.discord.stores.StoreVoiceParticipants
 import com.discord.widgets.stage.StageChannelAPI
+import com.discord.api.permission.Permission
 import com.discord.utilities.color.ColorCompat
 import com.discord.utilities.debug.DebugPrintBuilder
+import com.discord.utilities.permissions.PermissionUtils
 import com.discord.utilities.voice.VoiceChannelJoinability
 import com.discord.utilities.voice.VoiceChannelJoinabilityUtils
 import com.discord.widgets.settings.WidgetSettingsVoice
@@ -93,8 +97,11 @@ import com.discord.widgets.voice.fullscreen.WidgetCallFullscreenViewModel
 import com.discord.widgets.voice.fullscreen.WidgetCallPreviewFullscreenViewModel
 import com.discord.widgets.voice.sheet.WidgetVoiceBottomSheetViewModel
 import com.discord.widgets.voice.sheet.WidgetVoiceSettingsBottomSheet
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
 import com.hammerandchisel.libdiscord.Discord
 import com.lytefast.flexinput.R
+import okhttp3.Request
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
@@ -136,6 +143,11 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     private var WidgetCallFullscreenViewModel.channelIdField by accessField<Long>("channelId")
     private var Discord.nativeEngineField by accessField<NativeEngine?>("nativeEngine")
     private var Connection.nativeConnectionField by accessField<NativeConnection>("native")
+    private var Payloads.Incoming.dataField by accessField<JsonElement>("data")
+    private val socketSeqs = Collections.synchronizedMap(WeakHashMap<RtcControlSocket, Int>())
+
+    @Volatile
+    private var daveEpoch = 0
 
     private companion object {
         // Native libs and webrtc dex are built together (aliuvoice aar)
@@ -253,6 +265,21 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         ModernAudioDevices.register(patcher)
         StreamZoom.register(patcher)
 
+        // Priority Speaker PTT: track the permission for the selected
+        // voice channel, for DMs it always returns false
+        StoreStream.getVoiceChannelSelected().observeSelectedVoiceChannelId().subscribe {
+            val channelId = this
+
+            runCatching {
+                val permissions = StoreStream.getPermissions().permissionsByChannel[channelId]
+                Connection.priority = PermissionUtils.can(Permission.PRIORITY_SPEAKER, permissions)
+
+                logger.debug("PTT priority=${Connection.priority} for channel $channelId")
+            }.onFailure {
+                logger.error("Failed to check for PTT priority permission", it)
+            }
+        }
+
         // Handle new binary voice gateway events
         // WebSocketListener is RtcControlSocket's superclass; the child class doesn't have
         // an override for this method so we have to patch its superclass and figure out if
@@ -283,6 +310,16 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                         stream.maxFrameRateField = VoiceChatFixSettings.videoFramerate
                     }
                 }.onFailure { logger.error("Failed to set stream maxFrameRate", it) }
+
+                // Advertise a second low-quality layer, ctor order:
+                // type, rid, maxFrameRate, quality, ssrc, rtxSsrc, maxResolution, active, maxBitrate
+                val streams = if (VoiceChatFixSettings.simulcast) {
+                    logger.debug("Simulcast enabled, advertising rid-50 layer in identify")
+                    d.streams + Payloads.Stream("video", "50", 20, 50, null, null, null, null, null)
+                } else {
+                    d.streams
+                }
+
                 param.args[1] = NewIdentifyPayload(
                     serverId = d.serverId,
                     userId = d.userId.toString(),
@@ -291,7 +328,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                     // Keep the original stream declaration so the server advertises the
                     // broadcaster's video source to viewers (or else dropped as "not routed").
                     video = d.video,
-                    streams = d.streams,
+                    streams = streams,
                     // 0 disables DAVE (transport-only); toggle for viewer-compat A/B testing.
                     maxDaveProtocolVersion = if (VoiceChatFixSettings.daveEnabled) 1 else 0
                 )
@@ -350,6 +387,16 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             val message = param.args[2] as Payloads.Incoming
             when (message.opcode) {
                 Opcodes.READY -> runCatching {
+                    // socket instance is reused across reconnects
+                    // we need to drop the previous session's DAVE epoch
+                    // state or proposals bypass the queue
+                    val socket = param.args[0] as? RtcControlSocket ?: return@runCatching
+
+                    synchronized(pendingProposals) {
+                        epochPreparedSockets.remove(socket)
+                        pendingProposals.remove(socket)
+                    }
+
                     val modes = JSONObject(message.data.toString()).optJSONArray("modes")
                     supportedModes = modes?.let { arr -> List(arr.length()) { arr.getString(it) } }
                 }.onFailure { logger.error("Failed to read READY transport modes", it) }
@@ -362,25 +409,96 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                         @SuppressLint("CheckResult")
                         a.remove("pixelCounts")
                     })
+                Opcodes.VOICE_BACKEND_VERSION -> runCatching {
+                    val data = JSONObject(message.data.toString())
+                    val versions = listOf(
+                        "voice" to data.optString("voice"),
+                        "worker" to data.optString("rtc_worker")
+                    ).filter { it.second.isNotEmpty() }.joinToString(", ") { "${it.first} ${it.second}" }
+
+                    setDebug("Backend", versions.ifEmpty { message.data.toString() })
+                }.onFailure { logger.error("Failed to read VOICE_BACKEND_VERSION", it) }
+                // buffered resume, the server now replays everything past our seq_ack
+                Opcodes.RESUMED -> logger.info("Session resumed, replaying missed messages (seq_ack=${socketSeqs[param.args[0]] ?: -1})")
                 // silence, useless opcode *huge explosion*
-                Opcodes.HEARTBEAT_ACK, Opcodes.SELECT_PROTOCOL_ACK, Opcodes.SPEAKING, Opcodes.HELLO  -> { /* chainsaw man reference??? */ }
+                Opcodes.HEARTBEAT_ACK, Opcodes.SELECT_PROTOCOL_ACK, Opcodes.VIDEO,
+                Opcodes.SPEAKING, Opcodes.CLIENTS_CONNECT, Opcodes.DAVE_PREPARE_EPOCH,
+                Opcodes.CLIENT_DISCONNECT, Opcodes.CLIENT_FLAGS, Opcodes.CLIENT_PLATFORM,
+                Opcodes.DAVE_PREPARE_TRANSITION, Opcodes.DAVE_EXECUTE_TRANSITION,
+                Opcodes.HELLO -> { /* chainsaw man reference??? */ }
                 else -> logger.warn("Unhandled Opcode: ${Opcodes.friendly(message.opcode)}")
             }
         }
 
         patcher.before<RtcControlSocket_OnMessage>("invoke") { param ->
-            if (this.`$message`.opcode == Opcodes.MEDIA_SINK_WANTS) {
-                param.result = Unit.a
+            val message = this.`$message`
+
+            when(message.opcode) {
+                Opcodes.MEDIA_SINK_WANTS -> {
+                    param.result = Unit.a
+                    return@before
+                }
+                // Gateway V8 HEARTBEAT_ACK `d` is {t: <echoed timestamp>}
+                // which gets parsed as a long
+                Opcodes.HEARTBEAT_ACK -> {
+                    (message.data as? JsonObject)?.a?.get("t")?.let { message.dataField = it }
+                }
             }
         }
 
-        // Never allow resuming; this is because DAVE state may be inconsistent upon resuming.
+        // Voice gateway v8 with buffered resume
+        // base is on v5, try to upgrade it
+        patcher.before<Request.a>("f", String::class.java) { (param, url: String) ->
+            val url = url.replace("?v=5", "?v=8")
+            param.args[0] = url
+
+            if (url.contains("?v=8")) logger.debug("Voice gateway URL upgraded to v8")
+            else logger.warn("Failed to upgrade voice gateway URL to v8")
+        }
+
         // Normally, newer clients handle this with buffered resume - which replays DAVE messages -
         // but DiscordKt does not use this new feature as it's on an older voice gateway version.
-        // TODO maybe: implement buffered resume properly, since this may be disruptive when for example
-        // roaming on a mobile connection (fresh connections are slightly slower)
+        // If a server ever answers with gateway version < 8, resuming is still DAVE-unsafe there -
+        // keep the old force-disable for this
         patcher.before<RtcControlSocket_Connect>("invoke") {
-            `this$0`.C = false // RtcControlSocket.resumable = false
+            if (`this$0`.r < 8) `this$0`.C = false // RtcControlSocket.resumable = false
+        }
+
+        // Gateway v5 payloads never contain a top-level "seq", so no version gate needed
+        // this also catches HELLO's seq, which arrives before the version field updates
+        patcher.before<RtcControlSocket>(
+            "onMessage",
+            WebSocket::class.java,
+            String::class.java,
+        ) { (_, _: WebSocket, text: String) ->
+            runCatching {
+                val seq = JSONObject(text).optInt("seq", -1)
+                if (seq >= 0) socketSeqs[this] = seq
+            }
+        }
+
+        // Upgrade outgoing HEARTBEAT & RESUME payloads to their v8 types
+        patcher.before<RtcControlSocket>(
+            "n",
+            Int::class.javaPrimitiveType!!,
+            Any::class.java,
+        ) { (param, opcode: Int, payload: Any?) ->
+            if (this.r < 8) return@before
+
+            when (opcode) {
+                Opcodes.HEARTBEAT if payload is String ->
+                    param.args[1] = HeartbeatPayload(
+                        payload.toLongOrNull() ?: return@before,
+                        socketSeqs[this] ?: -1,
+                    )
+                Opcodes.RESUME if payload is Payloads.Resume ->
+                    param.args[1] = ResumePayload(
+                        token = payload.token,
+                        sessionId = payload.sessionId,
+                        serverId = payload.serverId,
+                        seqAck = socketSeqs[this] ?: -1,
+                    )
+            }
         }
 
         // Handle new (json) voice gateway events
@@ -417,6 +535,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             // We use the heartbeat event (triggered every ~13.75s) as a refresh for
             // the connection info, also the event replies with the sent at timestamp
             // providing a zero-overhead websocket ping
+            // Row is fed by the native UDP keepalive setOnPingCallback()
             if (message.opcode == Opcodes.HEARTBEAT_ACK && VoiceChatFixSettings.showConnInfo) {
                 message.data.toString().trim('"').toLongOrNull()?.let { sent ->
                     setDebug("Ping", "${System.currentTimeMillis() - sent}ms")
@@ -433,11 +552,11 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 when (payload) {
                     is VoiceChatFixPayload.ClientsConnect -> {
                         // TODO: native can handle a list of users
-                        logger.debug("Connect: ${payload.userIds}")
+                        logger.debug("ClientsConnect: ${payload.userIds}")
                         connection.connectUsers(payload.userIds)
                     }
                     is VoiceChatFixPayload.ClientDisconnect -> {
-                        logger.debug("Disconnect: ${payload.userId}")
+                        logger.debug("ClientDisconnect: ${payload.userId}")
                         connection.destroyUser(payload.userId)
                     }
                     is VoiceChatFixPayload.ClientFlags -> {
@@ -460,9 +579,12 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                     is VoiceChatFixPayload.DavePrepareEpoch -> {
                         val groupId = socket.rtcConnection?.groupId
                         logger.debug("Preparing secure frames epoch (request) for $groupId")
+                        daveEpoch = payload.epoch
+                        setDebug("E2EE", e2eeLabel(payload.protocolVersion))
                         connection.prepareSecureFramesEpoch(
                             epoch = payload.epoch.toString(),
-                            transitionId = payload.epoch,
+                            // old servers may not have transition_id
+                            transitionId = payload.transitionId ?: payload.epoch,
                             groupId = groupId?.toString() ?: ""
                         )
                         connection.getMLSKeyPackageB64 { keyPackageB64 ->
@@ -497,14 +619,16 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     private fun handleOnProtocolSelectAck(socket: RtcControlSocket, version: Int) {
         currentSocket = socket
         socket.rtcConnection?.rtcServerId?.let { setDebug("Server", it) }
-        setDebug("E2EE", if (version >= 1) "DAVE v$version" else "Off (transport only)")
+        daveEpoch = if (version >= 1) 1 else 0
+        setDebug("E2EE", e2eeLabel(version))
 
         val groupId = socket.rtcConnection?.groupId
             ?: return logger.error("No rtc connection upon protocol select ack", null)
         socket.connections.forEach { connection ->
             if (version == 0) {
                 logger.debug("No secure frames, bye!")
-                // TODO: Are these values correct?
+                // transitionId 0 is the spec's immediate-execute transition
+                // protocolVersion 0 selects transport-only passthrough
                 connection.prepareSecureFramesTransition(0, 0) {
                     logger.debug("Transitioned to secure frame ver 0")
                 }
@@ -518,7 +642,9 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 }
             }
             logger.debug("Preparing secure frames epoch for $groupId")
-            // TODO: Are these values correct?
+            // Initial MLS group creation is always epoch 1
+            // mid-call epoch changes instead arrive as DAVE_PREPARE_EPOCH
+            // and take their values from the payload
             connection.prepareSecureFramesEpoch("1", 1, groupId.toString())
             logger.debug("Grabbing MLS Key..")
             connection.getMLSKeyPackageB64 { keyPackageB64 ->
@@ -539,11 +665,31 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     private fun handleBinaryMessage(socket: RtcControlSocket, bytestr: ByteString) {
         logger.debug("Received binary message ${bytestr.encodeBase64()}")
         val reader = ByteReader(bytestr)
-        // First byte is the opcode, this is contrary to most docs because we are using an older version
-        // of the voice gateway without resuming support.
-        // On newer versions, the first two bytes denote the sequence, and the third one is the opcode.
-        // The sequence number is not present on old voice gateway versions.
+        // v8: the first two bytes are the big-endian sequence number, the third is the opcode
+        // v5 and below: start straight at the opcode byte
+        // `r` here is the server version echoed in HELLO
+        // so this stays correct even if the URL upgrade failed (no gaslighting)
+        if (socket.r >= 8) {
+            socketSeqs[socket] = reader.readUint16()
+        }
+
         val opcode = reader.readUint8()
+
+        // DAVE binary frames dispatch on a different path than JSON opcodes, so an inbound
+        // PROPOSALS code can be processed before SELECT_PROTOCOL_ACK prepares the epoch
+        // (native: "Cannot process proposals without any pending or established MLS group state")
+        // Queue those until the epoch is ready, EXTERNAL_SENDER must NOT be queued:
+        // native stores it pre-epoch and wants it before group creation
+        // (native: "Cannot create MLS group without ExternalSender" when it's applied late)
+        if (opcode == Opcodes.DAVE_MLS_PROPOSALS) {
+            synchronized(pendingProposals) {
+                if (socket !in epochPreparedSockets) {
+                    logger.debug("Epoch not prepared yet, queueing ${Opcodes.getNameOf(opcode)}")
+                    pendingProposals.getOrPut(socket) { mutableListOf() }.add(bytestr)
+                    return
+                }
+            }
+        }
 
         when (opcode) {
             Opcodes.DAVE_MLS_EXTERNAL_SENDER -> {
@@ -554,16 +700,6 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 }
             }
             Opcodes.DAVE_MLS_PROPOSALS -> {
-                // DAVE binary frames dispatch on a different path than JSON opcodes, so an inbound
-                // PROPOSALS frame can be processed before SELECT_PROTOCOL_ACK prepares the epoch.
-                // Queue it until the epoch is ready (handleOnProtocolSelectAck), then drain.
-                synchronized(pendingProposals) {
-                    if (socket !in epochPreparedSockets) {
-                        logger.debug("Epoch not prepared yet, queueing MLS proposals")
-                        pendingProposals.getOrPut(socket) { mutableListOf() }.add(bytestr)
-                        return
-                    }
-                }
                 val encoded = reader.collectAsByteString().encodeBase64()
                 logger.debug("MLSProposals: $encoded")
                 socket.connections.forEach { connection ->
@@ -585,6 +721,11 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                         logger.debug("MLSAnnounceCommitTransition processed: $processedCommit, ver: $protocolVersion, changes: $rosterChange")
                         if (!processedCommit) {
                             socket.send(DaveInvalidCommitWelcome(transitionId = transitionId))
+                            resendKeyPackage(socket, connection)
+                        } else {
+                            // Each processed commit advances the MLS group exactly one epoch
+                            daveEpoch++
+                            setDebug("E2EE", e2eeLabel(protocolVersion))
                         }
                     }
                 }
@@ -601,10 +742,29 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                         logger.debug("MLSWelcome Processed, joined: $joinedGroup, ver: $protocolVersion, changes: $rosterChange")
                         if (!joinedGroup) {
                             socket.send(DaveInvalidCommitWelcome(transitionId = transitionId))
+                            resendKeyPackage(socket, connection)
+                        } else {
+                            // Joined via welcome: the group is at least one commit past creation
+                            daveEpoch++
+                            setDebug("E2EE", e2eeLabel(protocolVersion))
                         }
                     }
                 }
             }
+        }
+    }
+
+    // Sending invalid_commit_welcome resets the local session
+    // and the server re-adds us with a fresh welcome, need new key
+    // without this we'd be stuck in an uncrypted state until a full reconnect
+    // god bless the dave whitepaper - https://daveprotocol.com/
+    private fun resendKeyPackage(socket: RtcControlSocket, connection: Connection) {
+        logger.debug("Invalid commit/welcome, sending a fresh MLS key package to recover")
+
+        connection.getMLSKeyPackageB64 { keyPackageB64 ->
+            val bytes = keyPackageB64.decodeBase64ToArray()!!
+            logger.debug("Received MLS Key package, sending over")
+            socket.send(Opcodes.DAVE_MLS_KEY_PACKAGE, ByteString(bytes))
         }
     }
 
@@ -636,6 +796,10 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         debugInfo[key] = value
         refreshConnInfo()
     }
+
+    private fun e2eeLabel(version: Int) =
+        if (version >= 1) "DAVE v$version (epoch ${if (daveEpoch > 0) daveEpoch else "?"})"
+        else "Off (transport only)"
 
     private fun renderDebugInfo(): String =
         debugInfo.entries.joinToString("\n") { "${it.key}:  ${it.value}" }
@@ -709,6 +873,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             newestCode = ""
             onCodeUpdate("")
             debugInfo.clear()
+            daveEpoch = 0
             setDebug("Status", "Connected")
             conn.j.setSecureFramesStateUpdateCallback { epochStr ->
                 val frames = GsonUtils.gson.fromJson(epochStr, SecureFrames::class.java)
@@ -716,6 +881,45 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 newestCode = if (frames.version < 1) "" else formatFingerprint(frames.epochAuthenticator)
                 onCodeUpdate(newestCode)
             }
+
+            // Native UDP keepalive ping
+            runCatching {
+                val native = conn.j.nativeConnectionField
+
+                native.setOnPingCallback { ping, _, _, _ ->
+                    // Native callback thread: keep it minimal
+                    // a throw here pends a JNI exception and aborts the process </3
+                    runCatching { setDebug("Ping", "${ping}ms") }
+                }
+
+                native.setOnPingTimeoutCallback { server, port, seq, timeout ->
+                    runCatching {
+                        logger.warn("UDP ping timeout ($server:$port seq=$seq timeout=${timeout}ms), requesting fast reconnect")
+                        setDebug("Ping", "Timeout")
+                        native.fastUdpReconnect()
+                    }
+                }
+
+                // Optional native tuning knobs (0 = keep native defaults)
+                if (VoiceChatFixSettings.pingIntervalMs > 0) {
+                    logger.debug("Applying ping interval ${VoiceChatFixSettings.pingIntervalMs}ms")
+                    conn.j.setPingInterval(VoiceChatFixSettings.pingIntervalMs)
+                }
+
+                if (VoiceChatFixSettings.minOutputDelayMs > 0) {
+                    logger.debug("Applying minimum output delay ${VoiceChatFixSettings.minOutputDelayMs}ms")
+                    conn.j.setMinimumOutputDelay(VoiceChatFixSettings.minOutputDelayMs)
+                }
+
+                native.setOnMLSFailureCallback { source, reason ->
+                    // A throw here ALSO pends a JNI exception and
+                    // guess what, it aborts the process </3333
+                    runCatching {
+                        logger.warn("Native MLS failure from $source: $reason")
+                        setDebug("MLS", "$source: $reason")
+                    }
+                }
+            }.onFailure { logger.error("Failed to register native ping callbacks", it) }
 
             // TODO[transport]: Native/hardware encryption modes that are supported
             //  this would later by used for chooseTransportMode

@@ -73,6 +73,12 @@ internal object VoiceChatFixSettings {
     val autoAcceptSpeakInvite by autoAcceptSpeakInviteDelegate
     private val iKnowWhatImDoingDelegate = settings.delegate("iKnowWhatImDoing", false)
     val iKnowWhatImDoing by iKnowWhatImDoingDelegate
+    internal val simulcastDelegate = settings.delegate("simulcast", false)
+    val simulcast by simulcastDelegate
+    internal val pingIntervalMsDelegate = settings.delegate("pingIntervalMs", 0)
+    val pingIntervalMs by pingIntervalMsDelegate
+    internal val minOutputDelayMsDelegate = settings.delegate("minOutputDelayMs", 0)
+    val minOutputDelayMs by minOutputDelayMsDelegate
     internal val soundboardVolumeDelegate = settings.delegate("soundboardVolume", DEFAULT_SOUNDBOARD_VOLUME)
     val soundboardVolume by soundboardVolumeDelegate
     val mutedSoundboardUsers = PersistedIdSet(settings, "mutedSoundboardUsers")
@@ -147,6 +153,20 @@ internal object VoiceChatFixSettings {
                         "When off, streams use transport-only encryption (no MLS). Use to test whether viewers that can't do DAVE can see your screenshare/camera."
                     ).addTo(this) {
                         var setting by daveEnabledDelegate
+                        isChecked = setting
+                        setOnCheckedListener {
+                            setting = !setting
+                            Utils.promptRestart()
+                        }
+                    }
+
+                    Utils.createCheckedSetting(
+                        ctx,
+                        CheckedSetting.ViewType.SWITCH,
+                        "Simulcast",
+                        "Advertise a second low-quality video layer so weak-connection viewers get a smooth downscaled stream instead of a choppy full-quality one. Turn off if your outgoing video breaks."
+                    ).addTo(this) {
+                        var setting by simulcastDelegate
                         isChecked = setting
                         setOnCheckedListener {
                             setting = !setting
@@ -286,6 +306,43 @@ internal object VoiceChatFixSettings {
                         2..16,
                         encoderQueueSizeDelegate,
                     )
+
+                    TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(this) {
+                        text = "Connection tuning"
+                    }
+
+                    LinearLayout(ctx).addTo(this) {
+                        orientation = LinearLayout.HORIZONTAL
+                        layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+                            marginStart = p
+                            marginEnd = p
+                        }
+
+                        field(
+                            "Ping interval (ms)",
+                            pingIntervalMs,
+                            0,
+                            0..60_000,
+                            pingIntervalMsDelegate,
+                            isWeighted = true,
+                            isEven = true,
+                        )
+                        field(
+                            "Min output delay (ms)",
+                            minOutputDelayMs,
+                            0,
+                            0..1_000,
+                            minOutputDelayMsDelegate,
+                            isWeighted = true,
+                            isEven = true,
+                        )
+                    }
+
+                    TextView(ctx, null, 0, R.i.UiKit_Settings_Item_SubText).addTo(this) {
+                        setPadding(p, p / 4, p, 4)
+                        text = "0 keeps the native defaults. Takes effect on the next voice connection."
+                        setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorTextMuted))
+                    }
 
                     TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(this) {
                         setPadding(p, p * 2, p, 0)
