@@ -62,7 +62,7 @@ private data class TransportOptions(
 }
 
 @Suppress("unused")
-class Connection(private val native: NativeConnection, streamParameters: Discord.NewStreamParameters, private val engine: NativeEngine) : IConnection {
+class Connection(private val native: NativeConnection, streamParameters: List<Discord.NewStreamParameters>, private val engine: NativeEngine) : IConnection {
     fun interface EncryptionModesCallback {
         fun onEncryptionModes(strArr: Array<String?>?)
     }
@@ -87,19 +87,28 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
         const val INBOUND: Int = 4
     }
 
+    object SpeakingFlags {
+        const val MICROPHONE: Int = 1 shl 0
+        const val SOUNDSHARE: Int = 1 shl 1
+        const val PRIORITY: Int = 1 shl 2
+    }
+
     data class UserConnectionInfo(
         val id: String,
+        val audioSsrc: Int,
+        val ssrc: Int = audioSsrc,
         val videoSsrcs: List<Int>,
+        val rtxSsrcs: List<Int>,
         val volume: Float,
-        val ssrc: Int,
-        val videoSsrc: Int,
-        val rtxSsrc: Int,
         val mute: Boolean,
     )
 
     @Suppress("PrivatePropertyName")
     private val TAG = "VoiceChatFix"
     private var disposed: Boolean = false
+
+    @Volatile
+    private var priority: Boolean = false
 
     init {
         set(TransportOptions(
@@ -132,27 +141,34 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
             attenuateWhileSpeakingOthers = true,
             selfMute = false,
             remoteAudioHistoryMs = 1000,
-            streamParameters = listOf(streamParameters),
+            streamParameters = streamParameters,
         ))
     }
 
-    override fun connectUser(userId: Long, audioSsrc: Int, txVideoSsrc: Int, rxVideoSsrc: Int, isMuted: Boolean, volume: Float) {
+    override fun connectUser(userId: Long, audioSsrc: Int, videoSsrc: Int, rtxSsrc: Int, isMuted: Boolean, volume: Float) {
         // volume here is RtcConnection.h(userId), stream-volume-boost amplitude NOT gain.
         // RtcConnection.v -> MediaEngineConnection.e)
         // mergeUsers raises exception:
         // Fatal signal 6 (SIGABRT), code -1 (SI_QUEUE) in tid ... (MediaEngineExec), pid ... (com.aliucord)
+        // Only pass the video pair when both ssrcs are present.
         val createVolume = volume.coerceIn(0f, 1f)
+        val hasVideo = videoSsrc != 0 && rtxSsrc != 0
+
+        if (videoSsrc != 0 && rtxSsrc == 0) {
+            Log.w(TAG, "connectUser userId=$userId videoSsrc=$videoSsrc without rtxSsrc, dropping video pair to avoid native assert")
+        }
+
         val json = gson.m(listOf(UserConnectionInfo(
             id = userId.toString(),
-            videoSsrcs = if (txVideoSsrc != 0) listOf(txVideoSsrc) else listOf(),
+            audioSsrc = audioSsrc,
+            videoSsrcs = if (hasVideo) listOf(videoSsrc) else listOf(),
+            rtxSsrcs = if (hasVideo) listOf(rtxSsrc) else listOf(),
             volume = createVolume,
-            ssrc = audioSsrc,
-            videoSsrc = txVideoSsrc,
-            rtxSsrc = rxVideoSsrc,
             mute = isMuted,
         )))
 
-        Log.d(TAG, "connectUser userId=$userId audioSsrc=$audioSsrc txVideoSsrc=$txVideoSsrc rxVideoSsrc=$rxVideoSsrc isMuted=$isMuted volume=$volume createVolume=$createVolume json=$json")
+        Log.d(TAG, "connectUser userId=$userId audioSsrc=$audioSsrc videoSsrc=$videoSsrc rtxSsrc=$rtxSsrc isMuted=$isMuted volume=$volume createVolume=$createVolume json=$json")
+
         native.mergeUsers(json)
     }
     override fun deafenLocalUser(isDeafened: Boolean) = native.setSelfDeafen(isDeafened)
@@ -231,10 +247,18 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
         }
     }
     override fun setPTTActive(isActive: Boolean) {
-        Log.d(TAG, "connection/setPTTActive isActive=$isActive")
-        // TODO: priority? muteOverride?
-        native.setPTTActive(isActive, priority = false, muteOverride = false)
+        Log.d(TAG, "connection/setPTTActive isActive=$isActive priority=$priority")
+        native.setPTTActive(isActive, priority, muteOverride = false)
     }
+    fun setLocalPan(userId: Long, left: Float, right: Float) {
+        Log.d(TAG, "connection/setLocalPan userId=$userId left=$left right=$right")
+        native.setLocalPan(userId.toString(), left, right)
+    }
+    fun setPingInterval(intervalMs: Int) = native.setPingInterval(intervalMs)
+    fun setMinimumOutputDelay(delayMs: Int) = native.setMinimumOutputDelay(delayMs)
+    fun configureConnectionRetries(baseDelayMs: Int, maxDelayMs: Int, maxAttempts: Int) =
+        native.configureConnectionRetries(baseDelayMs, maxDelayMs, maxAttempts)
+
     override fun setUserPlayoutVolume(userId: Long, volume: Float) {
         Log.d(TAG, "connection/setUserPlayoutVolume userId=$userId volume=$volume")
         native.setLocalVolume(userId.toString(), volume)
@@ -273,8 +297,8 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
             Log.d(TAG, "connection/setUserSpeakingStatusChangedCallback: userId=${userId.toLong()} speakingFlags=$speakingFlags voiceDb=$voiceDb")
             userSpeakingStatusChangedCallback.onUserSpeakingStatusChanged(
                 userId.toLong(),
-                speakingFlags > 0,
-                false
+                (speakingFlags and SpeakingFlags.MICROPHONE) != 0,
+                (speakingFlags and SpeakingFlags.PRIORITY) != 0,
             )
         }
     }
@@ -300,11 +324,10 @@ class Connection(private val native: NativeConnection, streamParameters: Discord
         val users = userIds.map { id ->
             UserConnectionInfo(
                 id = id,
+                audioSsrc = 0,
                 videoSsrcs = listOf(),
+                rtxSsrcs = listOf(),
                 volume = 0f,
-                ssrc = 0,
-                videoSsrc = 0,
-                rtxSsrc = 0,
                 mute = false,
             )
         }

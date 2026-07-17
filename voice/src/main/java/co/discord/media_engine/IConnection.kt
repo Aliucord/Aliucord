@@ -9,7 +9,8 @@ import org.webrtc.VideoCapturer
  */
 
 interface IConnection {
-    fun connectUser(userId: Long, audioSsrc: Int, txVideoSsrc: Int, rxVideoSsrc: Int, isMuted: Boolean, volume: Float)
+    // Param names follow base: (userId, audioSsrc, videoSsrc, rtxSsrc, isMuted, volume)
+    fun connectUser(userId: Long, audioSsrc: Int, videoSsrc: Int, rtxSsrc: Int, isMuted: Boolean, volume: Float)
     fun deafenLocalUser(isDeafened: Boolean)
     fun disableVideo(userId: Long, isDisabled: Boolean)
     fun dispose()
