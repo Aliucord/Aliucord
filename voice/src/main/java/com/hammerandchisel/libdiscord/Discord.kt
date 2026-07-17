@@ -205,7 +205,24 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
     ): Connection {
         Log.i(TAG, "Connecting user $userId to $ip:$port (SSRC: $ssrc)")
 
-        val nParams = NewStreamParameters.from(streamParametersArr[0])
+        // With simulcast the identify carries a second rid-50 stream
+        // and READY assigns it its own ssrc pair
+        val videoParams = streamParametersArr.map { params ->
+            val converted = NewStreamParameters.from(params)
+            if ((converted.quality ?: 100) < 100) {
+                converted.copy(
+                    maxResolution = NewStreamParameters.MaxResolution("fixed", 640, 360),
+                    maxFrameRate = 20,
+                )
+            } else {
+                converted
+            }
+        }
+
+        if (videoParams.size > 1) {
+            Log.i(TAG, "Simulcast: publishing ${videoParams.size} video layers: ${videoParams.map { it.rid }}")
+        }
+
         val streamParams = listOf(
             NewStreamParameters(
                 type = "audio",
@@ -214,8 +231,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
                 rid = "",
                 ssrc = ssrc,
             ),
-            nParams
-        )
+        ) + videoParams
         val nativeConnection = nativeEngine.createVoiceConnection(
             userId.toString(),
             gson.m(ConnectionOptions(
@@ -238,7 +254,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
                 )
             }, error)
         }
-        return Connection(nativeConnection, nParams, nativeEngine)
+        return Connection(nativeConnection, videoParams, nativeEngine)
     }
 
     fun crash() {} // only used in developer options

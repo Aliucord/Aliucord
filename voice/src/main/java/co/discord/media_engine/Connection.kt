@@ -9,6 +9,17 @@ import org.webrtc.VideoCapturer
 
 private val gson = Gson()
 
+private data class NativeStreamParameters(
+    val type: String? = null,
+    val rid: String? = null,
+    val ssrc: Int = 0,
+    val rtxSsrc: Int = 0,
+    val active: Boolean = false,
+    val maxBitrate: Int = 0,
+    val quality: Int = 0,
+    val maxPixelCount: Int = 0,
+)
+
 private data class TransportOptions(
     val attenuateWhileSpeakingOthers: Boolean? = null,
     val attenuateWhileSpeakingSelf: Boolean? = null,
@@ -63,6 +74,11 @@ private data class TransportOptions(
 
 @Suppress("unused")
 class Connection(private val native: NativeConnection, streamParameters: List<Discord.NewStreamParameters>, private val engine: NativeEngine) : IConnection {
+    companion object {
+        @Volatile
+        var priority: Boolean = false
+    }
+
     fun interface EncryptionModesCallback {
         fun onEncryptionModes(strArr: Array<String?>?)
     }
@@ -106,9 +122,6 @@ class Connection(private val native: NativeConnection, streamParameters: List<Di
     @Suppress("PrivatePropertyName")
     private val TAG = "VoiceChatFix"
     private var disposed: Boolean = false
-
-    @Volatile
-    private var priority: Boolean = false
 
     init {
         set(TransportOptions(
@@ -242,8 +255,31 @@ class Connection(private val native: NativeConnection, streamParameters: List<Di
     override fun setExpectedPacketLossRate(lossRate: Float) = set(TransportOptions(packetLossRate = lossRate.coerceIn(0f, 1f)))
     override fun setOnVideoCallback(onVideoCallback: OnVideoCallback) {
         native.setOnVideoCallback { userId, ssrc, streamId, videoStreamParametersJson ->
-            Log.d(TAG, "onVideo userId=$userId ssrc=$ssrc streamId=$streamId")
-            onVideoCallback.onVideo(userId.toLong(), ssrc.toInt(), streamId, arrayOf())
+            Log.d(TAG, "onVideo userId=$userId ssrc=$ssrc streamId=$streamId params=$videoStreamParametersJson")
+
+            val params = runCatching {
+                // gson.f = fromJson(String, Class<T>)
+                // `g` = (String, Type) overload
+                // which erases <T> and breaks inference
+                gson.f(videoStreamParametersJson, Array<NativeStreamParameters>::class.java)
+                    .map { p ->
+                        StreamParameters(
+                            if (p.type == "audio") MediaType.Audio else MediaType.Video,
+                            p.rid.orEmpty(),
+                            p.ssrc,
+                            p.rtxSsrc,
+                            p.active,
+                            p.maxBitrate,
+                            p.quality,
+                            p.maxPixelCount,
+                        )
+                    }.toTypedArray()
+            }.getOrElse {
+                Log.w(TAG, "Failed to parse native stream parameters, publishing empty streams", it)
+                arrayOf()
+            }
+
+            onVideoCallback.onVideo(userId.toLong(), ssrc.toInt(), streamId, params)
         }
     }
     override fun setPTTActive(isActive: Boolean) {
