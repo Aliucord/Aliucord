@@ -379,6 +379,21 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             }
         }
 
+        // TODO[testing]:
+        //  Screenshare stream connections need their own native context
+        //  The ctor calls connectToServer NOT async on the same thread
+        //  This *should* fix the issue of when the screenshare and camera
+        //  are both enabled, the screenshare gets replaced by the camera stream
+        patcher.patch(
+            MediaEngineConnectionLegacy::class.java.declaredConstructors.first { ctor ->
+                ctor.parameterTypes.any { it == MediaEngineConnection.Type::class.java }
+            },
+            PreHook { param ->
+                val type = param.args.firstOrNull { it is MediaEngineConnection.Type }
+                Discord.nextConnectionIsStream = type == MediaEngineConnection.Type.STREAM
+            }
+        )
+
         patcher.before<RtcControlSocket_OnMessage>(
             RtcControlSocket::class.java,
             WebSocket::class.java,
