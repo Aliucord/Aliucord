@@ -449,11 +449,10 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         // Voice gateway v8 with buffered resume
         // base is on v5, try to upgrade it
         patcher.before<Request.a>("f", String::class.java) { (param, url: String) ->
-            val url = url.replace("?v=5", "?v=8")
-            param.args[0] = url
+            if (!url.endsWith("?v=5")) return@before
 
-            if (url.contains("?v=8")) logger.debug("Voice gateway URL upgraded to v8")
-            else logger.warn("Failed to upgrade voice gateway URL to v8")
+            param.args[0] = url.removeSuffix("?v=5") + "?v=8"
+            logger.debug("Voice gateway URL upgraded to v8")
         }
 
         // Normally, newer clients handle this with buffered resume - which replays DAVE messages -
@@ -1152,7 +1151,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 "a",
                 RtcControlSocket::class.java,
                 Boolean::class.javaPrimitiveType!!,
-                Integer::class.java,
+                Int::class.javaObjectType,
                 String::class.java,
             ),
             PreHook { param ->
