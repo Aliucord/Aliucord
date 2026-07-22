@@ -1,13 +1,26 @@
 package co.discord.media_engine
 
 import android.util.Log
+import co.discord.media_engine.internal.TransformStats
 import com.discord.native.engine.NativeConnection
 import com.discord.native.engine.NativeEngine
 import com.google.gson.Gson
 import com.hammerandchisel.libdiscord.Discord
+import org.json.JSONArray
+import org.json.JSONObject
 import org.webrtc.VideoCapturer
+import kotlin.math.floor
+import kotlin.math.roundToLong
 
 private val gson = Gson()
+
+private val floatStatsKeys = hashSetOf(
+    "sumOfSquaredFramesDurations", "syncOffset", "targetDelay",
+    "echoReturnLoss", "echoReturnLossEnchancement", "fractionLost",
+    "residualEchoLikelihood", "residualEchoLikelihoodRecentMax"
+)
+private val nestedVideoKeys = arrayOf("rtpStats", "rtcpStats", "frameCounts")
+private val nestedRtpKeys = arrayOf("transmitted", "retransmitted", "fec")
 
 private data class NativeStreamParameters(
     val type: String? = null,
@@ -122,6 +135,9 @@ class Connection(private val native: NativeConnection, streamParameters: List<Di
     @Suppress("PrivatePropertyName")
     private val TAG = "VoiceChatFix"
     private var disposed: Boolean = false
+    private var loggedStatsFailure: Boolean = false
+    @Volatile  // Last encoder cap from setEncodingQuality
+    private var lastMaxBitrate: Int = Discord.DEFAULT_VIDEO_MAX_BITRATE
 
     init {
         set(TransportOptions(
@@ -201,16 +217,175 @@ class Connection(private val native: NativeConnection, streamParameters: List<Di
     override fun getStats(getStatsCallback: GetStatsCallback) = getStats(getStatsCallback, StatsFilter.ALL)
 
     // TODO
+    // Native reports stats as a JSON blob; stock's TransformStats (still in the base apk)
+    // parses it into the Stats model. RtcStatsCollector polls this to feed VoiceQuality
+    // (connection quality indicator + analytics) and KrispOveruseDetector - all starved
+    // while this was stubbed. On shape drift we log once and hand back empty stats
+    // instead of onStatsError: the stock error path logs the full stacktrace on EVERY
+    // poll (~1/s) while empty stats degrade to "no data" quietly, same as the old stub.
     override fun getStats(getStatsCallback: GetStatsCallback, filter: Int) {
-        // if (!disposed) {
-        //     native.getFilteredStats(filter) { statsStr ->
-        //         try {
-        //             getStatsCallback.onStats(TransformStats.transform(statsStr))
-        //         } catch (e: Exception) {
-        //             getStatsCallback.onStatsError(e)
-        //         }
-        //     }
-        // }
+        if (disposed) return
+
+        native.getFilteredStats(filter) { statsStr ->
+            val sanitized = try {
+                sanitizeStats(statsStr)
+            } catch (e: Throwable) {
+                if (!loggedStatsFailure) {
+                    loggedStatsFailure = true
+                    Log.w(TAG, "sanitizeStats failed, raw=${statsStr.take(512)}", e)
+                }
+                statsStr
+            }
+
+            try {
+                getStatsCallback.onStats(TransformStats.transform(sanitized))
+            } catch (e: Throwable) {
+                if (!loggedStatsFailure) {
+                    loggedStatsFailure = true
+                    Log.w(TAG, "Failed to transform native stats inboundVideo=${firstInboundVideo(sanitized)} outboundSubstreams=${firstOutboundSubstreams(sanitized)} sanitized=${sanitized.take(1024)}", e)
+                }
+                getStatsCallback.onStats(
+                    // empty stats
+                    Stats(Transport(0, 0L, 0L, 0, 0, "", null), null, null, LinkedHashMap(), LinkedHashMap())
+                )
+            }
+        }
+    }
+
+    // Between base and the latest, there has been some changes in the json data
+    private fun sanitizeStats(statsStr: String): String {
+        val root = JSONObject(statsStr)
+        var changed = false
+        root.optJSONArray("inbound")?.let { inbound ->
+            var i = inbound.length() - 1
+            while (i >= 0) {
+                val entry = inbound.optJSONObject(i)
+                if (entry != null) {
+                    if (!entry.has("audio")) {
+                        inbound.remove(i)
+                        changed = true
+                    } else {
+                        if (entry.remove("playout") != null) changed = true
+                        // the "videos" array is outbound-only and gson drops it here
+                        if (normalizeInboundVideo(entry.optJSONObject("video"))) changed = true
+                    }
+                }
+                i--
+            }
+        }
+        root.optJSONObject("outbound")?.let { outbound ->
+            if (normalizeOutboundVideos(outbound.optJSONArray("videos"))) changed = true
+        }
+        if (roundIntegralNumbers(root)) changed = true
+        return if (changed) root.toString() else statsStr
+    }
+
+    private fun firstInboundVideo(statsStr: String): String = try {
+        val inbound = JSONObject(statsStr).optJSONArray("inbound")
+        var found: String? = null
+        var i = 0
+        while (found == null && inbound != null && i < inbound.length()) {
+            found = inbound.optJSONObject(i)?.optJSONObject("video")?.toString()
+            i++
+        }
+        found ?: "none"
+    } catch (e: Throwable) {
+        "unreadable"
+    }
+
+    private fun firstOutboundSubstreams(statsStr: String): String = try {
+        JSONObject(statsStr).optJSONObject("outbound")
+            ?.optJSONArray("videos")
+            ?.optJSONObject(0)
+            ?.optJSONArray("substreams")
+            ?.toString()
+            ?: "none"
+    } catch (e: Throwable) {
+        "unreadable"
+    }
+
+    private fun normalizeInboundVideo(video: JSONObject?): Boolean {
+        video ?: return false
+        var changed = video.backfillNames("decoderImplementationName")
+        for (key in nestedVideoKeys) {
+            if (video.ensureObject(key)) changed = true
+        }
+        return changed
+    }
+
+    private fun normalizeOutboundVideos(videos: JSONArray?): Boolean {
+        videos ?: return false
+        var changed = false
+        for (i in 0 until videos.length()) {
+            val video = videos.optJSONObject(i) ?: continue
+            if (video.backfillNames("encoderImplementationName")) changed = true
+            val substreams = video.optJSONArray("substreams") ?: continue
+            for (j in 0 until substreams.length()) {
+                val substream = substreams.optJSONObject(j) ?: continue
+                for (key in nestedVideoKeys) {
+                    if (substream.ensureObject(key)) changed = true
+                }
+                val rtpStats = substream.getJSONObject("rtpStats")
+                for (key in nestedRtpKeys) {
+                    if (rtpStats.ensureObject(key)) changed = true
+                }
+            }
+        }
+        return changed
+    }
+
+    private fun JSONObject.backfillNames(name: String): Boolean {
+        var changed = false
+        if (this.isNull(name)) {
+            this.put(name, "")
+            changed = true
+        }
+        if (this.isNull("codecName")) {
+            this.put("codecName", "")
+            changed = true
+        }
+        return changed
+    }
+
+    private fun JSONObject.ensureObject(key: String): Boolean {
+        if (!this.isNull(key)) return false
+        this.put(key, JSONObject())
+        return true
+    }
+
+    private fun roundIntegralNumbers(value: Any?): Boolean {
+        var changed = false
+        when (value) {
+            is JSONObject -> {
+                val keys = value.keys()
+                var fractional: ArrayList<String>? = null
+                while (keys.hasNext()) {
+                    val key = keys.next()
+                    val child = value.opt(key)
+                    if (child is JSONObject || child is JSONArray) {
+                        if (roundIntegralNumbers(child)) changed = true
+                    } else if (child is Number && key !in floatStatsKeys) {
+                        val d = child.toDouble()
+                        if (d != floor(d) || d.isInfinite()) {
+                            (fractional ?: ArrayList<String>(4).also { fractional = it }).add(key)
+                        }
+                    }
+                }
+                val pending = fractional
+                if (pending != null) {
+                    for (key in pending) {
+                        value.put(key, value.optDouble(key).roundToLong())
+                    }
+                    changed = true
+                }
+            }
+            is JSONArray -> {
+                for (i in 0 until value.length()) {
+                    if (roundIntegralNumbers(value.opt(i))) changed = true
+                }
+            }
+        }
+        return changed
     }
 
     override fun muteLocalUser(isMuted: Boolean) {
@@ -239,6 +414,7 @@ class Connection(private val native: NativeConnection, streamParameters: List<Di
     }
 
     override fun setEncodingQuality(minBitrate: Int, maxBitrate: Int, width: Int, height: Int, framerate: Int) {
+        if (maxBitrate > 0) lastMaxBitrate = maxBitrate
         set(TransportOptions(
             encodingVideoDegradationPreference = 2, // TODO: ?
             encodingVideoBitRate = maxBitrate,
@@ -263,13 +439,21 @@ class Connection(private val native: NativeConnection, streamParameters: List<Di
                 // which erases <T> and breaks inference
                 gson.f(videoStreamParametersJson, Array<NativeStreamParameters>::class.java)
                     .map { p ->
+                        // Native leaves maxBitrate at 0, when calling Opcode 12,
+                        // the stream never loads for the viewers
+                        val maxBitrate = when {
+                            p.maxBitrate > 0 -> p.maxBitrate
+                            p.quality in 1..99 -> lastMaxBitrate / 3
+                            else -> lastMaxBitrate
+                        }
+
                         StreamParameters(
                             if (p.type == "audio") MediaType.Audio else MediaType.Video,
                             p.rid.orEmpty(),
                             p.ssrc,
                             p.rtxSsrc,
                             p.active,
-                            p.maxBitrate,
+                            maxBitrate,
                             p.quality,
                             p.maxPixelCount,
                         )
