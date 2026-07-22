@@ -38,7 +38,7 @@ val RtcControlSocket.rtcConnection: RtcConnection? get() {
     val connections = rtcConnections
 
     if (connections.isEmpty()) {
-        logger.warn("No rtcconnection found")
+        logger.debug("No rtcconnection found")
     } else if (connections.size > 1) {
         logger.warn("More than one rtcconnection found, using the first one")
     }
