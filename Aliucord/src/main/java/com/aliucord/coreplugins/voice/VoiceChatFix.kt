@@ -11,6 +11,7 @@ import android.widget.*
 import androidx.cardview.widget.CardView
 import androidx.core.content.res.ResourcesCompat
 import co.discord.media_engine.Connection
+import co.discord.media_engine.Stats
 import co.discord.media_engine.VideoDecoder
 import co.discord.media_engine.VideoInputDeviceDescription
 import com.aliucord.Constants
@@ -124,6 +125,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     private val epochPreparedSockets = Collections.newSetFromMap(WeakHashMap<RtcControlSocket, Boolean>())
     private val pendingProposals = WeakHashMap<RtcControlSocket, MutableList<ByteString>>()
     private var prevSocket: RtcControlSocket? = null
+    private val lastVideoInputDevice = WeakHashMap<Any, String>()
     @Volatile
     private var supportedModes: List<String>? = null
     // @Volatile
@@ -132,13 +134,6 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     // Show the join as speaker/audience bottom sheet after a start too since base
     // only shows it when joining a live stage
     private val pendingJoinAsPrompt = Collections.synchronizedSet(HashSet<Long>())
-
-    private val libVersion = runCatching {
-        Class.forName("com.aliucord.voice.BuildConfig")
-            .getField("VERSION")
-            .get(null) as String
-    }.getOrNull()
-
     private var Payloads.Stream.maxFrameRateField by accessField<Int?>("maxFrameRate")
     private var WidgetCallFullscreenViewModel.channelIdField by accessField<Long>("channelId")
     private var Discord.nativeEngineField by accessField<NativeEngine?>("nativeEngine")
@@ -149,7 +144,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     @Volatile
     private var daveEpoch = 0
 
-    private companion object {
+    internal companion object {
         // Native libs and webrtc dex are built together (aliuvoice aar)
         // the lib version must match exactly but injector & patches only need a min version
         // TODO: Injector check shouldn't be necessary,
@@ -157,6 +152,12 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         val EXPECTED_LIB_VERSION = com.aliucord.voice.BuildConfig.VERSION
         val MIN_INJECTOR: SemVer = SemVer(2, 3, 2)
         val MIN_PATCHES: SemVer = SemVer(1, 5, 0)
+
+        val libVersion = runCatching {
+            Class.forName("com.aliucord.voice.BuildConfig")
+                .getField("VERSION")
+                .get(null) as String
+        }.getOrNull()
     }
 
 
@@ -317,6 +318,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                     logger.debug("Simulcast enabled, advertising rid-50 layer in identify")
                     d.streams + Payloads.Stream("video", "50", 20, 50, null, null, null, null, null)
                 } else {
+                    logger.debug("Simulcast disabled")
                     d.streams
                 }
 
@@ -619,11 +621,17 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             Function1::class.java
         ) { (_, _: Any, guid: String?) ->
             val device = guid ?: "default"
+            val discord = mediaEngine.i() ?: return@before
+
+            // Discord re-enumerates the input devices on every connection setup
+            if (lastVideoInputDevice[discord] == device) return@before
+
             logger.debug("Setting video input device $device")
             // Push capture settings first so the camera opens at the target framerate directly,
             // instead of the native default 30fps followed by an immediate session re-open.
             currentSocket?.takeIf { it.rtcConnections.isNotEmpty() }?.let(::applyVideoSettings)
-            mediaEngine.i().setVideoInputDevice(device)
+            discord.setVideoInputDevice(device)
+            lastVideoInputDevice[discord] = device
         }
 
         patchKrisp()
@@ -853,22 +861,22 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     private fun refreshEngineStats(socket: RtcControlSocket) {
         socket.connections.forEach { connection ->
             runCatching {
-                connection.nativeConnectionField.getStats { json ->
-                    runCatching {
-                        val stats = JSONObject(json)
-                        val rtt = stats.optJSONObject("transport")?.optInt("rtt", -1) ?: -1
+                connection.getStats(object : Connection.GetStatsCallback {
+                    override fun onStats(stats: Stats?) {
+                        val rtt = stats?.transport?.ping ?: -1
+                        val packetLossPercent = stats?.outboundRtpAudio?.fractionLost ?: -1f
 
                         setDebug("RTT", if (rtt >= 0) "${rtt}ms" else "Unavailable")
-
-                        val fractionLost = stats.optJSONObject("outbound")
-                            ?.optJSONObject("audio")
-                            ?.optDouble("fractionLost", 0.0) ?: 0.0
-
-                        setDebug("Packet Loss", String.format(Locale.ROOT, "%.1f%%", fractionLost * 100))
-                    }.onFailure {
-                        logger.warn("Failed to parse engine stats: $it")
+                        setDebug("Packet Loss",
+                            if (packetLossPercent >= 0f) String.format(Locale.ROOT, "%.1f%%", packetLossPercent)
+                            else "Unavailable"
+                        )
                     }
-                }
+                    override fun onStatsError(th: Throwable?) {
+                        setDebug("RTT", "Unavailable due to error")
+                        setDebug("Packet Loss", "Unavailable due to error")
+                    }
+                }, Connection.StatsFilter.TRANSPORT or Connection.StatsFilter.OUTBOUND)
             }.onFailure {
                 logger.warn("getStats failed: $it")
             }
