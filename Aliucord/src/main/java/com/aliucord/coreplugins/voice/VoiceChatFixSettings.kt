@@ -75,6 +75,8 @@ internal object VoiceChatFixSettings {
     val iKnowWhatImDoing by iKnowWhatImDoingDelegate
     internal val simulcastDelegate = settings.delegate("simulcast", false)
     val simulcast by simulcastDelegate
+    internal val prioritySpeakerDelegate = settings.delegate("prioritySpeaker", false)
+    val prioritySpeaker by prioritySpeakerDelegate
     internal val pingIntervalMsDelegate = settings.delegate("pingIntervalMs", 0)
     val pingIntervalMs by pingIntervalMsDelegate
     internal val minOutputDelayMsDelegate = settings.delegate("minOutputDelayMs", 0)
@@ -203,6 +205,17 @@ internal object VoiceChatFixSettings {
                         "Automatically accepts a moderator's invite to speak in stage channels."
                     ).addTo(this) {
                         var setting by autoAcceptSpeakInviteDelegate
+                        isChecked = setting
+                        setOnCheckedListener { setting = !setting }
+                    }
+
+                    Utils.createCheckedSetting(
+                        ctx,
+                        CheckedSetting.ViewType.SWITCH,
+                        "Priority speaker",
+                        "Lower everyone else's volume while you talk. Only works if you have Priority Speaker permissions."
+                    ).addTo(this) {
+                        var setting by prioritySpeakerDelegate
                         isChecked = setting
                         setOnCheckedListener { setting = !setting }
                     }

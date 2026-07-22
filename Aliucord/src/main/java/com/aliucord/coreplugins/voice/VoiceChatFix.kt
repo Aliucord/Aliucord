@@ -11,6 +11,7 @@ import android.widget.*
 import androidx.cardview.widget.CardView
 import androidx.core.content.res.ResourcesCompat
 import co.discord.media_engine.Connection
+import co.discord.media_engine.Connection.SpeakingFlags
 import co.discord.media_engine.Stats
 import co.discord.media_engine.VideoDecoder
 import co.discord.media_engine.VideoInputDeviceDescription
@@ -273,7 +274,8 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
 
             runCatching {
                 val permissions = StoreStream.getPermissions().permissionsByChannel[channelId]
-                Connection.priority = PermissionUtils.can(Permission.PRIORITY_SPEAKER, permissions)
+                Connection.priority = VoiceChatFixSettings.prioritySpeaker &&
+                    PermissionUtils.can(Permission.PRIORITY_SPEAKER, permissions)
 
                 logger.debug("PTT priority=${Connection.priority} for channel $channelId")
             }.onFailure {
@@ -348,6 +350,24 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                     data = ProtocolInfo(base.data.address, base.data.port, mode)
                 )
                 logger.debug("Replacing Protocol payload (transport=$mode)")
+                logger.debug("Before: $d")
+                logger.debug("After: ${param.args[1]}")
+            }
+
+            // This only works if SPEAKING payload advertises it
+            if (opcode == Opcodes.SPEAKING && Connection.priority) {
+                val d = data as? Payloads.Speaking ?: return@before
+                val flags = d.speaking ?: return@before
+                if (flags == 0 || flags and SpeakingFlags.PRIORITY != 0) return@before
+
+                param.args[1] = Payloads.Speaking(
+                    d.ssrc,
+                    flags or SpeakingFlags.PRIORITY,
+                    d.delay,
+                    d.userId,
+                )
+
+                logger.debug("Replacing Speaking payload")
                 logger.debug("Before: $d")
                 logger.debug("After: ${param.args[1]}")
             }
