@@ -139,6 +139,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
 
         val quality: Int? = null,
         val maxResolution: MaxResolution? = null,
+        val maxPixelCount: Int? = null,
         val rtxSsrc: Int? = null,
         val maxFrameRate: Int? = null,
         val active: Boolean? = null,
@@ -168,6 +169,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
     }
 
     init {
+        Log.i(TAG, "Aliuvoice ${com.aliucord.voice.BuildConfig.VERSION} (libdiscord ${com.aliucord.voice.BuildConfig.LIBDISCORD_BASE})")
         krispVersion = context.getString(R.string.krisp_model_version)
         CameraEnumeratorProvider.maybeInit(this.context)
         this.nativeEngine = NativeEngine(context, i)
@@ -203,21 +205,28 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         streamParametersArr: Array<StreamParameters>,
         connectToServerCallback: ConnectToServerCallback
     ): Connection {
-        Log.i(TAG, "Connecting user $userId to $ip:$port (SSRC: $ssrc)")
+        // Screenshare connections must live in their OWN native context
+        val nativeContext = if (nextConnectionIsStream) "stream" else "default"
+        nextConnectionIsStream = false
+        Log.i(TAG, "Connecting user $userId to $ip:$port (SSRC: $ssrc, context: $nativeContext)")
 
         // With simulcast the identify carries a second rid-50 stream
         // and READY assigns it its own ssrc pair
         val videoParams = streamParametersArr.map { params ->
             val converted = NewStreamParameters.from(params)
-            if ((converted.quality ?: 100) < 100) {
-                converted.copy(
-                    maxResolution = NewStreamParameters.MaxResolution("fixed", 640, 360),
-                    maxFrameRate = 20,
-                )
-            } else {
-                converted
-            }
-        }
+            val low = (converted.quality ?: 100) < 100
+            converted.copy(
+                active = true,
+                maxBitrate = when {
+                    converted.maxBitrate > 0 -> converted.maxBitrate
+                    low -> DEFAULT_VIDEO_MAX_BITRATE / 3
+                    else -> DEFAULT_VIDEO_MAX_BITRATE
+                },
+                maxResolution = if (low) NewStreamParameters.MaxResolution("fixed", 640, 360) else converted.maxResolution,
+                maxPixelCount = if (low) 640 * 360 else converted.maxPixelCount,
+                maxFrameRate = if (low) 20 else converted.maxFrameRate,
+            )
+        }.sortedByDescending { it.quality ?: 100 }
 
         if (videoParams.size > 1) {
             Log.i(TAG, "Simulcast: publishing ${videoParams.size} video layers: ${videoParams.map { it.rid }}")
@@ -235,7 +244,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         val nativeConnection = nativeEngine.createVoiceConnection(
             userId.toString(),
             gson.m(ConnectionOptions(
-                context = "default",
+                context = nativeContext,
                 address = ip,
                 port = port,
                 ssrc = ssrc,
@@ -358,6 +367,13 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
     companion object {
         const val LOGLEVEL_DEBUG: Int = 2
         const val LOGLEVEL_DEFAULT: Int = -1
+        const val DEFAULT_VIDEO_MAX_BITRATE: Int = 2_500_000  // 2500 kbps
+
+        // The MediaEngineConnectionLegacy ctor calls connectToServer NOT async
+        // on the same thread, so screenshare connections get their own native context
+        @JvmStatic
+        @Volatile
+        var nextConnectionIsStream: Boolean = false
 
         @JvmStatic
         @Volatile
