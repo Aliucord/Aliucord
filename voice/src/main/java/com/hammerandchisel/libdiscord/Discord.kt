@@ -178,7 +178,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
             ducking = false,
             idleJitterBufferFlush = true,
         ).set()
-        nativeEngine.setSidechainCompression(false)
+        nativeEngine.setSidechainCompression(true)
         nativeEngine.setInputDevice("default")
         nativeEngine.setOutputDevice("default")
         nativeEngine.setInputVolume(1f)

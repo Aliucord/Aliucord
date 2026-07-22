@@ -413,8 +413,8 @@ internal object VoiceChatFixSettings {
                     Utils.createCheckedSetting(
                         ctx,
                         CheckedSetting.ViewType.SWITCH,
-                        "Sidechain compression",
-                        "This is off for everyone by default. An automatic ducking effect in the native voice engine."
+                        "Disable sidechain compression",
+                        "This is off for everyone by default. An automatic ducking effect in the native voice engine. This can add a slight audio delay."
                     ).addTo(this) {
                         var setting by sidechainCompressionDelegate
                         isChecked = setting

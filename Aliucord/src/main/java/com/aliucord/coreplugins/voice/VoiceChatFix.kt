@@ -1250,10 +1250,11 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     // so switching this setting requires a restart to take effect
     private fun patchSidechainCompression() {
         patcher.after<Discord>(Context::class.java, Int::class.javaPrimitiveType!!) {
-            val compress = VoiceChatFixSettings.sidechainCompression
+            if (!VoiceChatFixSettings.sidechainCompression) return@after
             val engine = nativeEngineField ?: return@after
-            engine.setSidechainCompression(compress)
-            logger.debug("setSidechainCompression: $compress (user override)")
+
+            engine.setSidechainCompression(false)
+            logger.debug("setSidechainCompression: false (user override)")
         }
     }
 
