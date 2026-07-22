@@ -20,7 +20,7 @@ internal fun addVerificationRow(currentSocket: RtcControlSocket?, root: LinearLa
     if (userId == 0L) return
     val codeView = verificationRow(root) { text ->
         if (text.isNotEmpty() && text != "Unavailable" && text != "…") {
-            Utils.setClipboard("Verification Code", text)
+            Utils.setClipboard("Verification Code", text.replace('\n', ' '))
             Utils.showToast("Copied to clipboard")
         }
     }
@@ -37,7 +37,7 @@ private fun verificationRow(root: LinearLayout, onCopy: (String) -> Unit): TextV
     val codeView = TextView(ctx).apply {
         setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorTextMuted))
         textSize = 14f
-        isSingleLine = true
+        maxLines = 3
         typeface = ResourcesCompat.getFont(ctx, Constants.Fonts.sourcecodepro_semibold)
         setPadding(0.dp, 4.dp, 0.dp, 0.dp)
     }

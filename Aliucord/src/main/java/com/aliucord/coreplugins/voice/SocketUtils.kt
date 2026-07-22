@@ -69,8 +69,9 @@ val RtcControlSocket.connections: List<Connection> get() {
         engine.j
     }.distinct()
 
+    // Normal when a payload arrives just before the media connection attaches
     if (connections.isEmpty()) {
-        logger.warn("No connection found whilst handling event")
+        logger.debug("No connection found whilst handling event")
     } else if (connections.size > 1) {
         logger.warn("More than one connection found, passing event to all")
     }
@@ -79,6 +80,10 @@ val RtcControlSocket.connections: List<Connection> get() {
 
 @Suppress("NOTHING_TO_INLINE")
 inline fun RtcControlSocket.send(data: VoiceChatFixPayload.Outgoing) = n(data.opcode, data)
+
+// Push an MEDIA_SINK_WANTS opcode directly (map becomes `d` payload data)
+// Used to apply a video quality override the moment it changes, without waiting for the manager
+fun RtcControlSocket.sendSinkWants(map: Map<String, Any?>) = n(Opcodes.MEDIA_SINK_WANTS, map)
 
 // Ref: https://github.com/square/okhttp/blob/c7556e0ac6d690ccb71d304d22d636f2f86baf7b/okhttp/src/commonJvmAndroid/kotlin/okhttp3/internal/ws/RealWebSocket.kt#L434-L456
 // Also: RealWebsocket.a(String)
@@ -120,8 +125,10 @@ fun RtcControlSocket?.pairwiseCode(userId: String, callback: (String?) -> Unit) 
         return
     }
     runCatching {
-        connection.getMLSPairwiseFingerprintB64(1, userId) { fp ->
-            Utils.mainThread.post { callback(formatFingerprint(fp).ifEmpty { null }) }
+        connection.getMLSPairwiseFingerprintB64(0, userId) { fp ->
+            Utils.mainThread.post {
+                callback(formatFingerprint(fp, PAIRWISE_CODE_DIGITS, groupsPerLine = 3).ifEmpty { null })
+            }
         }
     }.onFailure {
         PluginManager.logger.error("Failed to get pairwise fingerprint for $userId", it)

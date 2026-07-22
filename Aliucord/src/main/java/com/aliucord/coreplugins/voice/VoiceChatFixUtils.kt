@@ -14,19 +14,23 @@ import com.aliucord.views.TextInput
 import com.hammerandchisel.libdiscord.Discord
 
 private const val GROUP_SIZE = 5
-private const val DESIRED_LEN = 30
+// libdave generate_displayable_code(data, digits, 5): each group of 5 digits, 5 bytes
+// Epoch authenticator (voice privacy code) has 30 digits
+// Pairwise per-user fingerprint has 45 digits
+internal const val EPOCH_CODE_DIGITS = 30
+internal const val PAIRWISE_CODE_DIGITS = 45
 private const val GROUP_MODULUS = 100000UL // 10.0.pow(groupSize).toULong()
 
-internal fun formatFingerprint(b64: String): String {
+internal fun formatFingerprint(b64: String, digits: Int = EPOCH_CODE_DIGITS, groupsPerLine: Int = 0): String {
     if (b64.isEmpty()) return ""
 
     val data = b64.decodeBase64ToArray() ?: return ""
 
-    if (data.size < DESIRED_LEN) return ""
+    if (data.size < digits) return ""
 
-    val sb = StringBuilder(DESIRED_LEN + DESIRED_LEN / GROUP_SIZE)
+    val sb = StringBuilder(digits + digits / GROUP_SIZE)
 
-    for (group in 0 until DESIRED_LEN / GROUP_SIZE) {
+    for (group in 0 until digits / GROUP_SIZE) {
         val start = group * GROUP_SIZE
         var value = 0UL
 
@@ -34,7 +38,9 @@ internal fun formatFingerprint(b64: String): String {
             value = (value shl 8) or data[start + index].toUByte().toULong()
         }
 
-        if (group > 0) sb.append(' ')
+        if (group > 0) {
+            sb.append(if (groupsPerLine > 0 && group % groupsPerLine == 0) '\n' else ' ')
+        }
 
         sb.append((value % GROUP_MODULUS).toString().padStart(GROUP_SIZE, '0'))
     }
