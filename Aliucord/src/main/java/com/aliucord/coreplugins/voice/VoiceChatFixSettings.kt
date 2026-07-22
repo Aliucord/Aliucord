@@ -447,4 +447,6 @@ internal class PersistedIdSet(
         val changed = if (present) ids.add(userId) else ids.remove(userId)
         if (changed) settings.setObject(key, ids)
     }
+
+    val size: Int get() = ids.size
 }
