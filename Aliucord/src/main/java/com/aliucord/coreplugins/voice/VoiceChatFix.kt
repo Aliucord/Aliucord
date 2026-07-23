@@ -650,6 +650,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             // Push capture settings first so the camera opens at the target framerate directly,
             // instead of the native default 30fps followed by an immediate session re-open.
             currentSocket?.takeIf { it.rtcConnections.isNotEmpty() }?.let(::applyVideoSettings)
+            discord.setCaptureVideoFrameRate(VoiceChatFixSettings.videoFramerate)
             discord.setVideoInputDevice(device)
             lastVideoInputDevice[discord] = device
         }

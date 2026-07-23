@@ -16,6 +16,7 @@ private data class TransportOptions(
     val av1Enabled: Boolean? = null,
     val builtInEchoCancellation: Boolean? = null,
     val bypassSystemProcessing: Boolean? = null,
+    val captureVideoFrameRate: Int? = null,
     val ducking: Boolean? = null,
     val echoCancellation: Boolean? = null,
     val h264Enabled: Boolean? = null,
@@ -346,6 +347,9 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
     // Noop, this is set in a .before patch in Sunflower core plugin, to use guids instead of indices
     override fun setVideoInputDevice(deviceIndex: Int) {}
     fun setVideoInputDevice(deviceGuid: String) = nativeEngine.setVideoInputDevice(deviceGuid)
+
+    // Video source starts as 30fps by default, override it
+    fun setCaptureVideoFrameRate(fps: Int) = TransportOptions(captureVideoFrameRate = fps).set()
 
     override fun setVideoOutputSink(identifier: String, callback: VideoFrameCallback?) {
         Log.i(TAG, "Outputsink set $identifier")
