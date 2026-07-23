@@ -341,6 +341,12 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 logger.debug("After: ${param.args[1]}")
             }
 
+            // Force per-user video quality (Disable Video = 0)
+            if (opcode == Opcodes.MEDIA_SINK_WANTS && data is Map<*, *>) {
+                @Suppress("UNCHECKED_CAST")
+                param.args[1] = VideoSinkOverrides.onOutgoing(data as Map<String, Any?>)
+            }
+
             // Patch protocol payload to include encode/decode fields
             if (opcode == Opcodes.SELECT_PROTOCOL) {
                 val d = data as Payloads.Protocol
@@ -437,6 +443,13 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                     val modes = JSONObject(message.data.toString()).optJSONArray("modes")
                     supportedModes = modes?.let { arr -> List(arr.length()) { arr.getString(it) } }
                 }.onFailure { logger.error("Failed to read READY transport modes", it) }
+                Opcodes.VIDEO -> runCatching {
+                    val data = JSONObject(message.data.toString())
+                    val userId = data.optLong("user_id")
+                    val ssrc = data.optInt("video_ssrc")
+
+                    if (userId != 0L) VideoSinkOverrides.learnSsrc(userId, ssrc)
+                }.onFailure { logger.error("Failed to read VIDEO ssrc", it) }
                 Opcodes.MEDIA_SINK_WANTS ->
                     // pixelCounts is only mentioned in streams/screenshare if
                     // RtcConnection has enableMediaSinkWants == false
@@ -458,7 +471,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 // buffered resume, the server now replays everything past our seq_ack
                 Opcodes.RESUMED -> logger.info("Session resumed, replaying missed messages (seq_ack=${socketSeqs[param.args[0]] ?: -1})")
                 // silence, useless opcode *huge explosion*
-                Opcodes.HEARTBEAT_ACK, Opcodes.SELECT_PROTOCOL_ACK, Opcodes.VIDEO,
+                Opcodes.HEARTBEAT_ACK, Opcodes.SELECT_PROTOCOL_ACK,
                 Opcodes.SPEAKING, Opcodes.CLIENTS_CONNECT, Opcodes.DAVE_PREPARE_EPOCH,
                 Opcodes.CLIENT_DISCONNECT, Opcodes.CLIENT_FLAGS, Opcodes.CLIENT_PLATFORM,
                 Opcodes.DAVE_PREPARE_TRANSITION, Opcodes.DAVE_EXECUTE_TRANSITION,
@@ -606,7 +619,12 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                             transitionId = payload.transitionId,
                             protocolVersion = payload.protocolVersion
                         ) {
-                            socket.send(DaveTransitionReady(payload.transitionId))
+                            // execute right away on protocol downgrade or sole user
+                            if (payload.transitionId == 0) {
+                                connection.executeSecureFramesTransition(0)
+                            } else {
+                                socket.send(DaveTransitionReady(payload.transitionId))
+                            }
                         }
                     }
                     is VoiceChatFixPayload.DaveExecuteTransition -> {
@@ -917,6 +935,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             onCodeUpdate("")
             debugInfo.clear()
             daveEpoch = 0
+            VideoSinkOverrides.clearAll()
             setDebug("Status", "Connected")
             conn.j.setSecureFramesStateUpdateCallback { epochStr ->
                 val frames = GsonUtils.gson.fromJson(epochStr, SecureFrames::class.java)
