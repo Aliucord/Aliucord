@@ -853,8 +853,9 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         setDebug("Resolution", "${VoiceChatFixSettings.videoWidth} x ${VoiceChatFixSettings.videoHeight} @ ${VoiceChatFixSettings.videoFramerate} fps")
     }
 
-    private fun setDebug(key: String, value: String) {
-        debugInfo[key] = value
+    // Drop the row if value is null
+    private fun setDebug(key: String, value: String?) {
+        if (value == null) debugInfo.remove(key) else debugInfo[key] = value
         refreshConnInfo()
     }
 
@@ -915,7 +916,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                         setDebug("RTT", "Unavailable due to error")
                         setDebug("Packet Loss", "Unavailable due to error")
                     }
-                }, Connection.StatsFilter.TRANSPORT or Connection.StatsFilter.OUTBOUND)
+                }, Connection.StatsFilter.ALL)
             }.onFailure {
                 logger.warn("getStats failed: $it")
             }
