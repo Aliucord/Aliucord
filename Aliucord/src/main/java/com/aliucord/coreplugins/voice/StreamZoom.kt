@@ -25,7 +25,7 @@ import kotlin.math.abs
 // Pinch zoom + pan for the fullscreen stream screen
 // Don't mess the stream itself but with the SurfaceView renderer
 internal object StreamZoom {
-    private const val MAX_SCALE = 12f  // todo: maybe make this a changeable setting?
+    private const val MAX_SCALE = 16f  // todo: maybe make this a changeable setting?
     private val controllers = WeakHashMap<VideoCallParticipantView, Controller>()
 
     fun register(patcher: PatcherAPI) {
