@@ -31,6 +31,7 @@ import com.aliucord.coreplugins.voice.model.NewIdentifyPayload
 import com.aliucord.coreplugins.voice.model.ResumePayload
 import com.aliucord.coreplugins.voice.model.NewSelectProtocolPayload
 import com.aliucord.coreplugins.voice.model.SecureFrames
+import com.aliucord.coreplugins.voice.model.StreamInfo
 import com.aliucord.coreplugins.voice.model.TransportModes
 import com.aliucord.coreplugins.voice.model.VoiceChannelStartTime
 import com.aliucord.coreplugins.voice.model.VoiceCloseCodes
@@ -42,6 +43,7 @@ import com.aliucord.coreplugins.voice.ui.codeBlock
 import com.aliucord.coreplugins.voice.ui.collapsibleTitle
 import com.aliucord.coreplugins.voice.ui.newCard
 import com.aliucord.coreplugins.voice.ui.setCodeBlock
+import com.aliucord.coreplugins.voice.ui.StreamOverlay
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.updater.ManagerBuild
@@ -274,6 +276,9 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 currentSocket?.let { VideoSinkOverrides.resend(it::sendSinkWants) }
             }
         }
+
+        // Top-left stream info overlay
+        StreamOverlay.streamInfoProvider = ::fetchStreamInfo
 
         // Priority Speaker PTT: track the permission for the selected
         // voice channel, for DMs it always returns false
@@ -929,6 +934,34 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 logger.warn("getStats failed: $it")
             }
         }
+    }
+
+    // The highest inbound video is the fullscreen stream being watched
+    // Callback runs on the stats thread and StreamZoom through the UI
+    private fun fetchStreamInfo(cb: (StreamInfo?) -> Unit) {
+        val connection = currentSocket?.connections?.firstOrNull() ?: return cb(null)
+        runCatching {
+            connection.getStats(object : Connection.GetStatsCallback {
+                override fun onStats(stats: Stats?) {
+                    val v = stats?.inboundRtpVideo?.values
+                        ?.filter { it.bitrate > 0 }
+                        ?.maxByOrNull { it.bitrate }
+                        ?: return cb(null)
+                    val encoder = stats.outboundRtpVideo
+                        ?.takeIf { it.bitrate > 0 }
+                        ?.encoderImplementationName
+                    cb(StreamInfo(
+                        codec = v.codec?.name ?: "-",
+                        encoder = encoder?.ifEmpty { null },
+                        decoder = v.decoderImplementationName.ifEmpty { null },
+                        resolution = "${v.resolution.width}x${v.resolution.height}",
+                        fps = v.frameRateRender.toString(),
+                        bitrate = "${v.bitrate / 1000} Kbps",
+                    ))
+                }
+                override fun onStatsError(th: Throwable?) = cb(null)
+            }, Connection.StatsFilter.INBOUND or Connection.StatsFilter.OUTBOUND)
+        }.onFailure { cb(null) }
     }
 
     // Adds encryption info and voice privacy code to the voice bottom sheet
