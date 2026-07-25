@@ -514,7 +514,8 @@ class Connection(private val native: NativeConnection, streamParameters: List<Di
 
     override fun setUserSpeakingStatusChangedCallback(userSpeakingStatusChangedCallback: UserSpeakingStatusChangedCallback) {
         native.setOnSpeakingCallback { userId, speakingFlags, voiceDb ->
-            Log.d(TAG, "connection/setUserSpeakingStatusChangedCallback: userId=${userId.toLong()} speakingFlags=$speakingFlags voiceDb=$voiceDb")
+            // Triggered everytime a user speaking status changes (user starts speaking, user stops speaking, etc)
+            // Log.d(TAG, "connection/setUserSpeakingStatusChangedCallback: userId=${userId.toLong()} speakingFlags=$speakingFlags voiceDb=$voiceDb")
             userSpeakingStatusChangedCallback.onUserSpeakingStatusChanged(
                 userId.toLong(),
                 (speakingFlags and SpeakingFlags.MICROPHONE) != 0,
