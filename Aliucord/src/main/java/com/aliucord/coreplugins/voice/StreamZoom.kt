@@ -2,19 +2,32 @@ package com.aliucord.coreplugins.voice
 
 import android.annotation.SuppressLint
 import android.graphics.PointF
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.ViewConfiguration
+import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.DisplayCutoutCompat
 import com.aliucord.Utils
 import com.aliucord.api.PatcherAPI
 import com.aliucord.patcher.after
 import com.aliucord.patcher.component1
 import com.aliucord.patcher.component2
+import com.aliucord.patcher.component3
+import com.aliucord.patcher.component4
+import com.aliucord.patcher.component5
+import com.aliucord.utils.DimenUtils
+import com.aliucord.utils.DimenUtils.dp
+import com.aliucord.utils.ViewUtils.addTo
+import com.discord.utilities.color.ColorCompat
 import com.discord.views.calls.VideoCallParticipantView
 import com.discord.views.calls.VideoCallParticipantView.ParticipantData
 import com.discord.widgets.voice.fullscreen.grid.VideoCallGridAdapter
+import com.google.android.material.card.MaterialCardView
+import com.lytefast.flexinput.R
+import java.util.Locale
 import java.util.WeakHashMap
 import kotlin.math.abs
 
@@ -22,6 +35,7 @@ import kotlin.math.abs
 // Don't mess the stream itself but with the SurfaceView renderer
 internal object StreamZoom {
     private const val MAX_SCALE = 12f  // todo: maybe make this a changeable setting?
+    private val pillId = View.generateViewId()
     private val controllers = WeakHashMap<VideoCallParticipantView, Controller>()
 
     fun register(patcher: PatcherAPI) {
@@ -34,13 +48,13 @@ internal object StreamZoom {
             Boolean::class.javaPrimitiveType!!,
             VideoCallGridAdapter.CallUiInsets::class.java,
             Boolean::class.javaPrimitiveType!!,
-        ) { (_, data: ParticipantData?) ->
+        ) { (_, data: ParticipantData?, _: DisplayCutoutCompat, _: Boolean, insets: VideoCallGridAdapter.CallUiInsets?) ->
             controllers.getOrPut(this) {
                 Controller(this, findViewById(rendererId)).also(::setOnTouchListener)
-            }.configure(data)
+            }.configure(data, insets)
         }
 
-        // Reset zoom when renderer gets detached
+        // Reset zoom and stop the info poll when renderer gets detached
         patcher.after<VideoCallParticipantView>("onDetachedFromWindow") {
             controllers[this]?.reset()
         }
@@ -54,7 +68,42 @@ internal object StreamZoom {
         private val touchSlop = ViewConfiguration.get(tile.context).scaledTouchSlop
         private var enabled = false
         private var dataId: String? = null
+        private var userId = 0L
+        private var insets: VideoCallGridAdapter.CallUiInsets? = null
+        private lateinit var pill: TextView
 
+        private val pillCard by lazy {
+            val ctx = tile.context
+            MaterialCardView(ctx).apply {
+                id = pillId
+                radius = DimenUtils.defaultCardRadius.toFloat()
+                alpha = 0f
+                cardElevation = 0f
+                isClickable = false
+                isFocusable = false
+                setCardBackgroundColor(ColorCompat.getThemedColor(ctx, R.b.colorSurface))
+
+                val p = DimenUtils.defaultPadding
+                pill = TextView(ctx, null, 0, R.i.UiKit_TextView_Semibold).addTo(this) {
+                    gravity = Gravity.CENTER
+                    minWidth = 56.dp
+                    setPadding(p, p / 2, p, p / 2)
+                    setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorOnSurface))
+                }
+
+                tile.addView(this, ConstraintLayout.LayoutParams(
+                    ConstraintLayout.LayoutParams.WRAP_CONTENT,
+                    ConstraintLayout.LayoutParams.WRAP_CONTENT,
+                ).apply {
+                    topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                    endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+                    topMargin = 8.dp
+                    marginEnd = 8.dp
+                })
+            }
+        }
+
+        private val hidePill = Runnable { pillCard.animate().alpha(0f).setDuration(300).start() }
         private var scale = 1f
         private val translation = PointF()
         private val down = PointF()
@@ -86,10 +135,17 @@ internal object StreamZoom {
             }
         )
 
-        fun configure(data: ParticipantData?) {
+        fun configure(data: ParticipantData?, insets: VideoCallGridAdapter.CallUiInsets?) {
+            this.insets = insets
+
             if (data?.id != dataId) {
-                dataId = data?.id
+                // Clears any quality override for the previous userId before swapping it, or the
+                // previous streamer's max-quality override never gets cleared
                 reset()
+                dataId = data?.id
+                // `b` = voiceParticipant
+                // `user.id` = streamer whose quality we boost
+                userId = data?.b?.user?.id ?: 0L
             }
 
             enabled = data != null
@@ -127,6 +183,18 @@ internal object StreamZoom {
             view.scaleY = scale
             view.translationX = translation.x
             view.translationY = translation.y
+
+            if (scale > 1f) {
+                pillCard.apply {
+                    pill.text = String.format(Locale.ROOT, "%.1fx", scale)
+                    translationX = -(insets?.right?.toFloat() ?: 0f)
+                    translationY = insets?.top?.toFloat() ?: 0f
+                    animate().cancel()
+                    alpha = 1f
+                    removeCallbacks(hidePill)
+                    postDelayed(hidePill, 1000)
+                }
+            }
         }
 
         // Average position of the active fingers; skipIndex handles ACTION_POINTER_UP,
