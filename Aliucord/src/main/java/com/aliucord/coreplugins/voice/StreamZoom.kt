@@ -195,6 +195,9 @@ internal object StreamZoom {
                     postDelayed(hidePill, 1000)
                 }
             }
+
+            // Ask the server for source quality once zoomed in, clear when reset
+            StreamQuality.update(userId, scale)
         }
 
         // Average position of the active fingers; skipIndex handles ACTION_POINTER_UP,

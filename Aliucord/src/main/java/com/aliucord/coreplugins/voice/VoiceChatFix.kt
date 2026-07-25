@@ -76,6 +76,7 @@ import com.discord.stores.StoreVoiceChannelSelected.JoinVoiceChannelResult
 import com.discord.stores.StoreVoiceParticipants
 import com.discord.widgets.stage.StageChannelAPI
 import com.discord.api.permission.Permission
+import com.discord.rtcconnection.EncodeQuality
 import com.discord.utilities.color.ColorCompat
 import com.discord.utilities.debug.DebugPrintBuilder
 import com.discord.utilities.permissions.PermissionUtils
@@ -266,6 +267,13 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         patchStageJoinPromptOnStart()
         ModernAudioDevices.register(patcher)
         StreamZoom.register(patcher)
+
+        // Ask the server for max quality on that stream when zoomed
+        StreamQuality.onBoost = { userId, boost ->
+            if (VideoSinkOverrides.setUserQuality(userId, if (boost) EncodeQuality.Hundred else null)) {
+                currentSocket?.let { VideoSinkOverrides.resend(it::sendSinkWants) }
+            }
+        }
 
         // Priority Speaker PTT: track the permission for the selected
         // voice channel, for DMs it always returns false
