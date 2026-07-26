@@ -86,12 +86,14 @@ internal class AccountStandingPage : SettingsPage() {
                             val actions = classification.actions?.firstOrNull()?.descriptions ?: listOf("Not provided")
                             val message = classification.flaggedContent?.firstOrNull()?.content ?: "Not provided"
 
-                            ViolationCard(view.context,
+                            ViolationCard(
+                                view.context,
                                 classification.description,
                                 message,
                                 actions,
                                 classification.id,
-                                classification.maxExpirationTime).addTo(linearLayout)
+                                classification.maxExpirationTime
+                            ).addTo(linearLayout)
                         }
                     }
 
