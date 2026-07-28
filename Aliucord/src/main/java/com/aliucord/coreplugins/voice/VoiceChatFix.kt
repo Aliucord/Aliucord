@@ -139,6 +139,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     // only shows it when joining a live stage
     private val pendingJoinAsPrompt = Collections.synchronizedSet(HashSet<Long>())
     private var Payloads.Stream.maxFrameRateField by accessField<Int?>("maxFrameRate")
+    private var Payloads.Stream.maxBitrateField by accessField<Int?>("maxBitrate")
     private var WidgetCallFullscreenViewModel.channelIdField by accessField<Long>("channelId")
     private var Discord.nativeEngineField by accessField<NativeEngine?>("nativeEngine")
     private var Connection.nativeConnectionField by accessField<NativeConnection>("native")
@@ -352,6 +353,23 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 logger.debug("Replacing Identify payload")
                 logger.debug("Before: $d")
                 logger.debug("After: ${param.args[1]}")
+            }
+
+            if (opcode == Opcodes.VIDEO) {
+                runCatching {
+                    (data as Payloads.Video).streams.forEach { stream ->
+                        if (stream.quality != 100) return@forEach
+
+                        stream.maxFrameRateField = VoiceChatFixSettings.videoFramerate
+                        stream.maxBitrateField = VoiceChatFixSettings.videoBitrateKbps * 1000
+                        stream.maxResolution?.let { res ->
+                            res.setIntField("width", VoiceChatFixSettings.videoWidth)
+                            res.setIntField("height", VoiceChatFixSettings.videoHeight)
+                        }
+                    }
+                }.onFailure {
+                    logger.error("Failed to apply stream settings on opcode 12", it)
+                }
             }
 
             // Force per-user video quality (Disable Video = 0)
@@ -591,7 +609,9 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             // We need to call the encoder so screenshares actually display something
             // Also apply user video settings on every sink-wants update
             if (message.opcode == Opcodes.MEDIA_SINK_WANTS) {
-                applyVideoSettings(socket)
+                socket.connections.forEach { connection ->
+                    applyVideoSettings(connection)
+                }
             }
 
             // We use the heartbeat event (triggered every ~13.75s) as a refresh for
@@ -850,18 +870,17 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     private var connInfoText = "Not connected"
     var onConnInfoUpdate: (String) -> Unit = {}
 
-    private fun applyVideoSettings(socket: RtcControlSocket) {
-        socket.connections.forEach { connection ->
-            runCatching {
-                connection.setEncodingQuality(
-                    150_000,
-                    VoiceChatFixSettings.videoBitrateKbps * 1000,
-                    VoiceChatFixSettings.videoWidth,
-                    VoiceChatFixSettings.videoHeight,
-                    VoiceChatFixSettings.videoFramerate,
-                )
-            }.onFailure { logger.error("Failed to apply video encode settings", it) }
-        }
+    private fun applyVideoSettings(connection: Connection) {
+        runCatching {
+            connection.setEncodingQuality(
+                150_000,
+                VoiceChatFixSettings.videoBitrateKbps * 1000,
+                VoiceChatFixSettings.videoWidth,
+                VoiceChatFixSettings.videoHeight,
+                VoiceChatFixSettings.videoFramerate,
+            )
+        }.onFailure { logger.error("Failed to apply video encode settings", it) }
+
         setDebug("Bitrate", "${VoiceChatFixSettings.videoBitrateKbps} kbps")
         setDebug("Resolution", "${VoiceChatFixSettings.videoWidth} x ${VoiceChatFixSettings.videoHeight} @ ${VoiceChatFixSettings.videoFramerate} fps")
     }
@@ -936,6 +955,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         }
     }
 
+    // Top left stream overlay
     // The highest inbound video is the fullscreen stream being watched
     // Callback runs on the stats thread and StreamZoom through the UI
     private fun fetchStreamInfo(cb: (StreamInfo?) -> Unit) {
@@ -957,6 +977,13 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                         resolution = "${v.resolution.width}x${v.resolution.height}",
                         fps = v.frameRateRender.toString(),
                         bitrate = "${v.bitrate / 1000} Kbps",
+                        decodeTime = "${v.averageDecodeTime} ms",
+                        // Only worth showing when the stream is struggling
+                        decodeFps = v.frameRateDecode.takeIf { it != v.frameRateRender }?.toString(),
+                        packetsLost = v.packetsLost.takeIf { it > 0 }?.toString(),
+                        freezes = v.freezeCount.takeIf { it > 0L }?.toString(),
+                        recovery = if (v.nackCount > 0L || v.pliCount > 0L)
+                            "${v.nackCount} / ${v.pliCount}" else null,
                     ))
                 }
                 override fun onStatsError(th: Throwable?) = cb(null)

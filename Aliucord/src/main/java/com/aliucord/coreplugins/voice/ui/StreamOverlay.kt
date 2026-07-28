@@ -58,6 +58,11 @@ internal class StreamOverlay(
                     resolution = addRow("Resolution"),
                     fps = addRow("FPS"),
                     bitrate = addRow("Bitrate"),
+                    decodeTime = addRow("Decode Time"),
+                    decodeFps = addRow("Decode FPS"),
+                    packetsLost = addRow("Packets Lost"),
+                    freezes = addRow("Freezes"),
+                    recovery = addRow("NACK / PLI"),
                 )
             }
         }
@@ -113,6 +118,11 @@ internal class StreamOverlay(
         rows.resolution.set(d.resolution)
         rows.fps.set(d.fps)
         rows.bitrate.set(d.bitrate)
+        rows.decodeTime.set(d.decodeTime)
+        rows.decodeFps.set(d.decodeFps)
+        rows.packetsLost.set(d.packetsLost)
+        rows.freezes.set(d.freezes)
+        rows.recovery.set(d.recovery)
         infoCard.show()
     }
 
@@ -165,5 +175,10 @@ internal class StreamOverlay(
         val resolution: Row,
         val fps: Row,
         val bitrate: Row,
+        val decodeTime: Row,
+        val decodeFps: Row,
+        val packetsLost: Row,
+        val freezes: Row,
+        val recovery: Row,
     )
 }

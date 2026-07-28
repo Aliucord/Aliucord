@@ -107,3 +107,6 @@ internal fun codecCaps(codec: String): Discord.CodecCapability =
     Discord.codecCapabilities[codec] ?: (codec == "H264").let {
         Discord.CodecCapability(codec, decode = it, encode = it)
     }
+
+internal fun Any.setIntField(name: String, value: Int) =
+    javaClass.getDeclaredField(name).apply { isAccessible = true }.setInt(this, value)
