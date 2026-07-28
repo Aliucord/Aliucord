@@ -8,12 +8,10 @@ import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.text.style.StyleSpan
 import android.transition.TransitionManager
-import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
-import android.widget.SeekBar
 import android.widget.TextView
 import com.aliucord.Utils
 import com.aliucord.api.SettingsAPI
@@ -21,7 +19,6 @@ import com.aliucord.coreplugins.voice.model.TransportModes
 import com.aliucord.entities.Plugin
 import com.aliucord.settings.delegate
 import com.aliucord.utils.DimenUtils
-import com.aliucord.utils.DimenUtils.dp
 import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.views.DangerButton
 import com.aliucord.widgets.BottomSheet
@@ -41,19 +38,23 @@ internal object VoiceChatFixSettings {
     const val FPS_MAX = 120
     const val DEFAULT_ENCODER_QUEUE_SIZE = 4
     const val DEFAULT_SOUNDBOARD_VOLUME = 100
+    const val STREAM_MODE_DEFAULT = 0
+    const val STREAM_MODE_PERFORMANCE = 1
+    const val STREAM_MODE_HIGH_QUALITY = 2
+    const val STREAM_MODE_CUSTOM = 3
 
     private val settings = SettingsAPI("VoiceChatFix")
 
     // Server only offers it when the hardware supports it, if not, XChaCha20 will be used
     internal val useAes256GcmDelegate = settings.delegate("useAes256Gcm", true)
     val useAes256Gcm by useAes256GcmDelegate
-    private val videoBitrateKbpsDelegate = settings.delegate("videoBitrateKbps", DEFAULT_VIDEO_BITRATE_KBPS)
+    internal val videoBitrateKbpsDelegate = settings.delegate("videoBitrateKbps", DEFAULT_VIDEO_BITRATE_KBPS)
     val videoBitrateKbps by videoBitrateKbpsDelegate
-    private val videoFramerateDelegate = settings.delegate("videoFramerate", DEFAULT_VIDEO_FRAMERATE)
+    internal val videoFramerateDelegate = settings.delegate("videoFramerate", DEFAULT_VIDEO_FRAMERATE)
     val videoFramerate by videoFramerateDelegate
-    private val videoHeightDelegate = settings.delegate("videoHeight", DEFAULT_VIDEO_HEIGHT)
+    internal val videoHeightDelegate = settings.delegate("videoHeight", DEFAULT_VIDEO_HEIGHT)
     val videoHeight by videoHeightDelegate
-    private val videoWidthDelegate = settings.delegate("videoWidth", DEFAULT_VIDEO_WIDTH)
+    internal val videoWidthDelegate = settings.delegate("videoWidth", DEFAULT_VIDEO_WIDTH)
     val videoWidth by videoWidthDelegate
     internal val daveEnabledDelegate = settings.delegate("daveEnabled", true)
     val daveEnabled by daveEnabledDelegate
@@ -85,7 +86,28 @@ internal object VoiceChatFixSettings {
     val soundboardVolume by soundboardVolumeDelegate
     val mutedSoundboardUsers = PersistedIdSet(settings, "mutedSoundboardUsers")
     val disabledVideoUsers = PersistedIdSet(settings, "disabledVideoUsers")
+    private val streamModeDelegate = settings.delegate("streamMode", STREAM_MODE_DEFAULT)
+    val streamMode by streamModeDelegate
+    private val customQualityDelegate = settings.delegate("customQuality", false)
+    val customQualityEnabled by customQualityDelegate
     val transportEncryption: String get() = if (useAes256Gcm) TransportModes.AES256_GCM else TransportModes.XCHACHA20
+
+    fun applyStreamMode(mode: Int) {
+        var selected by streamModeDelegate
+        var width by videoWidthDelegate
+        var height by videoHeightDelegate
+        var fps by videoFramerateDelegate
+        var bitrate by videoBitrateKbpsDelegate
+
+        selected = mode
+        when (mode) {
+            // Custom keeps whatever the settings page holds, so nothing is written over it
+            STREAM_MODE_CUSTOM -> return
+            STREAM_MODE_PERFORMANCE -> { width = 854; height = 480; fps = 30; bitrate = 1000 }
+            STREAM_MODE_HIGH_QUALITY -> { width = 1920; height = 1080; fps = 60; bitrate = 6000 }
+            else -> { width = 1280; height = 720; fps = 30; bitrate = DEFAULT_VIDEO_BITRATE_KBPS }
+        }
+    }
 
     class Sheet : BottomSheet() {
         private val fixBtAuthor = Plugin.Manifest.Author("oSumAtrIX", 737323631117598811L, false)
@@ -129,8 +151,6 @@ internal object VoiceChatFixSettings {
 
             settingsLayout = with(builder) {
                 LinearLayout(ctx).addTo(linearLayout) {
-                    lateinit var fpsLabel: TextView
-
                     orientation = LinearLayout.VERTICAL
                     visibility = if (iKnowWhatImDoing) View.VISIBLE else View.GONE
 
@@ -221,95 +241,19 @@ internal object VoiceChatFixSettings {
                     }
 
                     TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(this) {
+                        setPadding(p, p, p, 0)
                         text = "Video / Screenshare"
                     }
 
-                    field(
-                        "Bitrate (kbps)",
-                        videoBitrateKbps,
-                        DEFAULT_VIDEO_BITRATE_KBPS,
-                        8..Int.MAX_VALUE,
-                        videoBitrateKbpsDelegate,
-                    )
-
-                    LinearLayout(ctx).addTo(this) {
-                        orientation = LinearLayout.HORIZONTAL
-                        layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
-                            marginStart = p
-                            marginEnd = p
-                        }
-
-                        field(
-                            "Width",
-                            videoWidth,
-                            DEFAULT_VIDEO_WIDTH,
-                            64..4096,
-                            videoWidthDelegate,
-                            isWeighted = true,
-                            isEven = true,
-                        )
-                        field(
-                            "Height",
-                            videoHeight,
-                            DEFAULT_VIDEO_HEIGHT,
-                            64..4096,
-                            videoHeightDelegate,
-                            isWeighted = true,
-                            isEven = true,
-                        )
-                    }
-
-                    TextView(ctx, null, 0, R.i.UiKit_Settings_Item_SubText).addTo(this) {
-                        setPadding(p, p / 4, p, 4)
-                        text = "Takes effect on the next voice connection."
-                        setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorTextMuted))
-                    }
-
-                    LinearLayout(ctx).addTo(this) {
-                        layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
-                        gravity = Gravity.CENTER_VERTICAL
-                        orientation = LinearLayout.HORIZONTAL
-
-                        TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(this) {
-                            layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
-                            text = "Framerate"
-                        }
-                        fpsLabel = TextView(ctx, null, 0, R.i.UiKit_Settings_Item_Header).addTo(this) {
-                            text = "$videoFramerate fps"
-                        }
-                    }
-
-                    SeekBar(ctx, null, 0, R.i.UiKit_SeekBar).addTo(this) {
-                        setPadding(p, 0, p, 0)
-                        // SeekBar min is 0, so offset by FPS_MIN: value = FPS_MIN + progress.
-                        max = FPS_MAX - FPS_MIN
-                        progress = videoFramerate.coerceIn(FPS_MIN, FPS_MAX) - FPS_MIN
-                        setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                            override fun onProgressChanged(sb: SeekBar?, value: Int, fromUser: Boolean) {
-                                fpsLabel.text = "${FPS_MIN + value} fps"
-                            }
-                            override fun onStartTrackingTouch(sb: SeekBar?) {}
-                            override fun onStopTrackingTouch(sb: SeekBar?) {
-                                var setting by videoFramerateDelegate
-                                setting = FPS_MIN + (sb?.progress ?: return)
-                            }
-                        })
-                    }
-
-                    LinearLayout(ctx, null, 0, R.i.UiKit_Settings_Item_SubText).addTo(this) {
-                        orientation = LinearLayout.HORIZONTAL
-                        setPadding(p, 0, p, 8.dp)
-                        TextView(ctx).addTo(this) {
-                            layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
-                            text = "$FPS_MIN fps"
-                            textSize = 12f
-                            setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorTextMuted))
-                        }
-                        TextView(ctx).addTo(this) {
-                            text = "$FPS_MAX fps"
-                            textSize = 12f
-                            setTextColor(ColorCompat.getThemedColor(ctx, R.b.colorTextMuted))
-                        }
+                    Utils.createCheckedSetting(
+                        ctx,
+                        CheckedSetting.ViewType.SWITCH,
+                        "Enable custom quality",
+                        "Adds a Custom option to the stream quality picker when starting a screenshare."
+                    ).addTo(this) {
+                        var setting by customQualityDelegate
+                        isChecked = setting
+                        setOnCheckedListener { setting = !setting }
                     }
 
                     field(

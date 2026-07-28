@@ -44,6 +44,7 @@ import com.aliucord.coreplugins.voice.ui.collapsibleTitle
 import com.aliucord.coreplugins.voice.ui.newCard
 import com.aliucord.coreplugins.voice.ui.setCodeBlock
 import com.aliucord.coreplugins.voice.ui.StreamOverlay
+import com.aliucord.coreplugins.voice.ui.StreamSettingsSheet
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.updater.ManagerBuild
@@ -94,6 +95,8 @@ import com.discord.widgets.stage.sheet.WidgetStageModeratorJoinBottomSheet
 import com.discord.widgets.stage.sheet.WidgetStageStartEventBottomSheetViewModel
 import com.discord.widgets.stage.start.ModeratorStartStageViewModel
 import com.discord.widgets.stage.start.WidgetModeratorStartStage
+import androidx.fragment.app.Fragment
+import com.discord.widgets.voice.stream.StreamNavigator
 import com.discord.widgets.voice.controls.VoiceControlsSheetView
 import com.discord.widgets.voice.fullscreen.CallParticipant
 import com.discord.widgets.voice.fullscreen.WidgetCallFullscreen
@@ -268,6 +271,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         patchAutoAcceptSpeakInvite()
         patchStageStartFlow()
         patchStageJoinPromptOnStart()
+        patchStreamSettingsSheet()
         ModernAudioDevices.register(patcher)
         StreamZoom.register(patcher)
 
@@ -1151,6 +1155,33 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 }
             }
         }
+    }
+
+    // Show the bottom drawer stream quality settings before the screen capture starts
+    private fun patchStreamSettingsSheet() = runCatching {
+        var confirmed = false
+
+        patcher.patch(
+            StreamNavigator::class.java.getDeclaredMethod("requestStartStream", Fragment::class.java),
+            PreHook { param ->
+                if (confirmed) {
+                    confirmed = false
+                    return@PreHook
+                }
+
+                val fragment = param.args[0] as? Fragment ?: return@PreHook
+                param.result = null
+
+                StreamSettingsSheet().apply {
+                    onConfirm = {
+                        confirmed = true
+                        StreamNavigator.requestStartStream(fragment)
+                    }
+                }.show(fragment.parentFragmentManager, "StreamSettings")
+            },
+        )
+    }.onFailure {
+        logger.error("Failed to patch stream settings sheet", it)
     }
 
     private fun patchUserSheetView() {
