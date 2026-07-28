@@ -86,7 +86,13 @@ private data class TransportOptions(
 }
 
 @Suppress("unused")
-class Connection(private val native: NativeConnection, streamParameters: List<Discord.NewStreamParameters>, private val engine: NativeEngine) : IConnection {
+class Connection(
+    private val native: NativeConnection,
+    streamParameters: List<Discord.NewStreamParameters>,
+    private val engine: NativeEngine,
+    // Native context this connection owns, handed back on dispose so the next stream can reuse it
+    private val nativeContext: String? = null,
+) : IConnection {
     companion object {
         @Volatile
         var priority: Boolean = false
@@ -208,6 +214,7 @@ class Connection(private val native: NativeConnection, streamParameters: List<Di
 
     override fun dispose() {
         disposed = true
+        Discord.releaseStreamContext(nativeContext)
         native.dispose()
     }
 

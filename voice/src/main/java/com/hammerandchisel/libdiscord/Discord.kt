@@ -6,6 +6,7 @@ import co.discord.media_engine.*
 import com.discord.native.engine.NativeEngine
 import com.google.gson.Gson
 import org.webrtc.VideoFrame
+import java.util.Collections
 import com.discord.native.engine.VideoInputDeviceFacing as NewVideoInputDeviceFacing
 
 private val gson = Gson()
@@ -207,7 +208,7 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         connectToServerCallback: ConnectToServerCallback
     ): Connection {
         // Screenshare connections must live in their OWN native context
-        val nativeContext = if (nextConnectionIsStream) "stream" else "default"
+        val nativeContext = if (nextConnectionIsStream) getStreamContext(ssrc) else DEFAULT_CONTEXT
         nextConnectionIsStream = false
         Log.i(TAG, "Connecting user $userId to $ip:$port (SSRC: $ssrc, context: $nativeContext)")
 
@@ -264,7 +265,13 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
                 )
             }, error)
         }
-        return Connection(nativeConnection, videoParams, nativeEngine)
+        // Only stream contexts are allowed, "default" is never handed back
+        return Connection(
+            nativeConnection,
+            videoParams,
+            nativeEngine,
+            nativeContext.takeIf { isStreamContext(it) },
+        )
     }
 
     fun crash() {} // only used in developer options
@@ -372,12 +379,32 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         const val LOGLEVEL_DEBUG: Int = 2
         const val LOGLEVEL_DEFAULT: Int = -1
         const val DEFAULT_VIDEO_MAX_BITRATE: Int = 2_500_000  // 2500 kbps
+        const val DEFAULT_CONTEXT = "stream"
+        const val STREAM_CONTEXT = "stream"
 
         // The MediaEngineConnectionLegacy ctor calls connectToServer NOT async
         // on the same thread, so screenshare connections get their own native context
         @JvmStatic
         @Volatile
         var nextConnectionIsStream: Boolean = false
+
+        // Watching a screenshare and also screensharing are separate connections that both land here
+        // This fixes the issue of not being able to do both at the same time (bruh)
+        private val streamContexts = Collections.synchronizedSet(HashSet<String>())
+
+        internal fun getStreamContext(ssrc: Int): String =
+            synchronized(streamContexts) {
+                val name = if (streamContexts.contains(STREAM_CONTEXT)) "$STREAM_CONTEXT-$ssrc" else STREAM_CONTEXT
+                streamContexts.add(name)
+                name
+            }
+
+        @JvmStatic
+        fun releaseStreamContext(context: String?) {
+            if (context != null) streamContexts.remove(context)
+        }
+
+        internal fun isStreamContext(context: String) = context.startsWith(STREAM_CONTEXT)
 
         @JvmStatic
         @Volatile
