@@ -609,9 +609,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             // We need to call the encoder so screenshares actually display something
             // Also apply user video settings on every sink-wants update
             if (message.opcode == Opcodes.MEDIA_SINK_WANTS) {
-                socket.connections.forEach { connection ->
-                    applyVideoSettings(connection)
-                }
+                applyVideoSettings(socket)
             }
 
             // We use the heartbeat event (triggered every ~13.75s) as a refresh for
@@ -885,6 +883,12 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         setDebug("Resolution", "${VoiceChatFixSettings.videoWidth} x ${VoiceChatFixSettings.videoHeight} @ ${VoiceChatFixSettings.videoFramerate} fps")
     }
 
+    private fun applyVideoSettings(socket: RtcControlSocket) {
+        socket.connections.forEach { connection ->
+            applyVideoSettings(connection)
+        }
+    }
+
     // Drop the row if value is null
     private fun setDebug(key: String, value: String?) {
         if (value == null) debugInfo.remove(key) else debugInfo[key] = value
@@ -998,6 +1002,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             "handleNewConnection",
             MediaEngineConnection::class.java,
         ) { (_, conn: MediaEngineConnectionLegacy) ->
+            if (conn.type == MediaEngineConnection.Type.STREAM) applyVideoSettings(conn.j)
             if (conn.type != MediaEngineConnection.Type.DEFAULT) return@after
             logger.debug("setting secure frames callback...")
             newestCode = ""
