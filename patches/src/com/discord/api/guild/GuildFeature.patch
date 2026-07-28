@@ -1,6 +1,6 @@
 --- smali_original/com/discord/api/guild/GuildFeature.smali
 +++ smali/com/discord/api/guild/GuildFeature.smali
-@@ -130,12 +130,16 @@
+@@ -130,12 +130,199 @@
 
  .field public static final enum VIP_REGIONS:Lcom/discord/api/guild/GuildFeature;
 
@@ -8,17 +8,200 @@
 +
 +.field public static final enum GUILD_ONBOARDING_HAS_PROMPTS:Lcom/discord/api/guild/GuildFeature;
 +
++.field public static final enum ACTIVITIES_ALPHA:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum ACTIVITIES_EMPLOYEE:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum ACTIVITIES_INTERNAL_DEV:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum ACTIVITY_FEED_DISABLED_BY_USER:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum ACTIVITY_FEED_ENABLED_BY_USER:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum AGE_VERIFICATION_LARGE_GUILD:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum APPLICATION_COMMAND_PERMISSIONS_V2:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum AUDIO_BITRATE_128_KBPS:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum AUDIO_BITRATE_256_KBPS:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum AUDIO_BITRATE_384_KBPS:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum AUTO_MODERATION:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum BFG:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum BOT_DEVELOPER_EARLY_ACCESS:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum BYPASS_SLOWMODE_PERMISSION_MIGRATION_COMPLETE:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum CHANNEL_EMOJIS_GENERATED:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum CHANNEL_ICON_EMOJIS_GENERATED:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum COMMUNITY_CANARY:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum COMMUNITY_EXP_LARGE_GATED:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum COMMUNITY_EXP_LARGE_UNGATED:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum COMMUNITY_EXP_MEDIUM:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum CONFERENCE:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum CONSIDERED_EXTERNALLY_DISCOVERABLE:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum CREATOR_MONETIZABLE_PENDING_NEW_OWNER_ONBOARDING:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum CREATOR_MONETIZABLE_PROVISIONAL:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum CREATOR_MONETIZABLE_RESTRICTED:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum CREATOR_MONETIZABLE_WHITEGLOVE:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum CREATOR_MONETIZATION_APPLICATION_ALLOWLIST:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum CREATOR_STORE_PAGE:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum DEVELOPER_SUPPORT_SERVER:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum DISCOVERABLE_DISABLED:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum ENABLED_DISCOVERABLE_BEFORE:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum ENABLED_MODERATION_EXPERIENCE_FOR_NON_COMMUNITY:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum ENHANCED_ROLE_COLORS:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum EXPOSED_TO_ACTIVITIES_WTP_EXPERIMENT:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum FORWARDING_DISABLED:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum GAME_SERVERS:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum GAME_SERVER_HOSTING:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum GUESTS_ENABLED:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum GUILD_ONBOARDING_EVER_ENABLED:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum GUILD_PRODUCTS:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum GUILD_PRODUCTS_ALLOW_ARCHIVED_FILE:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum GUILD_SERVER_GUIDE:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum GUILD_TAGS:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum GUILD_TAGS_BADGE_PACK_CREEPY_CRAWLIES:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum GUILD_TAGS_BADGE_PACK_FLEX:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum GUILD_TAGS_BADGE_PACK_PETS:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum GUILD_TAGS_BADGE_PACK_PLANT:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum GUILD_WEB_PAGE_VANITY_URL:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum HAD_EARLY_ACTIVITIES_ACCESS:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum HIDE_FROM_EXPERIMENT_UI:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum INCREASED_THREAD_LIMIT:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum INTERNAL_EMPLOYEE_ONLY:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum INVITES_DISABLED:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum LINKED_TO_HUB:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum MAX_FILE_SIZE_100_MB:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum MAX_FILE_SIZE_250_MB:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum MAX_FILE_SIZE_50_MB:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum MEMBER_VERIFICATION_MANUAL_APPROVAL:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum MORE_SOUNDBOARD:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum MORE_STICKERS:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum NON_COMMUNITY_RAID_ALERTS:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum OFFICIAL_GAME_GUILD:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum PIN_PERMISSION_MIGRATION_COMPLETE:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum POWERUP_BETA_FEATURES:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum PREMIUM_TIER_3_OVERRIDE:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum PRODUCTS_AVAILABLE_FOR_PURCHASE:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum PRUNE_REQUIRES_ADMIN:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum RAID_ALERTS_DISABLED:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum RELAY_ENABLED:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum REPORT_TO_MOD_PILOT:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum REPORT_TO_MOD_SURVEY:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum SHARED_CANVAS_FRIENDS_AND_FAMILY_TEST:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum SOCIAL_LAYER_STOREFRONT:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum SOUNDBOARD:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum STAFF_LEVEL_COLLABORATOR_REQUIRED:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum STAFF_LEVEL_RESTRICTED_COLLABORATOR_REQUIRED:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum STAGE_CHANNEL_VIEWERS_150:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum STAGE_CHANNEL_VIEWERS_300:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum STAGE_CHANNEL_VIEWERS_50:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum SUMMARIES_DISABLED_BY_USER:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum SUMMARIES_ENABLED_BY_USER:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum SUMMARIES_ENABLED_GA:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum SUMMARIES_LONG_LOOKBACK:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum SUMMARIES_OPT_OUT_EXPERIENCE:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum TICKETED_EVENTS_ENABLED:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum TIERLESS_BOOSTING:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum TIERLESS_BOOSTING_SYSTEM_MESSAGE:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum VIDEO_BITRATE_ENHANCED:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum VIDEO_QUALITY_1080_60FPS:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum VIDEO_QUALITY_720_60FPS:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum VOICE_IN_THREADS:Lcom/discord/api/guild/GuildFeature;
++
++.field public static final enum WELCOME_SCREEN_ENABLED:Lcom/discord/api/guild/GuildFeature;
 
  # direct methods
  .method public static constructor <clinit>()V
      .locals 4
 
 -    const/16 v0, 0x1e
-+    const/16 v0, 0x20
++    const/16 v0, 0x7c
 
      new-array v0, v0, [Lcom/discord/api/guild/GuildFeature;
 
-@@ -515,6 +519,34 @@ .method public static constructor <clini
+@@ -515,6 +702,1322 @@ .method public static constructor <clini
 
      aput-object v1, v0, v2
 
@@ -49,6 +232,1294 @@
 +    const/16 v2, 0x1f
 +
 +    aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "ACTIVITIES_ALPHA"
++
++	const/16 v3, 0x20
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->ACTIVITIES_ALPHA:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x20
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "ACTIVITIES_EMPLOYEE"
++
++	const/16 v3, 0x21
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->ACTIVITIES_EMPLOYEE:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x21
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "ACTIVITIES_INTERNAL_DEV"
++
++	const/16 v3, 0x22
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->ACTIVITIES_INTERNAL_DEV:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x22
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "ACTIVITY_FEED_DISABLED_BY_USER"
++
++	const/16 v3, 0x23
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->ACTIVITY_FEED_DISABLED_BY_USER:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x23
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "ACTIVITY_FEED_ENABLED_BY_USER"
++
++	const/16 v3, 0x24
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->ACTIVITY_FEED_ENABLED_BY_USER:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x24
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "AGE_VERIFICATION_LARGE_GUILD"
++
++	const/16 v3, 0x25
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->AGE_VERIFICATION_LARGE_GUILD:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x25
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "APPLICATION_COMMAND_PERMISSIONS_V2"
++
++	const/16 v3, 0x26
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->APPLICATION_COMMAND_PERMISSIONS_V2:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x26
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "AUDIO_BITRATE_128_KBPS"
++
++	const/16 v3, 0x27
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->AUDIO_BITRATE_128_KBPS:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x27
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "AUDIO_BITRATE_256_KBPS"
++
++	const/16 v3, 0x28
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->AUDIO_BITRATE_256_KBPS:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x28
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "AUDIO_BITRATE_384_KBPS"
++
++	const/16 v3, 0x29
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->AUDIO_BITRATE_384_KBPS:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x29
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "AUTO_MODERATION"
++
++	const/16 v3, 0x2a
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->AUTO_MODERATION:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x2a
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "BFG"
++
++	const/16 v3, 0x2b
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->BFG:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x2b
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "BOT_DEVELOPER_EARLY_ACCESS"
++
++	const/16 v3, 0x2c
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->BOT_DEVELOPER_EARLY_ACCESS:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x2c
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "BYPASS_SLOWMODE_PERMISSION_MIGRATION_COMPLETE"
++
++	const/16 v3, 0x2d
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->BYPASS_SLOWMODE_PERMISSION_MIGRATION_COMPLETE:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x2d
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "CHANNEL_EMOJIS_GENERATED"
++
++	const/16 v3, 0x2e
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->CHANNEL_EMOJIS_GENERATED:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x2e
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "CHANNEL_ICON_EMOJIS_GENERATED"
++
++	const/16 v3, 0x2f
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->CHANNEL_ICON_EMOJIS_GENERATED:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x2f
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "COMMUNITY_CANARY"
++
++	const/16 v3, 0x30
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->COMMUNITY_CANARY:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x30
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "COMMUNITY_EXP_LARGE_GATED"
++
++	const/16 v3, 0x31
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->COMMUNITY_EXP_LARGE_GATED:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x31
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "COMMUNITY_EXP_LARGE_UNGATED"
++
++	const/16 v3, 0x32
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->COMMUNITY_EXP_LARGE_UNGATED:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x32
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "COMMUNITY_EXP_MEDIUM"
++
++	const/16 v3, 0x33
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->COMMUNITY_EXP_MEDIUM:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x33
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "CONFERENCE"
++
++	const/16 v3, 0x34
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->CONFERENCE:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x34
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "CONSIDERED_EXTERNALLY_DISCOVERABLE"
++
++	const/16 v3, 0x35
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->CONSIDERED_EXTERNALLY_DISCOVERABLE:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x35
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "CREATOR_MONETIZABLE_PENDING_NEW_OWNER_ONBOARDING"
++
++	const/16 v3, 0x36
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->CREATOR_MONETIZABLE_PENDING_NEW_OWNER_ONBOARDING:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x36
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "CREATOR_MONETIZABLE_PROVISIONAL"
++
++	const/16 v3, 0x37
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->CREATOR_MONETIZABLE_PROVISIONAL:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x37
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "CREATOR_MONETIZABLE_RESTRICTED"
++
++	const/16 v3, 0x38
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->CREATOR_MONETIZABLE_RESTRICTED:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x38
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "CREATOR_MONETIZABLE_WHITEGLOVE"
++
++	const/16 v3, 0x39
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->CREATOR_MONETIZABLE_WHITEGLOVE:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x39
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "CREATOR_MONETIZATION_APPLICATION_ALLOWLIST"
++
++	const/16 v3, 0x3a
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->CREATOR_MONETIZATION_APPLICATION_ALLOWLIST:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x3a
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "CREATOR_STORE_PAGE"
++
++	const/16 v3, 0x3b
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->CREATOR_STORE_PAGE:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x3b
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "DEVELOPER_SUPPORT_SERVER"
++
++	const/16 v3, 0x3c
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->DEVELOPER_SUPPORT_SERVER:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x3c
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "DISCOVERABLE_DISABLED"
++
++	const/16 v3, 0x3d
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->DISCOVERABLE_DISABLED:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x3d
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "ENABLED_DISCOVERABLE_BEFORE"
++
++	const/16 v3, 0x3e
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->ENABLED_DISCOVERABLE_BEFORE:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x3e
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "ENABLED_MODERATION_EXPERIENCE_FOR_NON_COMMUNITY"
++
++	const/16 v3, 0x3f
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->ENABLED_MODERATION_EXPERIENCE_FOR_NON_COMMUNITY:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x3f
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "ENHANCED_ROLE_COLORS"
++
++	const/16 v3, 0x40
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->ENHANCED_ROLE_COLORS:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x40
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "EXPOSED_TO_ACTIVITIES_WTP_EXPERIMENT"
++
++	const/16 v3, 0x41
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->EXPOSED_TO_ACTIVITIES_WTP_EXPERIMENT:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x41
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "FORWARDING_DISABLED"
++
++	const/16 v3, 0x42
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->FORWARDING_DISABLED:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x42
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "GAME_SERVERS"
++
++	const/16 v3, 0x43
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->GAME_SERVERS:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x43
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "GAME_SERVER_HOSTING"
++
++	const/16 v3, 0x44
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->GAME_SERVER_HOSTING:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x44
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "GUESTS_ENABLED"
++
++	const/16 v3, 0x45
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->GUESTS_ENABLED:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x45
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "GUILD_ONBOARDING_EVER_ENABLED"
++
++	const/16 v3, 0x46
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->GUILD_ONBOARDING_EVER_ENABLED:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x46
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "GUILD_PRODUCTS"
++
++	const/16 v3, 0x47
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->GUILD_PRODUCTS:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x47
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "GUILD_PRODUCTS_ALLOW_ARCHIVED_FILE"
++
++	const/16 v3, 0x48
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->GUILD_PRODUCTS_ALLOW_ARCHIVED_FILE:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x48
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "GUILD_SERVER_GUIDE"
++
++	const/16 v3, 0x49
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->GUILD_SERVER_GUIDE:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x49
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "GUILD_TAGS"
++
++	const/16 v3, 0x4a
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->GUILD_TAGS:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x4a
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "GUILD_TAGS_BADGE_PACK_CREEPY_CRAWLIES"
++
++	const/16 v3, 0x4b
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->GUILD_TAGS_BADGE_PACK_CREEPY_CRAWLIES:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x4b
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "GUILD_TAGS_BADGE_PACK_FLEX"
++
++	const/16 v3, 0x4c
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->GUILD_TAGS_BADGE_PACK_FLEX:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x4c
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "GUILD_TAGS_BADGE_PACK_PETS"
++
++	const/16 v3, 0x4d
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->GUILD_TAGS_BADGE_PACK_PETS:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x4d
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "GUILD_TAGS_BADGE_PACK_PLANT"
++
++	const/16 v3, 0x4e
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->GUILD_TAGS_BADGE_PACK_PLANT:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x4e
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "GUILD_WEB_PAGE_VANITY_URL"
++
++	const/16 v3, 0x4f
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->GUILD_WEB_PAGE_VANITY_URL:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x4f
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "HAD_EARLY_ACTIVITIES_ACCESS"
++
++	const/16 v3, 0x50
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->HAD_EARLY_ACTIVITIES_ACCESS:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x50
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "HIDE_FROM_EXPERIMENT_UI"
++
++	const/16 v3, 0x51
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->HIDE_FROM_EXPERIMENT_UI:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x51
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "INCREASED_THREAD_LIMIT"
++
++	const/16 v3, 0x52
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->INCREASED_THREAD_LIMIT:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x52
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "INTERNAL_EMPLOYEE_ONLY"
++
++	const/16 v3, 0x53
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->INTERNAL_EMPLOYEE_ONLY:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x53
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "INVITES_DISABLED"
++
++	const/16 v3, 0x54
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->INVITES_DISABLED:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x54
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "LINKED_TO_HUB"
++
++	const/16 v3, 0x55
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->LINKED_TO_HUB:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x55
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "MAX_FILE_SIZE_100_MB"
++
++	const/16 v3, 0x56
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->MAX_FILE_SIZE_100_MB:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x56
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "MAX_FILE_SIZE_250_MB"
++
++	const/16 v3, 0x57
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->MAX_FILE_SIZE_250_MB:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x57
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "MAX_FILE_SIZE_50_MB"
++
++	const/16 v3, 0x58
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->MAX_FILE_SIZE_50_MB:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x58
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "MEMBER_VERIFICATION_MANUAL_APPROVAL"
++
++	const/16 v3, 0x59
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->MEMBER_VERIFICATION_MANUAL_APPROVAL:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x59
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "MORE_SOUNDBOARD"
++
++	const/16 v3, 0x5a
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->MORE_SOUNDBOARD:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x5a
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "MORE_STICKERS"
++
++	const/16 v3, 0x5b
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->MORE_STICKERS:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x5b
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "NON_COMMUNITY_RAID_ALERTS"
++
++	const/16 v3, 0x5c
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->NON_COMMUNITY_RAID_ALERTS:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x5c
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "OFFICIAL_GAME_GUILD"
++
++	const/16 v3, 0x5d
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->OFFICIAL_GAME_GUILD:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x5d
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "PIN_PERMISSION_MIGRATION_COMPLETE"
++
++	const/16 v3, 0x5e
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->PIN_PERMISSION_MIGRATION_COMPLETE:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x5e
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "POWERUP_BETA_FEATURES"
++
++	const/16 v3, 0x5f
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->POWERUP_BETA_FEATURES:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x5f
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "PREMIUM_TIER_3_OVERRIDE"
++
++	const/16 v3, 0x60
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->PREMIUM_TIER_3_OVERRIDE:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x60
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "PRODUCTS_AVAILABLE_FOR_PURCHASE"
++
++	const/16 v3, 0x61
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->PRODUCTS_AVAILABLE_FOR_PURCHASE:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x61
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "PRUNE_REQUIRES_ADMIN"
++
++	const/16 v3, 0x62
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->PRUNE_REQUIRES_ADMIN:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x62
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "RAID_ALERTS_DISABLED"
++
++	const/16 v3, 0x63
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->RAID_ALERTS_DISABLED:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x63
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "RELAY_ENABLED"
++
++	const/16 v3, 0x64
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->RELAY_ENABLED:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x64
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "REPORT_TO_MOD_PILOT"
++
++	const/16 v3, 0x65
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->REPORT_TO_MOD_PILOT:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x65
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "REPORT_TO_MOD_SURVEY"
++
++	const/16 v3, 0x66
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->REPORT_TO_MOD_SURVEY:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x66
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "SHARED_CANVAS_FRIENDS_AND_FAMILY_TEST"
++
++	const/16 v3, 0x67
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->SHARED_CANVAS_FRIENDS_AND_FAMILY_TEST:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x67
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "SOCIAL_LAYER_STOREFRONT"
++
++	const/16 v3, 0x68
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->SOCIAL_LAYER_STOREFRONT:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x68
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "SOUNDBOARD"
++
++	const/16 v3, 0x69
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->SOUNDBOARD:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x69
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "STAFF_LEVEL_COLLABORATOR_REQUIRED"
++
++	const/16 v3, 0x6a
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->STAFF_LEVEL_COLLABORATOR_REQUIRED:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x6a
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "STAFF_LEVEL_RESTRICTED_COLLABORATOR_REQUIRED"
++
++	const/16 v3, 0x6b
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->STAFF_LEVEL_RESTRICTED_COLLABORATOR_REQUIRED:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x6b
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "STAGE_CHANNEL_VIEWERS_150"
++
++	const/16 v3, 0x6c
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->STAGE_CHANNEL_VIEWERS_150:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x6c
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "STAGE_CHANNEL_VIEWERS_300"
++
++	const/16 v3, 0x6d
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->STAGE_CHANNEL_VIEWERS_300:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x6d
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "STAGE_CHANNEL_VIEWERS_50"
++
++	const/16 v3, 0x6e
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->STAGE_CHANNEL_VIEWERS_50:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x6e
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "SUMMARIES_DISABLED_BY_USER"
++
++	const/16 v3, 0x6f
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->SUMMARIES_DISABLED_BY_USER:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x6f
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "SUMMARIES_ENABLED_BY_USER"
++
++	const/16 v3, 0x70
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->SUMMARIES_ENABLED_BY_USER:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x70
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "SUMMARIES_ENABLED_GA"
++
++	const/16 v3, 0x71
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->SUMMARIES_ENABLED_GA:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x71
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "SUMMARIES_LONG_LOOKBACK"
++
++	const/16 v3, 0x72
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->SUMMARIES_LONG_LOOKBACK:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x72
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "SUMMARIES_OPT_OUT_EXPERIENCE"
++
++	const/16 v3, 0x73
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->SUMMARIES_OPT_OUT_EXPERIENCE:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x73
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "TICKETED_EVENTS_ENABLED"
++
++	const/16 v3, 0x74
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->TICKETED_EVENTS_ENABLED:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x74
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "TIERLESS_BOOSTING"
++
++	const/16 v3, 0x75
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->TIERLESS_BOOSTING:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x75
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "TIERLESS_BOOSTING_SYSTEM_MESSAGE"
++
++	const/16 v3, 0x76
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->TIERLESS_BOOSTING_SYSTEM_MESSAGE:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x76
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "VIDEO_BITRATE_ENHANCED"
++
++	const/16 v3, 0x77
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->VIDEO_BITRATE_ENHANCED:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x77
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "VIDEO_QUALITY_1080_60FPS"
++
++	const/16 v3, 0x78
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->VIDEO_QUALITY_1080_60FPS:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x78
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "VIDEO_QUALITY_720_60FPS"
++
++	const/16 v3, 0x79
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->VIDEO_QUALITY_720_60FPS:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x79
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "VOICE_IN_THREADS"
++
++	const/16 v3, 0x7a
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->VOICE_IN_THREADS:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x7a
++
++	aput-object v1, v0, v2
++
++	new-instance v1, Lcom/discord/api/guild/GuildFeature;
++
++	const-string v2, "WELCOME_SCREEN_ENABLED"
++
++	const/16 v3, 0x7b
++
++	invoke-direct {v1, v2, v3}, Lcom/discord/api/guild/GuildFeature;-><init>(Ljava/lang/String;I)V
++
++	sput-object v1, Lcom/discord/api/guild/GuildFeature;->WELCOME_SCREEN_ENABLED:Lcom/discord/api/guild/GuildFeature;
++
++	const/16 v2, 0x7b
++
++	aput-object v1, v0, v2
 +
      sput-object v0, Lcom/discord/api/guild/GuildFeature;->$VALUES:[Lcom/discord/api/guild/GuildFeature;
 
