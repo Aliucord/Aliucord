@@ -1,11 +1,13 @@
 package com.aliucord.coreplugins.voice.ui
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
@@ -26,18 +28,19 @@ internal class StreamSettingsSheet : BottomSheet() {
     var onConfirm: (() -> Unit)? = null
 
     // Own type rather than Triple, I love kotlin stdlib
-    private class Mode(val id: Int, val title: String, val subtitle: String)
+    private class Mode(val id: Int, val title: String, val subtitle: String, val icon: String)
 
     // Custom option only appears when it's switched on in the plugin settings, then its values are entered here
     private val modes = mutableListOf(
-        Mode(VoiceChatFixSettings.STREAM_MODE_DEFAULT, "Default", "Balanced quality and performance (720p, 30fps)"),
-        Mode(VoiceChatFixSettings.STREAM_MODE_PERFORMANCE, "Performance", "Optimized for slower devices (480p, 30fps)"),
-        Mode(VoiceChatFixSettings.STREAM_MODE_HIGH_QUALITY, "High Quality", "For video and gaming (1080p, 60fps)"),
+        Mode(VoiceChatFixSettings.STREAM_MODE_DEFAULT, "Default", "Balanced quality and performance (720p, 30fps)", "ic_mobile_screenshare_24dp"),
+        Mode(VoiceChatFixSettings.STREAM_MODE_PERFORMANCE, "Performance", "Optimized for slower devices (480p, 30fps)", "exo_ic_speed"),
+        Mode(VoiceChatFixSettings.STREAM_MODE_HIGH_QUALITY, "High Quality", "For video and gaming (1080p, 60fps)", "ic_premium_marketing_stream_quality_24dp"),
     ).apply {
         if (VoiceChatFixSettings.customQualityEnabled) add(Mode(
             VoiceChatFixSettings.STREAM_MODE_CUSTOM,
             "Custom",
             "Choose your own resolution, framerate and bitrate",
+            "ic_settings_24dp",
         ))
     }
 
@@ -52,6 +55,9 @@ internal class StreamSettingsSheet : BottomSheet() {
             ?: VoiceChatFixSettings.STREAM_MODE_DEFAULT
 
         val radios = ArrayList<CheckedSetting>(modes.size)
+
+        // Every CheckedSetting uses this view, stays hidden until something gives it a drawable
+        val iconId = Utils.getResId("setting_drawable_left", "id")
 
         // Assigning isChecked fires the listener again, so the group update has to be re-entrant safe
         var updating = false
@@ -89,6 +95,11 @@ internal class StreamSettingsSheet : BottomSheet() {
                 setTextColor(headerPrimary)
                 // Carries which mode the row stands for, so the group never depends on list order
                 tag = mode.id
+                findViewById<ImageView>(iconId).apply {
+                    setImageResource(Utils.getResId(mode.icon, "drawable"))
+                    imageTintList = ColorStateList.valueOf(headerPrimary)
+                    setPadding(0, 0, p / 4, 0)
+                }
             }
             radios.add(radio)
 
