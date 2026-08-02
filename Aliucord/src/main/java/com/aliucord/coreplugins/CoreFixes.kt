@@ -20,10 +20,12 @@ import com.aliucord.Utils
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.rx.CancellableSubscription
+import com.aliucord.utils.*
 import com.aliucord.utils.DimenUtils.dp
-import com.aliucord.utils.ReflectUtils
+import com.aliucord.utils.RxUtils.computationBuffered
+import com.aliucord.utils.RxUtils.subscribe
+import com.aliucord.utils.RxUtils.ui
 import com.aliucord.utils.ViewUtils.findViewById
-import com.aliucord.utils.accessField
 import com.aliucord.wrappers.ChannelWrapper.Companion.id
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper
 import com.discord.api.channel.Channel
@@ -39,6 +41,7 @@ import com.discord.models.guild.Guild
 import com.discord.rtcconnection.socket.io.Payloads.Protocol.ProtocolInfo
 import com.discord.stores.*
 import com.discord.stores.updates.ObservationDeck
+import com.discord.utilities.channel.ChannelSelector
 import com.discord.utilities.drawable.DrawableCompat
 import com.discord.utilities.embed.EmbedResourceUtils
 import com.discord.utilities.guildautomod.AutoModUtils
@@ -47,6 +50,7 @@ import com.discord.utilities.images.MGImages
 import com.discord.utilities.lazy.memberlist.ChannelMemberList
 import com.discord.utilities.lazy.memberlist.MemberListRow
 import com.discord.utilities.permissions.PermissionUtils
+import com.discord.utilities.rest.RestAPI
 import com.discord.utilities.time.ClockFactory
 import com.discord.utilities.time.NtpClock
 import com.discord.utilities.viewbinding.FragmentViewBindingDelegate
@@ -398,12 +402,38 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         patcher.after<WidgetChatListAdapterItemThreadDraftForm>("onConfigure", Int::class.javaPrimitiveType!!, ChatListEntry::class.java) {
             itemView.findViewById<TextView>("private_thread_toggle_badge").visibility = View.GONE
         }
+
         // Fix create thread experiment
         patcher.instead<CreateThreadsFeatureFlag.Companion>("computeIsEnabled",
             Experiment::class.java,
             Experiment::class.java,
             Guild::class.java
         ) { true }
+
+        // Fix archived thread jumping
+        patcher.before<`StoreMessagesLoader$jumpToMessage$6`<*, *>>(
+            "call",
+            Boolean::class.javaObjectType,
+        ) { param ->
+            // archived threads are not fetched by default so try to manually fetch them - Canny
+            val isArchived = StoreStream.Companion!!.channels.findChannelById(`$channelId`) == null
+            if (!isArchived) return@before
+
+            val apiObservable = RestAPI.Companion!!
+                .api.getChannel(`$channelId`)
+                .computationBuffered().ui()
+            // add fetched thread to stores for caching - Canny
+            val apiSubscriber = RxUtils.createActionSubscriber<Channel>(
+                onNext = { channel ->
+                    val channelSelector = ChannelSelector.Companion!!.instance
+                    channelSelector.dispatcher.schedule {
+                        channelSelector.stream.handleThreadCreateOrUpdate(channel)
+                    }
+                },
+                onError = logger::error
+            )
+            param.result = apiObservable.apply { subscribe(apiSubscriber) }
+        }
     }
 
     private fun fixThreadsIcon() = tryPatch("Fix threads icon alignment in channel context menu") {
@@ -515,7 +545,8 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     }
 
     private fun fixUnreadForumChannels() = tryPatch("Fix unread forum channels") {
-        patcher.before<StoreReadStates>("computeUnreadIds",
+        patcher.before<StoreReadStates>(
+            "computeUnreadIds",
             Map::class.java,
             Map::class.java,
             Map::class.java,
@@ -657,7 +688,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     }
 }
 
-private class AndroidClock: KronosClock {
+private class AndroidClock : KronosClock {
     override fun a(): Long = System.currentTimeMillis()
 
     override fun b(): Long = SystemClock.elapsedRealtime()
