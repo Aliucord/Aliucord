@@ -154,12 +154,15 @@ private class Injector(private val appCtx: Application) {
      * to allow for early initialization of the Aliucord core.
      */
     fun restoreCoreFlow() {
-        hookActivityOnCreate { activity ->
+        hookActivityOnCreate { activity, unhook ->
             val permissionsResult = ::requestPermissions.takeIf { !isPermissionsGranted() }?.invoke(activity)
 
             Thread {
                 if (permissionsResult?.get() == false)
                     return@Thread
+
+                // Unhook only after permission result retrieved
+                unhook.unhook()
 
                 if (!isUsingCustomCore() && !installCore())
                     return@Thread
@@ -264,7 +267,8 @@ private class Injector(private val appCtx: Application) {
         val preInit = c.getDeclaredMethod("preInit", AppActivity::class.java)
         val init = c.getDeclaredMethod("init", AppActivity::class.java)
 
-        hookActivityOnCreate { activity ->
+        hookActivityOnCreate { activity, unhook ->
+            unhook.unhook()
             Logger.d("Starting Aliucord core...")
             preInit.invoke(null, activity)
             init.invoke(null, activity)
@@ -353,7 +357,7 @@ private class Injector(private val appCtx: Application) {
      * the activity initializing, however disallows hooking once it's initialized. As such, it should not
      * be used multiple times throughout different parts of the same initialization flow.
      */
-    private fun hookActivityOnCreate(callback: (AppActivity) -> Unit) {
+    private fun hookActivityOnCreate(callback: (AppActivity, XC_MethodHook.Unhook) -> Unit) {
         Logger.d("Hooking AppActivity.onCreate")
 
         if (activityInitialized.get()) {
@@ -366,9 +370,8 @@ private class Injector(private val appCtx: Application) {
                 AppActivity::class.java.getDeclaredMethod("onCreate", Bundle::class.java),
                 object : XC_MethodHook() {
                     override fun beforeHookedMethod(param: MethodHookParam) {
-                        unhook!!.unhook()
                         activityInitialized.set(true)
-                        callback(param.thisObject as AppActivity)
+                        callback(param.thisObject as AppActivity, unhook!!)
                     }
                 },
             )
