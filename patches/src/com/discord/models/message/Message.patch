@@ -1,6 +1,34 @@
 --- smali_original/com/discord/models/message/Message.smali
 +++ smali/com/discord/models/message/Message.smali
-@@ -394,6 +394,18 @@
+@@ -358,6 +358,10 @@
+ 
+ .field private final interaction:Lcom/discord/api/interaction/Interaction;
+ 
++.field public interactionMetadata:Lcom/discord/api/interaction/Interaction;
++
++.field public lobbyId:Ljava/lang/Long;
++
+ .field private final lastManualAttemptTimestamp:Ljava/lang/Long;
+ 
+ .field private final localAttachments:Ljava/util/List;
+@@ -372,6 +376,16 @@
+ 
+ .field private final mentionEveryone:Ljava/lang/Boolean;
+ 
++.field public mentionChannels:Ljava/util/List;
++    .annotation system Ldalvik/annotation/Signature;
++        value = {
++            "Ljava/util/List<",
++            "Lcom/discord/api/channel/Channel;",
++            ">;"
++        }
++    .end annotation
++.end field
++
+ .field private final mentionRoles:Ljava/util/List;
+     .annotation system Ldalvik/annotation/Signature;
+         value = {
+@@ -394,6 +408,20 @@
  
  .field private final messageReference:Lcom/discord/api/message/MessageReference;
  
@@ -16,10 +44,49 @@
 +
 +.field public poll:Lcom/discord/api/message/poll/MessagePoll;
 +
++.field public purchaseNotification:Lcom/discord/api/message/MessagePurchaseNotification;
++
  .field private final nonce:Ljava/lang/String;
  
  .field private final numRetries:Ljava/lang/Integer;
-@@ -2555,6 +2567,12 @@ .method public final copy(JJLjava/lang/L
+@@ -412,8 +440,36 @@
+ 
+ .field private final referencedMessage:Lcom/discord/api/message/Message;
+ 
++.field public resolved:Lcom/discord/api/message/MessageResolved;
++
+ .field private final roleSubscriptionData:Lcom/discord/api/message/role_subscription/RoleSubscriptionData;
+ 
++.field public giftInfo:Lcom/discord/api/message/MessageGiftInfo;
++
++.field public changelogId:Ljava/lang/Long;
++
++.field public soundboardSounds:Ljava/util/List;
++    .annotation system Ldalvik/annotation/Signature;
++        value = {
++            "Ljava/util/List<",
++            "Lcom/discord/api/soundboard/SoundboardSound;",
++            ">;"
++        }
++    .end annotation
++.end field
++
++.field public potions:Ljava/util/List;
++    .annotation system Ldalvik/annotation/Signature;
++        value = {
++            "Ljava/util/List<",
++            "Lcom/discord/api/message/Potion;",
++            ">;"
++        }
++    .end annotation
++.end field
++
++.field public sharedClientTheme:Lcom/discord/api/message/SharedClientTheme;
++
+ .field private final stickerItems:Ljava/util/List;
+     .annotation system Ldalvik/annotation/Signature;
+         value = {
+@@ -2555,6 +2611,56 @@ .method public final copy(JJLjava/lang/L
  
      invoke-direct/range {v0 .. v41}, Lcom/discord/models/message/Message;-><init>(JJLjava/lang/Long;Lcom/discord/api/user/User;Ljava/lang/String;Lcom/discord/api/utcdatetime/UtcDateTime;Lcom/discord/api/utcdatetime/UtcDateTime;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Long;Ljava/lang/Integer;Lcom/discord/api/message/activity/MessageActivity;Lcom/discord/api/application/Application;Ljava/lang/Long;Lcom/discord/api/message/MessageReference;Ljava/lang/Long;Ljava/util/List;Ljava/util/List;Lcom/discord/api/message/Message;Lcom/discord/api/interaction/Interaction;Lcom/discord/api/channel/Channel;Ljava/util/List;Lcom/discord/api/message/call/MessageCall;Ljava/lang/Boolean;Lcom/discord/api/message/role_subscription/RoleSubscriptionData;ZLcom/discord/api/message/allowedmentions/MessageAllowedMentions;Ljava/lang/Integer;Ljava/lang/Long;Ljava/lang/Long;Ljava/util/List;Lcom/discord/utilities/captcha/CaptchaHelper$CaptchaPayload;)V
  
@@ -28,6 +95,50 @@
 +    iget-object v2, v1, Lcom/discord/models/message/Message;->poll:Lcom/discord/api/message/poll/MessagePoll;
 +
 +    iput-object v2, v0, Lcom/discord/models/message/Message;->poll:Lcom/discord/api/message/poll/MessagePoll;
++
++    iget-object v2, v1, Lcom/discord/models/message/Message;->interactionMetadata:Lcom/discord/api/interaction/Interaction;
++
++    iput-object v2, v0, Lcom/discord/models/message/Message;->interactionMetadata:Lcom/discord/api/interaction/Interaction;
++
++    iget-object v2, v1, Lcom/discord/models/message/Message;->lobbyId:Ljava/lang/Long;
++
++    iput-object v2, v0, Lcom/discord/models/message/Message;->lobbyId:Ljava/lang/Long;
++
++    iget-object v2, v1, Lcom/discord/models/message/Message;->mentionChannels:Ljava/util/List;
++
++    iput-object v2, v0, Lcom/discord/models/message/Message;->mentionChannels:Ljava/util/List;
++
++    iget-object v2, v1, Lcom/discord/models/message/Message;->messageSnapshots:Ljava/util/List;
++
++    iput-object v2, v0, Lcom/discord/models/message/Message;->messageSnapshots:Ljava/util/List;
++
++    iget-object v2, v1, Lcom/discord/models/message/Message;->purchaseNotification:Lcom/discord/api/message/MessagePurchaseNotification;
++
++    iput-object v2, v0, Lcom/discord/models/message/Message;->purchaseNotification:Lcom/discord/api/message/MessagePurchaseNotification;
++
++    iget-object v2, v1, Lcom/discord/models/message/Message;->resolved:Lcom/discord/api/message/MessageResolved;
++
++    iput-object v2, v0, Lcom/discord/models/message/Message;->resolved:Lcom/discord/api/message/MessageResolved;
++
++    iget-object v2, v1, Lcom/discord/models/message/Message;->giftInfo:Lcom/discord/api/message/MessageGiftInfo;
++
++    iput-object v2, v0, Lcom/discord/models/message/Message;->giftInfo:Lcom/discord/api/message/MessageGiftInfo;
++
++    iget-object v2, v1, Lcom/discord/models/message/Message;->changelogId:Ljava/lang/Long;
++
++    iput-object v2, v0, Lcom/discord/models/message/Message;->changelogId:Ljava/lang/Long;
++
++    iget-object v2, v1, Lcom/discord/models/message/Message;->soundboardSounds:Ljava/util/List;
++
++    iput-object v2, v0, Lcom/discord/models/message/Message;->soundboardSounds:Ljava/util/List;
++
++    iget-object v2, v1, Lcom/discord/models/message/Message;->potions:Ljava/util/List;
++
++    iput-object v2, v0, Lcom/discord/models/message/Message;->potions:Ljava/util/List;
++
++    iget-object v2, v1, Lcom/discord/models/message/Message;->sharedClientTheme:Lcom/discord/api/message/SharedClientTheme;
++
++    iput-object v2, v0, Lcom/discord/models/message/Message;->sharedClientTheme:Lcom/discord/api/message/SharedClientTheme;
 +
      return-object v42
  .end method

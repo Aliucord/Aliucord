@@ -1,0 +1,27 @@
+--- smali_original/com/discord/api/message/reaction/MessageReaction.smali
++++ smali/com/discord/api/message/reaction/MessageReaction.smali
+@@ -55,10 +55,24 @@
+ # instance fields
+ .field private final count:I
+ 
++.field public countDetails:Lcom/discord/api/message/reaction/ReactionCountDetails;
++
++.field public burstColors:Ljava/util/List;
++    .annotation system Ldalvik/annotation/Signature;
++        value = {
++            "Ljava/util/List<",
++            "Ljava/lang/String;",
++            ">;"
++        }
++    .end annotation
++.end field
++
+ .field private final emoji:Lcom/discord/api/message/reaction/MessageReactionEmoji;
+ 
+ .field private final me:Z
+ 
++.field public meBurst:Z
++
+ 
+ # direct methods
+ .method public constructor <init>(ILcom/discord/api/message/reaction/MessageReactionEmoji;Z)V
