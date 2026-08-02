@@ -23,6 +23,9 @@ import com.discord.widgets.chat.list.entries.MessageEntry
 import com.lytefast.flexinput.R
 
 internal class NewMessages : CorePlugin(Manifest("NewMessages")) {
+    override val isHidden = true
+    override val isRequired = true
+
     init {
         manifest.description = "Adds missing message types"
     }
@@ -30,6 +33,7 @@ internal class NewMessages : CorePlugin(Manifest("NewMessages")) {
     override fun start(context: Context) {
         addFriendRequestMessage()
     }
+
     override fun stop(context: Context) = patcher.unpatchAll()
 
     private fun addFriendRequestMessage() = tryPatch("Friend request") {
