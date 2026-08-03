@@ -2,9 +2,12 @@ package com.aliucord.updater
 
 import android.os.Build
 import com.aliucord.*
-import com.aliucord.entities.CorePlugin
-import com.aliucord.entities.Plugin
+import com.aliucord.Utils.openPage
+import com.aliucord.api.NotificationsAPI
+import com.aliucord.entities.*
+import com.aliucord.screens.UpdaterScreen
 import com.aliucord.settings.AUTO_UPDATE_PLUGINS_KEY
+import com.aliucord.utils.MDUtils
 import com.aliucord.utils.SemVer
 import java.io.File
 
@@ -106,6 +109,68 @@ internal object PluginUpdater {
             }
         }
         return updates
+    }
+
+    @JvmStatic
+    fun startupCheck() {
+        val updates = fetchUpdates(PluginUpdaterSource())
+        if (updates.isEmpty()) return
+
+        // Only show update notification
+        if (!isAutoUpdateEnabled()) {
+            val notification = NotificationData()
+                .setTitle("Updater")
+                .setBody(MDUtils.render(buildString {
+                    append("Found ${updates.size} available plugin updates: ")
+                    append(updates
+                        .take(5)
+                        .joinToString(separator = ", ", transform = { "**${it.pluginName}**" }))
+
+                    if (updates.size > 5)
+                        append(", and ${updates.size - 5} others.")
+
+                    append(". Click to see more.")
+                }))
+                .setAutoDismissPeriodSecs(30)
+                .setOnClick { openPage(Utils.appActivity, UpdaterScreen::class.java) }
+
+            NotificationsAPI.display(notification)
+            return
+        }
+
+        // Update plugins
+        val (succeeded, failed) = updates
+            .filter(PluginUpdate::isUpdatePossible)
+            .partition { updatePlugin(it) }
+
+        val notification = if (failed.isNotEmpty()) {
+            NotificationData()
+                .setTitle("Updater")
+                .setAutoDismissPeriodSecs(30)
+                .setBody(MDUtils.render(buildString {
+                    append("Failed to update some plugins: ")
+                    append(failed
+                        .take(5)
+                        .joinToString(separator = ", ", transform = { "**${it.pluginName}**" }))
+                    if (failed.size > 5)
+                        append(", and ${failed.size - 5} others.")
+                }))
+                .setOnClick { openPage(Utils.appActivity, UpdaterScreen::class.java) }
+        } else {
+            NotificationData()
+                .setTitle("Updater")
+                .setAutoDismissPeriodSecs(10)
+                .setOnClick { /* Do nothing */ }
+                .setBody(MDUtils.render(buildString {
+                    append("Automatically updated plugins: ")
+                    append(succeeded
+                        .take(5)
+                        .joinToString(separator = ", ", transform = { "**${it.pluginName}**" }))
+                    if (succeeded.size > 5)
+                        append(", and ${succeeded.size - 5} others.")
+                }))
+        }
+        NotificationsAPI.display(notification)
     }
 
     @JvmStatic

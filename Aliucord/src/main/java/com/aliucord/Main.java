@@ -18,11 +18,10 @@ import android.widget.Toast;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.aliucord.api.NotificationsAPI;
-import com.aliucord.entities.*;
+import com.aliucord.entities.CorePlugin;
+import com.aliucord.entities.Plugin;
 import com.aliucord.patcher.Hook;
 import com.aliucord.patcher.Patcher;
-import com.aliucord.screens.UpdaterScreen;
 import com.aliucord.settings.AliucordPageKt;
 import com.aliucord.updater.*;
 import com.aliucord.utils.ReflectUtils;
@@ -36,23 +35,20 @@ import java.sql.Timestamp;
 import java.util.*;
 
 import dalvik.system.PathClassLoader;
-import kotlin.Unit;
-import kotlin.collections.CollectionsKt;
 import kotlin.io.FilesKt;
 
 public final class Main {
+    public static final Logger logger = new Logger();
     /** Whether Aliucord has been preInitialized */
     public static boolean preInitialized = false;
     /** Whether Aliucord has been initialized */
     public static boolean initialized = false;
-    public static final Logger logger = new Logger();
-
-    private static boolean loadedPlugins;
-
     public static SettingsUtilsJSON settings;
+    private static boolean loadedPlugins;
 
     /**
      * Aliucord's preInit hook. Plugins are loaded here
+     *
      * @noinspection unused
      */
     public static void preInit(AppActivity activity) throws NoSuchMethodException {
@@ -116,6 +112,7 @@ public final class Main {
 
     /**
      * Aliucord's init hook. Plugins are started here
+     *
      * @noinspection unused
      */
     public static void init(AppActivity activity) {
@@ -258,59 +255,8 @@ public final class Main {
         Utils.threadPool.execute(() -> {
             if (CoreUpdater.isUpdaterDisabled()) return;
             CoreUpdater.checkForUpdates();
-
-            checkForPluginUpdates();
+            PluginUpdater.startupCheck();
         });
-    }
-
-    private static void checkForPluginUpdates() {
-        var updates = PluginUpdater.fetchUpdates(new PluginUpdaterSource());
-        if (updates.isEmpty()) return;
-
-        if (!PluginUpdater.isAutoUpdateEnabled()) {
-            var notificationData = new NotificationData()
-                .setTitle("Updater")
-                .setBody(String.format("Found %s available plugin updates! Click to view...", updates.size()))
-                .setAutoDismissPeriodSecs(30)
-                .setOnClick((view)-> {
-                    Utils.openPage(Utils.appActivity, UpdaterScreen.class);
-                    return Unit.a;
-                });
-
-            NotificationsAPI.display(notificationData);
-            return;
-        }
-
-        var failed = 0;
-        var succeeded = new ArrayList<String>();
-        for (var update : updates) {
-            if (!update.isUpdatePossible()) continue;
-            if (PluginUpdater.updatePlugin(update)) {
-                succeeded.add(update.getPluginName());
-            } else {
-                failed++;
-            }
-        }
-
-        var notification = new NotificationData()
-            .setTitle("Updater");
-        if (failed > 0) {
-            notification
-                .setAutoDismissPeriodSecs(30)
-                .setBody(String.format("Failed to update %s plugins! Click to view...", failed))
-                .setOnClick((view) -> {
-                    Utils.openPage(Utils.appActivity, UpdaterScreen.class);
-                    return Unit.a;
-                });
-        } else {
-            notification
-                .setAutoDismissPeriodSecs(10)
-                .setOnClick((view) -> Unit.a)
-                .setBody("Automatically updated plugins: "
-                    + String.join(", ", CollectionsKt.take(succeeded, 5))
-                    + (succeeded.size() > 5 ? String.format(", and %s others.", succeeded.size()) : ""));
-        }
-        NotificationsAPI.display(notification);
     }
 
     private static void permissionGrantedCallback(AppCompatActivity activity, boolean granted) {
