@@ -41,8 +41,8 @@ public final class Main {
     /** Whether Aliucord has been preInitialized */
     public static boolean preInitialized = false;
     /** Whether Aliucord has been initialized */
-    public static final Logger logger = new Logger();
     public static boolean initialized = false;
+    public static final Logger logger = new Logger();
 
     private static boolean loadedPlugins;
 
