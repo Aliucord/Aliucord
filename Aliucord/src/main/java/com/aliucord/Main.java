@@ -38,17 +38,18 @@ import dalvik.system.PathClassLoader;
 import kotlin.io.FilesKt;
 
 public final class Main {
-    public static final Logger logger = new Logger();
     /** Whether Aliucord has been preInitialized */
     public static boolean preInitialized = false;
     /** Whether Aliucord has been initialized */
+    public static final Logger logger = new Logger();
     public static boolean initialized = false;
-    public static SettingsUtilsJSON settings;
+
     private static boolean loadedPlugins;
+
+    public static SettingsUtilsJSON settings;
 
     /**
      * Aliucord's preInit hook. Plugins are loaded here
-     *
      * @noinspection unused
      */
     public static void preInit(AppActivity activity) throws NoSuchMethodException {
@@ -112,7 +113,6 @@ public final class Main {
 
     /**
      * Aliucord's init hook. Plugins are started here
-     *
      * @noinspection unused
      */
     public static void init(AppActivity activity) {
