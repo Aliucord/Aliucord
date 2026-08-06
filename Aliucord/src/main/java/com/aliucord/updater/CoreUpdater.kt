@@ -112,6 +112,7 @@ internal object CoreUpdater {
 
     /**
      * Determines whether the updater has been disabled by the user.
+     * This includes ALL update checks, including plugins.
      */
     @JvmStatic
     fun isUpdaterDisabled(): Boolean = Main.settings.getBool(ALIUCORD_DISABLE_UPDATER, false)
