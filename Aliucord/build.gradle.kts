@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.dokka.javadoc)
     alias(libs.plugins.kotlin)
     alias(libs.plugins.publish)
+    id("kotlin-parcelize")
 }
 
 group = "com.aliucord"
