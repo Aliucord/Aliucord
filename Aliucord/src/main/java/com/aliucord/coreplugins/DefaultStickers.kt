@@ -74,7 +74,7 @@ internal class DefaultStickers : CorePlugin(Manifest("DefaultStickers")) {
         patcher.before<`MessageQueue$doSend$2`<*, *>>("call", SendUtils.SendPayload.ReadyToSend::class.java) { (it, payload: SendUtils.SendPayload.ReadyToSend) ->
             if (!UserUtils.INSTANCE.getCanUsePremiumStickers(StoreStream.getUsers().me)) {
                 val message = payload.message
-                if (message.stickerIds.isNotEmpty()) {
+                if (!message.stickerIds.isNullOrEmpty()) {
                     it.result = BehaviorSubject.l0(Http.Request.newDiscordRNRequest("/channels/${`$message`.channelId}/messages", "POST").executeWithJson(GsonUtils.gsonRestApi, message).json(GsonUtils.gsonRestApi, Message::class.java))
                 }
             }
