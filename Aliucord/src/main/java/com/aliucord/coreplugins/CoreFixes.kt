@@ -9,7 +9,6 @@ import android.net.Uri
 import android.os.*
 import android.view.MotionEvent
 import android.view.View
-import android.view.ViewGroup
 import android.view.WindowInsetsAnimation
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -71,6 +70,7 @@ import com.discord.widgets.chat.list.actions.`WidgetChatListActions$binding$2`
 import com.discord.widgets.chat.list.adapter.*
 import com.discord.widgets.chat.list.entries.*
 import com.discord.widgets.chat.overlay.WidgetChatOverlay
+import com.discord.widgets.guilds.contextmenu.WidgetFolderContextMenu
 import com.discord.widgets.guilds.contextmenu.WidgetGuildContextMenu
 import com.discord.widgets.guilds.list.GuildListViewHolder
 import com.discord.widgets.guilds.list.GuildsDragAndDropCallback
@@ -196,8 +196,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     private val GuildListViewHolder.GuildViewHolder.bindingGuild
         by accessField<WidgetGuildsListItemGuildBinding>()
 
-    private var guildDragHelper: ItemTouchHelper? = null
-    private var pressedGuild: GuildListViewHolder.GuildViewHolder? = null
+    private var pressedGuild: RecyclerView.ViewHolder? = null
     private var guildHeld = false
 
     private fun fixServerIconLongPress() = tryPatch("Fix server icon long press") {
@@ -207,51 +206,48 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             if (param.args[1] === pressedGuild) param.result = false
         }
 
+        patcher.before<ItemTouchHelper>("findAnimation", MotionEvent::class.java) { param ->
+            if (mCallback !is GuildsDragAndDropCallback) return@before
+
+            guildHeld = false
+            val event = param.args[0] as MotionEvent
+            pressedGuild = mRecyclerView.findChildViewUnder(event.x, event.y)
+                ?.let(mRecyclerView::getChildViewHolder)
+        }
+
         patcher.patch(
             "com.discord.utilities.view.extensions.RecyclerViewExtensionsKt", "ignoreCurrentTouch",
             arrayOf(RecyclerView::class.java), PreHook { param ->
-                if (pressedGuild != null && guildDragHelper?.mRecyclerView === param.args[0]) {
+                val guild = pressedGuild ?: return@PreHook
+                if (guild.itemView.parent === param.args[0]) {
                     guildHeld = true
                     param.result = null
                 }
             },
         )
 
-        patcher.after<ItemTouchHelper>("attachToRecyclerView", RecyclerView::class.java) {
-            if (mCallback !is GuildsDragAndDropCallback) return@after
-            if (mRecyclerView != null) guildDragHelper = this
-            else if (guildDragHelper === this) {
-                guildDragHelper = null
-                pressedGuild = null
-            }
-        }
+        patcher.before<ItemTouchHelper>(
+            "checkSelectForSwipe",
+            Int::class.javaPrimitiveType!!,
+            MotionEvent::class.java,
+            Int::class.javaPrimitiveType!!,
+        ) { param ->
+            val guild = pressedGuild ?: return@before
+            if (mCallback !is GuildsDragAndDropCallback || !guildHeld ||
+                param.args[0] != MotionEvent.ACTION_MOVE ||
+                guild !is GuildsDragAndDropCallback.DraggableViewHolder || !guild.canDrag()) return@before
 
-        patcher.before<RecyclerView>("onInterceptTouchEvent", MotionEvent::class.java) { param ->
-            if (this !== guildDragHelper?.mRecyclerView) return@before
-
-            val event = param.args[0] as MotionEvent
-            when (event.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
-                    guildHeld = false
-                    pressedGuild = findChildViewUnder(event.x, event.y)
-                        ?.let(::getChildViewHolder) as? GuildListViewHolder.GuildViewHolder
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    val guild = pressedGuild ?: return@before
-                    if (guildHeld && guild.canDrag()) {
-                        pressedGuild = null
-                        hideGuildContextMenu()
-                        guildDragHelper?.startDrag(guild)
-                    }
-                }
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> pressedGuild = null
-            }
+            pressedGuild = null
+            hideGuildContextMenu(guild)
+            startDrag(guild)
         }
     }
 
-    private fun hideGuildContextMenu() {
+    private fun hideGuildContextMenu(guild: RecyclerView.ViewHolder) {
         try {
-            val menu = WidgetGuildContextMenu::class.java.getField("INSTANCE")[null]
+            val type = if (guild is GuildListViewHolder.FolderViewHolder)
+                WidgetFolderContextMenu::class.java else WidgetGuildContextMenu::class.java
+            val menu = type.getField("INSTANCE")[null]
             menu.javaClass.getMethod("hide", FragmentActivity::class.java, Boolean::class.java)(
                 menu, Utils.appActivity, false
             )
