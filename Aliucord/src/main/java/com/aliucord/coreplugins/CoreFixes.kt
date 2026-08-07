@@ -57,6 +57,7 @@ import com.discord.utilities.rest.RestAPI
 import com.discord.utilities.time.ClockFactory
 import com.discord.utilities.time.NtpClock
 import com.discord.utilities.viewbinding.FragmentViewBindingDelegate
+import com.discord.utilities.view.extensions.RecyclerViewExtensionsKt
 import com.discord.widgets.channels.list.*
 import com.discord.widgets.chat.input.*
 import com.discord.widgets.chat.input.autocomplete.adapter.ChatInputAutocompleteAdapter
@@ -215,16 +216,14 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                 ?.let(mRecyclerView::getChildViewHolder)
         }
 
-        patcher.patch(
-            "com.discord.utilities.view.extensions.RecyclerViewExtensionsKt", "ignoreCurrentTouch",
-            arrayOf(RecyclerView::class.java), PreHook { param ->
-                val guild = pressedGuild ?: return@PreHook
-                if (guild.itemView.parent === param.args[0]) {
-                    guildHeld = true
-                    param.result = null
-                }
-            },
-        )
+        patcher.before<RecyclerViewExtensionsKt?>(
+            "ignoreCurrentTouch", RecyclerView::class.java) { param ->
+            val guild = pressedGuild ?: return@before
+            if (guild.itemView.parent === param.args[0]) {
+                guildHeld = true
+                param.result = null
+            }
+        }
 
         patcher.before<ItemTouchHelper>(
             "checkSelectForSwipe",
