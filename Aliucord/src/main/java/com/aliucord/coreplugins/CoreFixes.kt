@@ -7,11 +7,15 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.*
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowInsetsAnimation
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
@@ -67,7 +71,9 @@ import com.discord.widgets.chat.list.actions.`WidgetChatListActions$binding$2`
 import com.discord.widgets.chat.list.adapter.*
 import com.discord.widgets.chat.list.entries.*
 import com.discord.widgets.chat.overlay.WidgetChatOverlay
+import com.discord.widgets.guilds.contextmenu.WidgetGuildContextMenu
 import com.discord.widgets.guilds.list.GuildListViewHolder
+import com.discord.widgets.guilds.list.GuildsDragAndDropCallback
 import com.discord.widgets.guilds.list.`WidgetGuildsListViewModel$createDirectMessageItems$1`
 import com.discord.widgets.home.WidgetHome
 import com.discord.widgets.media.WidgetMedia
@@ -121,6 +127,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixBioHeightLimit()
         fixUnreadForumChannels()
         fixMemoryLeak()
+        fixServerIconLongPress()
     }
 
     private val WidgetChatList.binding by accessField<FragmentViewBindingDelegate<WidgetChatListBinding>?>($$"binding$delegate")
@@ -188,6 +195,71 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
 
     private val GuildListViewHolder.GuildViewHolder.bindingGuild
         by accessField<WidgetGuildsListItemGuildBinding>()
+
+    private var guildDragHelper: ItemTouchHelper? = null
+    private var pressedGuild: GuildListViewHolder.GuildViewHolder? = null
+    private var guildHeld = false
+
+    private fun fixServerIconLongPress() = tryPatch("Fix server icon long press") {
+        patcher.before<ItemTouchHelper.Callback>(
+            "hasDragFlag", RecyclerView::class.java, RecyclerView.ViewHolder::class.java,
+        ) { param ->
+            if (param.args[1] === pressedGuild) param.result = false
+        }
+
+        patcher.patch(
+            "com.discord.utilities.view.extensions.RecyclerViewExtensionsKt", "ignoreCurrentTouch",
+            arrayOf(RecyclerView::class.java), PreHook { param ->
+                if (pressedGuild != null && guildDragHelper?.mRecyclerView === param.args[0]) {
+                    guildHeld = true
+                    param.result = null
+                }
+            },
+        )
+
+        patcher.after<ItemTouchHelper>("attachToRecyclerView", RecyclerView::class.java) {
+            if (mCallback !is GuildsDragAndDropCallback) return@after
+            if (mRecyclerView != null) guildDragHelper = this
+            else if (guildDragHelper === this) {
+                guildDragHelper = null
+                pressedGuild = null
+            }
+        }
+
+        patcher.before<ViewGroup>("dispatchTouchEvent", MotionEvent::class.java) { param ->
+            val recycler = guildDragHelper?.mRecyclerView ?: return@before
+            if (this !== recycler) return@before
+
+            val event = param.args[0] as MotionEvent
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    guildHeld = false
+                    pressedGuild = recycler.findChildViewUnder(event.x, event.y)
+                        ?.let(recycler::getChildViewHolder) as? GuildListViewHolder.GuildViewHolder
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val guild = pressedGuild ?: return@before
+                    if (guildHeld && guild.canDrag()) {
+                        pressedGuild = null
+                        hideGuildContextMenu()
+                        guildDragHelper?.startDrag(guild)
+                    }
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> pressedGuild = null
+            }
+        }
+    }
+
+    private fun hideGuildContextMenu() {
+        try {
+            val menu = WidgetGuildContextMenu::class.java.getField("INSTANCE")[null]
+            menu.javaClass.getMethod("hide", FragmentActivity::class.java, Boolean::class.java)(
+                menu, Utils.appActivity, false
+            )
+        } catch (e: Throwable) {
+            logger.warn("Failed to hide guild context menu", e)
+        }
+    }
 
     private fun patchIconU(name: String, vararg paramTypes: Class<*>) {
         patcher.patch(IconUtils::class.java.getDeclaredMethod(name, *paramTypes)) {
