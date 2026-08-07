@@ -226,16 +226,15 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             }
         }
 
-        patcher.before<ViewGroup>("dispatchTouchEvent", MotionEvent::class.java) { param ->
-            val recycler = guildDragHelper?.mRecyclerView ?: return@before
-            if (this !== recycler) return@before
+        patcher.before<RecyclerView>("onInterceptTouchEvent", MotionEvent::class.java) { param ->
+            if (this !== guildDragHelper?.mRecyclerView) return@before
 
             val event = param.args[0] as MotionEvent
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     guildHeld = false
-                    pressedGuild = recycler.findChildViewUnder(event.x, event.y)
-                        ?.let(recycler::getChildViewHolder) as? GuildListViewHolder.GuildViewHolder
+                    pressedGuild = findChildViewUnder(event.x, event.y)
+                        ?.let(::getChildViewHolder) as? GuildListViewHolder.GuildViewHolder
                 }
                 MotionEvent.ACTION_MOVE -> {
                     val guild = pressedGuild ?: return@before
