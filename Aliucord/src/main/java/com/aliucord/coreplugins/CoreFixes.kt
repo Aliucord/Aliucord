@@ -243,16 +243,10 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     }
 
     private fun hideGuildContextMenu(guild: RecyclerView.ViewHolder) {
-        try {
-            val type = if (guild is GuildListViewHolder.FolderViewHolder)
-                WidgetFolderContextMenu::class.java else WidgetGuildContextMenu::class.java
-            val menu = type.getField("INSTANCE")[null]
-            menu.javaClass.getMethod("hide", FragmentActivity::class.java, Boolean::class.java)(
-                menu, Utils.appActivity, false
-            )
-        } catch (e: Throwable) {
-            logger.warn("Failed to hide guild context menu", e)
-        }
+        if (guild is GuildListViewHolder.FolderViewHolder)
+            WidgetFolderContextMenu.Companion!!.hide(Utils.appActivity, false)
+        else
+            WidgetGuildContextMenu.Companion!!.hide(Utils.appActivity, false)
     }
 
     private fun patchIconU(name: String, vararg paramTypes: Class<*>) {
