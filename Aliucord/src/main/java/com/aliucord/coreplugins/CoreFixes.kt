@@ -7,11 +7,14 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.*
+import android.view.MotionEvent
 import android.view.View
 import android.view.WindowInsetsAnimation
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
@@ -54,6 +57,7 @@ import com.discord.utilities.rest.RestAPI
 import com.discord.utilities.time.ClockFactory
 import com.discord.utilities.time.NtpClock
 import com.discord.utilities.viewbinding.FragmentViewBindingDelegate
+import com.discord.utilities.view.extensions.RecyclerViewExtensionsKt
 import com.discord.widgets.channels.list.*
 import com.discord.widgets.chat.input.*
 import com.discord.widgets.chat.input.autocomplete.adapter.ChatInputAutocompleteAdapter
@@ -67,7 +71,10 @@ import com.discord.widgets.chat.list.actions.`WidgetChatListActions$binding$2`
 import com.discord.widgets.chat.list.adapter.*
 import com.discord.widgets.chat.list.entries.*
 import com.discord.widgets.chat.overlay.WidgetChatOverlay
+import com.discord.widgets.guilds.contextmenu.WidgetFolderContextMenu
+import com.discord.widgets.guilds.contextmenu.WidgetGuildContextMenu
 import com.discord.widgets.guilds.list.GuildListViewHolder
+import com.discord.widgets.guilds.list.GuildsDragAndDropCallback
 import com.discord.widgets.guilds.list.`WidgetGuildsListViewModel$createDirectMessageItems$1`
 import com.discord.widgets.home.WidgetHome
 import com.discord.widgets.media.WidgetMedia
@@ -121,6 +128,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixBioHeightLimit()
         fixUnreadForumChannels()
         fixMemoryLeak()
+        fixServerIconLongPress()
     }
 
     private val WidgetChatList.binding by accessField<FragmentViewBindingDelegate<WidgetChatListBinding>?>($$"binding$delegate")
@@ -188,6 +196,57 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
 
     private val GuildListViewHolder.GuildViewHolder.bindingGuild
         by accessField<WidgetGuildsListItemGuildBinding>()
+
+    private var pressedGuild: RecyclerView.ViewHolder? = null
+    private var guildHeld = false
+
+    private fun fixServerIconLongPress() = tryPatch("Fix server icon long press") {
+        patcher.before<ItemTouchHelper.Callback>(
+            "hasDragFlag", RecyclerView::class.java, RecyclerView.ViewHolder::class.java,
+        ) { (param, _: RecyclerView, guild: RecyclerView.ViewHolder) ->
+            if (guild === pressedGuild) param.result = false
+        }
+
+        patcher.before<ItemTouchHelper>("findAnimation", MotionEvent::class.java) { (_, event: MotionEvent) ->
+            if (mCallback !is GuildsDragAndDropCallback) return@before
+
+            guildHeld = false
+            pressedGuild = mRecyclerView.findChildViewUnder(event.x, event.y)
+                ?.let(mRecyclerView::getChildViewHolder)
+        }
+
+        patcher.before<RecyclerViewExtensionsKt?>(
+            "ignoreCurrentTouch", RecyclerView::class.java) { (param, recyclerView: RecyclerView) ->
+            val guild = pressedGuild ?: return@before
+            if (guild.itemView.parent === recyclerView) {
+                guildHeld = true
+                param.result = null
+            }
+        }
+
+        patcher.before<ItemTouchHelper>(
+            "checkSelectForSwipe",
+            Int::class.javaPrimitiveType!!,
+            MotionEvent::class.java,
+            Int::class.javaPrimitiveType!!,
+        ) { (_, action: Int, _: MotionEvent, _: Int) ->
+            val guild = pressedGuild ?: return@before
+            if (mCallback !is GuildsDragAndDropCallback || !guildHeld ||
+                action != MotionEvent.ACTION_MOVE ||
+                guild !is GuildsDragAndDropCallback.DraggableViewHolder || !guild.canDrag()) return@before
+
+            pressedGuild = null
+            hideGuildContextMenu(guild)
+            startDrag(guild)
+        }
+    }
+
+    private fun hideGuildContextMenu(guild: RecyclerView.ViewHolder) {
+        if (guild is GuildListViewHolder.FolderViewHolder)
+            WidgetFolderContextMenu.Companion!!.hide(Utils.appActivity, false)
+        else
+            WidgetGuildContextMenu.Companion!!.hide(Utils.appActivity, false)
+    }
 
     private fun patchIconU(name: String, vararg paramTypes: Class<*>) {
         patcher.patch(IconUtils::class.java.getDeclaredMethod(name, *paramTypes)) {
