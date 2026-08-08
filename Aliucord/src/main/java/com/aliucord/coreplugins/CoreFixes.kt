@@ -203,23 +203,22 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     private fun fixServerIconLongPress() = tryPatch("Fix server icon long press") {
         patcher.before<ItemTouchHelper.Callback>(
             "hasDragFlag", RecyclerView::class.java, RecyclerView.ViewHolder::class.java,
-        ) { param ->
-            if (param.args[1] === pressedGuild) param.result = false
+        ) { (param, _: RecyclerView, guild: RecyclerView.ViewHolder) ->
+            if (guild === pressedGuild) param.result = false
         }
 
-        patcher.before<ItemTouchHelper>("findAnimation", MotionEvent::class.java) { param ->
+        patcher.before<ItemTouchHelper>("findAnimation", MotionEvent::class.java) { (_, event: MotionEvent) ->
             if (mCallback !is GuildsDragAndDropCallback) return@before
 
             guildHeld = false
-            val event = param.args[0] as MotionEvent
             pressedGuild = mRecyclerView.findChildViewUnder(event.x, event.y)
                 ?.let(mRecyclerView::getChildViewHolder)
         }
 
         patcher.before<RecyclerViewExtensionsKt?>(
-            "ignoreCurrentTouch", RecyclerView::class.java) { param ->
+            "ignoreCurrentTouch", RecyclerView::class.java) { (param, recyclerView: RecyclerView) ->
             val guild = pressedGuild ?: return@before
-            if (guild.itemView.parent === param.args[0]) {
+            if (guild.itemView.parent === recyclerView) {
                 guildHeld = true
                 param.result = null
             }
@@ -230,10 +229,10 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             Int::class.javaPrimitiveType!!,
             MotionEvent::class.java,
             Int::class.javaPrimitiveType!!,
-        ) { param ->
+        ) { (_, action: Int, _: MotionEvent, _: Int) ->
             val guild = pressedGuild ?: return@before
             if (mCallback !is GuildsDragAndDropCallback || !guildHeld ||
-                param.args[0] != MotionEvent.ACTION_MOVE ||
+                action != MotionEvent.ACTION_MOVE ||
                 guild !is GuildsDragAndDropCallback.DraggableViewHolder || !guild.canDrag()) return@before
 
             pressedGuild = null
