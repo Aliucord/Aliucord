@@ -215,6 +215,15 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                 ?.let(mRecyclerView::getChildViewHolder)
         }
 
+        patcher.before<ItemTouchHelper>(
+            "select", RecyclerView.ViewHolder::class.java, Int::class.javaPrimitiveType!!,
+        ) { (_, selected: RecyclerView.ViewHolder?, _: Int) ->
+            if (mCallback is GuildsDragAndDropCallback && selected == null) {
+                pressedGuild = null
+                guildHeld = false
+            }
+        }
+
         patcher.before<RecyclerViewExtensionsKt?>(
             "ignoreCurrentTouch", RecyclerView::class.java) { (param, recyclerView: RecyclerView) ->
             val guild = pressedGuild ?: return@before
