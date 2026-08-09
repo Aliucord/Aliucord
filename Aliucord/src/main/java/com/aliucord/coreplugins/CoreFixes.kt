@@ -197,10 +197,10 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     private val GuildListViewHolder.GuildViewHolder.bindingGuild
         by accessField<WidgetGuildsListItemGuildBinding>()
 
-    private var pressedGuild: RecyclerView.ViewHolder? = null
-    private var guildHeld = false
-
     private fun fixServerIconLongPress() = tryPatch("Fix server icon long press") {
+        var pressedGuild: RecyclerView.ViewHolder? = null
+        var guildHeld = false
+
         patcher.before<ItemTouchHelper.Callback>(
             "hasDragFlag", RecyclerView::class.java, RecyclerView.ViewHolder::class.java,
         ) { (param, _: RecyclerView, guild: RecyclerView.ViewHolder) ->
