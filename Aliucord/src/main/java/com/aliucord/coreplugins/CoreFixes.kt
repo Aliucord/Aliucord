@@ -236,16 +236,9 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                 guild !is GuildsDragAndDropCallback.DraggableViewHolder || !guild.canDrag()) return@before
 
             pressedGuild = null
-            hideGuildContextMenu(guild)
+            if (guild is GuildListViewHolder.FolderViewHolder) WidgetFolderContextMenu.Companion!!.hide(Utils.appActivity, false) else WidgetGuildContextMenu.Companion!!.hide(Utils.appActivity, false)
             startDrag(guild)
         }
-    }
-
-    private fun hideGuildContextMenu(guild: RecyclerView.ViewHolder) {
-        if (guild is GuildListViewHolder.FolderViewHolder)
-            WidgetFolderContextMenu.Companion!!.hide(Utils.appActivity, false)
-        else
-            WidgetGuildContextMenu.Companion!!.hide(Utils.appActivity, false)
     }
 
     private fun patchIconU(name: String, vararg paramTypes: Class<*>) {
