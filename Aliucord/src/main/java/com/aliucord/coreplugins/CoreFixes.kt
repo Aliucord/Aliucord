@@ -245,7 +245,14 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                 guild !is GuildsDragAndDropCallback.DraggableViewHolder || !guild.canDrag()) return@before
 
             pressedGuild = null
-            if (guild is GuildListViewHolder.FolderViewHolder) WidgetFolderContextMenu.Companion!!.hide(guild.itemView.context as FragmentActivity, false) else WidgetGuildContextMenu.Companion!!.hide(guild.itemView.context as FragmentActivity, false)
+
+            val ctx = guild.itemView.context as FragmentActivity
+            if (guild is GuildListViewHolder.FolderViewHolder) {
+                WidgetFolderContextMenu.Companion!!.hide(ctx, false)
+            } else {
+                WidgetGuildContextMenu.Companion!!.hide(ctx, false)
+            }
+
             startDrag(guild)
         }
     }
