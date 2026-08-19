@@ -37,6 +37,7 @@ import com.discord.api.message.embed.EmbedType
 import com.discord.api.permission.Permission
 import com.discord.app.AppFragment
 import com.discord.databinding.*
+import com.discord.models.domain.ModelCustomStatusSetting
 import com.discord.models.domain.emoji.ModelEmojiCustom
 import com.discord.models.domain.emoji.ModelEmojiUnicode
 import com.discord.models.experiments.domain.Experiment
@@ -82,6 +83,7 @@ import com.discord.widgets.settings.profile.SettingsUserProfileViewModel
 import com.discord.widgets.settings.profile.WidgetEditUserOrGuildMemberProfile
 import com.discord.widgets.status.WidgetForumPostStatus
 import com.discord.widgets.status.WidgetForumPostStatusViewModel
+import com.discord.widgets.user.WidgetUserSetCustomStatusViewModel
 import com.discord.widgets.user.usersheet.WidgetUserSheet
 import com.discord.widgets.user.usersheet.WidgetUserSheetViewModel
 import com.linecorp.apng.decoder.Apng
@@ -129,6 +131,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixUnreadForumChannels()
         fixMemoryLeak()
         fixServerIconLongPress()
+        fixCustomStatusEmoji()
     }
 
     private val WidgetChatList.binding by accessField<FragmentViewBindingDelegate<WidgetChatListBinding>?>($$"binding$delegate")
@@ -744,6 +747,32 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                 })
             }, backpressureMode)
             return@instead observable
+        }
+    }
+
+    private fun fixCustomStatusEmoji() = tryPatch("Fix nitro emojis in user status") {
+        var pendingEmoji: ModelEmojiCustom? = null
+
+        patcher.before<WidgetUserSetCustomStatusViewModel>("saveStatus") {
+            pendingEmoji = (viewState as? WidgetUserSetCustomStatusViewModel.ViewState.Loaded)
+                ?.formState?.emoji as? ModelEmojiCustom
+        }
+
+        patcher.before<StoreUserSettings>(
+            "updateCustomStatus",
+            ModelCustomStatusSetting::class.java,
+        ) { (param, setting: ModelCustomStatusSetting?) ->
+            if (setting == null || setting.emojiName != null) return@before
+
+            val emojiId = setting.emojiId ?: return@before
+            val emoji = pendingEmoji?.takeIf { it.id == emojiId } ?: return@before
+
+            param.args[0] = ModelCustomStatusSetting(
+                setting.text,
+                emojiId,
+                emoji.name,
+                setting.expiresAt,
+            )
         }
     }
 
