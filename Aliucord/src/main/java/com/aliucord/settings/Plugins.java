@@ -86,8 +86,8 @@ public class Plugins extends SettingsPage {
 
         private final AppFragment fragment;
         private final Context ctx;
-        private final List<Plugin> originalData;
-        private List<Plugin> data;
+        private final List<Plugin> originalData = new ArrayList<>();
+        private List<Plugin> data = new ArrayList<>();
         public boolean showBuiltIn = false;
 
         @SuppressWarnings("unchecked")
@@ -97,14 +97,24 @@ public class Plugins extends SettingsPage {
             this.fragment = fragment;
             ctx = fragment.requireContext();
 
-            this.originalData = new ArrayList<>(plugins);
+            setPlugins(plugins);
+            data = CollectionUtils.filter(originalData, Adapter::filterCorePlugins);
+        }
+
+        @SuppressWarnings("unchecked")
+        public void setPlugins(Collection<Plugin> plugins) {
+            originalData.clear();
+            originalData.addAll(plugins);
             originalData.removeIf(p -> p instanceof CorePlugin && ((CorePlugin) p).isHidden());
             originalData.sort(ComparisonsKt.compareBy(
                 p -> p instanceof CorePlugin, // coreplugins last
                 Plugin::getName // Natural order by title
             ));
+        }
 
-            data = CollectionUtils.filter(originalData, Adapter::filterCorePlugins);
+        public void refresh(Collection<Plugin> plugins, CharSequence filterText) {
+            setPlugins(plugins);
+            getFilter().filter(filterText);
         }
 
         @Override
@@ -370,6 +380,19 @@ public class Plugins extends SettingsPage {
         RecyclerView recyclerView = new RecyclerView(context);
         recyclerView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
         Adapter adapter = new Adapter(this, PluginManager.plugins.values());
+
+        addHeaderButton("Load New Plugins", R.e.ic_file_download_white_24dp, item -> {
+            int loaded = PluginManager.loadNewPlugins(context, true);
+            if (loaded == 0) {
+                Utils.showToast("No new plugins found");
+            } else {
+                Utils.showToast("Loaded " + loaded + " new plugin" + (loaded == 1 ? "" : "s"));
+                adapter.refresh(PluginManager.plugins.values(), input.getEditText().getText());
+                setActionBarSubtitle(PluginManager.getPluginsInfo());
+            }
+            return true;
+        });
+
         recyclerView.setAdapter(adapter);
         ShapeDrawable shape = new ShapeDrawable(new RectShape());
         shape.setTint(Color.TRANSPARENT);

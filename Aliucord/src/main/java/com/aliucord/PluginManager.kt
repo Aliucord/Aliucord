@@ -339,6 +339,55 @@ object PluginManager {
         }
     }
 
+    /**
+     * Loads any plugin zips in the plugins folder that are not already loaded.
+     *
+     * This is used by the plugins screen to let users copy a plugin zip into the
+     * folder and run it immediately without restarting Aliucord.
+     *
+     * @param context Context
+     * @param startEnabled Whether newly loaded plugins should be started if enabled
+     * @return Number of new plugins that were loaded successfully
+     */
+    @JvmStatic
+    fun loadNewPlugins(context: Context, startEnabled: Boolean = true): Int {
+        if (isSafeModeEnabled()) {
+            logger.warn("Safe mode is enabled. skipping loading external plugins")
+            return 0
+        }
+
+        val dir = File(Constants.PLUGINS_PATH)
+        if (!dir.exists() && !dir.mkdirs()) {
+            logger.errorToast("Failed to create plugins directory!", null)
+            return 0
+        }
+
+        val loadedFilenames = plugins.values
+            .asSequence()
+            .mapNotNull { it.__filename }
+            .toHashSet()
+
+        val pluginFiles = dir.listFiles { file ->
+            file.isFile && file.name.endsWith(".zip") && file.name.removeSuffix(".zip") !in loadedFilenames
+        } ?: return 0
+
+        pluginFiles.sortBy { it.name }
+
+        var loaded = 0
+        pluginFiles.forEach { file ->
+            val fileName = file.name.removeSuffix(".zip")
+            loadPlugin(context, file)
+            val plugin = plugins.values.firstOrNull { it.__filename == fileName } ?: return@forEach
+            loaded++
+
+            if (startEnabled && isPluginEnabled(plugin.name)) {
+                startPlugin(plugin.name)
+            }
+        }
+
+        return loaded
+    }
+
     @JvmStatic
     fun startCorePlugins() {
         for (p in plugins.values) {
