@@ -22,6 +22,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.*;
 
 import com.aliucord.*;
+import com.aliucord.api.PluginsAPI;
 import com.aliucord.entities.CorePlugin;
 import com.aliucord.entities.Plugin;
 import com.aliucord.fragments.ConfirmDialog;
@@ -382,7 +383,7 @@ public class Plugins extends SettingsPage {
         Adapter adapter = new Adapter(this, PluginManager.plugins.values());
 
         addHeaderButton("Load New Plugins", R.e.ic_file_download_white_24dp, item -> {
-            int loaded = PluginManager.loadNewPlugins(context, true);
+            int loaded = PluginsAPI.loadNewPlugins(context, true);
             if (loaded == 0) {
                 Utils.showToast("No new plugins found");
             } else {
