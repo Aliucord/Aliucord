@@ -6,6 +6,7 @@
 
 package com.aliucord.wrappers.messages
 
+import com.aliucord.utils.accessField
 import com.discord.api.message.attachment.MessageAttachment
 import com.discord.api.message.attachment.MessageAttachmentType
 
@@ -69,3 +70,5 @@ class AttachmentWrapper(private val attachment: MessageAttachment) {
       get() = g()
   }
 }
+
+val MessageAttachment.flags: Int by accessField()

@@ -1,0 +1,11 @@
+--- smali_original/com/discord/restapi/RestAPIParams$UserRelationship.smali
++++ smali/com/discord/restapi/RestAPIParams$UserRelationship.smali
+@@ -60,6 +60,8 @@
+ 
+ .field private final friendToken:Ljava/lang/String;
+ 
++.field private final note:Ljava/lang/String;
++
+ .field private final type:Ljava/lang/Integer;
+ 
+ 

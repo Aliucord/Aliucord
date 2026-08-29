@@ -7,6 +7,7 @@
 package com.aliucord.utils
 
 import android.os.Looper
+import com.discord.utilities.rx.ObservableExtensionsKt
 import j0.l.a.c
 import rx.*
 import rx.functions.*
@@ -171,6 +172,18 @@ object RxUtils {
      */
     @JvmStatic
     fun <T, R> Observable<T>.switchMap(func: (T) -> Observable<R>): Observable<R> = Y { func(it) }
+
+    /**
+     * Helper version of Observable.onBackpressureBuffer().observeOn(Schedulers.computation()).subscribeOn(Schedulers.computation())
+     */
+    @JvmStatic
+    fun <T> Observable<T>.computationBuffered() = ObservableExtensionsKt.computationBuffered(this)!!
+
+    /**
+     * Helper version of Observable.observeOn(AndroidSchedulers.mainThread())
+     */
+    @JvmStatic
+    fun <T> Observable<T>.ui() = ObservableExtensionsKt.ui(this)!!
 
     /**
      * Creates a new cold Observable. When the observable is subscribed to, [onSubscribe] is called

@@ -7,13 +7,12 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.*
-import android.view.View
-import android.view.WindowInsetsAnimation
+import android.view.*
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.*
 import androidx.viewbinding.ViewBinding
 import com.aliucord.Main
 import com.aliucord.Utils
@@ -21,13 +20,18 @@ import com.aliucord.coreplugins.voice.model.TransportModes
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.rx.CancellableSubscription
+import com.aliucord.updater.ManagerBuild
+import com.aliucord.utils.*
 import com.aliucord.utils.DimenUtils.dp
-import com.aliucord.utils.ReflectUtils
+import com.aliucord.utils.RxUtils.computationBuffered
+import com.aliucord.utils.RxUtils.subscribe
+import com.aliucord.utils.RxUtils.ui
 import com.aliucord.utils.ViewUtils.findViewById
-import com.aliucord.utils.accessField
 import com.aliucord.wrappers.ChannelWrapper.Companion.id
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper
+import com.aliucord.wrappers.messages.flags
 import com.discord.api.channel.Channel
+import com.discord.api.message.attachment.MessageAttachment
 import com.discord.api.message.embed.EmbedField
 import com.discord.api.message.embed.EmbedType
 import com.discord.api.permission.Permission
@@ -40,6 +44,7 @@ import com.discord.models.guild.Guild
 import com.discord.rtcconnection.socket.io.Payloads.Protocol.ProtocolInfo
 import com.discord.stores.*
 import com.discord.stores.updates.ObservationDeck
+import com.discord.utilities.channel.ChannelSelector
 import com.discord.utilities.drawable.DrawableCompat
 import com.discord.utilities.embed.EmbedResourceUtils
 import com.discord.utilities.guildautomod.AutoModUtils
@@ -48,8 +53,10 @@ import com.discord.utilities.images.MGImages
 import com.discord.utilities.lazy.memberlist.ChannelMemberList
 import com.discord.utilities.lazy.memberlist.MemberListRow
 import com.discord.utilities.permissions.PermissionUtils
+import com.discord.utilities.rest.RestAPI
 import com.discord.utilities.time.ClockFactory
 import com.discord.utilities.time.NtpClock
+import com.discord.utilities.view.extensions.RecyclerViewExtensionsKt
 import com.discord.utilities.viewbinding.FragmentViewBindingDelegate
 import com.discord.widgets.channels.list.*
 import com.discord.widgets.chat.input.*
@@ -64,8 +71,9 @@ import com.discord.widgets.chat.list.actions.`WidgetChatListActions$binding$2`
 import com.discord.widgets.chat.list.adapter.*
 import com.discord.widgets.chat.list.entries.*
 import com.discord.widgets.chat.overlay.WidgetChatOverlay
-import com.discord.widgets.guilds.list.GuildListViewHolder
-import com.discord.widgets.guilds.list.`WidgetGuildsListViewModel$createDirectMessageItems$1`
+import com.discord.widgets.guilds.contextmenu.WidgetFolderContextMenu
+import com.discord.widgets.guilds.contextmenu.WidgetGuildContextMenu
+import com.discord.widgets.guilds.list.*
 import com.discord.widgets.home.WidgetHome
 import com.discord.widgets.media.WidgetMedia
 import com.discord.widgets.settings.profile.SettingsUserProfileViewModel
@@ -84,6 +92,7 @@ import rx.subjects.Subject
 import j0.l.a.i.a as BaseEmitter
 
 private const val BYPASS_SLOWMODE_PERMISSION = 1L shl 52
+private const val ATTACHMENT_SPOILER_FLAG = 1 shl 3
 
 /**
  * Contains various fixes for stock Discord that ensure "proper" behavior.
@@ -118,6 +127,8 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixBioHeightLimit()
         fixUnreadForumChannels()
         fixMemoryLeak()
+        fixServerIconLongPress()
+        fixNewAttachmentSpoilers()
     }
 
     private val WidgetChatList.binding by accessField<FragmentViewBindingDelegate<WidgetChatListBinding>?>($$"binding$delegate")
@@ -185,6 +196,66 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
 
     private val GuildListViewHolder.GuildViewHolder.bindingGuild
         by accessField<WidgetGuildsListItemGuildBinding>()
+
+    private fun fixServerIconLongPress() = tryPatch("Fix server icon long press") {
+        var pressedGuild: RecyclerView.ViewHolder? = null
+        var guildHeld = false
+
+        patcher.before<ItemTouchHelper.Callback>(
+            "hasDragFlag", RecyclerView::class.java, RecyclerView.ViewHolder::class.java,
+        ) { (param, _: RecyclerView, guild: RecyclerView.ViewHolder) ->
+            if (guild === pressedGuild) param.result = false
+        }
+
+        patcher.before<ItemTouchHelper>("findAnimation", MotionEvent::class.java) { (_, event: MotionEvent) ->
+            if (mCallback !is GuildsDragAndDropCallback) return@before
+
+            guildHeld = false
+            pressedGuild = mRecyclerView.findChildViewUnder(event.x, event.y)
+                ?.let(mRecyclerView::getChildViewHolder)
+        }
+
+        patcher.before<ItemTouchHelper>(
+            "select", RecyclerView.ViewHolder::class.java, Int::class.javaPrimitiveType!!,
+        ) { (_, selected: RecyclerView.ViewHolder?, _: Int) ->
+            if (mCallback is GuildsDragAndDropCallback && selected == null) {
+                pressedGuild = null
+                guildHeld = false
+            }
+        }
+
+        patcher.before<RecyclerViewExtensionsKt?>(
+            "ignoreCurrentTouch", RecyclerView::class.java) { (param, recyclerView: RecyclerView) ->
+            val guild = pressedGuild ?: return@before
+            if (guild.itemView.parent === recyclerView) {
+                guildHeld = true
+                param.result = null
+            }
+        }
+
+        patcher.before<ItemTouchHelper>(
+            "checkSelectForSwipe",
+            Int::class.javaPrimitiveType!!,
+            MotionEvent::class.java,
+            Int::class.javaPrimitiveType!!,
+        ) { (_, action: Int, _: MotionEvent, _: Int) ->
+            val guild = pressedGuild ?: return@before
+            if (mCallback !is GuildsDragAndDropCallback || !guildHeld ||
+                action != MotionEvent.ACTION_MOVE ||
+                guild !is GuildsDragAndDropCallback.DraggableViewHolder || !guild.canDrag()) return@before
+
+            pressedGuild = null
+
+            val ctx = guild.itemView.context as FragmentActivity
+            if (guild is GuildListViewHolder.FolderViewHolder) {
+                WidgetFolderContextMenu.Companion!!.hide(ctx, false)
+            } else {
+                WidgetGuildContextMenu.Companion!!.hide(ctx, false)
+            }
+
+            startDrag(guild)
+        }
+    }
 
     private fun patchIconU(name: String, vararg paramTypes: Class<*>) {
         patcher.patch(IconUtils::class.java.getDeclaredMethod(name, *paramTypes)) {
@@ -399,12 +470,38 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         patcher.after<WidgetChatListAdapterItemThreadDraftForm>("onConfigure", Int::class.javaPrimitiveType!!, ChatListEntry::class.java) {
             itemView.findViewById<TextView>("private_thread_toggle_badge").visibility = View.GONE
         }
+
         // Fix create thread experiment
         patcher.instead<CreateThreadsFeatureFlag.Companion>("computeIsEnabled",
             Experiment::class.java,
             Experiment::class.java,
             Guild::class.java
         ) { true }
+
+        // Fix archived thread jumping
+        patcher.before<`StoreMessagesLoader$jumpToMessage$6`<*, *>>(
+            "call",
+            Boolean::class.javaObjectType,
+        ) { param ->
+            // archived threads are not fetched by default so try to manually fetch them - Canny
+            val isArchived = StoreStream.Companion!!.channels.findChannelById(`$channelId`) == null
+            if (!isArchived) return@before
+
+            val apiObservable = RestAPI.Companion!!
+                .api.getChannel(`$channelId`)
+                .computationBuffered().ui()
+            // add fetched thread to stores for caching - Canny
+            val apiSubscriber = RxUtils.createActionSubscriber<Channel>(
+                onNext = { channel ->
+                    val channelSelector = ChannelSelector.Companion!!.instance
+                    channelSelector.dispatcher.schedule {
+                        channelSelector.stream.handleThreadCreateOrUpdate(channel)
+                    }
+                },
+                onError = logger::error
+            )
+            param.result = apiObservable.apply { subscribe(apiSubscriber) }
+        }
     }
 
     private fun fixThreadsIcon() = tryPatch("Fix threads icon alignment in channel context menu") {
@@ -516,7 +613,8 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     }
 
     private fun fixUnreadForumChannels() = tryPatch("Fix unread forum channels") {
-        patcher.before<StoreReadStates>("computeUnreadIds",
+        patcher.before<StoreReadStates>(
+            "computeUnreadIds",
             Map::class.java,
             Map::class.java,
             Map::class.java,
@@ -649,6 +747,21 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         }
     }
 
+    private fun fixNewAttachmentSpoilers() = tryPatch("Fix new attachment spoilers") {
+        if (!ManagerBuild.hasPatches("1.5.0")) {
+            logger.warn("Base app outdated, cannot patch attachment spoilers")
+            return@tryPatch
+        }
+
+        // Use new attachment spoiler flag in addition to the SPOILER_ filename prefix
+        patcher.after<MessageAttachment>("h") {
+            val isSpoiler = it.result as Boolean
+            if (isSpoiler) return@after
+
+            it.result = (this.flags and ATTACHMENT_SPOILER_FLAG) != 0
+        }
+    }
+
     private fun tryPatch(label: String, block: () -> Unit) {
         try {
             block()
@@ -658,7 +771,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     }
 }
 
-private class AndroidClock: KronosClock {
+private class AndroidClock : KronosClock {
     override fun a(): Long = System.currentTimeMillis()
 
     override fun b(): Long = SystemClock.elapsedRealtime()
