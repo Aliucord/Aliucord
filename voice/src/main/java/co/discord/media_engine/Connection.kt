@@ -558,8 +558,8 @@ class Connection(
     // New DAVE-related functions
     fun connectUsers(userIds: List<String>) {
         Log.d(TAG, "connection/connectUsers: $userIds")
-        val users = userIds.map { id ->
-            mergedUsers.getOrPut(id.toLong()) {
+        val users = userIds.mapNotNull { id ->
+            mergedUsers.getOrPut(id.toLongOrNull() ?: return@mapNotNull null) {
                 UserConnectionInfo(
                     id = id,
                     audioSsrc = 0,
@@ -594,7 +594,7 @@ class Connection(
 
     fun destroyUser(userId: String) {
         Log.d(TAG, "connection/destroyUser: $userId")
-        mergedUsers.remove(userId.toLong())
+        userId.toLongOrNull()?.let { mergedUsers.remove(it) }
         native.destroyUser(userId)
     }
 
