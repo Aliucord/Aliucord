@@ -109,7 +109,9 @@ internal object StreamZoom {
                 && data.i  // isFocused
                 && data.g == ParticipantData.Type.APPLICATION_STREAMING  // type
 
-            if (enabled) overlay.startInfo(insets) else reset()
+            if (!enabled) reset()
+            else if (VoiceChatFixSettings.showConnInfo) overlay.startInfo(insets)
+            else overlay.stopInfo()
         }
 
         fun reset() {
