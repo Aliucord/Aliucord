@@ -9,6 +9,7 @@ import com.hammerandchisel.libdiscord.Discord
 import org.json.JSONArray
 import org.json.JSONObject
 import org.webrtc.VideoCapturer
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.floor
 import kotlin.math.roundToLong
 
@@ -144,6 +145,7 @@ class Connection(
     private var loggedStatsFailure: Boolean = false
     @Volatile  // Last encoder cap from setEncodingQuality
     private var lastMaxBitrate: Int = Discord.DEFAULT_VIDEO_MAX_BITRATE
+    private val mergedUsers = ConcurrentHashMap<Long, UserConnectionInfo>()
 
     init {
         set(TransportOptions(
@@ -193,14 +195,16 @@ class Connection(
             Log.w(TAG, "connectUser userId=$userId videoSsrc=$videoSsrc without rtxSsrc, dropping video pair to avoid native assert")
         }
 
-        val json = gson.m(listOf(UserConnectionInfo(
+        val info = UserConnectionInfo(
             id = userId.toString(),
             audioSsrc = audioSsrc,
             videoSsrcs = if (hasVideo) listOf(videoSsrc) else listOf(),
             rtxSsrcs = if (hasVideo) listOf(rtxSsrc) else listOf(),
             volume = createVolume,
             mute = isMuted,
-        )))
+        )
+        mergedUsers[userId] = info
+        val json = gson.m(listOf(info))
 
         Log.d(TAG, "connectUser userId=$userId audioSsrc=$audioSsrc videoSsrc=$videoSsrc rtxSsrc=$rtxSsrc isMuted=$isMuted volume=$volume createVolume=$createVolume json=$json")
 
@@ -399,7 +403,11 @@ class Connection(
         native.setSelfMute(isMuted)
         set(TransportOptions(selfMute = isMuted))
     }
-    override fun muteUser(userId: Long, isMuted: Boolean) = native.setLocalMute(userId.toString(), isMuted)
+    override fun muteUser(userId: Long, isMuted: Boolean) {
+        // Local mute has its own native call
+        mergedUsers[userId]?.let { mergedUsers[userId] = it.copy(mute = isMuted) }
+        native.setLocalMute(userId.toString(), isMuted)
+    }
 
     override fun setAudioInputMode(mode: Int) = set(TransportOptions(inputMode = mode))
 
@@ -550,19 +558,42 @@ class Connection(
     fun connectUsers(userIds: List<String>) {
         Log.d(TAG, "connection/connectUsers: $userIds")
         val users = userIds.map { id ->
-            UserConnectionInfo(
-                id = id,
-                audioSsrc = 0,
-                videoSsrcs = listOf(),
-                rtxSsrcs = listOf(),
-                volume = 0f,
-                mute = false,
-            )
+            mergedUsers.getOrPut(id.toLong()) {
+                UserConnectionInfo(
+                    id = id,
+                    audioSsrc = 0,
+                    videoSsrcs = listOf(),
+                    rtxSsrcs = listOf(),
+                    volume = 1f,
+                    mute = false,
+                )
+            }
         }
         native.mergeUsers(gson.m(users))
     }
+
+    fun bindAudioSsrc(userId: Long, audioSsrc: Int) {
+        if (audioSsrc == 0) return
+        val user: UserConnectionInfo? = mergedUsers[userId]
+        if (user != null && user.audioSsrc != 0) return
+
+        val info = (user ?: UserConnectionInfo(
+            id = userId.toString(),
+            audioSsrc = 0,
+            videoSsrcs = listOf(),
+            rtxSsrcs = listOf(),
+            volume = 1f,
+            mute = false,
+        )).copy(audioSsrc = audioSsrc, ssrc = audioSsrc)
+
+        Log.d(TAG, "connection/bindAudioSsrc: userId=$userId audioSsrc=$audioSsrc")
+        mergedUsers[userId] = info
+        native.mergeUsers(gson.m(listOf(info)))
+    }
+
     fun destroyUser(userId: String) {
         Log.d(TAG, "connection/destroyUser: $userId")
+        mergedUsers.remove(userId.toLong())
         native.destroyUser(userId)
     }
 

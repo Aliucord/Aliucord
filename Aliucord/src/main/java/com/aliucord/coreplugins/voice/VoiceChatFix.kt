@@ -463,14 +463,13 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             WebSocket::class.java,
             Payloads.Incoming::class.java,
         ) { param ->
+            val socket = param.args[0] as RtcControlSocket
             val message = param.args[2] as Payloads.Incoming
             when (message.opcode) {
                 Opcodes.READY -> runCatching {
                     // socket instance is reused across reconnects
                     // we need to drop the previous session's DAVE epoch
                     // state or proposals bypass the queue
-                    val socket = param.args[0] as? RtcControlSocket ?: return@runCatching
-
                     synchronized(pendingProposals) {
                         epochPreparedSockets.remove(socket)
                         pendingProposals.remove(socket)
@@ -483,8 +482,12 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                     val data = JSONObject(message.data.toString())
                     val userId = data.optLong("user_id")
                     val ssrc = data.optInt("video_ssrc")
+                    val audioSsrc = data.optInt("audio_ssrc")
 
-                    if (userId != 0L) VideoSinkOverrides.learnSsrc(userId, ssrc)
+                    if (userId != 0L) {
+                        VideoSinkOverrides.learnSsrc(userId, ssrc)
+                        socket.connections.forEach { it.bindAudioSsrc(userId, audioSsrc) }
+                    }
                 }.onFailure { logger.error("Failed to read VIDEO ssrc", it) }
                 Opcodes.MEDIA_SINK_WANTS ->
                     // pixelCounts is only mentioned in streams/screenshare if
@@ -505,7 +508,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                     setDebug("Backend", versions.ifEmpty { message.data.toString() })
                 }.onFailure { logger.error("Failed to read VOICE_BACKEND_VERSION", it) }
                 // buffered resume, the server now replays everything past our seq_ack
-                Opcodes.RESUMED -> logger.info("Session resumed, replaying missed messages (seq_ack=${socketSeqs[param.args[0]] ?: -1})")
+                Opcodes.RESUMED -> logger.info("Session resumed, replaying missed messages (seq_ack=${socketSeqs[socket]})")
                 // silence, useless opcode *huge explosion*
                 Opcodes.HEARTBEAT_ACK, Opcodes.SELECT_PROTOCOL_ACK,
                 Opcodes.SPEAKING, Opcodes.CLIENTS_CONNECT, Opcodes.DAVE_PREPARE_EPOCH,
