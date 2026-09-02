@@ -96,6 +96,7 @@ import com.discord.widgets.stage.sheet.WidgetStageStartEventBottomSheetViewModel
 import com.discord.widgets.stage.start.ModeratorStartStageViewModel
 import com.discord.widgets.stage.start.WidgetModeratorStartStage
 import androidx.fragment.app.Fragment
+import com.discord.views.calls.VolumeSliderView
 import com.discord.widgets.voice.stream.StreamNavigator
 import com.discord.widgets.voice.controls.VoiceControlsSheetView
 import com.discord.widgets.voice.fullscreen.CallParticipant
@@ -259,6 +260,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
         VoiceStatus.register(patcher)
         patchUserSheetView()
         Soundboard.register(context)
+        patchVolumeSliderListener()
         patchSoundboardVolume()
         patchVoiceMoveReconnect()
         patchVoiceAccess()
@@ -1603,6 +1605,26 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
     }.onFailure {
         logger.error("Failed to patch call duration text", it)
     }
+
+    // Volume slider updates on every value change which also makes the engine re-apply
+    // the whole voice config, only save the changes on release
+    // TODO: Move this to CoreFixes later down the line?
+    private fun patchVolumeSliderListener() = runCatching {
+        patcher.after<VolumeSliderView>(
+            "setOnVolumeChange",
+            Function2::class.java,
+        ) { (_, callback: Function2<Float, Boolean, Unit>) ->
+            val seekbar = findViewById<SeekBar>(Utils.getResId("volume_slider_seek_bar", "id")) ?: return@after
+
+            seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekbar: SeekBar, progress: Int, fromUser: Boolean) {}
+                override fun onStartTrackingTouch(seekbar: SeekBar) {}
+                override fun onStopTrackingTouch(seekbar: SeekBar) {
+                    callback.invoke(seekbar.progress.toFloat(), true)
+                }
+            })
+        }
+    }.onFailure { logger.error("Failed to patch volume slider update listener", it) }
 
     private fun patchSoundboardVolume() {
         val labelId = View.generateViewId()
