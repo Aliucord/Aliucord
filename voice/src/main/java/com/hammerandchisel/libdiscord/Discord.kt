@@ -5,6 +5,7 @@ import android.util.Log
 import co.discord.media_engine.*
 import com.discord.native.engine.NativeEngine
 import com.google.gson.Gson
+import org.json.JSONObject
 import org.webrtc.VideoFrame
 import java.util.Collections
 import com.discord.native.engine.VideoInputDeviceFacing as NewVideoInputDeviceFacing
@@ -40,6 +41,8 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
     private val nativeEngine: NativeEngine
 
     private var disposed = false
+    // Mirror of the current native transport config
+    private var liveOptions = JSONObject()
 
     // START - Callback interfaces as defined in original class, do not edit!
 
@@ -367,9 +370,12 @@ class Discord @JvmOverloads constructor(private val context: Context, i: Int = -
         })
     }
 
+    // Base re-applies the whole voice config per call on every store change, very good performance
     private fun setTransportOptions(options: TransportOptions) {
         if (disposed) return
         val json = gson.m(options)
+        val changed = runCatching { synchronized(this) { JSONObject(json).mergeInto(liveOptions) } }.getOrDefault(true)
+        if (!changed) return
         Log.d(TAG, "engine/setTransportOptions: $json")
         nativeEngine.setTransportOptions(json)
     }

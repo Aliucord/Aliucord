@@ -86,6 +86,24 @@ private data class TransportOptions(
     )
 }
 
+internal fun JSONObject.mergeInto(target: JSONObject): Boolean {
+    var changed = false
+
+    for (key in keys()) {
+        val value = get(key)
+        val current = target.opt(key)
+
+        if (value is JSONObject && current is JSONObject) {
+            if (value.mergeInto(current)) changed = true
+        } else if (current?.toString() != value.toString()) {
+            target.put(key, value)
+            changed = true
+        }
+    }
+
+    return changed
+}
+
 @Suppress("unused")
 class Connection(
     private val native: NativeConnection,
@@ -146,6 +164,8 @@ class Connection(
     @Volatile  // Last encoder cap from setEncodingQuality
     private var lastMaxBitrate: Int = Discord.DEFAULT_VIDEO_MAX_BITRATE
     private val mergedUsers = ConcurrentHashMap<Long, UserConnectionInfo>()
+    // Mirror of the current native transport config
+    private var liveOptions = JSONObject()
 
     init {
         set(TransportOptions(
@@ -542,12 +562,17 @@ class Connection(
 
     fun setRawTransportOptions(optionsJson: String) {
         Log.d(TAG, "connection/rawTransportOptions: $optionsJson")
+        // Force refresh rather than using old configs
+        synchronized(this) { liveOptions = JSONObject() }
         native.setTransportOptions(optionsJson)
     }
 
+    // Base re-applies the whole voice config per call on every store change, very good performance
     private fun set(options: TransportOptions) {
         if (disposed) return
         val json = gson.m(options)
+        val changed = runCatching { synchronized(this) { JSONObject(json).mergeInto(liveOptions) } }.getOrDefault(true)
+        if (!changed) return
         Log.d(TAG, "connection/setTransportOptions: $json")
         native.setTransportOptions(json)
     }
