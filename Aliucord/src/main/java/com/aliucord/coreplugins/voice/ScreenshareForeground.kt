@@ -3,6 +3,7 @@ package com.aliucord.coreplugins.voice
 import android.app.NotificationManager
 import com.aliucord.Logger
 import com.aliucord.api.PatcherAPI
+import com.aliucord.patcher.InsteadHook
 import com.aliucord.patcher.PreHook
 import com.aliucord.patcher.after
 import com.discord.utilities.voice.ScreenShareManager
@@ -50,12 +51,16 @@ internal object ScreenshareForeground {
     private var replaying = false
 
     fun register(patcher: PatcherAPI) = runCatching {
-        val startCapture = Class.forName("b.a.q.m0.b").getDeclaredMethod(
+        val capturer = Class.forName("b.a.q.m0.b")
+        val startCapture = capturer.getDeclaredMethod(
             "startCapture",
             Int::class.javaPrimitiveType,
             Int::class.javaPrimitiveType,
             Int::class.javaPrimitiveType,
         )
+
+        // Sharing app audio retries forever if the screenshare dies
+        patcher.patch(capturer.getDeclaredMethod("b"), InsteadHook.DO_NOTHING)
 
         patcher.patch(startCapture, object : XC_MethodHook() {
             override fun beforeHookedMethod(param: MethodHookParam) {
