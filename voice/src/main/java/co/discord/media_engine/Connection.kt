@@ -364,7 +364,7 @@ class Connection(
         return true
     }
 
-    private fun roundIntegralNumbers(value: Any?): Boolean {
+    private fun roundIntegralNumbers(value: Any?, keepFloats: Boolean = true): Boolean {
         var changed = false
         when (value) {
             is JSONObject -> {
@@ -374,8 +374,9 @@ class Connection(
                     val key = keys.next()
                     val child = value.opt(key)
                     if (child is JSONObject || child is JSONArray) {
-                        if (roundIntegralNumbers(child)) changed = true
-                    } else if (child is Number && key !in floatStatsKeys) {
+                        // rtcpStats always gets typed as an Int
+                        if (roundIntegralNumbers(child, keepFloats && key != "rtcpStats")) changed = true
+                    } else if (child is Number && !(keepFloats && key in floatStatsKeys)) {
                         val d = child.toDouble()
                         if (d != floor(d) || d.isInfinite()) {
                             (fractional ?: ArrayList<String>(4).also { fractional = it }).add(key)
@@ -392,7 +393,7 @@ class Connection(
             }
             is JSONArray -> {
                 for (i in 0 until value.length()) {
-                    if (roundIntegralNumbers(value.opt(i))) changed = true
+                    if (roundIntegralNumbers(value.opt(i), keepFloats)) changed = true
                 }
             }
         }
