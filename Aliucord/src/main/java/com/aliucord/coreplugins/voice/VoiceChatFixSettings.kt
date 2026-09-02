@@ -1,6 +1,7 @@
 package com.aliucord.coreplugins.voice
 
 import android.graphics.Typeface
+import android.os.Build
 import android.os.Bundle
 import android.text.SpannableStringBuilder
 import android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -46,7 +47,8 @@ internal object VoiceChatFixSettings {
     private val settings = SettingsAPI("VoiceChatFix")
 
     // Server only offers it when the hardware supports it, if not, XChaCha20 will be used
-    internal val useAes256GcmDelegate = settings.delegate("useAes256Gcm", true)
+    // Disabled by default on 32-bit-only devices since GCM fails
+    internal val useAes256GcmDelegate = settings.delegate("useAes256Gcm", Build.SUPPORTED_64_BIT_ABIS.isNotEmpty())
     val useAes256Gcm by useAes256GcmDelegate
     internal val videoBitrateKbpsDelegate = settings.delegate("videoBitrateKbps", DEFAULT_VIDEO_BITRATE_KBPS)
     val videoBitrateKbps by videoBitrateKbpsDelegate
