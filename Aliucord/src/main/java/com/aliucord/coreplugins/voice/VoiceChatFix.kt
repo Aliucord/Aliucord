@@ -1482,6 +1482,7 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
             if (update.id == null) return@onEvent
 
             trackCallStart(update.id, update.voiceStartTime)
+            VoiceStatus.tickCallTimers()
         }
 
         GatewayAPI.onEvent<ChannelInfo>("CHANNEL_INFO") { info ->
@@ -1493,6 +1494,8 @@ internal class VoiceChatFix : CorePlugin(Manifest("VoiceChatFix"))  {
                 trackCallStart(id, entry.voiceStartTime)
                 VoiceStatus.track(id, entry.status)
             }
+
+            VoiceStatus.tickCallTimers()
         }
 
         // Seed the initial values on guild voice channel join

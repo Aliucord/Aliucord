@@ -4,13 +4,20 @@ import android.annotation.SuppressLint
 import android.text.InputFilter
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.RelativeLayout
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
+import com.aliucord.Constants
 import com.aliucord.Http
 import com.aliucord.Logger
 import com.aliucord.Utils
 import com.aliucord.api.GatewayAPI
 import com.aliucord.api.PatcherAPI
+import com.aliucord.coreplugins.voice.VoiceChatTimers.callStartTimes
+import com.aliucord.coreplugins.voice.VoiceChatTimers.callTimersLines
 import com.aliucord.coreplugins.voice.VoiceChatTimers.requestChannelInfo
 import com.aliucord.coreplugins.voice.model.VoiceChannelStatus
 import com.aliucord.fragments.InputDialog
@@ -38,6 +45,7 @@ import com.discord.utilities.textprocessing.MessagePreprocessor
 import com.discord.utilities.textprocessing.MessageRenderContext
 import com.discord.widgets.channels.list.WidgetChannelsListAdapter
 import com.discord.widgets.channels.list.items.ChannelListItem
+import com.discord.widgets.channels.list.items.ChannelListItemStageVoiceChannel
 import com.discord.widgets.channels.list.items.ChannelListItemVoiceChannel
 import com.discord.widgets.voice.fullscreen.WidgetCallFullscreen
 import com.discord.widgets.voice.fullscreen.WidgetCallFullscreenViewModel
@@ -51,6 +59,7 @@ import com.facebook.drawee.span.DraweeSpanStringBuilder
 import com.lytefast.flexinput.R
 import java.util.Collections
 import java.util.WeakHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 
 internal object VoiceStatus {
     private val logger = Logger("VoiceChatFix")
@@ -65,6 +74,9 @@ internal object VoiceStatus {
     private val builders = WeakHashMap<TextView, DraweeSpanStringBuilder>()
     private val settingsRowId = View.generateViewId()
     private val callSheetRowId = View.generateViewId()
+    private val callTimerId = View.generateViewId()
+    private val callTimerViews = Collections.synchronizedMap(WeakHashMap<TextView, Long>())
+    private val ticking = AtomicBoolean()
 
     fun register(patcher: PatcherAPI) {
         GatewayAPI.onEvent<VoiceChannelStatus>("VOICE_CHANNEL_STATUS_UPDATE") { update ->
@@ -169,6 +181,7 @@ internal object VoiceStatus {
             val topic = itemView.findViewById<TextView>(topicId) ?: return@after
 
             topicViews[topic] = channel.id
+            bindCallTimer(itemView, channel)
 
             val status = statuses[channel.id]?.takeIf { it.isNotEmpty() } ?: return@after
 
@@ -181,6 +194,16 @@ internal object VoiceStatus {
             logger.debug("Channel list status: showing '$status' for channel ${channel.id}")
             topic.setStatus(status)
             topic.visibility = View.VISIBLE
+        }
+
+        patcher.after<WidgetChannelsListAdapter.ItemChannelStageVoice>(
+            "onConfigure",
+            Int::class.javaPrimitiveType!!,
+            ChannelListItem::class.java,
+        ) { (_, _: Int, data: ChannelListItem) ->
+            val channel = (data as? ChannelListItemStageVoiceChannel)?.channel ?: return@after
+
+            bindCallTimer(itemView, channel)
         }
     }
 
@@ -356,6 +379,104 @@ internal object VoiceStatus {
         ) {
             val guildId = `getSelectedGuildIdInternal$app_productionGoogleRelease`()
             if (guildId > 0L) requestChannelInfo(guildId)
+        }
+    }
+
+    // Backport of the elapsed call time (green text next to vc name)
+    private fun bindCallTimer(itemView: View, channel: Channel) {
+        val root = itemView as? ViewGroup ?: return
+        var timer = root.findViewById<TextView>(callTimerId)
+
+        if (timer == null) {
+            timer = TextView(root.context).apply {
+                id = callTimerId
+                includeFontPadding = false
+                textSize = 12f
+                setTextColor(ColorCompat.getThemedColor(context, R.b.colorTextPositive))
+                typeface = ResourcesCompat.getFont(context, Constants.Fonts.sourcecodepro_semibold)
+            }
+
+            when (channel.type) {
+                Channel.GUILD_VOICE -> {
+                    val parent = root.findViewById<View>(
+                        Utils.getResId("channels_item_voice_channel_name", "id")
+                    )?.parent as? View ?: return
+
+                    root.addView(timer, ConstraintLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
+                        endToStart = Utils.getResId("channels_item_voice_channel_guild_role_subscription_icon", "id")
+                        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+                        marginEnd = 8.dp
+                        goneEndMargin = 8.dp
+                    })
+
+                    (parent.layoutParams as? ConstraintLayout.LayoutParams)?.apply {
+                        endToStart = callTimerId
+                        marginEnd = 8.dp
+                        goneEndMargin = 16.dp
+                    }
+                }
+                Channel.GUILD_STAGE_VOICE -> {
+                    val parent = root.findViewById<View>(
+                        Utils.getResId("stage_channel_item_voice_channel_name", "id")
+                    )?.parent as? View ?: return
+
+                    root.addView(timer, RelativeLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
+                        addRule(RelativeLayout.ALIGN_PARENT_END)
+                        addRule(RelativeLayout.CENTER_VERTICAL)
+                        marginEnd = 16.dp
+                    })
+
+                    (parent.layoutParams as? RelativeLayout.LayoutParams)?.apply {
+                        addRule(RelativeLayout.START_OF, callTimerId)
+                        marginEnd = 8.dp
+                    }
+                }
+                else -> return
+            }
+        }
+
+        val start = callStartTimes[channel.id]
+        callTimerViews[timer] = channel.id
+
+        timer.apply {
+            text = start?.let { callTimersLines(it).first() }
+            visibility = if (start == null) View.GONE else View.VISIBLE
+        }
+
+        if (start != null) tickCallTimers()
+    }
+
+    fun tickCallTimers() {
+        if (ticking.compareAndSet(false, true)) Utils.mainThread.post(callTicker)
+    }
+
+    private val callTicker = object : Runnable {
+        override fun run() {
+            runCatching {
+                var live = false
+
+                synchronized(callTimerViews) {
+                    callTimerViews.forEach { (timer, channelId) ->
+                        val start = callStartTimes[channelId]
+
+                        if (start == null) {
+                            timer.visibility = View.GONE
+                            return@forEach
+                        }
+
+                        timer.text = callTimersLines(start).first()
+                        timer.visibility = View.VISIBLE
+                        live = true
+                    }
+                }
+
+                ticking.set(live)
+                if (live) Utils.mainThread.postDelayed(this, 1000L - System.currentTimeMillis() % 1000)
+            }.onFailure {
+                ticking.set(false)
+                logger.error("Failed to update call timer text", it)
+            }
         }
     }
 
