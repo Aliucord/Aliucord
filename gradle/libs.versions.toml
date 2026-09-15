@@ -1,5 +1,5 @@
 [versions]
-aliucord-gradle = "2.3.0"
+aliucord-gradle = "2.3.2"
 aliuhook = "1.1.4"
 webrtc = "1.0.1"
 android-gradle = "8.13.2"
