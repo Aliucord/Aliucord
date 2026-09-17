@@ -1,7 +1,7 @@
 {
   "versionCode": "126021",
   "versionName": "126.21",
-  "coreVersion": "2.9.7",
+  "coreVersion": "2.10.0",
   "injectorVersion": "2.4.0",
   "patchesVersion": "1.5.0",
   "kotlinVersion": "1.5.21",
