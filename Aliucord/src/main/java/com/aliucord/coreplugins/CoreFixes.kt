@@ -759,7 +759,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             val isSpoiler = it.result as Boolean
             if (isSpoiler) return@after
 
-            it.result = (this.flags and ATTACHMENT_SPOILER_FLAG) != 0
+            it.result = ((this.flags ?: 0) and ATTACHMENT_SPOILER_FLAG) != 0
         }
     }
 
