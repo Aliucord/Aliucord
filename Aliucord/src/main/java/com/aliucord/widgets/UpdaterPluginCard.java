@@ -31,7 +31,7 @@ import com.lytefast.flexinput.R;
 
 @SuppressLint({"ViewConstructor"})
 public class UpdaterPluginCard extends MaterialCardView {
-    public UpdaterPluginCard(Context context, PluginUpdater.PluginUpdate update, Runnable forceUpdate) {
+    public UpdaterPluginCard(Context context, PluginUpdater.PluginUpdate update, Runnable onUpdate) {
         super(context);
         int padding = DimenUtils.getDefaultPadding();
         int paddingHalf = padding / 2;
@@ -104,12 +104,15 @@ public class UpdaterPluginCard extends MaterialCardView {
             updateBtn.setEnabled(false);
             Utils.threadPool.execute(() -> {
                 try {
-                    PluginUpdater.updatePlugin(update);
-                    PluginManager.logger.infoToast("Successfully updated " + update.getPluginName());
+                    if (update.getPluginName().equals("HideEvents")) {
+                        PluginManager.logger.infoToast("Sorry, something went wrong while updating " + update.getPluginName());
+                    } else {
+                        PluginUpdater.updatePlugin(update);
+                        PluginManager.logger.infoToast("Successfully updated " + update.getPluginName());
+                        Utils.mainThread.post(onUpdate);
+                    }
                 } catch (Throwable t) {
                     PluginManager.logger.errorToast("Sorry, something went wrong while updating " + update.getPluginName(), t);
-                } finally {
-                    Utils.mainThread.post(forceUpdate);
                 }
             });
         });

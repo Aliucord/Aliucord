@@ -2,13 +2,14 @@ package com.aliucord.screens
 
 import android.graphics.Color
 import android.os.Bundle
-import android.view.*
-import android.widget.TextView
-import android.widget.Toast
+import android.view.Gravity
+import android.view.View
+import android.widget.*
 import com.aliucord.Utils
 import com.aliucord.fragments.SettingsPage
 import com.aliucord.settings.AliucordPage
 import com.aliucord.updater.*
+import com.aliucord.updater.PluginUpdater.PluginUpdate
 import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.widgets.UpdaterPluginCard
@@ -17,7 +18,8 @@ import com.lytefast.flexinput.R
 
 internal class UpdaterScreen : SettingsPage() {
     private val updateSource = PluginUpdaterSource()
-    private val updates = mutableListOf<PluginUpdater.PluginUpdate>()
+    private var updates = setOf<PluginUpdate>()
+    private var isRefreshing = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,7 +32,15 @@ internal class UpdaterScreen : SettingsPage() {
                 CoreUpdater.checkForUpdates()
             }
 
-            refreshUpdates()
+            val updatesIntent =
+                activity?.intent?.getParcelableArrayListExtra<PluginUpdate>("updates")
+
+            if (!updatesIntent.isNullOrEmpty()) {
+                updates += updatesIntent
+                return
+            }
+
+            fetchUpdates()
         }
     }
 
@@ -41,18 +51,13 @@ internal class UpdaterScreen : SettingsPage() {
         setActionBarTitle("Updater")
         linearLayout.removeAllViews()
 
-        addHeaderButton("Refresh", R.e.ic_refresh_white_a60_24dp) { item ->
-            item.isEnabled = false
-            setActionBarSubtitle("Checking for updates...")
-            refreshUpdates()
-            true
-        }
-
-        addHeaderButton("Update All", R.e.ic_file_download_white_24dp) { item ->
-            item.isEnabled = false
-            setActionBarSubtitle("Updating...")
-            updateAll()
-            true
+        if (updates.isNotEmpty()) {
+            addHeaderButton("Update All", R.e.ic_file_download_white_24dp) { item ->
+                item.isEnabled = false
+                setActionBarSubtitle("Updating...")
+                updateAll()
+                true
+            }
         }
 
         val noticeText = when {
@@ -69,7 +74,7 @@ internal class UpdaterScreen : SettingsPage() {
                 .show()
         }
 
-        if (updates.isEmpty()) {
+        if (updates.isEmpty() && !isRefreshing) {
             TextView(context, null, 0, R.i.UiKit_Settings_Item_SubText).addTo(linearLayout) {
                 text = "No updates found!"
                 setPadding(DimenUtils.defaultPadding)
@@ -77,26 +82,35 @@ internal class UpdaterScreen : SettingsPage() {
             }
         } else {
             for (update in updates) {
-                UpdaterPluginCard(context, update, this::refreshUpdates).addTo(linearLayout)
+                UpdaterPluginCard(context, update, { this.updates -= update; reRender(); }).addTo(linearLayout)
             }
+        }
+
+        if (isRefreshing) {
+            ProgressBar(context).addTo(linearLayout)
         }
     }
 
-    private fun refreshUpdates() {
+    private fun fetchUpdates() {
+        isRefreshing = true
+
         Utils.threadPool.execute {
-            updates.clear()
-            updates.addAll(PluginUpdater.fetchUpdates(updateSource))
+            try {
+                updates += PluginUpdater.fetchUpdates(updateSource)
 
-            val noticeText = if (updates.isNotEmpty()) {
-                "Found ${Utils.pluralise(updates.size, "plugin update")}!"
-            } else {
-                "No plugin updates found!"
-            }
+                val noticeText = if (updates.isNotEmpty()) {
+                    "Found ${Utils.pluralise(updates.size, "plugin update")}!"
+                } else {
+                    "No plugin updates found!"
+                }
 
-            Utils.mainThread.post {
-                setActionBarSubtitle(null)
-                Toast.makeText(context, noticeText, Toast.LENGTH_SHORT).show()
-                reRender()
+                Utils.mainThread.post {
+                    setActionBarSubtitle(null)
+                    Toast.makeText(context, noticeText, Toast.LENGTH_SHORT).show()
+                    reRender()
+                }
+            } finally {
+                isRefreshing = false
             }
         }
     }
@@ -112,8 +126,11 @@ internal class UpdaterScreen : SettingsPage() {
         Utils.threadPool.execute {
             val (succeeded, failed) = updates
                 .filter { it.isUpdatePossible() }
-                .partition(PluginUpdater::updatePlugin)
+                .partition {
+                    if (it.pluginName != "HideEvents") PluginUpdater.updatePlugin(it) else false
+                }
 
+            this.updates -= succeeded
             Utils.mainThread.post {
                 setActionBarSubtitle(null)
 
@@ -131,7 +148,6 @@ internal class UpdaterScreen : SettingsPage() {
                 Toast.makeText(context, noticeText, Toast.LENGTH_SHORT).show()
                 reRender()
             }
-            refreshUpdates()
         }
     }
 }
