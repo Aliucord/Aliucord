@@ -1,0 +1,14 @@
+--- smali_original/b/a/q/m0/c/k.smali
++++ smali/b/a/q/m0/c/k.smali
+@@ -1146,11 +1146,6 @@ .method public final p()V
+ 
+     .line 11
+     :goto_89
+-    new-instance v0, Lb/a/q/m0/c/k$i;
+-
+-    invoke-direct {v0, p0}, Lb/a/q/m0/c/k$i;-><init>(Lb/a/q/m0/c/k;)V
+-
+-    sput-object v0, Lorg/webrtc/Logging;->externalReporter:Lorg/webrtc/Logging$ExternalReporter;
+ 
+     .line 12
+     :try_start_90

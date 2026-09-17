@@ -45,6 +45,7 @@ kotlin {
             "-Xno-call-assertions",
             "-Xno-param-assertions",
             "-Xno-receiver-assertions",
+            "-Xallow-kotlin-package", // Workaround to adding kotlin.enums.EnumEntries polyfill
         )
     }
 }
@@ -54,4 +55,5 @@ dependencies {
     compileOnly(libs.appcompat)
     compileOnly(libs.discord)
     compileOnly(libs.kotlin.stdlib)
+    implementation(project(":voice"))
 }
