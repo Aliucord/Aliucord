@@ -95,6 +95,9 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
+        # https://github.com/android-actions/setup-android/issues/537
+        with:
+          packages: 'platform-tools'
 
       - name: Build project
         env:
