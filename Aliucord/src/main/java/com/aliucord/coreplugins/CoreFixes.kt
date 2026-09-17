@@ -313,11 +313,14 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             "getFormattedUrl",
             Context::class.java, Uri::class.java,
         ) { (param, _: Context, uri: Uri) ->
-            if (uri.path?.endsWith(".webp") != true) return@before
+            if (uri.path?.run {
+                endsWith(".webp") || endsWith(".avif")
+            } != true) return@before
 
             param.result = uri
                 .buildUpon()
                 .appendQueryParameter("animated", "true")
+                .appendQueryParameter("format", "webp")
                 .toString()
         }
 
@@ -347,10 +350,14 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
 
             @SuppressLint("UseKtx")
             val uri = Uri.parse(urls[0].replace("&?", "&"))
-                ?.takeIf { (it.path?.endsWith(".gif") == true && animated) || it.path?.endsWith(".webp") == true }
+                ?.takeIf { it.path?.run {
+                    (endsWith(".gif") && animated)
+                        || endsWith(".webp")
+                        || endsWith(".avif")
+                } == true }
                 ?: return@after
 
-            val filteredQueryKeys = uri.queryParameterNames.filter { it != "format" && it != "animated" }
+            val filteredQueryKeys = uri.queryParameterNames.filter { it != "animated" }
 
             val newUri = uri.buildUpon()
                 .clearQuery()
