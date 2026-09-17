@@ -31,6 +31,7 @@ import com.aliucord.wrappers.embeds.MessageEmbedWrapper
 import com.aliucord.wrappers.messages.flags
 import com.discord.api.channel.Channel
 import com.discord.api.message.attachment.MessageAttachment
+import com.discord.api.message.attachment.MessageAttachmentKt
 import com.discord.api.message.embed.EmbedField
 import com.discord.api.message.embed.EmbedType
 import com.discord.api.permission.Permission
@@ -128,6 +129,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixMemoryLeak()
         fixServerIconLongPress()
         fixNewAttachmentSpoilers()
+        fixNewMimeTypes()
     }
 
     private val WidgetChatList.binding by accessField<FragmentViewBindingDelegate<WidgetChatListBinding>?>($$"binding$delegate")
@@ -759,6 +761,13 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
 
             it.result = (this.flags and ATTACHMENT_SPOILER_FLAG) != 0
         }
+    }
+
+    private fun fixNewMimeTypes() = tryPatch("Add new mime types for images to embed") {
+        patcher.instead<MessageAttachmentKt?>("a") { listOf(
+            ".jpeg", ".jpg", ".gif", ".png", ".bmp", ".webp",
+            ".avif", ".jfif",
+        ) }
     }
 
     private fun tryPatch(label: String, block: () -> Unit) {
