@@ -29,6 +29,7 @@ import com.aliucord.utils.ViewUtils.findViewById
 import com.aliucord.wrappers.ChannelWrapper.Companion.id
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper
 import com.aliucord.wrappers.messages.flags
+import com.discord.api.auth.OAuthScope
 import com.discord.api.channel.Channel
 import com.discord.api.message.attachment.MessageAttachment
 import com.discord.api.message.attachment.MessageAttachmentKt
@@ -58,6 +59,7 @@ import com.discord.utilities.time.ClockFactory
 import com.discord.utilities.time.NtpClock
 import com.discord.utilities.view.extensions.RecyclerViewExtensionsKt
 import com.discord.utilities.viewbinding.FragmentViewBindingDelegate
+import com.discord.views.OAuthPermissionViews
 import com.discord.widgets.channels.list.*
 import com.discord.widgets.chat.input.*
 import com.discord.widgets.chat.input.autocomplete.adapter.ChatInputAutocompleteAdapter
@@ -130,6 +132,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixServerIconLongPress()
         fixNewAttachmentSpoilers()
         fixNewMimeTypes()
+        fixUnknownOAuthScopes()
     }
 
     private val WidgetChatList.binding by accessField<FragmentViewBindingDelegate<WidgetChatListBinding>?>($$"binding$delegate")
@@ -768,6 +771,18 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             ".jpeg", ".jpg", ".gif", ".png", ".bmp", ".webp",
             ".avif", ".jfif",
         ) }
+    }
+
+    private fun fixUnknownOAuthScopes() = tryPatch("Fix unknown OAuth scopes") {
+        patcher.before<OAuthPermissionViews?>(
+            "a",
+            TextView::class.java,
+            OAuthScope::class.java,
+        ) { (param, view: TextView, scope: OAuthScope) ->
+            if (scope !is OAuthScope.Invalid) return@before
+            view.text = scope.b()  // rawValue
+            param.result = null
+        }
     }
 
     private fun tryPatch(label: String, block: () -> Unit) {
