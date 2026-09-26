@@ -17,6 +17,7 @@ import java.io.File
  */
 internal object PluginUpdater {
     private val logger = Logger("Updater/Plugins")
+    private const val NOTIFICATION_TITLE = "Plugins Updater"
 
     /**
      * Represents an available plugin update.
@@ -119,7 +120,7 @@ internal object PluginUpdater {
         // Only show update notification
         if (!isAutoUpdateEnabled()) {
             val notification = NotificationData()
-                .setTitle("Updater")
+                .setTitle(NOTIFICATION_TITLE)
                 .setBody(MDUtils.render(buildString {
                     append("Found ${updates.size} available plugin updates: ")
                     append(updates
@@ -141,11 +142,11 @@ internal object PluginUpdater {
         // Update plugins
         val (succeeded, failed) = updates
             .filter(PluginUpdate::isUpdatePossible)
-            .partition { updatePlugin(it) }
+            .partition(::updatePlugin)
 
         val notification = if (failed.isNotEmpty()) {
             NotificationData()
-                .setTitle("Updater")
+                .setTitle(NOTIFICATION_TITLE)
                 .setAutoDismissPeriodSecs(30)
                 .setBody(MDUtils.render(buildString {
                     append("Failed to update some plugins: ")
@@ -158,7 +159,7 @@ internal object PluginUpdater {
                 .setOnClick { openPage(Utils.appActivity, UpdaterScreen::class.java) }
         } else {
             NotificationData()
-                .setTitle("Updater")
+                .setTitle(NOTIFICATION_TITLE)
                 .setAutoDismissPeriodSecs(10)
                 .setOnClick { /* Do nothing */ }
                 .setBody(MDUtils.render(buildString {
