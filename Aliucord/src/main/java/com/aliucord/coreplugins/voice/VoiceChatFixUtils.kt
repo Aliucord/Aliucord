@@ -1,8 +1,6 @@
 package com.aliucord.coreplugins.voice
 
-import android.text.Editable
-import android.text.InputType
-import android.text.TextWatcher
+import android.text.*
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
@@ -11,9 +9,9 @@ import com.aliucord.settings.SettingsDelegate
 import com.aliucord.utils.DimenUtils
 import com.aliucord.utils.ViewUtils.addTo
 import com.aliucord.views.TextInput
-import com.hammerandchisel.libdiscord.Discord
 
 private const val GROUP_SIZE = 5
+
 // libdave generate_displayable_code(data, digits, 5): each group of 5 digits, 5 bytes
 // Epoch authenticator (voice privacy code) has 30 digits
 // Pairwise per-user fingerprint has 45 digits
@@ -102,11 +100,6 @@ internal fun LinearLayout.validate(
 
     inputs.add(input)
 }
-
-internal fun codecCaps(codec: String): Discord.CodecCapability =
-    Discord.codecCapabilities[codec] ?: (codec == "H264").let {
-        Discord.CodecCapability(codec, decode = it, encode = it)
-    }
 
 internal fun Any.setIntField(name: String, value: Int) =
     javaClass.getDeclaredField(name).apply { isAccessible = true }.setInt(this, value)

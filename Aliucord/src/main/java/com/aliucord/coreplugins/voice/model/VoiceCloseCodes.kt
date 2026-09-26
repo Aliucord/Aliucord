@@ -3,6 +3,7 @@ package com.aliucord.coreplugins.voice.model
 internal enum class VoiceCloseCodes(
     val code: Int,
     val message: String,
+    /** Whether to notify the user of the gateway failure. */
     val toast: Boolean = true,
 ) {
     UNKNOWN_OPCODE(4001, "Unknown opcode sent to voice server"),

@@ -1,8 +1,8 @@
 package com.aliucord.coreplugins.voice.model
 
-import com.aliucord.coreplugins.voice.codecCaps
 import com.aliucord.utils.SerializedName
 import com.discord.rtcconnection.socket.io.Payloads
+import com.hammerandchisel.libdiscord.Discord
 
 internal data class NewCodecInfo(
     val name: String,
@@ -12,20 +12,28 @@ internal data class NewCodecInfo(
     @SerializedName("rtx_payload_type") val rtxPayloadType: Int?,
     val encode: Boolean?,
     val decode: Boolean?,
-    ) {
-        companion object {
-            fun from(old: Payloads.Protocol.CodecInfo): NewCodecInfo = with(old) {
-                val capability = if (type == "audio") null else codecCaps(name)
+) {
+    companion object {
+        fun from(old: Payloads.Protocol.CodecInfo): NewCodecInfo {
+            val capability = when (old.type) {
+                "audio" -> null
 
-                NewCodecInfo(
-                    name = name,
-                    type = type,
-                    priority = priority,
-                    payloadType = payloadType,
-                    rtxPayloadType = if (capability != null) rtxPayloadType else null,
-                    encode = capability?.encode,
-                    decode = capability?.decode,
+                else -> Discord.codecCapabilities[old.name] ?: Discord.CodecCapability(
+                    codec = old.name,
+                    decode = old.name == "H264",
+                    encode = old.name == "H264",
                 )
             }
+
+            return NewCodecInfo(
+                name = old.name,
+                type = old.type,
+                priority = old.priority,
+                payloadType = old.payloadType,
+                rtxPayloadType = capability?.let { old.rtxPayloadType },
+                encode = capability?.encode,
+                decode = capability?.decode,
+            )
         }
     }
+}

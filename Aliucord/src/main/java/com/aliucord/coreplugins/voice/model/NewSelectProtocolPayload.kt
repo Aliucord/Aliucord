@@ -9,17 +9,19 @@ internal data class NewSelectProtocolPayload(
 ) {
     companion object {
         fun from(old: Payloads.Protocol): NewSelectProtocolPayload {
-            return with(old) {
-                val secureData = data
-                    .takeUnless { it.mode.startsWith("aead_") }
-                    ?: Payloads.Protocol.ProtocolInfo(data.address, data.port, TransportModes.AES256_GCM)
-
-                NewSelectProtocolPayload(
-                    codecs = codecs.map { NewCodecInfo.from(it) },
-                    data = secureData,
-                    protocol = protocol,
+            val secureData = old.data
+                .takeUnless { it.mode.startsWith("aead_") }
+                ?: Payloads.Protocol.ProtocolInfo(
+                    old.data.address,
+                    old.data.port,
+                    TransportModes.AES256_GCM,
                 )
-            }
+
+            return NewSelectProtocolPayload(
+                codecs = old.codecs.map(NewCodecInfo::from),
+                data = secureData,
+                protocol = old.protocol,
+            )
         }
     }
 }
