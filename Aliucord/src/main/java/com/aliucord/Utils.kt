@@ -30,6 +30,7 @@ import androidx.fragment.app.Fragment
 import b.a.d.j
 import com.aliucord.fragments.AppFragmentProxy
 import com.aliucord.fragments.ConfirmDialog
+import com.aliucord.settings.SettingsDelegate
 import com.aliucord.utils.DimenUtils.dp
 import com.aliucord.utils.ReflectUtils
 import com.discord.api.commands.ApplicationCommandType
@@ -471,6 +472,42 @@ Consider installing the MiXplorer file manager, or navigate to $path manually us
         setSubtext(subtext)
         l.b().run {
             setPadding(0, paddingTop, paddingRight, paddingBottom)
+        }
+    }
+
+    /**
+     * Creates a checkable settings [View].
+     * @param context [Context]
+     * @param type [CheckedSetting.ViewType] of the checkable item.
+     * @param text Title of the checkable item.
+     * @param subtext Summary of the checkable item.
+     * @param requiresRestart Whether to prompt for a restart after changing state.
+     * @param delegate The backing settings item that is automatically updated.
+     * @return Checkable item.
+     */
+    @JvmStatic
+    fun createCheckedSetting(
+        context: Context,
+        type: CheckedSetting.ViewType,
+        text: CharSequence?,
+        subtext: CharSequence? = null,
+        requiresRestart: Boolean = false,
+        delegate: SettingsDelegate<Boolean>,
+    ): CheckedSetting {
+        return createCheckedSetting(
+            context = context,
+            type = type,
+            text = text,
+            subtext = subtext,
+        ).apply {
+            isChecked = delegate.value
+
+            setOnCheckedListener {
+                delegate.value = !delegate.value
+
+                if (requiresRestart)
+                    promptRestart()
+            }
         }
     }
 
