@@ -126,9 +126,7 @@ internal class UpdaterScreen : SettingsPage() {
         Utils.threadPool.execute {
             val (succeeded, failed) = updates
                 .filter { it.isUpdatePossible() }
-                .partition {
-                    if (it.pluginName != "HideEvents") PluginUpdater.updatePlugin(it) else false
-                }
+                .partition(PluginUpdater::updatePlugin)
 
             this.updates -= succeeded
             Utils.mainThread.post {
