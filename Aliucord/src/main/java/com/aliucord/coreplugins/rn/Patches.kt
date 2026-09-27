@@ -7,10 +7,18 @@
 package com.aliucord.coreplugins.rn
 
 import android.content.Context
+import android.graphics.Color
 import android.net.Uri
+import android.view.Gravity
 import android.view.View
+import android.widget.*
+import androidx.core.content.res.ResourcesCompat
+import com.aliucord.api.PatcherAPI
 import com.aliucord.api.rn.user.RNUserProfile
 import com.aliucord.patcher.*
+import com.aliucord.utils.DimenUtils.dp
+import com.aliucord.utils.ViewUtils.addTo
+import com.aliucord.utils.ViewUtils.findViewById
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper.Companion.rawVideo
 import com.aliucord.wrappers.users.globalName
 import com.discord.api.channel.Channel
@@ -18,9 +26,7 @@ import com.discord.api.channel.`ChannelUtils$getDisplayName$1`
 import com.discord.api.message.embed.EmbedType
 import com.discord.api.message.embed.MessageEmbed
 import com.discord.api.role.GuildRoleColors
-import com.discord.api.sticker.Sticker
-import com.discord.api.sticker.StickerFormatType
-import com.discord.api.sticker.StickerPartial
+import com.discord.api.sticker.*
 import com.discord.api.user.User
 import com.discord.api.user.UserProfile
 import com.discord.app.AppFragment
@@ -30,7 +36,7 @@ import com.discord.models.member.GuildMember
 import com.discord.models.presence.Presence
 import com.discord.models.user.CoreUser
 import com.discord.models.user.MeUser
-import com.discord.stores.*
+import com.discord.stores.StoreStream
 import com.discord.utilities.auth.`AuthUtils$createDiscriminatorInputValidator$1`
 import com.discord.utilities.icon.IconUtils
 import com.discord.utilities.mg_recycler.MGRecyclerDataPayload
@@ -46,13 +52,16 @@ import com.discord.widgets.settings.account.WidgetSettingsAccountUsernameEdit
 import com.discord.widgets.user.*
 import com.discord.widgets.user.profile.UserProfileHeaderView
 import com.discord.widgets.user.profile.UserProfileHeaderViewModel
+import com.discord.widgets.user.usersheet.WidgetUserSheet
+import com.discord.widgets.user.usersheet.WidgetUserSheetViewModel
 import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonToken
+import com.lytefast.flexinput.R
 import de.robv.android.xposed.XC_MethodHook
 import rx.Observable
 import java.lang.reflect.Type
-import java.util.*
+import java.util.Collections
 import com.discord.models.user.User as ModelUser
 
 fun patchNextCallAdapter() {
@@ -240,6 +249,50 @@ fun patchUserProfile() {
     Patcher.addPatch(UserProfile::class.java.getDeclaredMethod("d"), Hook {
         if (it.result == null) it.result = Collections.EMPTY_LIST
     })
+}
+
+private val privateProfileViewId = View.generateViewId()
+fun patchPrivateUserProfile(patcher: PatcherAPI) {
+    patcher.after<WidgetUserSheet>(
+        "configureUI",
+        WidgetUserSheetViewModel.ViewState::class.java,
+    ) { (_, viewState: WidgetUserSheetViewModel.ViewState) ->
+        val binding = WidgetUserSheet.`access$getBinding$p`(this)
+        val layout = binding.a.findViewById<LinearLayout>("user_sheet_content")
+        var view = layout.findViewById<FrameLayout?>(privateProfileViewId)
+        if (view == null) {
+            view = FrameLayout(requireContext()).addTo(layout, 0) {
+                id = privateProfileViewId
+                visibility = View.GONE
+                setPadding(0, 12.dp, 0, 12.dp)
+                setBackgroundColor(Color.BLACK)
+                TextView(context, null, 0, R.i.UiKit_TextView_Semibold).addTo(this) {
+                    layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply {
+                        gravity = Gravity.CENTER
+                    }
+                    text = "Private Profile"
+                    setTextColor(Color.WHITE)
+                    val icon = ResourcesCompat.getDrawable(resources, R.e.ic_lock_white_a60_16dp, null)
+                    compoundDrawablePadding = 8.dp
+                    setCompoundDrawablesRelativeWithIntrinsicBounds(icon, null, null, null)
+                }
+            }
+        }
+
+        view.visibility = View.GONE
+
+        if (viewState !is WidgetUserSheetViewModel.ViewState.Loaded) return@after
+        val profile = viewState.userProfile as? RNUserProfile ?: return@after
+        if (profile.private == true) {
+            view.visibility = View.VISIBLE
+
+            val name = GuildMember.getNickOrUsername(viewState.guildMember, viewState.user)
+            // bioCardView
+            binding.b.visibility = View.VISIBLE
+            // bioText
+            binding.g.text = "${name}'s profile is private, so some info is hidden. Add them as a friend to see more."
+        }
+    }
 }
 
 fun patchStickers() {

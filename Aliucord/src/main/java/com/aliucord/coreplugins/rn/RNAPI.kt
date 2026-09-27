@@ -24,6 +24,7 @@ internal class RNAPI : CorePlugin(Manifest("RNAPI")) {
 
         patchNextCallAdapter()
         patchUserProfile()
+        patchPrivateUserProfile(patcher)
         patchDefaultAvatars()
         patchUsername()
         patchStickers()

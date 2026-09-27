@@ -12,5 +12,6 @@ import com.discord.api.user.UserProfile
 class RNUserProfile(
     val guildMemberProfile: UserProfileData?,
     val userProfile: UserProfileData?,
-    val badges: List<ProfileBadge>?
+    val badges: List<ProfileBadge>?,
+    val private: Boolean?,
 ) : UserProfile()
