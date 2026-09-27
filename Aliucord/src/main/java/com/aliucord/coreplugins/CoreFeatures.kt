@@ -255,15 +255,9 @@ internal class CoreFeatures : CorePlugin(Manifest("CoreFeatures")) {
     }
 
     private fun safeModeDialog(fragment: Fragment) {
-        val desc = """
-            You are currently in safe mode. Plugins are disabled.
-
-            Press OK to exit safe mode and restart Aliucord.
-
-            """.trimIndent()
         ConfirmDialog()
             .setTitle("Safe Mode")
-            .setDescription(desc)
+            .setDescription("You are currently in safe mode. Plugins are disabled.\n\n" + "Press OK to exit safe mode and restart Aliucord.")
             .setOnOkListener {
                 Main.settings.setBool(ALIUCORD_SAFE_MODE_KEY, false)
                 Utils.restartAliucord(fragment.requireContext())

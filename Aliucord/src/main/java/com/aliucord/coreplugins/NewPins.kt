@@ -121,7 +121,7 @@ internal class NewPins : CorePlugin(Manifest("NewPins")) {
                     val data = res.json(GsonUtils.gsonRestApi, GetChannelPinsResponse::class.java)
                     val state = PinStateExtra.of(channelId)
                     state.hasMore = data.hasMore
-                    state.oldestPinTimestamp = data.items.last().pinnedAt
+                    state.oldestPinTimestamp = data.items.lastOrNull()?.pinnedAt
                     subscriber.onNext(data.items.map { it.message })
                 }
                 subscriber.onCompleted()

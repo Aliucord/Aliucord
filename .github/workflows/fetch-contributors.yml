@@ -1,0 +1,83 @@
+name: Fetch Contributors
+
+on:
+  schedule:
+    - cron: '0 0 1 * *' # “At 00:00 on day-of-month 1.”
+  push:
+    branches: [ main ]
+    paths: .github/workflows/fetch-contributors.yml
+  workflow_dispatch:
+
+jobs:
+  fetch-contributors:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout builds
+        uses: actions/checkout@v7
+        with:
+          ref: builds
+
+      - name: Fetch & Update Contributors
+        env:
+          ORG: Aliucord
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Discovering repositories for organization: $ORG..."
+          RESPONSE=$(curl -sL --fail-with-body \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/orgs/$ORG/repos?per_page=100&type=public")
+
+          REPOS=($(echo "$RESPONSE" | jq -r '.[] | select(.fork == false) | .full_name'))
+          TMP=$(mktemp -d)
+
+          for REPO in "${REPOS[@]}"; do
+            echo "Fetching contributors for $REPO..."
+
+            RESPONSE=$(curl -sL --fail-with-body \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$REPO/contributors?per_page=100")
+
+            echo "$RESPONSE" | jq --raw-output --compact-output --arg repo "$REPO" '
+              [ .[]
+                | select(.type == "User" and
+                       .login != "actions-user" and
+                       .login != "crowdin-bot")
+                | {
+                  username: .login,
+                  avatarUrl: .avatar_url,
+                  commits: .contributions,
+                  repositories: [{ name: $repo, commits: .contributions }]
+                }
+              ]' > "$(mktemp -p $TMP --suffix=.json)"
+          done
+
+          echo "Combining all fetched records..."
+          jq --slurp --compact-output '.
+            | flatten
+            | group_by(.username)
+            | map({
+              username: .[0].username,
+              avatarUrl: .[0].avatarUrl,
+              commits: map(.commits) | add,
+              repositories: map(.repositories)
+                 | add
+                 | sort_by(-.commits, .name)
+              })
+            | sort_by(-.commits, .username)
+          ' $TMP/*.json > contributors.json
+
+      - name: Deploy Data
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add contributors.json
+
+          if [[ `git status --porcelain` ]]; then
+            git commit -m "chore: update contributors"
+            git push
+          fi

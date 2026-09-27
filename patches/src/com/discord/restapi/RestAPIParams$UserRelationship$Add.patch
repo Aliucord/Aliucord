@@ -1,0 +1,11 @@
+--- smali_original/com/discord/restapi/RestAPIParams$UserRelationship$Add.smali
++++ smali/com/discord/restapi/RestAPIParams$UserRelationship$Add.smali
+@@ -53,6 +53,8 @@
+ 
+ .field private final discriminator:I
+ 
++.field private final note:Ljava/lang/String;
++
+ .field private final username:Ljava/lang/String;
+ 
+ 

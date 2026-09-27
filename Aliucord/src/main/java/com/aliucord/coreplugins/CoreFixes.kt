@@ -7,32 +7,45 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.*
-import android.view.View
-import android.view.WindowInsetsAnimation
+import android.view.*
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentManager
+import androidx.recyclerview.widget.*
+import androidx.viewbinding.ViewBinding
 import com.aliucord.Main
 import com.aliucord.Utils
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
+import com.aliucord.rx.CancellableSubscription
+import com.aliucord.updater.ManagerBuild
+import com.aliucord.utils.*
 import com.aliucord.utils.DimenUtils.dp
-import com.aliucord.utils.ReflectUtils
+import com.aliucord.utils.RxUtils.computationBuffered
+import com.aliucord.utils.RxUtils.subscribe
+import com.aliucord.utils.RxUtils.ui
 import com.aliucord.utils.ViewUtils.findViewById
-import com.aliucord.utils.accessField
 import com.aliucord.wrappers.ChannelWrapper.Companion.id
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper
+import com.aliucord.wrappers.messages.flags
+import com.discord.api.auth.OAuthScope
 import com.discord.api.channel.Channel
+import com.discord.api.message.attachment.MessageAttachment
+import com.discord.api.message.attachment.MessageAttachmentKt
 import com.discord.api.message.embed.EmbedField
 import com.discord.api.message.embed.EmbedType
 import com.discord.api.permission.Permission
-import com.discord.databinding.WidgetGuildsListItemGuildBinding
+import com.discord.app.AppFragment
+import com.discord.databinding.*
 import com.discord.models.domain.emoji.ModelEmojiCustom
 import com.discord.models.domain.emoji.ModelEmojiUnicode
 import com.discord.models.experiments.domain.Experiment
 import com.discord.models.guild.Guild
 import com.discord.rtcconnection.socket.io.Payloads.Protocol.ProtocolInfo
 import com.discord.stores.*
+import com.discord.stores.updates.ObservationDeck
+import com.discord.utilities.channel.ChannelSelector
 import com.discord.utilities.drawable.DrawableCompat
 import com.discord.utilities.embed.EmbedResourceUtils
 import com.discord.utilities.guildautomod.AutoModUtils
@@ -41,29 +54,47 @@ import com.discord.utilities.images.MGImages
 import com.discord.utilities.lazy.memberlist.ChannelMemberList
 import com.discord.utilities.lazy.memberlist.MemberListRow
 import com.discord.utilities.permissions.PermissionUtils
+import com.discord.utilities.rest.RestAPI
 import com.discord.utilities.time.ClockFactory
 import com.discord.utilities.time.NtpClock
+import com.discord.utilities.view.extensions.RecyclerViewExtensionsKt
+import com.discord.utilities.viewbinding.FragmentViewBindingDelegate
+import com.discord.views.OAuthPermissionViews
 import com.discord.widgets.channels.list.*
-import com.discord.widgets.chat.input.SmoothKeyboardReactionHelper
+import com.discord.widgets.chat.input.*
+import com.discord.widgets.chat.input.autocomplete.adapter.ChatInputAutocompleteAdapter
+import com.discord.widgets.chat.input.autocomplete.adapter.`ChatInputAutocompleteAdapter$setupScrollObservables$1`
+import com.discord.widgets.chat.input.emoji.EmojiPickerListener
+import com.discord.widgets.chat.input.emoji.WidgetEmojiPicker
+import com.discord.widgets.chat.input.expression.WidgetExpressionTray
 import com.discord.widgets.chat.list.CreateThreadsFeatureFlag
+import com.discord.widgets.chat.list.WidgetChatList
 import com.discord.widgets.chat.list.actions.`WidgetChatListActions$binding$2`
-import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemAutoModSystemMessageEmbed
-import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemThreadDraftForm
+import com.discord.widgets.chat.list.adapter.*
 import com.discord.widgets.chat.list.entries.*
 import com.discord.widgets.chat.overlay.WidgetChatOverlay
-import com.discord.widgets.guilds.list.GuildListViewHolder
-import com.discord.widgets.guilds.list.`WidgetGuildsListViewModel$createDirectMessageItems$1`
+import com.discord.widgets.guilds.contextmenu.WidgetFolderContextMenu
+import com.discord.widgets.guilds.contextmenu.WidgetGuildContextMenu
+import com.discord.widgets.guilds.list.*
+import com.discord.widgets.home.WidgetHome
 import com.discord.widgets.media.WidgetMedia
 import com.discord.widgets.settings.profile.SettingsUserProfileViewModel
 import com.discord.widgets.settings.profile.WidgetEditUserOrGuildMemberProfile
+import com.discord.widgets.status.WidgetForumPostStatus
+import com.discord.widgets.status.WidgetForumPostStatusViewModel
 import com.discord.widgets.user.usersheet.WidgetUserSheet
 import com.discord.widgets.user.usersheet.WidgetUserSheetViewModel
 import com.linecorp.apng.decoder.Apng
 import com.lyft.kronos.KronosClock
 import com.lytefast.flexinput.R
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
+import rx.Emitter
+import rx.Observable
+import rx.subjects.Subject
+import j0.l.a.i.a as BaseEmitter
 
 private const val BYPASS_SLOWMODE_PERMISSION = 1L shl 52
+private const val ATTACHMENT_SPOILER_FLAG = 1 shl 3
 
 /**
  * Contains various fixes for stock Discord that ensure "proper" behavior.
@@ -97,7 +128,29 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixClock()
         fixBioHeightLimit()
         fixUnreadForumChannels()
+        fixMemoryLeak()
+        fixServerIconLongPress()
+        fixNewAttachmentSpoilers()
+        fixNewMimeTypes()
+        fixUnknownOAuthScopes()
     }
+
+    private val WidgetChatList.binding by accessField<FragmentViewBindingDelegate<WidgetChatListBinding>?>($$"binding$delegate")
+    private val WidgetHome.binding by accessField<FragmentViewBindingDelegate<WidgetHomeBinding>?>($$"binding$delegate")
+    private val WidgetForumPostStatus.binding by accessField<FragmentViewBindingDelegate<WidgetForumPostStatusBinding>?>($$"binding$delegate")
+
+    private var WidgetChatListAdapterEventsHandler.UserReactionHandler.host by accessField<AppFragment?>()
+    private val WidgetChatListAdapterEventsHandler.UserReactionHandler.requestStream by accessField<Subject<*, *>>()
+    private var WidgetForumPostStatusViewModel.appFragment by accessField<AppFragment?>()
+
+    private var WidgetExpressionTray.emojiPickerFragment by accessField<WidgetEmojiPicker>()
+    private val WidgetExpressionTray.emojiPickerListener by accessField<EmojiPickerListener?>()
+    private val WidgetExpressionTray.onBackspacePressedListener by accessField<OnBackspacePressedListener>()
+
+    private var <T : ViewBinding> FragmentViewBindingDelegate<T>.onBindingDestroy
+        by accessField<(T) -> Unit>("onViewBindingDestroy")
+
+    private val expressionTrayPickerId = Utils.getResId("expression_tray_emoji_picker_content", "id")
 
     private fun fixStockEmojis() = tryPatch("Fix built-in emojis") {
         // Patch to repair built-in emotes is needed because installer doesn't recompile resources,
@@ -147,6 +200,66 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
 
     private val GuildListViewHolder.GuildViewHolder.bindingGuild
         by accessField<WidgetGuildsListItemGuildBinding>()
+
+    private fun fixServerIconLongPress() = tryPatch("Fix server icon long press") {
+        var pressedGuild: RecyclerView.ViewHolder? = null
+        var guildHeld = false
+
+        patcher.before<ItemTouchHelper.Callback>(
+            "hasDragFlag", RecyclerView::class.java, RecyclerView.ViewHolder::class.java,
+        ) { (param, _: RecyclerView, guild: RecyclerView.ViewHolder) ->
+            if (guild === pressedGuild) param.result = false
+        }
+
+        patcher.before<ItemTouchHelper>("findAnimation", MotionEvent::class.java) { (_, event: MotionEvent) ->
+            if (mCallback !is GuildsDragAndDropCallback) return@before
+
+            guildHeld = false
+            pressedGuild = mRecyclerView.findChildViewUnder(event.x, event.y)
+                ?.let(mRecyclerView::getChildViewHolder)
+        }
+
+        patcher.before<ItemTouchHelper>(
+            "select", RecyclerView.ViewHolder::class.java, Int::class.javaPrimitiveType!!,
+        ) { (_, selected: RecyclerView.ViewHolder?, _: Int) ->
+            if (mCallback is GuildsDragAndDropCallback && selected == null) {
+                pressedGuild = null
+                guildHeld = false
+            }
+        }
+
+        patcher.before<RecyclerViewExtensionsKt?>(
+            "ignoreCurrentTouch", RecyclerView::class.java) { (param, recyclerView: RecyclerView) ->
+            val guild = pressedGuild ?: return@before
+            if (guild.itemView.parent === recyclerView) {
+                guildHeld = true
+                param.result = null
+            }
+        }
+
+        patcher.before<ItemTouchHelper>(
+            "checkSelectForSwipe",
+            Int::class.javaPrimitiveType!!,
+            MotionEvent::class.java,
+            Int::class.javaPrimitiveType!!,
+        ) { (_, action: Int, _: MotionEvent, _: Int) ->
+            val guild = pressedGuild ?: return@before
+            if (mCallback !is GuildsDragAndDropCallback || !guildHeld ||
+                action != MotionEvent.ACTION_MOVE ||
+                guild !is GuildsDragAndDropCallback.DraggableViewHolder || !guild.canDrag()) return@before
+
+            pressedGuild = null
+
+            val ctx = guild.itemView.context as FragmentActivity
+            if (guild is GuildListViewHolder.FolderViewHolder) {
+                WidgetFolderContextMenu.Companion!!.hide(ctx, false)
+            } else {
+                WidgetGuildContextMenu.Companion!!.hide(ctx, false)
+            }
+
+            startDrag(guild)
+        }
+    }
 
     private fun patchIconU(name: String, vararg paramTypes: Class<*>) {
         patcher.patch(IconUtils::class.java.getDeclaredMethod(name, *paramTypes)) {
@@ -361,12 +474,38 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         patcher.after<WidgetChatListAdapterItemThreadDraftForm>("onConfigure", Int::class.javaPrimitiveType!!, ChatListEntry::class.java) {
             itemView.findViewById<TextView>("private_thread_toggle_badge").visibility = View.GONE
         }
+
         // Fix create thread experiment
         patcher.instead<CreateThreadsFeatureFlag.Companion>("computeIsEnabled",
             Experiment::class.java,
             Experiment::class.java,
             Guild::class.java
         ) { true }
+
+        // Fix archived thread jumping
+        patcher.before<`StoreMessagesLoader$jumpToMessage$6`<*, *>>(
+            "call",
+            Boolean::class.javaObjectType,
+        ) { param ->
+            // archived threads are not fetched by default so try to manually fetch them - Canny
+            val isArchived = StoreStream.Companion!!.channels.findChannelById(`$channelId`) == null
+            if (!isArchived) return@before
+
+            val apiObservable = RestAPI.Companion!!
+                .api.getChannel(`$channelId`)
+                .computationBuffered().ui()
+            // add fetched thread to stores for caching - Canny
+            val apiSubscriber = RxUtils.createActionSubscriber<Channel>(
+                onNext = { channel ->
+                    val channelSelector = ChannelSelector.Companion!!.instance
+                    channelSelector.dispatcher.schedule {
+                        channelSelector.stream.handleThreadCreateOrUpdate(channel)
+                    }
+                },
+                onError = logger::error
+            )
+            param.result = apiObservable.apply { subscribe(apiSubscriber) }
+        }
     }
 
     private fun fixThreadsIcon() = tryPatch("Fix threads icon alignment in channel context menu") {
@@ -478,7 +617,8 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     }
 
     private fun fixUnreadForumChannels() = tryPatch("Fix unread forum channels") {
-        patcher.before<StoreReadStates>("computeUnreadIds",
+        patcher.before<StoreReadStates>(
+            "computeUnreadIds",
             Map::class.java,
             Map::class.java,
             Map::class.java,
@@ -498,6 +638,153 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             param.args[7] = joinedForumThreadsMap
         }
     }
+
+    private fun fixMemoryLeak() = tryPatch("Fix base memory leak") {
+        // Patch some fragment binding onDestroy callbacks to ensure backend stuff doesn't outlive the fragment itself.
+        patcher.after<WidgetForumPostStatus> {
+            binding?.onBindingDestroy = { _ ->
+                val vm = WidgetForumPostStatus.`access$getViewModel$p`(this)
+                val handler = WidgetForumPostStatusViewModel.`access$getUserReactionHandler$p`(vm)
+                handler.requestStream.onCompleted()
+                vm.appFragment = null
+                handler.host = null
+            }
+        }
+        patcher.after<WidgetForumPostStatus>("onResume") {
+            val vm = WidgetForumPostStatus.`access$getViewModel$p`(this)
+            val handler = WidgetForumPostStatusViewModel.`access$getUserReactionHandler$p`(vm)
+            vm.appFragment = this
+            handler.host = this
+        }
+        patcher.after<WidgetChatList> {
+            binding?.onBindingDestroy = { binding ->
+                unsubscribeSignal.onNext(null)
+                val adapter = WidgetChatList.`access$getAdapter$p`(this)
+                val handler = WidgetChatListAdapterEventsHandler.`access$getUserReactionHandler$p`(
+                    adapter.eventHandler as WidgetChatListAdapterEventsHandler)
+                handler.requestStream.onCompleted()
+                adapter.dispose()
+                adapter.disposeHandlers()
+                binding.b.adapter = null
+                binding.b.layoutManager = null
+                WidgetChatList.`access$setAdapter$p`(this, null)
+            }
+        }
+        patcher.after<WidgetHome> {
+            binding?.onBindingDestroy = { _ ->
+                unsubscribeSignal.onNext(null)
+            }
+        }
+
+        // Patch expression tray initializers to ensure they won't get instantiated multiple times due to activity recreation.
+        patcher.before<WidgetChatInputAttachments>(
+            "createAndConfigureExpressionFragment",
+            FragmentManager::class.java,
+            TextView::class.java,
+        ) { param ->
+            val flexInput = WidgetChatInputAttachments.`access$getFlexInputFragment$p`(this)
+            // I'm not sure how they managed to do it, but they mixed up
+            // FlexInput fragment manager with App fragment manager,
+            // causing tray to get instantiated every time the main fragment loads - Canny
+            param.args[0] = flexInput.childFragmentManager
+        }
+        patcher.before<WidgetExpressionTray>("setUpEmojiPicker") { param ->
+            val fragment = childFragmentManager.findFragmentById(expressionTrayPickerId) as? WidgetEmojiPicker
+            if (isRecreated && fragment != null) {
+                // Manually re-set picker fragment listeners
+                // since original code will always create a new picker instance - Canny
+                emojiPickerFragment = fragment
+                WidgetEmojiPicker.`access$setEmojiPickerListener$p`(fragment, emojiPickerListener)
+                WidgetEmojiPicker.`access$setOnBackspacePressedListener$p`(fragment, onBackspacePressedListener)
+                param.result = null
+            }
+        }
+
+        // Patch some special Observables created with a custom emitter to ensure they respect unsubscription signals.
+        patcher.instead<`ChatInputAutocompleteAdapter$setupScrollObservables$1`<*>>(
+            "call",
+            Emitter::class.java,
+        ) { (_, emitter: Emitter<Any>) ->
+            val emitter = emitter as BaseEmitter
+
+            if (!emitter.isUnsubscribed) {
+                ChatInputAutocompleteAdapter.`access$setOnScrollListener$p`(this.`this$0`, object : RecyclerView.OnScrollListener() {
+                    override fun onScrolled(p0: RecyclerView, p1: Int, p2: Int) {
+                        super.onScrolled(p0, p1, p2)
+                        if (!emitter.isUnsubscribed) emitter.onNext(0)
+                    }
+                })
+            }
+
+            // SerialSubscription::set
+            emitter.serial.a(CancellableSubscription {
+                ChatInputAutocompleteAdapter.`access$setOnScrollListener$p`(this.`this$0`, null)
+            })
+        }
+        patcher.instead<ObservationDeck>(
+            "connectRx",
+            Array<ObservationDeck.UpdateSource>::class.java,
+            Boolean::class.javaPrimitiveType!!,
+            Emitter.BackpressureMode::class.java,
+            String::class.java,
+        ) { (_, sources: Array<ObservationDeck.UpdateSource>,
+                updateOnConnect: Boolean,
+                backpressureMode: Emitter.BackpressureMode,
+                observerName: String) ->
+
+            // Observable.create
+            val observable = Observable.o<Void?>({ emitter ->
+                val emitter = emitter as BaseEmitter
+
+                val observer = this@instead.connect(sources, updateOnConnect, observerName) {
+                    if (!emitter.isUnsubscribed) {
+                        emitter.onNext(null)
+                    }
+                }
+
+                // SerialSubscription::set
+                emitter.serial.a(CancellableSubscription {
+                    observer?.let { this@instead.disconnect(it) }
+                })
+            }, backpressureMode)
+            return@instead observable
+        }
+    }
+
+    private fun fixNewAttachmentSpoilers() = tryPatch("Fix new attachment spoilers") {
+        if (!ManagerBuild.hasPatches("1.5.0")) {
+            logger.warn("Base app outdated, cannot patch attachment spoilers")
+            return@tryPatch
+        }
+
+        // Use new attachment spoiler flag in addition to the SPOILER_ filename prefix
+        patcher.after<MessageAttachment>("h") {
+            val isSpoiler = it.result as Boolean
+            if (isSpoiler) return@after
+
+            it.result = ((this.flags ?: 0) and ATTACHMENT_SPOILER_FLAG) != 0
+        }
+    }
+
+    private fun fixNewMimeTypes() = tryPatch("Add new mime types for images to embed") {
+        patcher.instead<MessageAttachmentKt?>("a") { listOf(
+            ".jpeg", ".jpg", ".gif", ".png", ".bmp", ".webp",
+            ".avif", ".jfif",
+        ) }
+    }
+
+    private fun fixUnknownOAuthScopes() = tryPatch("Fix unknown OAuth scopes") {
+        patcher.before<OAuthPermissionViews?>(
+            "a",
+            TextView::class.java,
+            OAuthScope::class.java,
+        ) { (param, view: TextView, scope: OAuthScope) ->
+            if (scope !is OAuthScope.Invalid) return@before
+            view.text = scope.b()  // rawValue
+            param.result = null
+        }
+    }
+
     private fun tryPatch(label: String, block: () -> Unit) {
         try {
             block()
@@ -507,7 +794,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     }
 }
 
-private class AndroidClock: KronosClock {
+private class AndroidClock : KronosClock {
     override fun a(): Long = System.currentTimeMillis()
 
     override fun b(): Long = SystemClock.elapsedRealtime()
