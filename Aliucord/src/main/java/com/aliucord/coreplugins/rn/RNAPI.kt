@@ -23,6 +23,7 @@ internal class RNAPI : CorePlugin(Manifest("RNAPI")) {
         else logger.warn("Base app outdated, cannot patch display names")
 
         patchUserProfile(logger, patcher)
+        patchPrivateUserProfile(patcher)
         patchDefaultAvatars()
         patchUsername()
         patchStickers()
