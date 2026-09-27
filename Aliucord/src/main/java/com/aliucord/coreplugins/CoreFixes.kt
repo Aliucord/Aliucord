@@ -110,7 +110,6 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixAutoModEmbed()
         fixKeyboardCrash()
         fixAnimatedContent()
-        fixAnimatedPreviews()
         fixMemberListGroups()
         fixAppBar()
         fixStickerCrash()
@@ -266,28 +265,24 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         }
     }
 
-    @Suppress("NOTHING_TO_INLINE")
-    private inline val String.isAnimatable get() =
-        this.substringBeforeLast("?").run {
-            endsWith(".gif") || endsWith(".webp") || endsWith(".avif")
-        }
-    @Suppress("NOTHING_TO_INLINE")
-    private inline val Uri.isAnimatable get() = this.toString().isAnimatable
-
-    @Suppress("NOTHING_TO_INLINE")
-    private inline fun Uri.asAnimatedWebp(animated: Boolean = true): Uri {
-        val uri = this
-        val filteredQueryKeys = uri.queryParameterNames.filter { it != "animated" && it != "format" }
-
-        return uri.buildUpon()
-            .clearQuery()
-            .apply { filteredQueryKeys.forEach { appendQueryParameter(it, uri.getQueryParameter(it)) } }
-            .appendQueryParameter("animated", animated.toString())
-            .appendQueryParameter("format", "webp")
-            .build()
-    }
-
     private fun fixAnimatedContent() = tryPatch("Fix animated webps and avifs not displaying") {
+        fun isAnimatableUrl(url: String) =
+            url.substringBeforeLast("?").run {
+                endsWith(".gif") || endsWith(".webp") || endsWith(".avif")
+            }
+
+        fun fixupMediaParams(uri: Uri, animated: Boolean = true): String {
+            val filteredQueryKeys = uri.queryParameterNames.filter { it != "animated" && it != "format" }
+
+            return uri.buildUpon()
+                .clearQuery()
+                .apply { filteredQueryKeys.forEach { appendQueryParameter(it, uri.getQueryParameter(it)) } }
+                .appendQueryParameter("animated", animated.toString())
+                .appendQueryParameter("format", "webp")
+                .build()
+                .toString()
+        }
+
         // Use webp for all icons
         // I have tested with api level 28 to ensure that static webp works correctly; it is
         // still unclear why they specifically blacklisted api 28 and 29 from using static webp
@@ -334,8 +329,8 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             "getFormattedUrl",
             Context::class.java, Uri::class.java,
         ) { (param, _: Context, uri: Uri) ->
-            if (!uri.isAnimatable) return@before
-            param.result = uri.asAnimatedWebp().toString()
+            if (!isAnimatableUrl(uri.toString())) return@before
+            param.result = fixupMediaParams(uri)
         }
 
         // Mark webp & avif images in (inline) embeds as animated
@@ -347,14 +342,12 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             "isAnimated",
             EmbedType::class.java, String::class.java,
         ) { (param, _: EmbedType, url: String?) ->
-            if (url?.isAnimatable == true) {
+            if (url?.let { isAnimatableUrl(it) } == true) {
                 param.result = true
             }
         }
-    }
 
-    // This patch serves two purposes: fixing broken gif previews, and enabling support for animated webp
-    private fun fixAnimatedPreviews() = tryPatch("Fix animated previews") {
+        // Allow previews to animate when possible
         patcher.after<EmbedResourceUtils>(
             "getPreviewUrls",
             String::class.java, Int::class.java, Int::class.java, Boolean::class.java,
@@ -364,10 +357,10 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
 
             @SuppressLint("UseKtx")
             val uri = Uri.parse(urls[0].replace("&?", "&"))
-                ?.takeIf { it.toString().isAnimatable }
+                ?.takeIf { isAnimatableUrl(it.toString()) }
                 ?: return@after
 
-            urls[0] = uri.asAnimatedWebp(animated).toString()
+            urls[0] = fixupMediaParams(uri)
             params.result = urls
         }
     }
