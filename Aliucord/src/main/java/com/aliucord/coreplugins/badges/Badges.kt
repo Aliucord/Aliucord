@@ -57,7 +57,14 @@ internal class Badges : CorePlugin(MANIFEST) {
                 profile.badges?.map { badgeData ->
                     val iconUrl = badgeData.simpleIconUrl
                         ?: "https://cdn.discordapp.com/badge-icons/${badgeData.icon}.png"
-                    Badge(0, null, badgeData.description, false, iconUrl)
+
+                    Badge(
+                        /* iconRes = */ 0,
+                        /* text = */ null,
+                        /* tooltip = */ badgeData.description,
+                        /* showPremiumUpSell = */ false,
+                        /* objectType = */ iconUrl,
+                    )
                 }?.let { addAll(it.reversed()) }
 
                 aliucordBadges?.users?.get(user.id)?.let { data ->

@@ -246,7 +246,7 @@ fun patchUserProfile(logger: Logger, patcher: PatcherAPI) {
             val res = req.execute()
             if (!res.ok()) {
                 if (res.statusCode != 404) {
-                    logger.errorToast("Error while fetching profile: ${res.statusCode}: ${res.statusMessage}", null)
+                    logger.debug("Error while fetching profile: ${res.statusCode}: ${res.statusMessage}")
                     subscriber.onError(Http.HttpException(req, res))
                 }
             } else {
