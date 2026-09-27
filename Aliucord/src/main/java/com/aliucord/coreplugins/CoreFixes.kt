@@ -363,7 +363,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                 ?.takeIf { isAnimatableUrl(it.toString()) }
                 ?: return@after
 
-            urls[0] = fixupMediaParams(uri)
+            urls[0] = fixupMediaParams(uri, animated)
             params.result = urls
         }
     }
