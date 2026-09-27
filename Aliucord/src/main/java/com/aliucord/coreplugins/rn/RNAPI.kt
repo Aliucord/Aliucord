@@ -22,8 +22,7 @@ internal class RNAPI : CorePlugin(Manifest("RNAPI")) {
         if (ManagerBuild.hasPatches("1.1.1")) patchGlobalName()
         else logger.warn("Base app outdated, cannot patch display names")
 
-        patchNextCallAdapter()
-        patchUserProfile()
+        patchUserProfile(logger, patcher)
         patchPrivateUserProfile(patcher)
         patchDefaultAvatars()
         patchUsername()

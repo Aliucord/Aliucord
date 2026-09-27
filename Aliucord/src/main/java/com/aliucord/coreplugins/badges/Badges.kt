@@ -10,50 +10,68 @@ import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import com.aliucord.*
+import com.aliucord.Utils
+import com.aliucord.api.rn.user.RNUserProfile
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
 import com.aliucord.utils.DimenUtils.dp
-import com.aliucord.utils.lazyField
+import com.aliucord.utils.accessField
+import com.discord.api.user.UserProfile
 import com.discord.databinding.UserProfileHeaderBadgeBinding
 import com.discord.models.guild.Guild
-import com.discord.utilities.views.SimpleRecyclerAdapter
+import com.discord.models.user.User
 import com.discord.widgets.channels.list.WidgetChannelsList
 import com.discord.widgets.user.Badge
 import com.discord.widgets.user.profile.UserProfileHeaderView
-import com.discord.widgets.user.profile.UserProfileHeaderViewModel
 import com.lytefast.flexinput.R
 
-@Suppress("PrivatePropertyName")
-internal class SupporterBadges : CorePlugin(MANIFEST) {
+internal class Badges : CorePlugin(MANIFEST) {
     /** Used for the badge in the guild channel list header */
     private val guildBadgeViewId = View.generateViewId()
 
     /** Badges info that is populated upon plugin start */
-    private var badges: BadgesInfo? = null
+    private var aliucordBadges: BadgesInfo? = null
 
     // Cached fields
-    private val f_badgesAdapter by lazyField<UserProfileHeaderView>("badgesAdapter")
-    private val f_recyclerAdapterData by lazyField<SimpleRecyclerAdapter<*, *>>("data")
-    private val f_badgeViewHolderBinding by lazyField<UserProfileHeaderView.BadgeViewHolder>("binding")
+    private val UserProfileHeaderView.BadgeViewHolder.binding
+        by accessField<UserProfileHeaderBadgeBinding>()
 
     @Suppress("UNCHECKED_CAST")
     override fun start(context: Context) {
         Utils.threadPool.execute {
-            badges = BadgesAPI(settings).getBadges()
+            aliucordBadges = BadgesAPI(settings).getBadges()
         }
 
-        // Add badges to the RecyclerView data for badges in the user profile header
-        patcher.after<UserProfileHeaderView>("updateViewState", UserProfileHeaderViewModel.ViewState.Loaded::class.java)
-        { (_, state: UserProfileHeaderViewModel.ViewState.Loaded) ->
-            val userBadgesData = badges?.users?.get(state.user.id) ?: return@after
-            val roleBadges = userBadgesData.roles?.mapNotNull(::getBadgeForRole) ?: emptyList()
-            val customBadges = userBadgesData.custom?.map(::getBadgeForCustom) ?: emptyList()
+        // Replace default badge getter
+        patcher.instead<Badge.Companion>(
+            "getBadgesForUser",
+            User::class.java,
+            UserProfile::class.java,
+            Boolean::class.javaPrimitiveType!!,
+            Boolean::class.javaPrimitiveType!!,
+            Context::class.java,
+        ) { (_, user: User, profileArg: UserProfile) ->
+            val profile = profileArg as? RNUserProfile ?: return@instead listOf<Badge>()
+            @OptIn(ExperimentalStdlibApi::class)
+            buildList {
+                profile.badges?.map { badgeData ->
+                    val iconUrl = badgeData.simpleIconUrl
+                        ?: "https://cdn.discordapp.com/badge-icons/${badgeData.icon}.png"
 
-            val adapter = f_badgesAdapter[this] as SimpleRecyclerAdapter<Badge, UserProfileHeaderView.BadgeViewHolder>
-            val data = f_recyclerAdapterData[adapter] as MutableList<Badge>
-            data.addAll(roleBadges)
-            data.addAll(customBadges)
+                    Badge(
+                        /* iconRes = */ 0,
+                        /* text = */ null,
+                        /* tooltip = */ badgeData.description,
+                        /* showPremiumUpSell = */ false,
+                        /* objectType = */ iconUrl,
+                    )
+                }?.let { addAll(it.reversed()) }
+
+                aliucordBadges?.users?.get(user.id)?.let { data ->
+                    data.roles?.mapNotNull(::getBadgeForRole)?.let { addAll(it) }
+                    data.custom?.map(::getBadgeForCustom)?.let { addAll(it) }
+                }
+            }
         }
 
         // Set image url for badge ImageViews
@@ -65,7 +83,6 @@ internal class SupporterBadges : CorePlugin(MANIFEST) {
             // Check that badge is ours
             if (badge.icon != 0 || url == null) return@after
 
-            val binding = f_badgeViewHolderBinding[this] as UserProfileHeaderBadgeBinding
             val imageView = binding.b
             imageView.setCacheableImage(url)
         }
@@ -86,7 +103,7 @@ internal class SupporterBadges : CorePlugin(MANIFEST) {
         // Configure the channels list's newly added ImageView to show target guild badge
         patcher.after<WidgetChannelsList>("configureHeaderIcons", Guild::class.java, Boolean::class.javaPrimitiveType!!)
         { (_, guild: Guild?) ->
-            val badgeData = guild?.id?.let { id -> badges?.guilds?.get(id) }
+            val badgeData = guild?.id?.let { id -> aliucordBadges?.guilds?.get(id) }
 
             if (this.view == null) return@after
             val binding = WidgetChannelsList.`access$getBinding$p`(this)
@@ -103,12 +120,12 @@ internal class SupporterBadges : CorePlugin(MANIFEST) {
         }
     }
 
-    override fun stop(context: Context) {}
+    override fun stop(context: Context) = patcher.unpatchAll()
 
     private companion object {
         val MANIFEST = Manifest(
-            name = "SupporterBadges",
-            description = "Show badges in the profiles of contributors and donors ♡",
+            name = "Badges",
+            description = "Show new discord badges, plus special ones in the profiles of contributors and donors ♡",
         )
 
         val DEV_BADGE = Badge(R.e.ic_staff_badge_blurple_24dp, null, "Aliucord Developer", false, null)

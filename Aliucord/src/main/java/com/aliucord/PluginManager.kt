@@ -12,8 +12,7 @@ import android.content.res.Resources
 import com.aliucord.Utils.appContext
 import com.aliucord.coreplugins.*
 import com.aliucord.coreplugins.accountstanding.AccountStanding
-import com.aliucord.coreplugins.badges.DiscordBadges
-import com.aliucord.coreplugins.badges.SupporterBadges
+import com.aliucord.coreplugins.badges.Badges
 import com.aliucord.coreplugins.plugindownloader.PluginDownloader
 import com.aliucord.coreplugins.rn.RNAPI
 import com.aliucord.entities.CorePlugin
@@ -301,12 +300,12 @@ object PluginManager {
             CoreFixes(),
             CoreFeatures(),
             AccountStanding(),
+            Badges(),
             ButtonsAPI(),
             CommandHandler(),
             CoreCommands(),
             Decorations(),
             DefaultStickers(),
-            DiscordBadges(),
             ExperimentDefaults(),
             ForwardedMessages(),
             NewMessages(),
@@ -320,7 +319,6 @@ object PluginManager {
             RestartButton(),
             ShowReplyMentionFix(),
             SupportWarn(),
-            SupporterBadges(),
             TokenLogin(),
             UploadSize(),
         )
