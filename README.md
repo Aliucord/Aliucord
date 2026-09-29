@@ -1,4 +1,13 @@
-<div align="center">
+1. Follow Discord's guidelines and Terms of Service. The only exception is anything related to client modding.
+2. Don't spam
+3. Don't be rude
+4. Racist, discriminatory, sexist comments and NSFW content are prohibited
+5. Don't advertise other servers
+6. Don't distribute harmful software (including harmful plugins)
+7. Don't excess drama between other members or communities
+8. Use English language only
+9. Don't dm or mention for support
+10. Use common sense and do not ban/mute evade<div align="center">
     <img src=".github/assets/aliucord.svg" alt="Aliucord Logo" width="200" />
     <h1>Aliucord</h1>
     <p>A mod for the Legacy Android Discord app.</p>
