@@ -786,7 +786,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         // Otherwise fallback to extension detection, in which case we add a few extra image extensions here
         patcher.instead<MessageAttachmentKt?>("a") { listOf(
             ".jpeg", ".jpg", ".gif", ".png", ".bmp", ".webp",
-            ".avif", ".jfif", // <-- New
+            ".avif", ".jfif",
         ) }
     }
 
