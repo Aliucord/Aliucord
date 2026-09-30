@@ -71,4 +71,5 @@ class AttachmentWrapper(private val attachment: MessageAttachment) {
   }
 }
 
+val MessageAttachment.contentType: String? by accessField()
 val MessageAttachment.flags: Int? by accessField()
