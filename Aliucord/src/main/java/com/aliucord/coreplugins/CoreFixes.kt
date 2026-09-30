@@ -28,11 +28,13 @@ import com.aliucord.utils.RxUtils.ui
 import com.aliucord.utils.ViewUtils.findViewById
 import com.aliucord.wrappers.ChannelWrapper.Companion.id
 import com.aliucord.wrappers.embeds.MessageEmbedWrapper
+import com.aliucord.wrappers.messages.contentType
 import com.aliucord.wrappers.messages.flags
 import com.discord.api.auth.OAuthScope
 import com.discord.api.channel.Channel
 import com.discord.api.message.attachment.MessageAttachment
 import com.discord.api.message.attachment.MessageAttachmentKt
+import com.discord.api.message.attachment.MessageAttachmentType
 import com.discord.api.message.embed.EmbedField
 import com.discord.api.message.embed.EmbedType
 import com.discord.api.permission.Permission
@@ -768,7 +770,20 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         }
     }
 
-    private fun fixNewMimeTypes() = tryPatch("Add new mime types for images to embed") {
+    private fun fixNewMimeTypes() = tryPatch("Use mime type if possible for type detection") {
+        // Use new contentType field if possible for type detection
+        // MessageAttachment.getType()
+        patcher.before<MessageAttachment>("e") { param ->
+            contentType?.let { type ->
+                param.result = when (type.substringBefore('/')) {
+                    "image" -> MessageAttachmentType.IMAGE
+                    "video" -> MessageAttachmentType.VIDEO
+                    else -> MessageAttachmentType.FILE
+                }
+            }
+        }
+
+        // Otherwise fallback to extension detection, in which case we add a few extra image extensions here
         patcher.instead<MessageAttachmentKt?>("a") { listOf(
             ".jpeg", ".jpg", ".gif", ".png", ".bmp", ".webp",
             ".avif", ".jfif",
