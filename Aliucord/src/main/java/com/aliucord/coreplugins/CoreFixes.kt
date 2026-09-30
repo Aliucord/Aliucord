@@ -771,6 +771,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     }
 
     private fun fixNewMimeTypes() = tryPatch("Use mime type if possible for type detection") {
+        // Use new contentType field if possible for type detection
         // MessageAttachment.getType()
         patcher.before<MessageAttachment>("e") { param ->
             contentType?.let { type ->
@@ -781,6 +782,12 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
                 }
             }
         }
+
+        // Otherwise fallback to extension detection, in which case we add a few extra image extensions here
+        patcher.instead<MessageAttachmentKt?>("a") { listOf(
+            ".jpeg", ".jpg", ".gif", ".png", ".bmp", ".webp",
+            ".avif", ".jfif", // <-- New
+        ) }
     }
 
     private fun fixUnknownOAuthScopes() = tryPatch("Fix unknown OAuth scopes") {
