@@ -1,0 +1,59 @@
+--- smali_original/d0/t/c0.smali
++++ smali/d0/t/c0.smali
+@@ -1,5 +1,5 @@
+ .class public abstract Ld0/t/c0;
+-.super Ljava/lang/Object;
++.super Lkotlin/collections/IntIterator;
+ .source "Iterators.kt"
+ 
+ # interfaces
+@@ -10,7 +10,7 @@
+ # annotations
+ .annotation system Ldalvik/annotation/Signature;
+     value = {
+-        "Ljava/lang/Object;",
++        "Lkotlin/collections/IntIterator;",
+         "Ljava/util/Iterator<",
+         "Ljava/lang/Integer;",
+         ">;",
+@@ -24,39 +24,13 @@ .method public constructor <init>()V
+     .locals 0
+ 
+     .line 1
+-    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
++    invoke-direct {p0}, Lkotlin/collections/IntIterator;-><init>()V
+ 
+     return-void
+ .end method
+ 
+ 
+ # virtual methods
+-.method public final next()Ljava/lang/Integer;
+-    .locals 1
+-
+-    .line 2
+-    invoke-virtual {p0}, Ld0/t/c0;->nextInt()I
+-
+-    move-result v0
+-
+-    invoke-static {v0}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+-
+-    move-result-object v0
+-
+-    return-object v0
+-.end method
+-
+-.method public bridge synthetic next()Ljava/lang/Object;
+-    .locals 1
+-
+-    .line 1
+-    invoke-virtual {p0}, Ld0/t/c0;->next()Ljava/lang/Integer;
+-
+-    move-result-object v0
+-
+-    return-object v0
+-.end method
+-
+ .method public abstract nextInt()I
+ .end method
+ 
