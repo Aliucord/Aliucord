@@ -132,6 +132,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixNewAttachmentSpoilers()
         fixNewMimeTypes()
         fixUnknownOAuthScopes()
+        fixNavigationInThreads()
     }
 
     private val WidgetChatList.binding by accessField<FragmentViewBindingDelegate<WidgetChatListBinding>?>($$"binding$delegate")
@@ -784,6 +785,15 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             if (scope !is OAuthScope.Invalid) return@before
             view.text = scope.b()  // rawValue
             param.result = null
+        }
+    }
+
+    private fun fixNavigationInThreads() = tryPatch("Force enables navigation in threads") {
+        patcher.instead<WidgetChatListAdapterEventsHandler>(
+            "onThreadClicked",
+            Channel::class.java
+        ) { (_, channel: Channel) ->
+            ChannelSelector.getInstance().selectChannel(channel, null, SelectedChannelAnalyticsLocation.EMBED)
         }
     }
 
