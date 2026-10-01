@@ -793,7 +793,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             "onThreadClicked",
             Channel::class.java
         ) { (_, channel: Channel) ->
-            ChannelSelector.getInstance().selectChannel(channel, null, SelectedChannelAnalyticsLocation.EMBED)
+            ChannelSelector.getInstance().selectChannel(channel, null, null)
         }
     }
 
