@@ -811,7 +811,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             Clock::class.java
         ) {
             var currentTime = System.currentTimeMillis() - SnowflakeUtils.DISCORD_EPOCH shl 22
-            if (currentTime <= previousNonce) currentTime++
+            if (currentTime <= previousNonce) currentTime = previousNonce + 1
             previousNonce = currentTime
             return@instead currentTime
         }
