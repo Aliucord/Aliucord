@@ -38,6 +38,7 @@ import com.discord.api.message.embed.EmbedType
 import com.discord.api.permission.Permission
 import com.discord.app.AppFragment
 import com.discord.databinding.*
+import com.discord.models.domain.NonceGenerator
 import com.discord.models.domain.emoji.ModelEmojiCustom
 import com.discord.models.domain.emoji.ModelEmojiUnicode
 import com.discord.models.experiments.domain.Experiment
@@ -45,6 +46,7 @@ import com.discord.models.guild.Guild
 import com.discord.rtcconnection.socket.io.Payloads.Protocol.ProtocolInfo
 import com.discord.stores.*
 import com.discord.stores.updates.ObservationDeck
+import com.discord.utilities.SnowflakeUtils
 import com.discord.utilities.channel.ChannelSelector
 import com.discord.utilities.drawable.DrawableCompat
 import com.discord.utilities.embed.EmbedResourceUtils
@@ -55,6 +57,7 @@ import com.discord.utilities.lazy.memberlist.ChannelMemberList
 import com.discord.utilities.lazy.memberlist.MemberListRow
 import com.discord.utilities.permissions.PermissionUtils
 import com.discord.utilities.rest.RestAPI
+import com.discord.utilities.time.Clock
 import com.discord.utilities.time.ClockFactory
 import com.discord.utilities.time.NtpClock
 import com.discord.utilities.view.extensions.RecyclerViewExtensionsKt
@@ -133,6 +136,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
         fixNewMimeTypes()
         fixUnknownOAuthScopes()
         fixNavigationInThreads()
+        fixNonce()
     }
 
     private val WidgetChatList.binding by accessField<FragmentViewBindingDelegate<WidgetChatListBinding>?>($$"binding$delegate")
@@ -794,6 +798,22 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             Channel::class.java
         ) { (_, channel: Channel) ->
             ChannelSelector.getInstance().selectChannel(channel, null, null)
+        }
+    }
+
+
+    private var previousNonce: Long
+        get() = NonceGenerator.`access$getPreviousNonce$cp`()
+        set(value) = NonceGenerator.`access$setPreviousNonce$cp`(value)
+
+    private fun fixNonce() = tryPatch("Fixes incorrect date in nonce generator") {
+        patcher.instead<NonceGenerator.Companion>("computeNonce",
+            Clock::class.java
+        ) {
+            var currentTime = System.currentTimeMillis() - SnowflakeUtils.DISCORD_EPOCH shl 22
+            if (currentTime <= previousNonce) currentTime = previousNonce + 1
+            previousNonce = currentTime
+            return@instead currentTime
         }
     }
 
