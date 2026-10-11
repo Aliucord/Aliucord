@@ -207,15 +207,10 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     private val GuildListViewHolder.GuildViewHolder.bindingGuild
         by accessField<WidgetGuildsListItemGuildBinding>()
 
+    @Suppress("INVISIBLE_REFERENCE")
     private fun fixServerIconLongPress() = tryPatch("Fix server icon long press") {
         var pressedGuild: RecyclerView.ViewHolder? = null
         var guildHeld = false
-
-        patcher.before<ItemTouchHelper.Callback>(
-            "hasDragFlag", RecyclerView::class.java, RecyclerView.ViewHolder::class.java,
-        ) { (param, _: RecyclerView, guild: RecyclerView.ViewHolder) ->
-            if (guild === pressedGuild) param.result = false
-        }
 
         patcher.before<ItemTouchHelper>("findAnimation", MotionEvent::class.java) { (_, event: MotionEvent) ->
             if (mCallback !is GuildsDragAndDropCallback) return@before
@@ -223,6 +218,12 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
             guildHeld = false
             pressedGuild = mRecyclerView.findChildViewUnder(event.x, event.y)
                 ?.let(mRecyclerView::getChildViewHolder)
+        }
+
+        patcher.before<ItemTouchHelper.Callback>(
+            "hasDragFlag", RecyclerView::class.java, RecyclerView.ViewHolder::class.java,
+        ) { (param, _: RecyclerView, guild: RecyclerView.ViewHolder) ->
+            if (guild === pressedGuild) param.result = false
         }
 
         patcher.before<ItemTouchHelper>(
@@ -323,7 +324,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
 
             val size = IconUtils.getMediaProxySize(bindingGuild.d.layoutParams.height)
             val url = IconUtils.getForGuild(guild, null, animated) + "&size=${size}"
-            MGImages.`setImage$default`(bindingGuild.d, url, size, size, false, null, null, 112, null);
+            MGImages.`setImage$default`(bindingGuild.d, url, size, size, false, null, null, 112, null)
         }
 
         // Support webp emojis by forcing every emoji to be webp
