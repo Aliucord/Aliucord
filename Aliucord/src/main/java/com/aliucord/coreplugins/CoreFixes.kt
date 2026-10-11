@@ -207,6 +207,7 @@ internal class CoreFixes : CorePlugin(Manifest("CoreFixes")) {
     private val GuildListViewHolder.GuildViewHolder.bindingGuild
         by accessField<WidgetGuildsListItemGuildBinding>()
 
+    @Suppress("INVISIBLE_REFERENCE")
     private fun fixServerIconLongPress() = tryPatch("Fix server icon long press") {
         var pressedGuild: RecyclerView.ViewHolder? = null
         var guildHeld = false
