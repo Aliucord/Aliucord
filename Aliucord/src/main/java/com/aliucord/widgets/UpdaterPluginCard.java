@@ -29,9 +29,9 @@ import com.lytefast.flexinput.R;
 
 // TODO: add support for displaying reason why plugins are not updatable
 
-@SuppressLint({"ViewConstructor"})
+@SuppressLint({ "ViewConstructor" })
 public class UpdaterPluginCard extends MaterialCardView {
-    public UpdaterPluginCard(Context context, PluginUpdater.PluginUpdate update, Runnable forceUpdate) {
+    public UpdaterPluginCard(Context context, PluginUpdater.PluginUpdate update, Runnable onUpdate) {
         super(context);
         int padding = DimenUtils.getDefaultPadding();
         int paddingHalf = padding / 2;
@@ -84,7 +84,7 @@ public class UpdaterPluginCard extends MaterialCardView {
                 clParams.setGravity(Gravity.CENTER_VERTICAL);
                 buttonLayout.addView(changeLogButton, clParams);
             }
-        } catch (Throwable e) { PluginManager.logger.error(e); }
+        } catch (Throwable e) {PluginManager.logger.error(e);}
         int verid = View.generateViewId();
         tv.setId(verid);
         layout.addView(tv);
@@ -107,9 +107,9 @@ public class UpdaterPluginCard extends MaterialCardView {
                     PluginUpdater.updatePlugin(update);
                     PluginManager.logger.infoToast("Successfully updated " + update.getPluginName());
                 } catch (Throwable t) {
-                    PluginManager.logger.errorToast("Sorry, something went wrong while updating " + update.getPluginName(), t);
+                    PluginManager.logger.errorToast("Something went wrong while updating " + update.getPluginName(), t);
                 } finally {
-                    Utils.mainThread.post(forceUpdate);
+                    Utils.mainThread.post(onUpdate);
                 }
             });
         });

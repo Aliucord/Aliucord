@@ -1,19 +1,22 @@
 package com.aliucord.utils
 
+import android.os.Parcelable
 import com.google.gson.TypeAdapter
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
+import kotlinx.parcelize.Parcelize
 
 /**
  * Parses a Semantic version in the format of `v1.0.0`.
  * This is always serialized without the `v` prefix.
  */
+@Parcelize
 @JsonAdapter(SemVer.Adapter::class)
 data class SemVer(
     val major: Int,
     val minor: Int,
     val patch: Int,
-) : Comparable<SemVer> {
+) : Comparable<SemVer>, Parcelable {
     override fun compareTo(other: SemVer): Int {
         var cmp = 0
         if (0 != major.compareTo(other.major).also { cmp = it })
