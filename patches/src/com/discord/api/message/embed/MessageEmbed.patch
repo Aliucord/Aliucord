@@ -1,9 +1,19 @@
 --- smali_original/com/discord/api/message/embed/MessageEmbed.smali
 +++ smali/com/discord/api/message/embed/MessageEmbed.smali
-@@ -111,12 +111,18 @@
+@@ -111,12 +111,28 @@
      .end annotation
  .end field
  
++.field public components:Ljava/util/List;
++    .annotation system Ldalvik/annotation/Signature;
++        value = {
++            "Ljava/util/List<",
++            "Lcom/discord/api/botuikit/Component;",
++            ">;"
++        }
++    .end annotation
++.end field
++
 +.field public contentScanVersion:Ljava/lang/Integer;
 +
 +.field public flags:Ljava/lang/Integer;
