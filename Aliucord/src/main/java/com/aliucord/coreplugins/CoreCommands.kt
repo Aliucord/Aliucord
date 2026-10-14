@@ -83,10 +83,15 @@ ${if (disabled.isEmpty()) "None" else "> ${formatPlugins(disabled)}"}
 > **Patches**: $patchesVersion"""
             } ?: ""
 
+            val voiceBuildInfo = voiceField("VERSION")?.let { version ->
+                val base = voiceField("LIBDISCORD_BASE")?.let { " ($it)" } ?: ""
+                "\n> **Voice**: $version$base"
+            } ?: ""
+
             var str = """
 **Debug Info:**
 > **Discord**: ${Constants.DISCORD_VERSION}
-> **Aliucord**: ${BuildConfig.VERSION} ${if (BuildConfig.RELEASE) "" else "(Custom)"} $managerBuildInfo
+> **Aliucord**: ${BuildConfig.VERSION} ${if (BuildConfig.RELEASE) "" else "(Custom)"} $managerBuildInfo$voiceBuildInfo
 > **Plugins**: ${PluginManager.getPluginsInfo()}
 > **Android**: ${Build.VERSION.RELEASE} (SDK v${Build.VERSION.SDK_INT}) - ${getArchitecture()} - ${Build.PRODUCT}
 > **Rooted**: ${getIsRooted() ?: "Unknown"}
@@ -102,6 +107,14 @@ ${if (disabled.isEmpty()) "None" else "> ${formatPlugins(disabled)}"}
             CommandResult(str)
         }
     }
+
+    private val voiceBuildConfig by lazy {
+        runCatching { Class.forName("com.aliucord.voice.BuildConfig") }.getOrNull()
+    }
+
+    private fun voiceField(name: String): String? = runCatching {
+        voiceBuildConfig?.getField(name)?.get(null) as? String
+    }.getOrNull()?.takeIf { it.isNotEmpty() }
 
     private fun getIsRooted() =
         System.getenv("PATH")?.split(':')?.any {

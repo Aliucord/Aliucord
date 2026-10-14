@@ -15,6 +15,7 @@ import com.aliucord.coreplugins.accountstanding.AccountStanding
 import com.aliucord.coreplugins.badges.Badges
 import com.aliucord.coreplugins.plugindownloader.PluginDownloader
 import com.aliucord.coreplugins.rn.RNAPI
+import com.aliucord.coreplugins.voice.VoiceChatFix
 import com.aliucord.entities.CorePlugin
 import com.aliucord.entities.Plugin
 import com.aliucord.patcher.Patcher
@@ -321,6 +322,7 @@ object PluginManager {
             SupportWarn(),
             TokenLogin(),
             UploadSize(),
+            VoiceChatFix(),
         )
 
         val safeMode = isSafeModeEnabled();

@@ -42,10 +42,10 @@ internal class Decorations : CorePlugin(Manifest().apply {
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    private val decorators = buildList<Decorator> {
-        if (DecorationsSettings.enableAvatarDecoration) add(AvatarDecorator())
-        if (DecorationsSettings.enableGuildTags) add(GuildTagDecorator())
-        if (DecorationsSettings.enableNameplates) add(NameplateDecorator())
+    private val decorators: List<Decorator> = buildList {
+        if (DecorationsSettings.enableAvatarDecoration.value) add(AvatarDecorator())
+        if (DecorationsSettings.enableGuildTags.value) add(GuildTagDecorator())
+        if (DecorationsSettings.enableNameplates.value) add(NameplateDecorator())
     }
 
     override fun start(context: Context) {
@@ -89,7 +89,7 @@ internal class Decorations : CorePlugin(Manifest().apply {
             displayNameStyles = api.displayNameStyles
             primaryGuild = api.primaryGuild
         }
-        patcher.after<CoreUser>("equals", Object::class.java) { (param, other: Any?) ->
+        patcher.after<CoreUser>("equals", Any::class.java) { (param, other: Any?) ->
             if (other is CoreUser) {
                 param.result = (param.result as Boolean)
                     && avatarDecorationData == other.avatarDecorationData
@@ -113,7 +113,7 @@ internal class Decorations : CorePlugin(Manifest().apply {
             displayNameStyles = api.displayNameStyles
             primaryGuild = api.primaryGuild
         }
-        patcher.after<MeUser>("equals", Object::class.java) { (param, other: Any?) ->
+        patcher.after<MeUser>("equals", Any::class.java) { (param, other: Any?) ->
             if (other is MeUser) {
                 param.result = (param.result as Boolean)
                     && avatarDecorationData == other.avatarDecorationData
