@@ -352,7 +352,6 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
 
     private fun patchAttachmentSelector() {
         // Patch the input attachments to add a button to create polls
-        val pollStringId = View.generateViewId()
         patcher.after<`WidgetChatInputAttachments$configureFlexInputContentPages$1`>("invoke") {
             val flexInputFragment = WidgetChatInputAttachments.`access$getFlexInputFragment$p`(this.`this$0`)
             val ctx = flexInputFragment.requireContext()
@@ -374,18 +373,20 @@ internal class Polls : CorePlugin(Manifest("Polls")) {
                 if (!permitted) return@after
             }
 
-            val page = `WidgetChatInputAttachments$configureFlexInputContentPages$1$page$1`(ctx, R.e.ic_sort_white_24dp, pollStringId)
+            val page = `WidgetChatInputAttachments$configureFlexInputContentPages$1$page$1`(ctx, R.e.ic_sort_white_24dp, R.h.create)
             pages.add(page)
             flexInputFragment.r = pages.toTypedArray()
         }
 
-        patcher.before<TabLayout.Tab>(
-            "setContentDescription",
-            Int::class.javaPrimitiveType!!
-        ) { (param, id: Int) ->
-            if (id == pollStringId) {
-                tag = "poll"
-                param.result = setContentDescription("Create Poll")
+        patcher.after<b.b.a.a.`a$e`>("invoke") {
+            val tabLayout = `this$0`.l ?: return@after
+            val pages = (`$flexInputFragment` as FlexInputFragment).r
+            val offset = tabLayout.tabCount - pages.size
+
+            pages.forEachIndexed { index, page ->
+                if (page.icon == R.e.ic_sort_white_24dp && page.contentDesc == R.h.create) {
+                    tabLayout.getTabAt(offset + index)?.setTag("poll")?.contentDescription = "Create Poll"
+                }
             }
         }
         patcher.after<TabLayout.Tab>(
