@@ -1,6 +1,8 @@
 package com.aliucord.updater
 
+import android.content.Intent
 import android.os.Build
+import android.os.Parcelable
 import com.aliucord.*
 import com.aliucord.Utils.openPage
 import com.aliucord.api.NotificationsAPI
@@ -9,6 +11,8 @@ import com.aliucord.screens.UpdaterScreen
 import com.aliucord.settings.AUTO_UPDATE_PLUGINS_KEY
 import com.aliucord.utils.MDUtils
 import com.aliucord.utils.SemVer
+import kotlinx.parcelize.IgnoredOnParcel
+import kotlinx.parcelize.Parcelize
 import java.io.File
 
 /**
@@ -22,35 +26,42 @@ internal object PluginUpdater {
     /**
      * Represents an available plugin update.
      */
+    @Parcelize
     data class PluginUpdate(
-        /**
-         * The currently loaded plugin this is update applies to.
-         */
-        val plugin: Plugin,
         /**
          * The plugin's manifest name/id
          */
-        val pluginName: String = plugin.name,
+        val pluginName: String,
         /**
          * The fetched update info for the latest build of this plugin.
          */
         val info: PluginUpdaterSource.PluginBuildInfo,
-    ) {
+    ) : Parcelable {
+        /**
+         * The currently loaded plugin this is update applies to.
+         */
+        @IgnoredOnParcel
+        val plugin: Plugin
+            get() = PluginManager.plugins[pluginName]!!
+
         /**
          * Whether the base Discord/Aliucord installation is outdated and
          * requires a reinstallation update through Aliucord Manager.
          */
+        @IgnoredOnParcel
         val isBaseOutdated: Boolean = info.minimumDiscordVersion > Constants.DISCORD_VERSION ||
             !ManagerBuild.hasKotlin(info.minimumKotlinVersion.toString())
 
         /**
          * Whether the current Aliucord core is outdated and requires an update.
          */
+        @IgnoredOnParcel
         val isCoreOutdated: Boolean = (info.minimumAliucordVersion ?: SemVer.Zero) > SemVer.parse(BuildConfig.VERSION)
 
         /**
          * Whether the current Android version is too low to load the new plugin.
          */
+        @IgnoredOnParcel
         val isAndroidOutdated: Boolean = info.minimumApiLevel > Build.VERSION.SDK_INT
 
         /**
@@ -72,10 +83,10 @@ internal object PluginUpdater {
      * The resulting updates should not be held for long durations (ie, cached globally).
      */
     @JvmStatic
-    fun fetchUpdates(source: PluginUpdaterSource): List<PluginUpdate> {
+    fun fetchUpdates(source: PluginUpdaterSource): ArrayList<PluginUpdate> {
         logger.info("Checking for plugin updates...")
 
-        val updates = mutableListOf<PluginUpdate>()
+        val updates = arrayListOf<PluginUpdate>()
         for (plugin in PluginManager.plugins.values) {
             try {
                 if (plugin is CorePlugin) continue
@@ -100,7 +111,6 @@ internal object PluginUpdater {
                     continue
 
                 updates += PluginUpdate(
-                    plugin = plugin,
                     pluginName = plugin.name,
                     info = info,
                 )
@@ -116,6 +126,9 @@ internal object PluginUpdater {
     fun startupCheck() {
         val updates = fetchUpdates(PluginUpdaterSource())
         if (updates.isEmpty()) return
+
+        val updaterScreenIntent = Intent()
+            .putParcelableArrayListExtra("updates", updates);
 
         // Only show update notification
         if (!isAutoUpdateEnabled()) {
@@ -133,7 +146,7 @@ internal object PluginUpdater {
                     append(". Click to see more.")
                 }))
                 .setAutoDismissPeriodSecs(30)
-                .setOnClick { openPage(Utils.appActivity, UpdaterScreen::class.java) }
+                .setOnClick { openPage(Utils.appActivity, UpdaterScreen::class.java, updaterScreenIntent) }
 
             NotificationsAPI.display(notification)
             return
@@ -156,7 +169,7 @@ internal object PluginUpdater {
                     if (failed.size > 5)
                         append(", and ${failed.size - 5} others.")
                 }))
-                .setOnClick { openPage(Utils.appActivity, UpdaterScreen::class.java) }
+                .setOnClick { openPage(Utils.appActivity, UpdaterScreen::class.java, updaterScreenIntent) }
         } else {
             NotificationData()
                 .setTitle(NOTIFICATION_TITLE)
