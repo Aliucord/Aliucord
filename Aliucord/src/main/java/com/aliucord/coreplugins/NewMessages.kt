@@ -14,7 +14,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.aliucord.Main
 import com.aliucord.entities.CorePlugin
 import com.aliucord.patcher.*
+import com.aliucord.utils.ChannelUtils
 import com.aliucord.utils.DimenUtils
+import com.aliucord.wrappers.users.globalName
 import com.discord.stores.StoreStream
 import com.discord.utilities.spans.ClickableSpan
 import com.discord.widgets.chat.list.adapter.*
@@ -70,16 +72,26 @@ internal class NewMessages : CorePlugin(Manifest("NewMessages")) {
 
             val renderCtx = `$usernameRenderContext` as `WidgetChatListAdapterItemSystemMessage$getSystemMessage$usernameRenderContext$1`
             val color = renderCtx.`$authorRoleColor`
-            val authorName = `$authorName`
-
-            val span = SpannableStringBuilder().apply {
-                val authorSpan = ClickableSpan(color, false, null) {
-                    val roleCtx = `$roleSubscriptionPurchaseContext` as `WidgetChatListAdapterItemSystemMessage$getSystemMessage$roleSubscriptionPurchaseContext$1`
-                    roleCtx.`this$0`.adapter.eventHandler.onMessageAuthorAvatarClicked(msg, StoreStream.getGuildSelected().selectedGuildId)
-                }
-                append(authorName, authorSpan, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
-                append(" accepted your friend request.")
+            val targetSpan = ClickableSpan(color, false, null) {
+                val roleCtx = `$roleSubscriptionPurchaseContext` as `WidgetChatListAdapterItemSystemMessage$getSystemMessage$roleSubscriptionPurchaseContext$1`
+                roleCtx.`this$0`.adapter.eventHandler.onMessageAuthorAvatarClicked(msg, StoreStream.getGuildSelected().selectedGuildId)
             }
+            val span = if (`$this_getSystemMessage`.author.id == StoreStream.getUsers().me.id) {
+                val channel = StoreStream.getChannelsSelected().selectedChannel
+                val recipient = ChannelUtils.getDMRecipient(channel)
+                val userName = recipient.globalName ?: recipient.username
+                SpannableStringBuilder().apply {
+                    append("You accepted ")
+                    append(userName, targetSpan, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    append("'s friend request.")
+                }
+            } else {
+                SpannableStringBuilder().apply {
+                    append(`$authorName`, targetSpan, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    append(" accepted your friend request.")
+                }
+            }
+
 
             param.result = span
         }
